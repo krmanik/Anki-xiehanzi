@@ -47,6 +47,9 @@ MIT License for this code
 # License for respective author's code used in this code
 https://hanziwriter.org/docs.html
 
+wordlist
+    - http://www.hskhsk.com/
+
 # Image Anki Desktop
 ![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/1.png)
 ![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/2.png)

@@ -1,0 +1,13 @@
+<div id='ch_sim'>
+   {{Simplified}}
+</div>
+<div id='ch_trad'>
+   {{Traditional}}
+</div>
+<div id='ch_pinyin'>
+   {{Pinyin}}
+</div>
+
+<div id='ch_meaning'>
+   {{English}}
+</div>

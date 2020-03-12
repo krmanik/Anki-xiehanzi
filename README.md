@@ -58,4 +58,4 @@ Note : The character is not taken from {{Simplified}}, it hard coded to
 var chars = document.getElementById('ch_sim').innerText;``` to var chars = '事';
 ```
 If android webview change then it work properly. I used it in cordova app. It working fine there. 
-![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/4.png)
+![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/4.jpg)

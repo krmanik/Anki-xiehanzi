@@ -9,9 +9,9 @@ https://github.com/infinyte7/Anki-maobi/blob/master/HSK1.apkg
    Hanziwriter is necessary for using this.
    It works fine for Anki Desktop but due to character encoding it does not work on android.
 
-# If I change  ```var chars = document.getElementById('ch_sim').innerText;``` to var chars = '比如汉字'; (hard code)
-# then it working properly in Ankidroid. But for getting info from innerText, innerHTML it does not work.
-# I am working on it. 
+## If I change  ```var chars = document.getElementById('ch_sim').innerText;``` to var chars = '比如汉字'; (hard code)
+## then it working properly in Ankidroid. But for getting info from innerText, innerHTML it does not work.
+## I am working on it. 
 
 ```
 ....

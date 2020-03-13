@@ -56,8 +56,7 @@ https://github.com/infinyte7/Anki-maobi/blob/master/cardCSS
 
 # Note 
    Hanziwriter is necessary for using this. The full code is added to front side of card.
-   [Hanziwriter](https://hanziwriter.org/docs.html)
-   It works fine for Anki Desktop but due to character encoding it does not work on Ankidroid.
+   For more check this. [Hanziwriter](https://hanziwriter.org/docs.html)
 
 # To Check if your card template support this code or not this simple code.
 ### Create new Deck and add chinese character to front then
@@ -71,7 +70,7 @@ document.getElementById('ch_length').innerHTML = characters.length;
 ```
 
 
-If you are getting correct length then proceed otherwise change card template to basic or use my [sample deck].
+### If you are getting correct length then proceed otherwise change card template to basic or use my [sample deck].
 
 ## Change preferences according to requirements 
 

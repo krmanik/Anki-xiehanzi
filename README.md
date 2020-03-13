@@ -90,19 +90,29 @@ If you are getting correct length then proceed otherwise change card template to
 <div id='ch_mean' style='display:block' ;>{{Meaning}}</div>
 ```
 
-Incorrect length of character ‘我’. It should be 1 but due some error in card template in anki it is showing 3.
-So check next for correct card template. 
+
+# Incorrect length of character ‘我’. It should be 1 but due some error in card template in anki it is showing 3. So check next for correct card template. 
+
 
 ![Image Incorrect](https://github.com/infinyte7/Anki-maobi/blob/master/incorrect.png)
 
-Add basic type deck in Manage note of AnkiDroid and then add and edit field for Simplified, Traditional, Pinyin and Meaning
+
+
+# Add basic type deck in Manage note of AnkiDroid and then add and edit field for Simplified, Traditional, Pinyin and Meaning
+
+
 ![Image Correct](https://github.com/infinyte7/Anki-maobi/blob/master/correct_1.png)
 
-#### Now It gives correct length for characters
+
+# Now It gives correct length for characters
+
 ![Image Correct](https://github.com/infinyte7/Anki-maobi/blob/master/correct.png)
 
-#### Then add front side of card
+
+# For implementing this
+#### Add front side of card
 ##### Front
+
 ```
 <!--MIT License-->
 <script>
@@ -314,8 +324,14 @@ Add basic type deck in Manage note of AnkiDroid and then add and edit field for 
 # License - Anki-maobi
 MIT License for this code
 
+### Button CSS
+I used css for button from following codepen. 
+https://codepen.io/sebj54/pen/oxluI
 
-# License - HanziWriter
+### Earlier I asked questions on Stackoverflow for showing character one by one
+https://stackoverflow.com/questions/60285131/i-want-one-character-at-a-time-on-html-page-after-completion-load-next-one
+
+## License - HanziWriter
 https://hanziwriter.org/docs.html
 
 The Hanzi Writer source code is released under terms of the MIT license. The MIT License is simple and easy to understand and it places almost no restrictions on what you can do with the Project. You are free to use the Project in any other project (even commercial projects) as long as the copyright header is left intact.

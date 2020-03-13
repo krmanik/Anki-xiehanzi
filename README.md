@@ -3,16 +3,16 @@ Practice writing chinese by drawing stroke in anki and ankidroid. I have use exi
 
 ## Check these file
 #### four field used in the deck
-##### {{Simplified}}
-##### {{Traditional}}
-##### {{Pinyin}}
-##### {{English}}
+###### {{Simplified}}
+###### {{Traditional}}
+###### {{Pinyin}}
+###### {{English}}
 
-### front side of card - add this front of the card
+#### front side of card - add this front of the card
 https://github.com/infinyte7/Anki-maobi/blob/master/frontcard
-### back side of card - add this to back of card
+#### back side of card - add this to back of card
 https://github.com/infinyte7/Anki-maobi/blob/master/backcard
-### css of card - add this to css of card
+#### css of card - add this to css of card
 https://github.com/infinyte7/Anki-maobi/blob/master/cardCSS
 
 # Download this sample apkg HSK1 
@@ -23,7 +23,7 @@ https://github.com/infinyte7/Anki-maobi/blob/master/HSK1.apkg
    [Hanziwriter](https://hanziwriter.org/docs.html)
    It works fine for Anki Desktop but due to character encoding it does not work on Ankidroid.
 
-## If I change  ```var chars = document.getElementById('ch_sim').innerText;``` to ```var chars = '比如汉字';``` (hard code) then it working properly in Ankidroid. But for getting info from innerText, innerHTML it does not work. I am working on it. The error is related to character encoding. 
+##### If I change  ```var chars = document.getElementById('ch_sim').innerText;``` to ```var chars = '比如汉字';``` (hard code) then it working properly in Ankidroid. But for getting info from innerText, innerHTML it does not work. I am working on it. The error is related to character encoding. 
 
 ### Contributions to code will be appreciated. 
 
@@ -71,7 +71,7 @@ The Hanzi Writer data comes from the [Make Me A Hanzi](https://github.com/skisho
 [www.hskhsk.com](http://www.hskhsk.com/)
 
 # Note:
-``` I have not implemented HanziWriter. It can be found at [hanziwriter](https://github.com/chanind/hanzi-writer)```
+I have not implemented HanziWriter. It can be found at [hanziwriter](https://github.com/chanind/hanzi-writer).
 
 # Image - Anki Desktop
 ![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/1.png)
@@ -79,7 +79,7 @@ The Hanzi Writer data comes from the [Make Me A Hanzi](https://github.com/skisho
 ![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/3.png)
 
 # Image - AnkiDroid 
-Note : The character is not taken from {{Simplified}} from front of card, it hard coded to
+Note : The character is not taken from {{Simplified}} from front side of card, it hard coded.
 ```var chars = document.getElementById('ch_sim').innerText;``` to ```var chars = '事';```
 
 If android webview change then it work properly. I used it in cordova app. It is working fine there. 

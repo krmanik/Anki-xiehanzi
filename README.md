@@ -2,6 +2,11 @@
 Practice writing chinese by drawing stroke in anki and ankidroid.
 
 
+## Check these file
+### frontcard
+### backcard
+### cardcss
+
 # Download this sample apkg HSK1 
 https://github.com/infinyte7/Anki-maobi/blob/master/HSK1.apkg
 

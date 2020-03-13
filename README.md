@@ -307,7 +307,7 @@ document.getElementById('ch_length').innerHTML = characters.length;
 }
 ```
 
-# Add you word meaning. If everything done correctly then you will the following result
+# Add your word meaning. If everything done correctly then you will get the following result
 ![Image Result](https://github.com/infinyte7/Anki-maobi/blob/master/result.png)
 
 # Demo 

@@ -45,7 +45,7 @@ The chinese character and stroke order data used by [Hanziwriter](https://github
 ###### {{Simplified}}
 ###### {{Traditional}}
 ###### {{Pinyin}}
-###### {{English}}
+###### {{Meaning}}
 
 #### front side of card - add this front of the card
 https://github.com/infinyte7/Anki-maobi/blob/master/frontcard
@@ -324,14 +324,12 @@ document.getElementById('ch_length').innerHTML = characters.length;
 ![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/result.png)
 
 
-# License - Anki-maobi
-MIT License for this code
-
 ### Button CSS
 I used css for button from following codepen. 
 https://codepen.io/sebj54/pen/oxluI
 
 ### Earlier I asked questions on Stackoverflow for showing character one by one
+I asked this question on Stackoverflow for my project in Cordova.
 https://stackoverflow.com/questions/60285131/i-want-one-character-at-a-time-on-html-page-after-completion-load-next-one
 
 ## License - HanziWriter
@@ -343,3 +341,27 @@ The Hanzi Writer data comes from the [Make Me A Hanzi](https://github.com/skisho
 
 ## wordlist
 [www.hskhsk.com](http://www.hskhsk.com/)
+
+
+# License - Anki-maobi
+MIT License for this code
+
+The MIT License
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software or code and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE / CODE.

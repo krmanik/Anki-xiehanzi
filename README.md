@@ -2,12 +2,16 @@
 Practice writing chinese by drawing stroke in anki and ankidroid. I have use existing js library for implementing this in Anki and Ankidroid. [Hanziwriter](https://github.com/chanind/hanzi-writer).
 
 # Quickstart
-## Download this sample apkg HSK1 for Anki Desktop 
+## Anki Desktop
+### Download this sample apkg HSK1 for Anki Desktop 
 #### Note: This will not work on mobile.
+Download this and import to Anki after that add characters and pinyin.
 https://github.com/infinyte7/Anki-maobi/blob/master/HSK1.apkg
 
-## Download this sample for Ankidroid 
+## AnkiDroid
+### Download this sample apkg for Ankidroid 
 #### Note: It is working on Android also.
+Download this and import to Ankidroid after that add characters and pinyin.
 Modify as per requirement.
 https://github.com/infinyte7/Anki-maobi/blob/master/Write_Chinese.apkg
 

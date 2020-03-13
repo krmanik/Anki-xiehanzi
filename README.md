@@ -10,7 +10,7 @@ https://github.com/infinyte7/Anki-maobi/blob/master/HSK1.apkg
 
 ## AnkiDroid
 ### Download this sample apkg for Ankidroid 
-#### Note: It is working on Android also.
+#### Note: It is working on Android.
 Download this and import to Ankidroid after that add characters and pinyin.
 Modify as per requirement.
 https://github.com/infinyte7/Anki-maobi/blob/master/Write_Chinese.apkg

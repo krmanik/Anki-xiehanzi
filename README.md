@@ -1,54 +1,71 @@
 # Anki-maobi
-Practice writing chinese by drawing stroke in anki and ankidroid. I have use existing js library for implementing this in Anki and Ankidroid. [Hanziwriter](https://github.com/chanind/hanzi-writer).
-
-# Quickstart
-## Anki Desktop
-### Download this sample apkg HSK1 for Anki Desktop 
-#### Note: This will not work on mobile.
-Download this and import to Anki after that add characters and pinyin.
-https://github.com/infinyte7/Anki-maobi/blob/master/HSK1.apkg
-
-## AnkiDroid
-### Download this sample apkg for Ankidroid 
-#### Note: It is working on Android.
-Download this and import to Ankidroid after that add characters and pinyin.
-Modify as per requirement.
-https://github.com/infinyte7/Anki-maobi/blob/master/Write_Chinese.apkg
+Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid. I have use existing js library for implementing this in Anki and Ankidroid. It is a script written in Javascript to front side of card template of anki deck.
 
 # Demo 
 ![Alt Text](https://github.com/infinyte7/Anki-maobi/blob/master/demo_ankidroid.gif)
 
+# Quickstart
+### Download HSK Anki apkg file for Anki or AnkiDroid
+Import this file to Anki or AnkiDroid for practicing HSK words.
+[HSK 1 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_1_Write.apkg?raw=true)
+[HSK 2 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_2_Write.apkg?raw=true)
+[HSK 3 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_3_Write.apkg?raw=true)
+[HSK 4 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_4_Write.apkg?raw=true)
+[HSK 5 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_5_Write.apkg?raw=true)
+[HSK 6 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_6_Write.apkg?raw=true)
+
+### To import in Ankidroid
+![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
 
 # Acknowledgement
-I have not designed the writing chinese js library Hanziwriter, it comes from the awesome Hanzi Writer JavaScript library.
+I have not designed the writing chinese js library Hanziwriter, it comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library.
 
 The chinese character and stroke order data used by [Hanziwriter](https://github.com/chanind/hanzi-writer)
- is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
+is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
+ 
  
  # Disclaimer
- This implemention in javascript. It works because the of Ankidroid use Android Webview for flashcard. 
+ This implemention is in javascript. It works because the of Ankidroid use Android Webview for flashcard review.
  
  # Contribution
  Any contribution will be appreciated.
  
  # Faq
  ### Did you create writing component?
- No, I have just implemet existing js library HanziWriter
+ No, I have just implemeted existing js library HanziWriter in Anki and Ankidroid.
  
  ### Did it work on mobile?
- Yes, It is working. But you have to select card template carefully. For more read below.
+ Yes, It is working. But you have to select card template carefully or download [Sample Deck]((https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)). For more read below.
  
  ### Does it work offline?
  No, It will not work offline. 
- Reason file size is very high. For total approx. 9000 characters size is approx. 30 mb.
+ Reason, file size is very high. For total approx. 9000 characters size is approx. 30 mb.
  But It can be made offline. 
 
+## Create your own word list from this sample apkg (Anki Desktop required)
+  #### 1. Download this sample apkg [Write_Chinese.apkg](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)
+  
+  #### 2. Import this sample deck in Anki Desktop
+  
+  ![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_Deck_Rename.png)
+  
+  #### 3. After that again click import and select wordlist. Then select note type to 'Basic ( Write Chinese )' and Deck to newly imported        and renamed deck.
+  
+  ![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/map_to_field_1.png)
+  
+  #### 4. After done everything done correctly.
+  
+  ![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/welcome.png)
+  
+  #### 5. Export that deck to apkg and import it in mobile.
+
+
 ## Check these file
-#### four field used in the deck
-###### {{Simplified}}
-###### {{Traditional}}
-###### {{Pinyin}}
-###### {{Meaning}}
+#### four field used in the sample deck 
+##### {{Simplified}}
+##### {{Traditional}}
+##### {{Pinyin}}
+##### {{Meaning}}
 
 #### front side of card - add this front of the card
 https://github.com/infinyte7/Anki-maobi/blob/master/frontcard
@@ -60,7 +77,7 @@ https://github.com/infinyte7/Anki-maobi/blob/master/cardCSS
 # Note 
    Hanziwriter is necessary for using this. The full code is added to front side of card.
    For more check this. [Hanziwriter](https://hanziwriter.org/docs.html)
-
+   
 # To Check if your card template support this code or not this simple code.
 ### Create new Deck and add chinese character to front then
 ```
@@ -97,25 +114,25 @@ document.getElementById('ch_length').innerHTML = characters.length;
 ```
 
 
-# Incorrect length of character ‘我’. It should be 1 but due some error in card template in anki it is showing 3. So check next for correct card template. 
+### Incorrect length of character ‘我’. It should be 1 but due some error in card template in anki it is showing 3. So check next for correct card template. 
 
 
 ![Image Incorrect](https://github.com/infinyte7/Anki-maobi/blob/master/image/incorrect.png)
 
 
 
-# Add basic type deck in Manage note of AnkiDroid and then add and edit field for Simplified, Traditional, Pinyin and Meaning
+### Add basic type deck in Manage note of AnkiDroid and then add and edit field for Simplified, Traditional, Pinyin and Meaning
 
 
 ![Image Correct](https://github.com/infinyte7/Anki-maobi/blob/master/image/correct_1.png)
 
 
-# Now It gives correct length for characters
+### Now It gives correct length for characters
 
 ![Image Correct](https://github.com/infinyte7/Anki-maobi/blob/master/image/correct.png)
 
 
-# For implementing this
+## For implementing this
 #### Add front side of card
 ##### Front
 
@@ -310,25 +327,48 @@ document.getElementById('ch_length').innerHTML = characters.length;
 }
 ```
 
-# Add your word meaning. If everything done correctly then you will get the following result
+### Add your word meaning. If everything done correctly then you will get the following result
 ![Image Result](https://github.com/infinyte7/Anki-maobi/blob/master/image/result.png)
 
 
-# Image - Anki Desktop
-![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/image/1.png)
-![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/image/2.png)
-![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/image/3.png)
+## Image - Anki Desktop
+![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/welcome.png)
 
-# Image - AnkiDroid 
+## Image - AnkiDroid 
 ![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/image/result.png)
 
 
 # Todo
- 1. Add sound effects
- 2. Auto Show Answer 
- 3. One Button to Show details about characters fetch from internet
- 4. One Button to show and customize preference
- 5. Automatic add of word list
+ 1. Loading character when offline
+ 2. Add sound effects
+ 3. Auto Show Answer 
+ 4. One Button to Show details about characters fetch from dictionary / internet
+ 5. One Button to show and customize preference
+ 6. Automatic add of word list
+
+
+# License
+### HanziWriter
+https://hanziwriter.org/docs.html
+
+The Hanzi Writer source code is released under terms of the MIT license. The MIT License is simple and easy to understand and it places almost no restrictions on what you can do with the Project. You are free to use the Project in any other project (even commercial projects) as long as the copyright header is left intact.
+
+The Hanzi Writer data comes from the [Make Me A Hanzi](https://github.com/skishore/makemeahanzi) project, which extracted the data from fonts by Arphic Technology, a Taiwanese font forge that released their work under a permissive license in 1999. You can redistribute and/or modify this data under the terms of the Arphic Public License as published by Arphic Technology Co., Ltd. A copy of this license can be found in  [ARPHICPL.TXT](https://github.com/infinyte7/Anki-maobi/blob/master/ARPHICPL.TXT).
+
+### New HSK Word Lists
+Copyright Alan Davies, alan@hskhsk.com 2013-2020
+Free to be copied, distributed, or modified for non-commercial use.
+http://www.hskhsk.com/word-lists.html
+
+### Make Me a Hanzi
+Copyright 1999 Arphic Technology Co., Ltd.; Copyright 2016 Shaunak Kishore.
+Licensed under the Arphic Public License.
+https://github.com/skishore/makemeahanzi
+
+### Arphic PL KaitiM GB and UKai
+Copyright 1999 Arphic Technology Co., Ltd.
+Licensed under the Arphic Public License.
+http://www.arphic.com.tw/en/home/index
 
 ### Button CSS
 I used css for button from following codepen. 
@@ -338,22 +378,11 @@ https://codepen.io/sebj54/pen/oxluI
 I asked this question on Stackoverflow for my project in Cordova.
 https://stackoverflow.com/questions/60285131/i-want-one-character-at-a-time-on-html-page-after-completion-load-next-one
 
-## License - HanziWriter
-https://hanziwriter.org/docs.html
-
-The Hanzi Writer source code is released under terms of the MIT license. The MIT License is simple and easy to understand and it places almost no restrictions on what you can do with the Project. You are free to use the Project in any other project (even commercial projects) as long as the copyright header is left intact.
-
-The Hanzi Writer data comes from the [Make Me A Hanzi](https://github.com/skishore/makemeahanzi) project, which extracted the data from fonts by Arphic Technology, a Taiwanese font forge that released their work under a permissive license in 1999. You can redistribute and/or modify this data under the terms of the Arphic Public License as published by Arphic Technology Co., Ltd. A copy of this license can be found in  [ARPHICPL.TXT](https://github.com/infinyte7/Anki-maobi/blob/master/ARPHICPL.TXT).
-
-## wordlist
-[www.hskhsk.com](http://www.hskhsk.com/)
-
-
 # License - Anki-maobi
-MIT License for this code
+Author : Infinyte7
+MIT License for using this code.
 
 The MIT License
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software or code and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights

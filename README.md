@@ -324,6 +324,13 @@ document.getElementById('ch_length').innerHTML = characters.length;
 ![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/result.png)
 
 
+# Todo
+ 1. Add sound effects
+ 2. Auto Show Answer 
+ 3. One Button to Show details about characters fetch from internet
+ 4. One Button to show and customize preference
+ 5. Automatic add of word list
+
 ### Button CSS
 I used css for button from following codepen. 
 https://codepen.io/sebj54/pen/oxluI

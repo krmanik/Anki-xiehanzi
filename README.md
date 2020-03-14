@@ -2,7 +2,7 @@
 Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid. I have use existing js library for implementing this in Anki and Ankidroid. It is a script written in Javascript to front side of card template of anki deck.
 
 # Demo 
-![Alt Text](https://github.com/infinyte7/Anki-maobi/blob/master/demo_ankidroid.gif | height=300)
+![Alt Text](https://github.com/infinyte7/Anki-maobi/blob/master/demo_ankidroid.gif)
 
 
 # Quickstart

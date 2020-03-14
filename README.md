@@ -2,35 +2,58 @@
 Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid. I have use existing js library for implementing this in Anki and Ankidroid. It is a script written in Javascript to front side of card template of anki deck.
 
 # Demo 
-![Alt Text](https://github.com/infinyte7/Anki-maobi/blob/master/demo_ankidroid.gif)
+![Alt Text](https://github.com/infinyte7/Anki-maobi/blob/master/demo_ankidroid.gif | height=300)
+
 
 # Quickstart
 ### Download HSK Anki apkg file for Anki or AnkiDroid
 Import this file to Anki or AnkiDroid for practicing HSK words.
-[HSK 1 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_1_Write.apkg?raw=true)
-[HSK 2 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_2_Write.apkg?raw=true)
-[HSK 3 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_3_Write.apkg?raw=true)
-[HSK 4 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_4_Write.apkg?raw=true)
-[HSK 5 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_5_Write.apkg?raw=true)
-[HSK 6 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_6_Write.apkg?raw=true)
+<br>[HSK 1 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_1_Write.apkg?raw=true)
+<br>[HSK 2 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_2_Write.apkg?raw=true)
+<br>[HSK 3 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_3_Write.apkg?raw=true)
+<br>[HSK 4 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_4_Write.apkg?raw=true)
+<br>[HSK 5 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_5_Write.apkg?raw=true)
+<br>[HSK 6 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_6_Write.apkg?raw=true)
 
 ### To import in Ankidroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
 
-# Acknowledgement
+
+## Change preferences according to requirements 
+
+```
+<!--MIT License-->
+<script>
+    //customize preference
+    var char_height = 300;
+    var char_width = 300;
+    var show_outline = 'true';
+    var strokeWidth = 20;   
+</script>
+<!--Change it 0 or 1 for hide or show-->
+<div id='ch_sim' style='opacity:1' ;>{{Simplified}}</div>
+<!--Change it block or none in display to hide and show-->
+<div id='ch_trad' style='display:block' ;>{{Traditional}}</div>
+
+<div id='ch_pin' style='display:block' ;>{{Pinyin}}</div>
+
+<div id='ch_mean' style='display:block' ;>{{Meaning}}</div>
+```
+
+## Acknowledgement
 I have not designed the writing chinese js library Hanziwriter, it comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library.
 
 The chinese character and stroke order data used by [Hanziwriter](https://github.com/chanind/hanzi-writer)
 is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
  
  
- # Disclaimer
+ ## Disclaimer
  This implemention is in javascript. It works because the of Ankidroid use Android Webview for flashcard review.
  
- # Contribution
+ ## Contribution
  Any contribution will be appreciated.
  
- # Faq
+## Faq?
  ### Did you create writing component?
  No, I have just implemeted existing js library HanziWriter in Anki and Ankidroid.
  
@@ -49,7 +72,7 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
   
   ![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_Deck_Rename.png)
   
-  #### 3. After that again click import and select wordlist. Then select note type to 'Basic ( Write Chinese )' and Deck to newly imported        and renamed deck.
+  #### 3. After that again click import and select wordlist. Then change note type to 'Basic ( Write Chinese )' and Deck to newly imported and renamed deck. After that map the field of words list. Note:- field {{Simplified}} is used for stroke order.
   
   ![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/map_to_field_1.png)
   
@@ -58,8 +81,8 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
   ![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/welcome.png)
   
   #### 5. Export that deck to apkg and import it in mobile.
-
-
+  
+<br>  
 ## Check these file
 #### four field used in the sample deck 
 ##### {{Simplified}}
@@ -91,41 +114,14 @@ document.getElementById('ch_length').innerHTML = characters.length;
 
 
 ### If you are getting correct length then proceed otherwise change card template to basic or use my [sample deck].
-
-## Change preferences according to requirements 
-
-```
-<!--MIT License-->
-<script>
-    //customize preference
-    var char_height = 300;
-    var char_width = 300;
-    var show_outline = 'true';
-    var strokeWidth = 20;   
-</script>
-<!--Change it 0 or 1 for hide or show-->
-<div id='ch_sim' style='opacity:1' ;>{{Simplified}}</div>
-<!--Change it block or none in display to hide and show-->
-<div id='ch_trad' style='display:block' ;>{{Traditional}}</div>
-
-<div id='ch_pin' style='display:block' ;>{{Pinyin}}</div>
-
-<div id='ch_mean' style='display:block' ;>{{Meaning}}</div>
-```
-
-
-### Incorrect length of character ‘我’. It should be 1 but due some error in card template in anki it is showing 3. So check next for correct card template. 
-
+#### Incorrect length of character ‘我’. It should be 1 but due some error in card template in anki it is showing 3. So check next for correct card template. 
 
 ![Image Incorrect](https://github.com/infinyte7/Anki-maobi/blob/master/image/incorrect.png)
 
 
-
-### Add basic type deck in Manage note of AnkiDroid and then add and edit field for Simplified, Traditional, Pinyin and Meaning
-
+#### Add basic type deck in Manage note of AnkiDroid and then add and edit field for Simplified, Traditional, Pinyin and Meaning
 
 ![Image Correct](https://github.com/infinyte7/Anki-maobi/blob/master/image/correct_1.png)
-
 
 ### Now It gives correct length for characters
 
@@ -328,14 +324,13 @@ document.getElementById('ch_length').innerHTML = characters.length;
 ```
 
 ### Add your word meaning. If everything done correctly then you will get the following result
+
+## Image - AnkiDroid 
 ![Image Result](https://github.com/infinyte7/Anki-maobi/blob/master/image/result.png)
 
 
 ## Image - Anki Desktop
 ![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/welcome.png)
-
-## Image - AnkiDroid 
-![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/image/result.png)
 
 
 # Todo

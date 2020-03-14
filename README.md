@@ -16,7 +16,7 @@ Modify as per requirement.
 https://github.com/infinyte7/Anki-maobi/blob/master/Write_Chinese.apkg
 
 # Demo 
-![Alt Text](https://github.com/infinyte7/Anki-maobi/blob/master/demo_ankidroid.gif =640x480)
+![Alt Text](https://github.com/infinyte7/Anki-maobi/blob/master/demo_ankidroid.gif)
 
 
 # Acknowledgement

@@ -82,7 +82,7 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
   
   #### 5. Export that deck to apkg and import it in mobile.
   
-<br>  
+  
 ## Check these file
 #### four field used in the sample deck 
 ##### {{Simplified}}

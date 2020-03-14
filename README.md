@@ -100,19 +100,19 @@ document.getElementById('ch_length').innerHTML = characters.length;
 # Incorrect length of character ‘我’. It should be 1 but due some error in card template in anki it is showing 3. So check next for correct card template. 
 
 
-![Image Incorrect](https://github.com/infinyte7/Anki-maobi/blob/master/incorrect.png)
+![Image Incorrect](https://github.com/infinyte7/Anki-maobi/blob/master/image/incorrect.png)
 
 
 
 # Add basic type deck in Manage note of AnkiDroid and then add and edit field for Simplified, Traditional, Pinyin and Meaning
 
 
-![Image Correct](https://github.com/infinyte7/Anki-maobi/blob/master/correct_1.png)
+![Image Correct](https://github.com/infinyte7/Anki-maobi/blob/master/image/correct_1.png)
 
 
 # Now It gives correct length for characters
 
-![Image Correct](https://github.com/infinyte7/Anki-maobi/blob/master/correct.png)
+![Image Correct](https://github.com/infinyte7/Anki-maobi/blob/master/image/correct.png)
 
 
 # For implementing this
@@ -311,16 +311,16 @@ document.getElementById('ch_length').innerHTML = characters.length;
 ```
 
 # Add your word meaning. If everything done correctly then you will get the following result
-![Image Result](https://github.com/infinyte7/Anki-maobi/blob/master/result.png)
+![Image Result](https://github.com/infinyte7/Anki-maobi/blob/master/image/result.png)
 
 
 # Image - Anki Desktop
-![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/1.png)
-![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/2.png)
-![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/3.png)
+![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/image/1.png)
+![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/image/2.png)
+![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/image/3.png)
 
 # Image - AnkiDroid 
-![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/result.png)
+![Image description](https://github.com/infinyte7/Anki-maobi/blob/master/image/result.png)
 
 
 # Todo

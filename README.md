@@ -15,6 +15,9 @@ Download this and import to Ankidroid after that add characters and pinyin.
 Modify as per requirement.
 https://github.com/infinyte7/Anki-maobi/blob/master/Write_Chinese.apkg
 
+# Demo 
+![Alt Text](https://github.com/infinyte7/Anki-maobi/blob/master/demo_ankidroid.gif)
+
 
 # Acknowledgement
 I have not designed the writing chinese js library Hanziwriter, it comes from the awesome Hanzi Writer JavaScript library.
@@ -309,10 +312,6 @@ document.getElementById('ch_length').innerHTML = characters.length;
 
 # Add your word meaning. If everything done correctly then you will get the following result
 ![Image Result](https://github.com/infinyte7/Anki-maobi/blob/master/result.png)
-
-# Demo 
-![Alt Text](https://github.com/infinyte7/Anki-maobi/blob/master/demo_ankidroid.gif)
-
 
 
 # Image - Anki Desktop

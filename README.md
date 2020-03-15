@@ -15,6 +15,9 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 <br>[HSK 5 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_5_Write.apkg?raw=true)
 <br>[HSK 6 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_6_Write.apkg?raw=true)
 
+### Or Download from anki shared deck website.
+https://ankiweb.net/shared/info/820120967
+
 ### To import in Ankidroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
 
@@ -364,6 +367,7 @@ https://ankiweb.net/about
 https://ankiweb.net/account/login
 
 ### Before doing the following steps, please make backups of anki decks. Otherwise it may overwrite previous anki decks and data may lost.
+[Practice Mandarin in Anki and Ankidroid by drawing strokes .apkg file](https://ankiweb.net/shared/info/820120967)
 ![Image Import Anki Deck](https://github.com/infinyte7/Anki-maobi/blob/master/image/anki_demo_import.gif)
 
 # Todo

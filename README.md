@@ -60,7 +60,7 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  No, I have just implemeted existing js library HanziWriter in Anki and Ankidroid.
  
  ### Did it work on mobile?
- Yes, It is working. But you have to select card template carefully or download [Sample Deck]((https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)). For more read below.
+ Yes, It is working. But you have to select card template carefully or download [Sample Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true). For more read below.
  
  ### Does it work offline?
  No, It will not work offline. 
@@ -360,7 +360,9 @@ document.getElementById('ch_length').innerHTML = characters.length;
 
 ## Importing it ankiweb to practice online without installing anki app.
 https://ankiweb.net/about
+
 https://ankiweb.net/account/login
+
 ![Image Import Anki Deck](https://github.com/infinyte7/Anki-maobi/blob/master/image/anki_demo_import.gif)
 
 # Todo

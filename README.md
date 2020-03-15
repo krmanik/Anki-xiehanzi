@@ -332,6 +332,10 @@ document.getElementById('ch_length').innerHTML = characters.length;
 ## Image - Anki Desktop
 ![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/xiehanzi.png)
 
+## Importing it ankiweb to practice online without installing anki app.
+https://ankiweb.net/about
+https://ankiweb.net/account/login
+![Image Import Anki Deck](https://github.com/infinyte7/Anki-maobi/blob/master/image/anki_demo_import.gif)
 
 # Todo
  1. Loading character when offline

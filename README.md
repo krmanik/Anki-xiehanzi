@@ -363,6 +363,7 @@ https://ankiweb.net/about
 
 https://ankiweb.net/account/login
 
+### Before doing the following steps, please make backups of anki decks. Otherwise it may overwrite previous anki decks and data may lost.
 ![Image Import Anki Deck](https://github.com/infinyte7/Anki-maobi/blob/master/image/anki_demo_import.gif)
 
 # Todo

@@ -16,7 +16,11 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 <br>[HSK 6 Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/HSK_6_Write.apkg?raw=true)
 
 ### Or Download from anki shared deck website.
+#### HSK1
 https://ankiweb.net/shared/info/820120967
+
+#### HSK1 to HSK6
+https://ankiweb.net/shared/info/1676128101
 
 ### To import in Ankidroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)

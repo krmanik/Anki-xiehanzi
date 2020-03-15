@@ -64,6 +64,27 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  No, It will not work offline. 
  Reason, file size is very high. For total approx. 9000 characters size is approx. 30 mb.
  But It can be made offline. 
+ 
+ ### Characters are not loading or showing?
+ It may be due to internet slow. Wait for second to load.
+ For every character it loads data from using following request. For character ‘我’. For more. [Hanzi Writer Data](https://github.com/chanind/hanzi-writer-data)
+ ```
+ https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/我.json
+ ```
+ In HanziWriter the code where it can change to access local character data. Or it can be used to make offline character loading.
+ For more check. [https://cdn.jsdelivr.net/npm/hanzi-writer/dist/hanzi-writer.js]
+ ```
+ ...
+ ...
+ var VERSION = '2.0';
+ var getCharDataUrl = function getCharDataUrl(char) {
+ 	return 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@' + VERSION + '/' + char + '.json';
+	};
+module.exports = function (char, onLoad, onError) {
+  // load char data from hanziwriter cdn (currently hosted on jsdelivr)
+...
+...
+ ```
 
 ## Create your own word list from this sample apkg (Anki Desktop required)
   #### 1. Download this sample apkg [Write_Chinese.apkg](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)

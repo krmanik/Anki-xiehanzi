@@ -30,8 +30,10 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
     var show_outline = 'true';
     var strokeWidth = 20;   
 </script>
+
 <!--Change it 0 or 1 for hide or show-->
 <div id='ch_sim' style='opacity:1' ;>{{Simplified}}</div>
+
 <!--Change it block or none in display to hide and show-->
 <div id='ch_trad' style='display:block' ;>{{Traditional}}</div>
 
@@ -41,7 +43,7 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 ```
 
 ## Acknowledgement
-I have not designed the writing chinese js library Hanziwriter, it comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library.
+I have not designed the writing chinese js library Hanziwriter, it comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library. 
 
 The chinese character and stroke order data used by [Hanziwriter](https://github.com/chanind/hanzi-writer)
 is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
@@ -66,13 +68,16 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  But It can be made offline. 
  
  ### Characters are not loading or showing?
- It may be due to internet slow. Wait for second to load.
- For every character it loads data from using following request. For character ‘我’. For more. [Hanzi Writer Data](https://github.com/chanind/hanzi-writer-data)
+ It may be due to slow internet. Wait for seconds to load the characters data.
+ For every character it loads data from jsdelivr.net using following request. For character ‘我’.
  ```
  https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/我.json
  ```
- In HanziWriter the code where it can change to access local character data. Or it can be used to make offline character loading.
- For more check. [https://cdn.jsdelivr.net/npm/hanzi-writer/dist/hanzi-writer.js]
+ 
+ For more visit [Hanzi Writer Data](https://github.com/chanind/hanzi-writer-data)
+ 
+ In HanziWriter the code where it can be changed to access local characters data, or it can be used to make offline characters loading.
+ For more visit [https://cdn.jsdelivr.net/npm/hanzi-writer/dist/hanzi-writer.js]
  ```
  ...
  ...
@@ -85,6 +90,7 @@ module.exports = function (char, onLoad, onError) {
 ...
 ...
  ```
+
 
 ## Create your own word list from this sample apkg (Anki Desktop required)
   #### 1. Download this sample apkg [Write_Chinese.apkg](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)
@@ -105,7 +111,7 @@ module.exports = function (char, onLoad, onError) {
   
   
 ## Check these file
-#### four field used in the sample deck 
+#### four field used in the [sample deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)
 ##### {{Simplified}}
 ##### {{Traditional}}
 ##### {{Pinyin}}
@@ -132,7 +138,6 @@ var characters = document.getElementById('frontText').innerHTML;
 document.getElementById('ch_length').innerHTML = characters.length;
 </script>
 ```
-
 
 ### If you are getting correct length then proceed otherwise change card template to basic or use my [sample deck].
 #### Incorrect length of character ‘我’. It should be 1 but due some error in card template in anki it is showing 3. So check next for correct card template. 

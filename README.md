@@ -1,8 +1,8 @@
-# Anki-xiehanzi (写汉字）
+# Anki- xiě hànzì (写汉字）
 Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid. I have used existing js library for implementing this in Anki and Ankidroid. It is a script written in Javascript to front side of card template of anki deck.
 
 # Demo 
-![Alt Text](https://github.com/infinyte7/Anki-maobi/blob/master/demo_ankidroid.gif)
+![Alt Text](https://github.com/infinyte7/Anki-xiehanzi/blob/master/demo_ankidroid.gif)
 
 
 # Quickstart
@@ -125,11 +125,11 @@ module.exports = function (char, onLoad, onError) {
 ##### {{Meaning}}
 
 #### front side of card - add this front of the card
-https://github.com/infinyte7/Anki-maobi/blob/master/frontcard
+https://github.com/infinyte7/Anki-xiehanzi/blob/master/frontcard
 #### back side of card - add this to back of card
-https://github.com/infinyte7/Anki-maobi/blob/master/backcard
+https://github.com/infinyte7/Anki-xiehanzi/blob/master/backcard
 #### css of card - add this to css of card
-https://github.com/infinyte7/Anki-maobi/blob/master/cardCSS
+https://github.com/infinyte7/Anki-xiehanzi/blob/master/cardCSS
 
 # Note 
    Hanziwriter is necessary for using this. The full code is added to front side of card.

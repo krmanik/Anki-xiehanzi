@@ -76,9 +76,9 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
   
   ![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/map_to_field_1.png)
   
-  #### 4. After done everything done correctly.
+  #### 4. After done everything correctly.
   
-  ![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/welcome.png)
+  ![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/xiehanzi.png)
   
   #### 5. Export that deck to apkg and import it in mobile.
   
@@ -330,7 +330,7 @@ document.getElementById('ch_length').innerHTML = characters.length;
 
 
 ## Image - Anki Desktop
-![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/welcome.png)
+![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/xiehanzi.png)
 
 
 # Todo

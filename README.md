@@ -1,4 +1,4 @@
-# Anki-maobi
+# Anki-xiehanzi (写汉字）
 Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid. I have used existing js library for implementing this in Anki and Ankidroid. It is a script written in Javascript to front side of card template of anki deck.
 
 # Demo 

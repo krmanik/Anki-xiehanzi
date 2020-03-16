@@ -489,6 +489,11 @@ Copyright 1999 Arphic Technology Co., Ltd.
 Licensed under the Arphic Public License.
 http://www.arphic.com.tw/en/home/index
 
+### Anki Persistence
+MIT License
+Copyright (c) 2018 Simon Lammer
+https://github.com/SimonLammer/anki-persistence
+
 ### Button CSS
 I used css for button from following codepen. 
 https://codepen.io/sebj54/pen/oxluI

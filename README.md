@@ -112,6 +112,21 @@ Hide meaning
 <div id='ch_mean' style='display:block' ;>{{Meaning}}</div>
 ```
 
+## Deck with options to be selected.
+Show and hide simplified, traditional charactes, pinyin and meaning. Just from side navigation.
+It uses [anki-persistence](https://github.com/SimonLammer/anki-persistence) for storing data.
+Note: changes will be reflected to next card. It may not work on some devices. But tested to be work on most devices.
+[Front Card 1.1](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/frontcard_1.1)
+[Back Card 1.1](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/backcard_1.1)
+[Card CSS 1.1](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/cardCSS_1.1)
+
+#### HSK 1 Dek
+Make Backups before importing this.
+[HSK_1_Write_1.1.apkg](https://github.com/infinyte7/Anki-xiehanzi/blob/master/HSK%20Anki%20apkg/HSK_1_Write_1.1.apkg?raw=true)
+
+![Alt Text](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/xiehanzi_demo_menu.gif)
+
+
 ## Acknowledgement
 I have not designed the writing chinese js library Hanziwriter, it comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library. 
 

@@ -28,13 +28,76 @@ https://ankiweb.net/shared/info/1676128101
 
 ## Change preferences according to requirements 
 
+#### For not showing outline of characters
+set show_outline to false
+```
+var show_outline = false;
+```
+
+#### For showing outline of characters
+set show_outline to true
+```
+   var show_outline = true;  
+```
+
+#### For changing height and width of characters
+Change the values according to screen size of your devices.
+```
+    var char_height = 300; // <-- change this 
+    var char_width = 300;  // <-- change this
+```
+
+#### Change size of stroke to draw on screen
+```
+    var strokeWidth = 10; //    
+```
+#### To show or hide simplified characters on top drawing grid
+Change opacity in style to <b>0</b> for hiding simplified characters
+```
+    <div id='ch_sim' style='opacity:0' ;>{{Simplified}}</div
+```
+
+Change it to <b>1</b> for showing simplified characters
+```
+    <div id='ch_sim' style='opacity:1' ;>{{Simplified}}</div
+```
+
+#### To show or hide traditional characters on top of drawing grid
+Change style <b>display:block</b> for showing traditional characters
+```
+<div id='ch_trad' style='display:block' ;>{{Traditional}}</div>
+```
+
+Change style to <b>display:none</b> to hide traditional characters
+```
+<div id='ch_trad' style='display:none' ;>{{Traditional}}</div>
+```
+##### Same for pinyin and meaning
+Show pinyin
+```
+<div id='ch_pin' style='display:block' ;>{{Pinyin}}</div>
+```
+Hide pinyin
+```
+<div id='ch_pin' style='display:none' ;>{{Pinyin}}</div>
+```
+
+Show meaning
+```
+<div id='ch_mean' style='display:block' ;>{{Meaning}}</div>
+```
+Hide meaning
+```
+<div id='ch_mean' style='display:none' ;>{{Meaning}}</div>
+```
+#### The code after changes may look like this.
 ```
 <!--MIT License-->
 <script>
     //customize preference
     var char_height = 300;
     var char_width = 300;
-    var show_outline = 'true';
+    var show_outline = true;
     var strokeWidth = 20;   
 </script>
 

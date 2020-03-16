@@ -491,16 +491,16 @@ http://www.arphic.com.tw/en/home/index
 
 ### Anki Persistence
 MIT License
-Copyright (c) 2018 Simon Lammer
-https://github.com/SimonLammer/anki-persistence
+Copyright (c) 2018 Simon Lammer.
+<br>https://github.com/SimonLammer/anki-persistence
 
 ### Button CSS
-I used css for button from following codepen. 
-https://codepen.io/sebj54/pen/oxluI
+I used css for button from following codepen.
+<br>https://codepen.io/sebj54/pen/oxluI
 
 ### Earlier I asked questions on Stackoverflow for showing character one by one
 I asked this question on Stackoverflow for my project in Cordova.
-https://stackoverflow.com/questions/60285131/i-want-one-character-at-a-time-on-html-page-after-completion-load-next-one
+<br>https://stackoverflow.com/questions/60285131/i-want-one-character-at-a-time-on-html-page-after-completion-load-next-one
 
 # License - Anki-xiehanzi (写汉字)
 Author : Infinyte7

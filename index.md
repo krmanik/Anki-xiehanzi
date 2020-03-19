@@ -14,6 +14,8 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 <br>  -[HSK 5 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK5.apkg?raw=true)
 <br>  -[HSK 6 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK6.apkg?raw=true)
 
+## Download from Ankiweb
+[Practice Mandarin HSK1--HSK6 by drawing strokes (with audio)](https://ankiweb.net/shared/info/119943820)
 
 ### Feautres
 - Write characters to learn Mandarin with Simplified, Traditional, Pinyin and Meaning

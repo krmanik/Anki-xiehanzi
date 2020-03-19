@@ -35,7 +35,9 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  
  
  ## Disclaimer
- This implemention is in javascript. It works because the of Ankidroid use Android Webview for flashcard review.
+ This implemention is in javascript. It works because the of Ankidroid uses Android Webview for flashcard review. It is just     
+ implementation of HanziWriter in Anki and AnkiDroid. It may not work in some devices. Please make backups of your AnkiDroid decks 
+ before importing xiehanzi hsk decks.
  
  ## Contribution
  Any contribution will be appreciated.

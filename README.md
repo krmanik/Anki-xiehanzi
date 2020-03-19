@@ -10,6 +10,8 @@ Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroi
 
 # Quickstart
 ### Download HSK Anki apkg file for Anki or AnkiDroid
+#### Before import Anki Deck please make backups.
+
 Import this file to Anki or AnkiDroid for practicing HSK words.
 <br>[HSK 1 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK1.apkg?raw=true)
 <br>[HSK 2 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK2.apkg?raw=true)
@@ -22,7 +24,6 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 ### To import in Ankidroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
 
- #### Before import Anki Deck please make backups.
 
 ### Create your own deck then [Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
 

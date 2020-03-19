@@ -2,7 +2,7 @@
 Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid. I have used existing js library for implementing this in Anki and Ankidroid. It is a script written in Javascript to front side of card template of anki deck.
 
 # Demo 
-
+![Demo GIF](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/xiehanzi_anki_demo.gif?raw=true)
 
 # Quickstart
 ### Download HSK Anki apkg file for Anki or AnkiDroid
@@ -39,25 +39,25 @@ The chinese character and stroke order data used by [Hanziwriter](https://github
 is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
  
  
- ## Disclaimer
+## Disclaimer
  This implemention is in javascript. It works because the of Ankidroid use Android Webview for flashcard review.
  
- ## Contribution
+## Contribution
  Any contribution will be appreciated.
  
- ## Faq?
- ### Did you create writing component?
+## Faq?
+### Did you create writing component?
  No, I have just implemeted existing js library HanziWriter in Anki and Ankidroid.
  
- ### Did it work on mobile?
+### Did it work on mobile?
  Yes, It is working. But you have to select card template carefully or download [Sample Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true). For more read below.
  
- ### Does it work offline?
+### Does it work offline?
  No, It will not work offline. 
  Reason, file size is very high. For total approx. 9000 characters size is approx. 30 mb.
  But It can be made offline. 
  
- ### Characters are not loading or showing?
+### Characters are not loading or showing?
  It may be due to slow internet. Wait for seconds to load the characters data.
 
 
@@ -65,10 +65,12 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
 [Read more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
 
 
-# License - Anki-xiehanzi (写汉字)
+## License - Anki-xiehanzi (写汉字)
 The MIT License
 Author : Infinyte7
 https://github.com/infinyte7/Anki-xiehanzi
+
+## Other Third Party Licenses
 [Third Party License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)
 
 

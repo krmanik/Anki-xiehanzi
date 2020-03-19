@@ -56,7 +56,8 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  This implemention is in javascript. It works because the of Ankidroid uses Android Webview for flashcard review. It is just
  implementation of HanziWriter in Anki and AnkiDroid. It may not work in some devices. Please make backups of your AnkiDroid decks  
  before importing xiehanzi hsk decks.
- I have used [this (audio-cmn)](https://github.com/hugolpz/audio-cmn) to add audio to HSK characters. May be some audio missing.   
+ I have used [this (audio-cmn)](https://github.com/hugolpz/audio-cmn) to add audio to HSK characters. May be some audio missing. 
+ Some audio files missing but using a simply python script audio file can be generated using text to speech. [Read](https://github.com/infinyte7/gtts-textToMp3)
 
 ## Contribution
  Any contribution will be appreciated.

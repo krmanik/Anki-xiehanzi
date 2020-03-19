@@ -1,6 +1,47 @@
+/******START Material Icon********/
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url(MaterialIcons-Regular.eot); /* For IE6-8 */
+  src: local('Material Icons'),
+       local('MaterialIcons-Regular'),
+       url(_MaterialIcons-Regular.woff2) format('woff2'),
+       url(_MaterialIcons-Regular.woff) format('woff'),
+       url(_MaterialIcons-Regular.ttf) format('truetype');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;  /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Support for IE. */
+  font-feature-settings: 'liga';
+}
+/******END Material Icon********/
+
+/************START grid***************/
 .grid-color{
  background-color: #FAFAFA;
 }
+/************END grid***************/
 .card {
  font-family: arial;
  font-size: 20px;
@@ -13,15 +54,14 @@
 }
 .modal-footer a {
 	display:inline-block;
-	margin:0 15px;
+	margin:0 8px;
 	float:none; 
 }
 .text-color1{
- color:#004D40 ;
+ color:#E53935 ;
 }
 .text-color2{
- color:#DD2C00 ;
- font-size: 35px;
+ color:#37474F;
 }
 .text-color3{
  color:#0D47A1 ;
@@ -30,67 +70,30 @@
  color:#D50000 ;
  font-size: 35px;
 }
-/*https://codepen.io/sebj54/pen/oxluI*/
-.btn {
-  position: relative;
-
-  display: block;
-  margin: 10px auto;
-  padding: 0;
-
-  overflow: hidden;
-
-  border-width: 0;
-  outline: none;
-  border-radius: 2px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .6);
-  
-  background-color: #2ecc71;
-  color: #ecf0f1;
-  
-  transition: background-color .3s;
+/*https://codepen.io/colewaldrip/pen/gpEaWb*/
+/* Material ICON */
+.icon {
+		margin: 3px;
+		position: relative;
+		display: inline-block;
+		color: white;
+	  	background-color: #00BCD4;
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: 8px;
+		box-shadow: 0 1px  3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+		transition: all 0.3s ease;
 }
-
-.btn:hover, .btn:focus {
-  background-color: #27ae60;
+.icon .material-icons {
+		font-size: 1.5rem;
+		position: absolute;
+		left: 0.5rem;
+		top: 0.5rem;
+		transition: all 0.3s ease;
+	  
 }
-
-.btn > * {
-  position: relative;
-}
-
-.btn span {
-  display: block;
-  padding: 12px 24px;
-}
-
-.btn:before {
-  content: "";
-  
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  
-  display: block;
-  width: 0;
-  padding-top: 0;
-    
-  border-radius: 100%;
-  
-  background-color: rgba(236, 240, 241, .3);
-  
-  -webkit-transform: translate(-50%, -50%);
-  -moz-transform: translate(-50%, -50%);
-  -ms-transform: translate(-50%, -50%);
-  -o-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-}
-
-.btn:active:before {
-  width: 120%;
-  padding-top: 120%;
-  
-  transition: width .2s ease-out, padding-top .2s ease-out;
+.icon:hover, .icon:focus {
+ 		 background-color: #00ACC1;
 }
 
 /*https://www.w3schools.com/*/
@@ -101,23 +104,25 @@
   z-index: 1;
   top: 0;
   left: 0;
-  background-color: #b2dfdb;
+  color: white;
+  background-color: #455A64;
   overflow-x: hidden;
   transition: 0.5s;
   padding-top: 60px;
+
 }
 
 .sidebar a {
   padding: 8px 8px 8px 32px;
   text-decoration: none;
   font-size: 35px;
-  color: #818181;
+  color: white;
   display: block;
   transition: 0.3s;
 }
 
 .sidebar a:hover {
-  color: #f1f1f1;
+  color: #4DD0E1;
 }
 
 .sidebar .closebtn {
@@ -150,6 +155,40 @@
   .sidebar {padding-top: 15px;}
   .sidebar a {font-size: 18px;}
 }
+/*rage slider*/
+.range-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 15px;
+  background: #ccc;
+  outline: none;
+  border-radius: 10px;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.range-slider:hover {
+  opacity: 1;
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 10px;
+  width: 20px;
+  height: 20px;
+  background: #2196F3;
+  cursor: pointer;
+}
+
+.range-slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  background: #4CAF50;
+  cursor: pointer;
+}
+
 
 /*Switch*/
 .switch {
@@ -211,4 +250,3 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
-

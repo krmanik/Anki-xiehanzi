@@ -22,11 +22,14 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 #### Note: changes will be reflected to next card. 
 It may not work on some devices. But tested to be work on most devices.
 
-[Front Card 1.1](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/frontcard_1.1.html)
+Front Side of Deck
+[Front Card](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/frontcard_1.1.html)
 
-[Back Card 1.1](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/backcard_1.1.html)
+Back Side of Deck
+[Back Card](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/backcard_1.1.html)
 
-[Card CSS 1.1](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/cardCSS_1.1.css)
+CSS Side of Deck
+[Card CSS](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/cardCSS_1.1.css)
 
 
 ## Acknowledgement
@@ -59,7 +62,7 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
 
 
 ## Create your own word list from this sample apkg (Anki Desktop required)
-  #### Visit https://github.com/infinyte7/Anki-xiehanzi/
+[Read more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
 
 
 # License - Anki-xiehanzi (写汉字)

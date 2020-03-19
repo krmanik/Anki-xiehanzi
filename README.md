@@ -22,6 +22,8 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 ### To import in Ankidroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
 
+ #### Before import Anki Deck please make backups.
+
 ### Create your own deck then [Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
 
 ## Acknowledgement
@@ -52,9 +54,6 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  #### Characters are not loading or showing?
  It may be due to slow internet. Wait for seconds to load the characters data.
  
- #### Before import Anki Deck please make backups.
-
-
 ## License - Anki-xiehanzi (写汉字)
 Author : Infinyte7
 The MIT License

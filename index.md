@@ -31,6 +31,10 @@ Back Side of Deck
 CSS Side of Deck
 <br>[Card CSS](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/cardCSS_1.1.css)
 
+## To Show / Hide Simplified, Traditional Characters, Pinyin, Meaning and To Change character stroke width and size
+Note: Changes will be reflected from next card.
+![Option](https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/Screenshot_20200319-181019_AnkiDroid.jpg)
+
 
 ## Acknowledgement
 I have not designed the writing chinese js library Hanziwriter, it comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library. 

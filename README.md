@@ -22,7 +22,7 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 ### To import in Ankidroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
 
-
+### Create your own deck then [Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
 
 ## Acknowledgement
 I have not designed the writing chinese js library Hanziwriter, it comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library. 

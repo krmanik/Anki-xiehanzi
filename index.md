@@ -16,7 +16,7 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 
 
 ### To import in Ankidroid
-![Image Import Mobile](https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/import_in_mobile.png)
+![Image Import Mobile](https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/Import_in_mobile.png)
 
 
 #### Note: changes will be reflected to next card. 
@@ -68,30 +68,30 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
 ### HanziWriter
 The MIT License (MIT)
 Copyright (c) 2014 David Chanin
-https://hanziwriter.org/docs.html
+<br>https://hanziwriter.org/docs.html
 
 ### New HSK Word Lists
 Copyright Alan Davies, alan@hskhsk.com 2013-2020
 Free to be copied, distributed, or modified for non-commercial use.
-http://www.hskhsk.com/word-lists.html
+<br>http://www.hskhsk.com/word-lists.html
 
 ### Make Me a Hanzi
 Copyright 1999 Arphic Technology Co., Ltd.; Copyright 2016 Shaunak Kishore.
 Licensed under the Arphic Public License.
-https://github.com/skishore/makemeahanzi
+<br>https://github.com/skishore/makemeahanzi
 
 ### Arphic PL KaitiM GB and UKai
 Copyright 1999 Arphic Technology Co., Ltd.
 Licensed under the Arphic Public License.
-http://www.arphic.com.tw/en/home/index
+<br>http://www.arphic.com.tw/en/home/index
 
 ### audio-cmn (HSK1 - HSK6 Audio)
 hugolpz CC-by-sa
-https://github.com/hugolpz/audio-cmn
+<br>https://github.com/hugolpz/audio-cmn
 
 ### Free Audio Collection of Chinese Words (Mandarins) registered by the University of Caen
 Copyright (c) 2009 Yue Tan 
-http://packs.shtooka.net/cmn-caen-tan/readme.txt
+<br>http://packs.shtooka.net/cmn-caen-tan/readme.txt
 
 ### Button tap audio and Other Audio
 License: Standard License
@@ -105,7 +105,7 @@ Copyright (c) 2018 Simon Lammer.
 ### Google Material Design Icons
 Apache License
 Version 2.0, January 2004
-https://github.com/google/material-design-icons
+<br>https://github.com/google/material-design-icons
 
 ### Button CSS
 I used css for button from following codepen.

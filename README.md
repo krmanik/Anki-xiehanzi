@@ -45,7 +45,7 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  No, I have just implemeted existing js library HanziWriter in Anki and Ankidroid.
  
  #### Did it work on mobile?
- Yes, It is working. But you have to select card template carefully or download [Sample Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true). [Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
+ Yes, It is working. But you have to select card template carefully or download [Sample Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true). <br>[Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
  
  #### Does it work offline?
  No, It will not work offline. 

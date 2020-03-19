@@ -23,13 +23,13 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 It may not work on some devices. But tested to be work on most devices.
 
 Front Side of Deck
-[Front Card](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/frontcard_1.1.html)
+<br>[Front Card](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/frontcard_1.1.html)
 
 Back Side of Deck
-[Back Card](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/backcard_1.1.html)
+<br>[Back Card](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/backcard_1.1.html)
 
 CSS Side of Deck
-[Card CSS](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/cardCSS_1.1.css)
+<br>[Card CSS](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/cardCSS_1.1.css)
 
 
 ## Acknowledgement
@@ -67,8 +67,8 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
 
 ## License - Anki-xiehanzi (写汉字)
 The MIT License
-Author : Infinyte7
-https://github.com/infinyte7/Anki-xiehanzi
+<br>Author : Infinyte7
+<br>[Anki-xiehanzi](https://github.com/infinyte7/Anki-xiehanzi)
 
 ## Other Third Party Licenses
 [Third Party License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)

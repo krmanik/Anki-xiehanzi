@@ -2,7 +2,7 @@
 
 https://infinyte7.github.io/Anki-xiehanzi/
 
-Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid. I have used existing js library for implementing this in Anki and Ankidroid. It is a script written in Javascript to front side of card template of anki deck.
+Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid with audio of HSK1 to HSK6 characters. I have used existing js library for implementing this in Anki and Ankidroid. It is a script written in Javascript to front side of card template of anki deck. <br>Read [License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)
 
 # Demo 
 ![Alt Text](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/xiehanzi_anki_demo.gif?raw=true)
@@ -20,6 +20,13 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 <br>[HSK 5 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK5.apkg?raw=true)
 <br>[HSK 6 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK6.apkg?raw=true)
 
+
+### Feautres
+- Write characters to learn Mandarin with Simplified, Traditional, Pinyin and Meaning
+- Show or hide Simplified, Traditional characters, Pinyin or Meaning
+- Change drawing stroke width 
+- Change size of characters
+- HSK1 - HSK6 audio included in the decks 
 
 ### To import in Ankidroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)

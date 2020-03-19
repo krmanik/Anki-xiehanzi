@@ -1,5 +1,5 @@
 # Anki- xiě hànzì (写汉字）
-Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid. I have used existing js library for implementing this in Anki and Ankidroid. It is a script written in Javascript to front side of card template of anki deck.
+Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid with audio of HSK1 to HSK6 characters. I have used existing js library for implementing this in Anki and Ankidroid. It is a script written in Javascript to front side of card template of anki deck. <br>Read [License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)
 
 # Demo 
 ![Demo GIF](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/xiehanzi_anki_demo.gif?raw=true)
@@ -13,6 +13,13 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 <br>[HSK 4 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK4.apkg?raw=true)
 <br>[HSK 5 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK5.apkg?raw=true)
 <br>[HSK 6 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK6.apkg?raw=true)
+
+### Feautres
+- Write characters to learn Mandarin with Simplified, Traditional, Pinyin and Meaning
+- Show or hide Simplified, Traditional characters, Pinyin or Meaning
+- Change drawing stroke width 
+- Change size of characters
+- HSK1 - HSK6 audio included in the decks 
 
 
 ### To import in Ankidroid
@@ -48,6 +55,7 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  This implemention is in javascript. It works because the of Ankidroid uses Android Webview for flashcard review. It is just
  implementation of HanziWriter in Anki and AnkiDroid. It may not work in some devices. Please make backups of your AnkiDroid decks  
  before importing xiehanzi hsk decks.
+ I have used [this (audio-cmn)](https://github.com/hugolpz/audio-cmn) to add audio to HSK characters. May be some audio missing.   
 
 ## Contribution
  Any contribution will be appreciated.

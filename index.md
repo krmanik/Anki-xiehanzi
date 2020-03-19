@@ -1,5 +1,5 @@
 # Anki- xiě hànzì (写汉字）
-Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid with audio of HSK1 to HSK6 characters. I have used existing js library for implementing this in Anki and Ankidroid. It is a script written in Javascript to front side of card template of anki deck. <br>Read [License.](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)
+Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid with audio of HSK1 to HSK6 characters. I have used existing js library for implementing this in Anki and Ankidroid. It is a script written in Javascript to front/back side of cards template of anki deck. <br>Read [License.](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)
 
 # Demo 
 ![Demo GIF](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/xiehanzi_anki_demo.gif?raw=true)
@@ -46,7 +46,7 @@ Note: Changes will be reflected from next card.
 ![Option](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/image3.png?raw=true)
 
 ## Acknowledgement
-I have not designed the writing chinese js library Hanziwriter, it comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library. 
+I have not designed the writing chinese js library HanziWriter, it comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library. 
 
 The chinese character and stroke order data used by [Hanziwriter](https://github.com/chanind/hanzi-writer)
 is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
@@ -55,7 +55,7 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
 ## Disclaimer
  This implemention is in javascript. It works because the of Ankidroid uses Android Webview for flashcard review. It is just
  implementation of HanziWriter in Anki and AnkiDroid. It may not work in some devices. Please make backups of your AnkiDroid decks         before importing xiehanzi hsk decks.
- I have used [this (audio-cmn)](https://github.com/hugolpz/audio-cmn) to add audio to HSK characters. May be some audio missing. 
+ I have used [this (audio-cmn)](https://github.com/hugolpz/audio-cmn) to add audio to HSK characters. 
  Some audio files missing but using a simply python script audio file can be generated using text to speech. [Read](https://github.com/infinyte7/gtts-textToMp3)
 
 ## Contribution

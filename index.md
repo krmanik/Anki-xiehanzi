@@ -45,7 +45,7 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  ## Contribution
  Any contribution will be appreciated.
  
-## Faq?
+ ## Faq?
  ### Did you create writing component?
  No, I have just implemeted existing js library HanziWriter in Anki and Ankidroid.
  

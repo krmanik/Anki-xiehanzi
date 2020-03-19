@@ -33,8 +33,9 @@ CSS Side of Deck
 
 ## To Show / Hide Simplified, Traditional Characters, Pinyin, Meaning and To Change character stroke width and size
 Note: Changes will be reflected from next card.
-![Option](https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/Screenshot_20200319-181019_AnkiDroid.jpg)
-
+![Option](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/image1.png?raw=true)
+![Option](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/image2.png?raw=true)
+![Option](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/image3.png?raw=true)
 
 ## Acknowledgement
 I have not designed the writing chinese js library Hanziwriter, it comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library. 
@@ -44,8 +45,10 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  
  
 ## Disclaimer
- This implemention is in javascript. It works because the of Ankidroid use Android Webview for flashcard review.
- 
+ This implemention is in javascript. It works because the of Ankidroid uses Android Webview for flashcard review. It is just
+ implementation of HanziWriter in Anki and AnkiDroid. It may not work in some devices. Please make backups of your AnkiDroid decks  
+ before importing xiehanzi hsk decks.
+
 ## Contribution
  Any contribution will be appreciated.
  

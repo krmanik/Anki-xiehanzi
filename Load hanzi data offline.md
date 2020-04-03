@@ -7,7 +7,7 @@ This features will be available in ankidroid [2.10 version](https://github.com/a
 Copy the data folder of [hanzi-writer-data](https://github.com/chanind/hanzi-writer-data) to directory of localhost.
 
 In anki deck of xiehanzi change url to following. It will be more convient to change this on anki desktop.
-<b>from</b>
+<br><b>from</b>
 ```
 https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/
 ```

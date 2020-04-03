@@ -9,7 +9,7 @@ Copy the data folder of [hanzi-writer-data](https://github.com/chanind/hanzi-wri
 In anki deck of xiehanzi change url to following. It will be more convient to change this on anki desktop.
 <br><b>from</b>
 ```
-https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/
+https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/
 ```
 <b>to</b>
 ```

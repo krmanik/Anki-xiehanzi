@@ -59,8 +59,7 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  
  #### Does it work offline?
  No, It will not work offline. 
- Reason, file size is very high. For total approx. 9000 characters size is approx. 30 mb.
- But It can be made offline. 
+ But It can be made offline. Check this [Load local data into ankidroid using localhost](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Load%20hanzi%20data%20offline.md).
  
  #### Characters are not loading or showing?
  It may be due to slow internet. Wait for seconds to load the characters data.

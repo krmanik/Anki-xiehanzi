@@ -30,6 +30,19 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 - Change size of characters
 - HSK1 - HSK6 audio included in the decks 
 
+# Update
+Added following features in existing deck. Just download and import it will get updated without any problem.
+<br>[Updated Xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Updated%20Existing%20Deck/xiehanzi.apkg?raw=true)
+
+- View meaning by opening [Pleco dictionary](https://www.pleco.com/)
+- View character details by opening link [https://hanzicraft.com/character/](https://hanzicraft.com/character/) 
+- Separate button for animation and revealing character during practice. 
+- Added missing audio of characters.
+
+- Auto show answer (in Ankidroid 2.10 [#5817](https://github.com/ankidroid/Anki-Android/pull/5817))
+- Offline loading of character using localhost. (in Ankidroid 2.10 [#5890](https://github.com/ankidroid/Anki-Android/pull/5890)) [For more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Load%20hanzi%20data%20offline.md) 
+
+
 ### To import in Ankidroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
 

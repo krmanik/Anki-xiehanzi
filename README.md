@@ -31,11 +31,10 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 - HSK1 - HSK6 audio included in the decks 
 
 # Update
-### Download from GitHub
-<br>[Updated Xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Updated%20Existing%20Deck/xiehanzi.apkg?raw=true)
-
-### Download from Ankiweb
-[Practice Mandarin HSK1--HSK6 by drawing strokes (with audio)](https://ankiweb.net/shared/info/119943820)
+ ### Download from GitHub
+ [Updated Xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Updated%20Existing%20Deck/xiehanzi.apkg?raw=true)
+ ### Download from Ankiweb
+ [Practice Mandarin HSK1--HSK6 by drawing strokes (with audio)](https://ankiweb.net/shared/info/119943820)
 
 Added following features in existing deck. Just download and import, it will get updated without any problem.
 - View meaning by opening [Pleco dictionary](https://www.pleco.com/)
@@ -46,10 +45,8 @@ Added following features in existing deck. Just download and import, it will get
 - Auto show answer (in Ankidroid 2.10 [#5817](https://github.com/ankidroid/Anki-Android/pull/5817))
 - Offline loading of character using localhost. (in Ankidroid 2.10 [#5890](https://github.com/ankidroid/Anki-Android/pull/5890)) [For more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Load%20hanzi%20data%20offline.md) 
 
-
 ### To import in Ankidroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
-
 
 ### Create your own deck then [Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
 
@@ -58,9 +55,8 @@ I have not designed the writing chinese js library Hanziwriter, it comes from th
 
 The chinese character and stroke order data used by [Hanziwriter](https://github.com/chanind/hanzi-writer)
 is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
- 
- 
- ## Disclaimer
+  
+## Disclaimer
  This implemention is in javascript. It works because Ankidroid uses Android Webview for flashcard review. It is just implementation of HanziWriter in Anki and AnkiDroid. It may not work in some devices. Please make backups of your AnkiDroid decks before importing xiehanzi hsk decks.
  Some audio files missing but using a simply python script audio file can be generated using text to speech. [Read](https://github.com/infinyte7/gtts-textToMp3)
  

@@ -31,9 +31,13 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 - HSK1 - HSK6 audio included in the decks 
 
 # Update
-Added following features in existing deck. Just download and import it will get updated without any problem.
+### Download from GitHub
 <br>[Updated Xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Updated%20Existing%20Deck/xiehanzi.apkg?raw=true)
 
+### Download from Ankiweb
+[Practice Mandarin HSK1--HSK6 by drawing strokes (with audio)](https://ankiweb.net/shared/info/119943820)
+
+Added following features in existing deck. Just download and import, it will get updated without any problem.
 - View meaning by opening [Pleco dictionary](https://www.pleco.com/)
 - View character details by opening link [https://hanzicraft.com/character/](https://hanzicraft.com/character/) 
 - Separate button for animation and revealing character during practice. 

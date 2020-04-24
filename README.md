@@ -77,6 +77,10 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  #### Characters are not loading or showing?
  It may be due to slow internet. Wait for seconds to load the characters data.
  
+
+# My other anki decks
+[Anki Decks](https://ankiweb.net/shared/byauthor/2120672269) 
+
 ## License - Anki-xiehanzi (写汉字)
 Author : Infinyte7
 The MIT License

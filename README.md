@@ -82,8 +82,8 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
 [Anki Decks](https://ankiweb.net/shared/byauthor/2120672269) 
 
 ## License - Anki-xiehanzi (写汉字)
-Author : Infinyte7
-The MIT License
+Author : Mani (Infinyte7)
+<br>The MIT License
 
 ## Other Third Party License
 [License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)

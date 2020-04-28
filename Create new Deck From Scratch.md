@@ -37,6 +37,8 @@ https://github.com/infinyte7/Anki-xiehanzi/blob/master/cardCSS
 ##### {{Pinyin}}
 ##### {{Meaning}}
 
+# Check [Sample 2 Implementation](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch(Xiehanzi%20-%20Sample%202).md) 
+
 # Note 
    Hanziwriter is necessary for using this. The full code is added to front side of card.
    For more check this. [Hanziwriter](https://hanziwriter.org/docs.html)
@@ -261,15 +263,6 @@ document.getElementById('ch_length').innerHTML = characters.length;
   transition: width .2s ease-out, padding-top .2s ease-out;
 }
 ```
-
-## Importing it ankiweb to practice online without installing anki app.
-https://ankiweb.net/about
-
-https://ankiweb.net/account/login
-
-### Before doing the following steps, please make backups of anki decks. Otherwise it may overwrite previous anki decks and data may lost.
-[Practice Mandarin in Anki and Ankidroid by drawing strokes .apkg file](https://ankiweb.net/shared/info/820120967)
-![Image Import Anki Deck](https://github.com/infinyte7/Anki-maobi/blob/master/image/anki_demo_import.gif)
 
 # License - Anki-xiehanzi (写汉字)
 Author : Infinyte7

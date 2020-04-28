@@ -52,8 +52,8 @@ I asked this question on Stackoverflow for my project in Cordova.
 <br>https://stackoverflow.com/questions/60285131/i-want-one-character-at-a-time-on-html-page-after-completion-load-next-one
 
 # License - Anki-xiehanzi (写汉字)
-Author : Infinyte7
-MIT License for using this code.
+Author : Mani (Infinyte7)
+<br>MIT License for using this code.
 
 The MIT License
 Permission is hereby granted, free of charge, to any person obtaining a copy

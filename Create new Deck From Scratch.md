@@ -23,7 +23,7 @@ https://infinyte7.github.io/Anki-xiehanzi/
   #### 5. Export that deck to apkg and import it in mobile.
   
 # Sample 2
-[Xiehanzi Sample](https://github.com/infinyte7/Anki-xiehanzi/blob/master/HSK%20Anki%20apkg/Xiehanzi%20Sample.apkg?raw=true)
+Download [Xiehanzi Sample](https://github.com/infinyte7/Anki-xiehanzi/blob/master/HSK%20Anki%20apkg/Xiehanzi%20Sample.apkg?raw=true)
 
 ![Demo2](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/Create_from_scratch_demo_2.gif?raw=true)
 

@@ -22,13 +22,6 @@ https://infinyte7.github.io/Anki-xiehanzi/
   ![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/xiehanzi.png)
   
   #### 5. Export that deck to apkg and import it in mobile.
-  
-# Sample 2
-
-Download [Xiehanzi Sample](https://github.com/infinyte7/Anki-xiehanzi/blob/master/HSK%20Anki%20apkg/Xiehanzi%20Sample.apkg?raw=true)
-
-![Demo2](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/Create_from_scratch_demo_2.gif?raw=true)
-
 
 # Sample 1 Codes
 #### front side of card - add this front of the card
@@ -43,25 +36,6 @@ https://github.com/infinyte7/Anki-xiehanzi/blob/master/cardCSS
 ##### {{Traditional}}
 ##### {{Pinyin}}
 ##### {{Meaning}}
-
-
-
-# Sample 2 Codes
-#### front side of card - add this front of the card
-https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/frontcard_1.1.html
-#### back side of card - add this to back of card
-https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/backcard_1.1.html
-#### css of card - add this to css of card
-https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/cardCSS_1.1.css
-
-#### Five fields used in the [xiehanzi sample deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/HSK%20Anki%20apkg/Xiehanzi%20Sample.apkg?raw=true)
-##### {{Simplified}}
-##### {{Traditional}}
-##### {{Pinyin}}
-##### {{Audio}}
-##### {{Meaning}}
-
-
 
 # Note 
    Hanziwriter is necessary for using this. The full code is added to front side of card.
@@ -287,15 +261,6 @@ document.getElementById('ch_length').innerHTML = characters.length;
   transition: width .2s ease-out, padding-top .2s ease-out;
 }
 ```
-
-### Again import your word meaning and map fields. If everything done correctly then you will get the following result
-
-## Image - AnkiDroid 
-![Image Result](https://github.com/infinyte7/Anki-maobi/blob/master/image/result.png)
-
-
-## Image - Anki Desktop
-![Image Import Desktop](https://github.com/infinyte7/Anki-maobi/blob/master/image/xiehanzi.png)
 
 ## Importing it ankiweb to practice online without installing anki app.
 https://ankiweb.net/about

@@ -73,7 +73,7 @@ document.getElementById('ch_length').innerHTML = characters.length;
 #### Add front side of card (Sample 1 Implementation)
 ##### Front
 
-```html
+```
 <!--MIT License-->
 <script>
     //customize preference
@@ -170,7 +170,7 @@ document.getElementById('ch_length').innerHTML = characters.length;
 ```
 
 ### Back Side of card
-```html
+```
 <div class='center-vertical'>
 <div>
 <h3>{{Simplified}}</h3>
@@ -182,7 +182,7 @@ document.getElementById('ch_length').innerHTML = characters.length;
 ```
 
 ### CSS of card
-```css
+```
 .card {
  font-family: arial;
  font-size: 20px;

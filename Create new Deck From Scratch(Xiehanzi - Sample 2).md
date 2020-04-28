@@ -28,31 +28,6 @@ https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/cardCSS_1.1
 # Note 
    Hanziwriter is necessary for using this. The full code is added to front side of card.
    For more check this. [Hanziwriter](https://hanziwriter.org/docs.html)
-   
-# To Check if your card template support this code or not this simple code.
-### Create new Deck and add chinese character to front then
-```html
-<div id = 'frontText'>{{Front}}</div>
-<div id = 'ch_length'></div>
-<script>
-var characters = document.getElementById('frontText').innerHTML;
-document.getElementById('ch_length').innerHTML = characters.length;
-</script>
-```
-
-### If you are getting correct length then proceed otherwise change card template to basic or use my [sample deck].
-#### Incorrect length of character ‘我’. It should be 1 but due some error in card template in anki it is showing 3. So check next for correct card template. 
-
-![Image Incorrect](https://github.com/infinyte7/Anki-maobi/blob/master/image/incorrect.png)
-
-
-#### Add basic type deck in Manage note of AnkiDroid and then add and edit field for Simplified, Traditional, Pinyin and Meaning
-
-![Image Correct](https://github.com/infinyte7/Anki-maobi/blob/master/image/correct_1.png)
-
-### Now It gives correct length for characters
-
-![Image Correct](https://github.com/infinyte7/Anki-maobi/blob/master/image/correct.png)
 
 ## Importing it ankiweb to practice online without installing anki app.
 https://ankiweb.net/about

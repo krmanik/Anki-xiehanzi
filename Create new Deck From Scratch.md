@@ -3,6 +3,9 @@
 https://infinyte7.github.io/Anki-xiehanzi/
 
 ## Create your own word list from this sample apkg (Anki Desktop required)
+
+![Demo](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/create_from_scratch_demo.gif?raw=true)
+
   #### 1. Download this sample apkg [Write_Chinese.apkg](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)
   
   #### 2. Import this sample deck in Anki Desktop

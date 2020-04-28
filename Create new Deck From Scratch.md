@@ -69,7 +69,7 @@ https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/cardCSS_1.1
    
 # To Check if your card template support this code or not this simple code.
 ### Create new Deck and add chinese character to front then
-```
+```html
 <div id = 'frontText'>{{Front}}</div>
 <div id = 'ch_length'></div>
 <script>
@@ -94,10 +94,10 @@ document.getElementById('ch_length').innerHTML = characters.length;
 
 
 ## For implementing this
-#### Add front side of card
+#### Add front side of card (Sample 1 Implementation)
 ##### Front
 
-```
+```html
 <!--MIT License-->
 <script>
     //customize preference
@@ -194,7 +194,7 @@ document.getElementById('ch_length').innerHTML = characters.length;
 ```
 
 ### Back Side of card
-```
+```html
 <div class='center-vertical'>
 <div>
 <h3>{{Simplified}}</h3>
@@ -206,7 +206,7 @@ document.getElementById('ch_length').innerHTML = characters.length;
 ```
 
 ### CSS of card
-```
+```css
 .card {
  font-family: arial;
  font-size: 20px;
@@ -288,7 +288,7 @@ document.getElementById('ch_length').innerHTML = characters.length;
 }
 ```
 
-### Add your word meaning. If everything done correctly then you will get the following result
+### Again import your word meaning and map fields. If everything done correctly then you will get the following result
 
 ## Image - AnkiDroid 
 ![Image Result](https://github.com/infinyte7/Anki-maobi/blob/master/image/result.png)

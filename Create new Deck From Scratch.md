@@ -29,12 +29,6 @@ Download [Xiehanzi Sample](https://github.com/infinyte7/Anki-xiehanzi/blob/maste
 
 ![Demo2](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/Create_from_scratch_demo_2.gif?raw=true)
 
-## Check these file
-#### four field used in the [sample deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)
-##### {{Simplified}}
-##### {{Traditional}}
-##### {{Pinyin}}
-##### {{Meaning}}
 
 # Sample 1 Codes
 #### front side of card - add this front of the card
@@ -44,6 +38,14 @@ https://github.com/infinyte7/Anki-xiehanzi/blob/master/backcard
 #### css of card - add this to css of card
 https://github.com/infinyte7/Anki-xiehanzi/blob/master/cardCSS
 
+#### four fields used in the [sample deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)
+##### {{Simplified}}
+##### {{Traditional}}
+##### {{Pinyin}}
+##### {{Meaning}}
+
+
+
 # Sample 2 Codes
 #### front side of card - add this front of the card
 https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/frontcard_1.1.html
@@ -51,6 +53,14 @@ https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/frontcard_1
 https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/backcard_1.1.html
 #### css of card - add this to css of card
 https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/cardCSS_1.1.css
+
+#### Five fields used in the [xiehanzi sample deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/HSK%20Anki%20apkg/Xiehanzi%20Sample.apkg?raw=true)
+##### {{Simplified}}
+##### {{Traditional}}
+##### {{Pinyin}}
+##### {{Audio}}
+##### {{Meaning}}
+
 
 
 # Note 

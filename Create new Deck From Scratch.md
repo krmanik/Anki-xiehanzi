@@ -266,5 +266,5 @@ document.getElementById('ch_length').innerHTML = characters.length;
 
 # License - Anki-xiehanzi (写汉字)
 Author : Infinyte7
-The MIT License
-[License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)
+<br>The MIT License
+<br>[License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)

@@ -2,8 +2,9 @@
 
 https://infinyte7.github.io/Anki-xiehanzi/
 
-## Create your own word list from this sample apkg (Anki Desktop required)
+# Create your own word list from this sample apkg (Anki Desktop required)
 
+## Sample 1
 ![Demo](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/create_from_scratch_demo.gif?raw=true)
 
   #### 1. Download this sample apkg [Write_Chinese.apkg](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)
@@ -23,6 +24,7 @@ https://infinyte7.github.io/Anki-xiehanzi/
   #### 5. Export that deck to apkg and import it in mobile.
   
 # Sample 2
+
 Download [Xiehanzi Sample](https://github.com/infinyte7/Anki-xiehanzi/blob/master/HSK%20Anki%20apkg/Xiehanzi%20Sample.apkg?raw=true)
 
 ![Demo2](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/Create_from_scratch_demo_2.gif?raw=true)

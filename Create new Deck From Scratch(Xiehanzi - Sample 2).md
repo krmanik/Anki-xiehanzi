@@ -39,6 +39,6 @@ https://ankiweb.net/account/login
 ![Image Import Anki Deck](https://github.com/infinyte7/Anki-maobi/blob/master/image/anki_demo_import.gif)
 
 # License - Anki-xiehanzi (写汉字)
-Author : Infinyte7
-The MIT License
-[License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)
+Author : Mani (Infinyte7)
+<br>The MIT License
+<br>[License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)

@@ -25,6 +25,8 @@ https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/cardCSS_1.1
 ##### {{Audio}}
 ##### {{Meaning}}
 
+# Check [Sample 1 Implementation](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
+
 # Note 
    Hanziwriter is necessary for using this. The full code is added to front side of card.
    For more check this. [Hanziwriter](https://hanziwriter.org/docs.html)

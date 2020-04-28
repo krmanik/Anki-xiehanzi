@@ -36,12 +36,22 @@ Download [Xiehanzi Sample](https://github.com/infinyte7/Anki-xiehanzi/blob/maste
 ##### {{Pinyin}}
 ##### {{Meaning}}
 
+# Sample 1 Codes
 #### front side of card - add this front of the card
 https://github.com/infinyte7/Anki-xiehanzi/blob/master/frontcard
 #### back side of card - add this to back of card
 https://github.com/infinyte7/Anki-xiehanzi/blob/master/backcard
 #### css of card - add this to css of card
 https://github.com/infinyte7/Anki-xiehanzi/blob/master/cardCSS
+
+# Sample 2 Codes
+#### front side of card - add this front of the card
+https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/frontcard_1.1.html
+#### back side of card - add this to back of card
+https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/backcard_1.1.html
+#### css of card - add this to css of card
+https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/cardCSS_1.1.css
+
 
 # Note 
    Hanziwriter is necessary for using this. The full code is added to front side of card.

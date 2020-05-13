@@ -35,7 +35,7 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 # Update 2020-05-13
 - Now card will update in current card. In earlier version, change get reflect in next card but from now change will get reflect in   current card. [For more #6134](https://github.com/ankidroid/Anki-Android/pull/6134)
 ( Note : After AnkiDroid 2.10 )
-- Change default settings in code [Visit](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Customize%20default%20setting.md)
+
 ### Related files
 [Version 1.2](https://github.com/infinyte7/Anki-xiehanzi/tree/master/version%201.2)
 
@@ -54,7 +54,9 @@ Added following features in existing deck. Just download and import, it will get
 ### To import in Ankidroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
 
-### Create your own deck then [Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
+### Create your own deck [Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
+
+### Change default settings in code [Read more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Customize%20default%20setting.md)
 
 ## Acknowledgement
 I have not designed the writing chinese js library Hanziwriter, it comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library. 

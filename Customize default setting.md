@@ -24,7 +24,7 @@ if (showSimpState == null) {
 ```
 
 ## Characters outline
-### To <b>show</b> characters outline
+### To show characters outline
 ```javascript
 var show_outline = true;  // default value to show outline, globally accessible to Hanziwriter function
 ...
@@ -37,7 +37,7 @@ if (showOutlineState == null) {
     Persistence.setItem("outline_per", showOutlineState);
 }
 ```
-### To <b>hide</b> characters outline
+### To hide characters outline
 ```javascript
 var show_outline = false; // <-- change this to false
 ...
@@ -71,7 +71,7 @@ if (showTradState == null) {
 ```
 
 ## Pinyin 
-### To <b>show</b> pinyin as default
+### To show< pinyin as default
 ```javascript
 if (showPinyinState == null) {
     showPinyinState = true;
@@ -80,7 +80,7 @@ if (showPinyinState == null) {
     Persistence.setItem("pinyin_per", showPinyinState);
 }
 ```
-### To <b>hide</b> pinyin as default
+### To hide pinyin as default
 ```javascript
 if (showPinyinState == null) {
     showPinyinState = false;
@@ -91,7 +91,7 @@ if (showPinyinState == null) {
 ```
 
 ## Meaning
-### To <b>show</b> meaning
+### To show meaning
 ```javascript
 if (showMeaningState == null) {
     showMeaningState = true;
@@ -100,7 +100,7 @@ if (showMeaningState == null) {
     Persistence.setItem("meaning_per", showMeaningState);
 }
 ```
-### To <b>hide</b> meaning
+### To hide meaning
 ```javascript
 if (showMeaningState == null) {
     showMeaningState = false;
@@ -149,7 +149,6 @@ if (showMeaningState == null) {
             Persistence.setItem("charHW_per", charHWState);
         }
 ```
-
 
 ### Code with default settings in card.html 
 ```javascript

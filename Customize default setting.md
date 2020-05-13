@@ -218,6 +218,32 @@ Also grid background can be changed like above.
 
 }
 ```
+### Change color of text shown
+```css
+.text-color1 {
+	color: #E53935;
+}
+
+.text-color2 {
+	color: #37474F;
+}
+
+.text-color3 {
+	color: #0D47A1;
+}
+
+.text-color4 {
+	color: #D50000;
+	font-size: 35px;
+}
+```
+Above text-color css used in card.html
+```html
+<div id='ch_sim' class="text-color4 ">{{Simplified}}</div>
+<div id='ch_trad' class="text-color2">{{Traditional}}</div>
+<div id='ch_pin' class="text-color1">{{Pinyin}}</div>
+<div id='ch_mean' class="text-color3">{{Meaning}}</div>
+```
 
 ### Code with default settings in card.html 
 - [card.html](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.2/card.html)

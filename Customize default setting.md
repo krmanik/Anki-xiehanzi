@@ -150,6 +150,33 @@ if (showMeaningState == null) {
         }
 ```
 
+## To change background, color of buttons etc, change in card.css file (Styling)
+To add background, add _ _background.png_ file to collection.media folder in Ankidroid then add this to .card in Styling
+```css
+background : url(_background.png); 
+```
+Also grid background can be changed like above.
+```css
+.grid-color{
+ background-color: #FAFAFA;
+}
+```
+### CSS 
+```css
+/************START grid***************/
+.grid-color{
+ background-color: #FAFAFA;
+}
+/************END grid***************/
+.card {
+ font-family: arial;
+ font-size: 20px;
+ text-align: center;
+ color: black;
+ background-color: white;
+}
+```
+
 ### Code with default settings in card.html 
 ```javascript
 <script>

@@ -2,7 +2,7 @@
 Read commented out line to change.
 ## Simplified 
 ### To show simplified characters
-Note : It use [anki-persistence](https://github.com/SimonLammer/anki-persistence) to pass value to all cards.
+Note : It uses [anki-persistence](https://github.com/SimonLammer/anki-persistence) to pass value to all cards.
 Also opacity is used to show/hide characters because xiehanzi fetch characters details using this feild. If 'display:none' or 'display:block' used then it will not fetch characters details.
 ```javascript
 if (showSimpState == null) {

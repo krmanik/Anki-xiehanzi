@@ -51,12 +51,15 @@ Added following features in existing deck. Just download and import, it will get
 ### Related files 
 [Version 1.1](https://github.com/infinyte7/Anki-xiehanzi/tree/master/version%201.1)
 
-### To import in Ankidroid
-![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
+
 
 ### Create your own deck [Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
 
 ### Change default settings in code [Read more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Customize%20default%20setting.md)
+
+
+### To import in Ankidroid
+![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
 
 ## Acknowledgement
 I have not designed the writing chinese js library Hanziwriter, it comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library. 

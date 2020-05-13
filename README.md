@@ -52,12 +52,6 @@ Added following features in existing deck. Just download and import, it will get
 [Version 1.1](https://github.com/infinyte7/Anki-xiehanzi/tree/master/version%201.1)
 
 
-
-### Create your own deck [Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
-
-### Change default settings in code [Read more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Customize%20default%20setting.md)
-
-
 ### To import in Ankidroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
 
@@ -70,7 +64,12 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
 ## Disclaimer
  This implemention is in javascript. It works because Ankidroid uses Android Webview for flashcard review. It is just implementation of HanziWriter in Anki and AnkiDroid. It may not work in some devices. Please make backups of your AnkiDroid decks before importing xiehanzi hsk decks.
  Some audio files missing but using a simply python script audio file can be generated using text to speech. [Read](https://github.com/infinyte7/gtts-textToMp3)
- 
+
+
+### Create your own deck [Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)
+
+### Change default settings in code [Read more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Customize%20default%20setting.md)
+
  ## Contribution
  Any contribution will be appreciated.
  

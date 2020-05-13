@@ -33,7 +33,7 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 - HSK1 - HSK6 audio included in the decks 
 
 # Update 2020-05-13
-- Now card will update in current card. In earlier version, change get reflect in next card but from now change will get reflect in   current card. [For more #6134](https://github.com/ankidroid/Anki-Android/pull/6134)
+- In earlier version, changes get reflect in next card but from now changes will get reflected in current card. [For more #6134](https://github.com/ankidroid/Anki-Android/pull/6134)
 ( Note : After AnkiDroid 2.10 )
 
 ### Related files

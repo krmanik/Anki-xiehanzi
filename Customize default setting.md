@@ -220,5 +220,5 @@ Also grid background can be changed like above.
 ```
 
 ### Code with default settings in card.html 
-[card.html](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.2/card.html)
-[card.css](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.2/card.css)
+- [card.html](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.2/card.html)
+- [card.css](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.2/card.css)

@@ -11,16 +11,11 @@ Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroi
 ### Download HSK Anki apkg file for Anki or AnkiDroid
 #### Before importing Anki Deck please make backups.
 
-Import this file to Anki or AnkiDroid for practicing HSK words.
-<br>[HSK 1 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK1.apkg?raw=true)
-<br>[HSK 2 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK2.apkg?raw=true)
-<br>[HSK 3 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK3.apkg?raw=true)
-<br>[HSK 4 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK4.apkg?raw=true)
-<br>[HSK 5 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK5.apkg?raw=true)
-<br>[HSK 6 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK6.apkg?raw=true)
-
 ## Download from Ankiweb
 [Practice Mandarin HSK1--HSK6 by drawing strokes (with audio)](https://ankiweb.net/shared/info/119943820)
+
+### Download from GitHub
+[xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.2/xiehanzi.apkg?raw=true)
 
 ### Feautres
 - Write characters to learn Mandarin with Simplified, Traditional, Pinyin and Meaning
@@ -29,20 +24,24 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 - Change size of characters
 - HSK1 - HSK6 audio included in the decks 
 
-# Update
- ### Download from GitHub
- [Updated Xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Updated%20Existing%20Deck/xiehanzi.apkg?raw=true)
- ### Download from Ankiweb
- [Practice Mandarin HSK1--HSK6 by drawing strokes (with audio)](https://ankiweb.net/shared/info/119943820)
+# Update 2020-05-13
+- Now card will update in current card. In earlier version, change get reflect in next card but from now change will get reflect in   current card. [For more #6134](https://github.com/ankidroid/Anki-Android/pull/6134)
+( Note : After AnkiDroid 2.10 )
+- Change default settings in code [Visit](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Customize%20default%20setting.md)
+### Related files
+[Version 1.2](https://github.com/infinyte7/Anki-xiehanzi/tree/master/version%201.2)
 
+# Update 2020-04-08
 Added following features in existing deck. Just download and import, it will get updated without any problem.
 - View meaning by opening [Pleco dictionary](https://www.pleco.com/)
 - View character details by opening link [https://hanzicraft.com/](https://hanzicraft.com/) 
 - Separate button for animation and revealing character during practice. 
 - Added missing audio of characters.
 
-- Auto show answer (in Ankidroid 2.10 [#5817](https://github.com/ankidroid/Anki-Android/pull/5817))
-- Offline loading of character using localhost. (in Ankidroid 2.10 [#5890](https://github.com/ankidroid/Anki-Android/pull/5890)) [For more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Load%20hanzi%20data%20offline.md) 
+- Auto show answer (After Ankidroid 2.10 [#5817](https://github.com/ankidroid/Anki-Android/pull/5817))
+- Offline loading of character using localhost. (After Ankidroid 2.10 [#5890](https://github.com/ankidroid/Anki-Android/pull/5890)) [For more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Load%20hanzi%20data%20offline.md) 
+### Related files 
+[Version 1.1](https://github.com/infinyte7/Anki-xiehanzi/tree/master/version%201.1)
 
 ### To import in Ankidroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)

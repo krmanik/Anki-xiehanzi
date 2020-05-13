@@ -156,6 +156,15 @@ To add background, add _ _background.png_ file to collection.media folder in Ank
 ```css
 background : url(_background.png); 
 ```
+```css
+.card {
+	font-family: arial;
+	font-size: 20px;
+	text-align: center;
+	color: black;
+	background-color: white;
+}
+```
 Also grid background can be changed like above.
 ### Grid color / background
 ```css
@@ -167,27 +176,29 @@ Also grid background can be changed like above.
 ### Button icon color and size
 ```css
 .icon {
-		margin: 3px;
-		position: relative;
-		display: inline-block;
-		color: white;
-	  	background-color: #00BCD4;
-		width: 2.0rem;
-		height: 2.0rem;
-		border-radius: 8px;
-		box-shadow: 0 1px  3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-		transition: all 0.3s ease;
+	margin: 3px;
+	position: relative;
+	display: inline-block;
+	color: white;
+	background-color: #00BCD4;
+	width: 2.0rem;
+	height: 2.0rem;
+	border-radius: 8px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+	transition: all 0.3s ease;
 }
+
 .icon .material-icons {
-		font-size: 1.0rem;
-		position: absolute;
-		left: 0.5rem;
-		top: 0.5rem;
-		transition: all 0.3s ease;
-	  
+	font-size: 1.0rem;
+	position: absolute;
+	left: 0.5rem;
+	top: 0.5rem;
+	transition: all 0.3s ease;
 }
-.icon:hover, .icon:focus {
- 		 background-color: #00ACC1;
+
+.icon:hover,
+.icon:focus {
+	background-color: #00ACC1;
 }
 ```
 ### Sidebar color

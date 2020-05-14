@@ -7,12 +7,12 @@ Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroi
 # Quickstart
 ### Download HSK Anki apkg file for Anki or AnkiDroid
 Import this file to Anki or AnkiDroid for practicing HSK words.
-<br>  -[HSK 1 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK1.apkg?raw=true)
-<br>  -[HSK 2 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK2.apkg?raw=true)
-<br>  -[HSK 3 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK3.apkg?raw=true)
-<br>  -[HSK 4 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK4.apkg?raw=true)
-<br>  -[HSK 5 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK5.apkg?raw=true)
-<br>  -[HSK 6 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi_HSK6.apkg?raw=true)
+<br>  -[HSK 1 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK1.apkg?raw=true)
+<br>  -[HSK 2 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK2.apkg?raw=true)
+<br>  -[HSK 3 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK3.apkg?raw=true)
+<br>  -[HSK 4 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK4.apkg?raw=true)
+<br>  -[HSK 5 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK5.apkg?raw=true)
+<br>  -[HSK 6 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK6.apkg?raw=true)
 
 ## Download from Ankiweb
 [Practice Mandarin HSK1--HSK6 by drawing strokes (with audio)](https://ankiweb.net/shared/info/119943820)
@@ -27,10 +27,6 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 
 ### To import in Ankidroid
 ![Image Import Mobile](https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/Import_in_mobile.png)
-
-
-#### Note: changes will be reflected to next card. 
-It may not work on some devices. But tested to be work on most devices.
 
 Front Side of Deck
 <br>[Front Card](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.1/frontcard_1.1.html)
@@ -59,6 +55,8 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  implementation of HanziWriter in Anki and AnkiDroid. It may not work in some devices. Please make backups of your AnkiDroid decks         before importing xiehanzi hsk decks.
  I have used [this (audio-cmn)](https://github.com/hugolpz/audio-cmn) to add audio to HSK characters. 
  Some audio files missing but using a simply python script audio file can be generated using text to speech. [Read](https://github.com/infinyte7/gtts-textToMp3)
+
+It may not work on some devices. But tested to be work on most devices.
 
 ## Contribution
  Any contribution will be appreciated.
@@ -90,5 +88,3 @@ The MIT License
 
 ## Other Third Party Licenses
 [Third Party License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)
-
-

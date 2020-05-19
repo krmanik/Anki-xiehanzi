@@ -52,7 +52,7 @@ Added following features in existing deck. Just download and import, it will get
 [Version 1.1](https://github.com/infinyte7/Anki-xiehanzi/tree/master/version%201.1)
 
 
-### To turn off auto showAnswer();
+## To turn off auto showAnswer();
 This front side of card template. Just remove the contents in <script> tag.
 ```javascript
 {{Pinyin}}

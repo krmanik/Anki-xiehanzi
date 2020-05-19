@@ -53,7 +53,7 @@ Added following features in existing deck. Just download and import, it will get
 
 
 ## To turn off auto showAnswer();
-This front side of card template. Just remove the contents in <script> tag.
+This is <b>front side</b> of card template. Just remove the contents in <b><script></b> tag.
 ```javascript
 {{Pinyin}}
 <script>

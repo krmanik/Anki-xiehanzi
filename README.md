@@ -52,6 +52,26 @@ Added following features in existing deck. Just download and import, it will get
 [Version 1.1](https://github.com/infinyte7/Anki-xiehanzi/tree/master/version%201.1)
 
 
+### To turn off auto showAnswer();
+This front side of card template. Just remove the contents in <script> tag.
+```javascript
+{{Pinyin}}
+<script>
+var isMobile = /Android/i.test(navigator.userAgent);
+if (isMobile) {
+  showAnswer();    // <---   remove this function or comment it.
+}else{
+  pycmd('ans');
+}
+</script>
+```
+
+#### Afetr removing above, the front side of card template will like this.
+```
+{{Pinyin}}
+```
+
+
 ### To import in Ankidroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
 

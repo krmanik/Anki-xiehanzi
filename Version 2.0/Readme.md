@@ -2,7 +2,7 @@
 ```diff
 - Note: This is for experiment only. This may/may not work. 
 
-+ Only for AnkiDroid devices
++ Only for AnkiDroid
 + AnkiDroid 2.11 
 - It will not work on Anki Desktop & AnkiMobile
 ```

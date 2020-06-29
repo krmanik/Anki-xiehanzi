@@ -13,8 +13,6 @@
 	--icon-button-background-focus: #63759d;
 	--sidebar-color: white;
 	--sidebar-background-color: #343a40;
-
-
 	font-family: arial;
 	font-size: 20px;
 	text-align: center;
@@ -22,10 +20,9 @@
 	background-color: white;
 }
 
-
 .card.night_mode {
 	--title-color: #00bcd4;
- --time-left-color: #fff;
+	--time-left-color: #fff;
 	--hanzi-grid: #262626;
 	--stroke: #ffffff;
 	--outline: #5B5B5B;
@@ -38,7 +35,6 @@
 	--icon-button-background-focus: #63759d;
 	--sidebar-color: white;
 	--sidebar-background-color: #343a40;
-
 	color: white;
 	background-color: #1f1f1f;
 }
@@ -96,6 +92,7 @@
 }
 
 /* bottom button */
+
 .modal-footer {
 	text-align: center;
 }

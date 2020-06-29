@@ -45,7 +45,7 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 - Updated new button & text color
 - Default show answer function turned off
 ### Demo
-![Night Mode Demo](https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/night_mode_demo.gif)
+![Night Mode Demo](https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/night_mode.PNG)
 
 # Update 2020-05-13
 - In earlier version, changes get reflect in next card but from now changes will get reflected in current card. [For more #6134](https://github.com/ankidroid/Anki-Android/pull/6134)

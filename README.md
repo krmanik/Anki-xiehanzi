@@ -15,6 +15,13 @@ Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroi
 [Practice Mandarin HSK1--HSK6 by drawing strokes (with audio)](https://ankiweb.net/shared/info/119943820)
 
 ### Download from GitHub (HSK 1- HSK 6)
+#### Version 1.3 Downloads
+This deck do not contain audio. For audio download earlier version deck, then import this deck to update.
+<br>[xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Version%201.3/xiehanzi_v1.3.apkg?raw=true)
+
+To set up full screen view this. [Customize AnkiDroid fullscreen](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Version%201.3/Customize%20AnkiDroid%20Fullscreen.md) 
+
+#### Version 1.2 Downloads
 [xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.2/xiehanzi.apkg?raw=true)
 
 Import this file to Anki or AnkiDroid for practicing HSK words.
@@ -31,6 +38,14 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 - Change drawing stroke width 
 - Change size of characters
 - HSK1 - HSK6 audio included in the decks 
+
+# Update 2020-06-29
+- Night mode 
+- Custom top bar to show title, time & card counts
+- Updated new button & text color
+- Default show answer function turned off
+### Demo
+![Night Mode Demo](https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/night_mode_demo.gif)
 
 # Update 2020-05-13
 - In earlier version, changes get reflect in next card but from now changes will get reflected in current card. [For more #6134](https://github.com/ankidroid/Anki-Android/pull/6134)

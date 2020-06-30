@@ -39,6 +39,16 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 - Change size of characters
 - HSK1 - HSK6 audio included in the decks 
 
+# Update 2020-06-30
+- Indicator at bottom for showing if character loaded or not (```green - loaded, red - not loaded or some error```)
+- Added sidebar at right side with more button
+- Added http://rtega.be/chmn/ for mnemonics
+- By default all option turned off, to make it work on AnkiDesktop as well as AnkiDroid
+- Changes will get reflect in current card except for stroke size, characters height and width.
+- New images for button that open ```Pleco Dictionary```, ```hanzicraft.com``` and ```rtega.be/chmn/``` 
+- Bug fixes
+View this for more . [Readme V 1.4](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/Version%201.4/README.md)
+
 # Update 2020-06-29
 - Night mode 
 - Custom top bar to show title, time & card counts

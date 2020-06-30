@@ -2,35 +2,20 @@
 
 https://infinyte7.github.io/Anki-xiehanzi/
 
-Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid with audio of HSK1 to HSK6 characters. I have used existing js library for implementing this in Anki and Ankidroid. It is a script written in Javascript to front side of card template of anki deck. <br>Read [License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)
+Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid with audio of HSK1 to HSK6 characters. I have used existing js library for implementing this in Anki and AnkiDroid. It is a script written in Javascript to back side of card template of anki deck. <br>Read [License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)
 
-# Demo 
-![Alt Text](https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/xiehanzi_anki_demo.gif?raw=true)
+# Demo
+<img src="https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/xiehanzi_anki_demo.gif?raw=true" height="560" width="264"></img>
 
 # Quickstart
 ### Download HSK Anki apkg file for Anki or AnkiDroid
-#### Before importing Anki Deck please make backups.
+#### Before importing Anki Deck please make backups with scheduling information.
 
 ## Download from Ankiweb (HSK 1- HSK 6)
 [Practice Mandarin HSK1--HSK6 by drawing strokes (with audio)](https://ankiweb.net/shared/info/119943820)
 
 ### Download from GitHub (HSK 1- HSK 6)
-#### Version 1.3 Downloads
-This deck do not contain audio. For audio download earlier version deck, then import this deck to update.
-<br>[xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/Version%201.3/xiehanzi_v1.3.apkg?raw=true)
-
-To set up full screen view this. [Customize AnkiDroid fullscreen](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Version%201.3/Customize%20AnkiDroid%20Fullscreen.md) 
-
-#### Version 1.2 Downloads
-[xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/version%201.2/xiehanzi.apkg?raw=true)
-
-Import this file to Anki or AnkiDroid for practicing HSK words.
-<br>[HSK 1 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK1.apkg?raw=true)
-<br>[HSK 2 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK2.apkg?raw=true)
-<br>[HSK 3 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK3.apkg?raw=true)
-<br>[HSK 4 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK4.apkg?raw=true)
-<br>[HSK 5 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK5.apkg?raw=true)
-<br>[HSK 6 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK6.apkg?raw=true)
+[xiehanzi v 1.4](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/Version%201.4/xiehanzi_v1.4.apkg?raw=true)
 
 ### Feautres
 - Write characters to learn Mandarin with Simplified, Traditional, Pinyin and Meaning
@@ -47,15 +32,34 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 - Changes will get reflect in current card except for stroke size, characters height and width.
 - New images for button that open ```Pleco Dictionary```, ```hanzicraft.com``` and ```rtega.be/chmn/``` 
 - Bug fixes
-View this for more . [Readme V 1.4](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/Version%201.4/README.md)
+
+View this for more . [Readme v1.4](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/Version%201.4/README.md)
+
+### Image 
+<img src="https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/xiehanzi_v1.4.PNG" height="544" width="330"></img>
+
+### Related files
+
+[Version 1.4](https://github.com/infinyte7/Anki-xiehanzi/tree/master/Versions/Version%201.4)
 
 # Update 2020-06-29
 - Night mode 
 - Custom top bar to show title, time & card counts
 - Updated new button & text color
 - Default show answer function turned off
-### Demo
-![Night Mode Demo](https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/night_mode.PNG)
+
+### Image
+
+![Night Mode](https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/night_mode.PNG)
+
+### Related files
+
+[Version 1.3](https://github.com/infinyte7/Anki-xiehanzi/tree/master/Versions/Version%201.3)
+
+#### Version 1.3 Downloads
+This deck do not contain audio. For audio download earlier version deck, then import this deck to update.
+<br>[xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/Version%201.3/xiehanzi_v1.3.apkg?raw=true)
+
 
 # Update 2020-05-13
 - In earlier version, changes get reflect in next card but from now changes will get reflected in current card. [For more #6134](https://github.com/ankidroid/Anki-Android/pull/6134)
@@ -63,6 +67,17 @@ View this for more . [Readme V 1.4](https://github.com/infinyte7/Anki-xiehanzi/b
 
 ### Related files
 [Version 1.2](https://github.com/infinyte7/Anki-xiehanzi/tree/master/Versions/version%201.2)
+
+#### Version 1.2 Downloads
+[xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/version%201.2/xiehanzi.apkg?raw=true)
+
+Import this file to Anki or AnkiDroid for practicing HSK words.
+<br>[HSK 1 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK1.apkg?raw=true)
+<br>[HSK 2 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK2.apkg?raw=true)
+<br>[HSK 3 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK3.apkg?raw=true)
+<br>[HSK 4 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK4.apkg?raw=true)
+<br>[HSK 5 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK5.apkg?raw=true)
+<br>[HSK 6 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK6.apkg?raw=true)
 
 # Update 2020-04-08
 Added following features in existing deck. Just download and import, it will get updated without any problem.
@@ -73,6 +88,7 @@ Added following features in existing deck. Just download and import, it will get
 
 - Auto show answer (After Ankidroid 2.10 [#5817](https://github.com/ankidroid/Anki-Android/pull/5817))
 - Offline loading of character using localhost. (After Ankidroid 2.10 [#5890](https://github.com/ankidroid/Anki-Android/pull/5890)) [For more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Load%20hanzi%20data%20offline.md) 
+
 ### Related files 
 [Version 1.1](https://github.com/infinyte7/Anki-xiehanzi/tree/master/Versions/version%201.1)
 
@@ -116,7 +132,10 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
 
 ### Change default settings in code [Read more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Customize%20default%20setting.md)
 
- ## Contribution
+### To set up full screen view this. [Customize AnkiDroid fullscreen](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Version%201.3/Customize%20AnkiDroid%20Fullscreen.md) 
+
+
+## Contribution
  Any contribution will be appreciated.
  
 ## Faq?

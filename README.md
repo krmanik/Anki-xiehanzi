@@ -2,16 +2,17 @@
 
 https://infinyte7.github.io/Anki-xiehanzi/
 
-Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid with audio of HSK1 to HSK6 characters. I have used existing js library for implementing this in Anki and AnkiDroid. It is a script written in Javascript to back side of card template of anki deck. <br>Read [License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)
+Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroid with audio of HSK1 to HSK6 characters. I have used existing js library for implementing this in Anki and AnkiDroid. It is a script written in Javascript added to back side of card template of anki deck.
+- Read [License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)
 
 # Demo
 <img src="https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/xiehanzi_anki_demo.gif?raw=true" height="560" width="264"></img>
 
-# Quickstart
+# Quick Start
 ### Download HSK Anki apkg file for Anki or AnkiDroid
 #### Before importing Anki Deck please make backups with scheduling information.
 
-## Download from Ankiweb (HSK 1- HSK 6)
+## Download from AnkiWeb (HSK 1- HSK 6)
 [Practice Mandarin HSK1--HSK6 by drawing strokes (with audio)](https://ankiweb.net/shared/info/119943820)
 
 ### Download from GitHub (HSK 1- HSK 6)
@@ -86,8 +87,8 @@ Added following features in existing deck. Just download and import, it will get
 - Separate button for animation and revealing character during practice. 
 - Added missing audio of characters.
 
-- Auto show answer (After Ankidroid 2.10 [#5817](https://github.com/ankidroid/Anki-Android/pull/5817))
-- Offline loading of character using localhost. (After Ankidroid 2.10 [#5890](https://github.com/ankidroid/Anki-Android/pull/5890)) [For more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Load%20hanzi%20data%20offline.md) 
+- Auto show answer (After AnkiDroid 2.10 [#5817](https://github.com/ankidroid/Anki-Android/pull/5817))
+- Offline loading of character using localhost. (After AnkiDroid 2.10 [#5890](https://github.com/ankidroid/Anki-Android/pull/5890)) [For more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Load%20hanzi%20data%20offline.md) 
 
 ### Related files 
 [Version 1.1](https://github.com/infinyte7/Anki-xiehanzi/tree/master/Versions/version%201.1)
@@ -113,7 +114,7 @@ if (isMobile) {
 ```
 
 
-### To import in Ankidroid
+### To import in AnkiDroid
 ![Image Import Mobile](https://github.com/infinyte7/Anki-maobi/blob/master/image/Import_in_mobile.png)
 
 ## Acknowledgement
@@ -123,7 +124,7 @@ The chinese character and stroke order data used by [Hanziwriter](https://github
 is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
   
 ## Disclaimer
- This implemention is in javascript. It works because Ankidroid uses Android Webview for flashcard review. It is just implementation of HanziWriter in Anki and AnkiDroid. It may not work in some devices. Please make backups of your AnkiDroid decks before importing xiehanzi hsk decks.
+ This implementation is in javascript. It works because AnkiDroid uses Android Webview for flashcard review. It is just implementation of HanziWriter in Anki and AnkiDroid. It may not work in some devices. Please make backups of your AnkiDroid decks before importing xiehanzi hsk decks.
  Some audio files missing but using a simply python script audio file can be generated using text to speech. [Read](https://github.com/infinyte7/gtts-textToMp3)
 
 
@@ -139,11 +140,12 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
 
 
 ## Contribution
- Any contribution will be appreciated.
- 
+ How can I contribute to this?
+ You can contribute by submitting issues, code review, new design and screenshots for iOS, AnkiDroid, AnkiDesktop.
+
 ## Faq?
  #### Did you create writing component?
- No, I have just implemeted existing js library HanziWriter in Anki and Ankidroid.
+ No, I have just implemented existing js library HanziWriter in Anki and AnkiDroid.
  
  #### Did it work on mobile?
  Yes, It is working. But you have to select card template carefully or download [Sample Deck](https://github.com/infinyte7/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true). <br>[Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)

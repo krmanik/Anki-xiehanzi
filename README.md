@@ -17,12 +17,12 @@ Learn, read, write and practice Mandarin by drawing strokes in anki and ankidroi
 ### Download from GitHub (HSK 1- HSK 6)
 #### Version 1.3 Downloads
 This deck do not contain audio. For audio download earlier version deck, then import this deck to update.
-<br>[xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Version%201.3/xiehanzi_v1.3.apkg?raw=true)
+<br>[xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/Version%201.3/xiehanzi_v1.3.apkg?raw=true)
 
 To set up full screen view this. [Customize AnkiDroid fullscreen](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Version%201.3/Customize%20AnkiDroid%20Fullscreen.md) 
 
 #### Version 1.2 Downloads
-[xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.2/xiehanzi.apkg?raw=true)
+[xiehanzi Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/version%201.2/xiehanzi.apkg?raw=true)
 
 Import this file to Anki or AnkiDroid for practicing HSK words.
 <br>[HSK 1 Deck](https://github.com/infinyte7/Anki-xiehanzi/blob/master/xiehanzi%20Anki%20Deck/xiehanzi__HSK1.apkg?raw=true)
@@ -52,7 +52,7 @@ Import this file to Anki or AnkiDroid for practicing HSK words.
 ( Note : After AnkiDroid 2.10 )
 
 ### Related files
-[Version 1.2](https://github.com/infinyte7/Anki-xiehanzi/tree/master/version%201.2)
+[Version 1.2](https://github.com/infinyte7/Anki-xiehanzi/tree/master/Versions/version%201.2)
 
 # Update 2020-04-08
 Added following features in existing deck. Just download and import, it will get updated without any problem.
@@ -64,7 +64,7 @@ Added following features in existing deck. Just download and import, it will get
 - Auto show answer (After Ankidroid 2.10 [#5817](https://github.com/ankidroid/Anki-Android/pull/5817))
 - Offline loading of character using localhost. (After Ankidroid 2.10 [#5890](https://github.com/ankidroid/Anki-Android/pull/5890)) [For more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Load%20hanzi%20data%20offline.md) 
 ### Related files 
-[Version 1.1](https://github.com/infinyte7/Anki-xiehanzi/tree/master/version%201.1)
+[Version 1.1](https://github.com/infinyte7/Anki-xiehanzi/tree/master/Versions/version%201.1)
 
 
 ## To turn off auto showAnswer();

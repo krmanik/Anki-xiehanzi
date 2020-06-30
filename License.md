@@ -43,6 +43,23 @@ Apache License
 Version 2.0, January 2004
 https://github.com/google/material-design-icons
 
+### Logo icons
+- Pleco
+<br>Copyright © 2020 Pleco Inc.
+<br>[Pleco](https://www.pleco.com/)
+
+- HanziCraft
+<br>Copyright (c) 2012-2014 Jeremiah Daneil de la Rouviere
+<br>[MIT License](https://github.com/nieldlr/hanzi/blob/master/LICENSE.txt)
+
+- Rtega
+<br>2010-2019 © Reinaert Albrecht
+<br>[Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.](https://creativecommons.org/licenses/by-nc-sa/3.0/)
+
+### Sidebar, Switch and Range slider
+<a href="https://www.w3schools.com/">W3Schools.com</a>
+<br>Copyright 1999-2020 by Refsnes Data
+
 ### Button CSS
 I used css for button from following codepen.
 <br>https://codepen.io/sebj54/pen/oxluI
@@ -50,10 +67,11 @@ I used css for button from following codepen.
 ### Earlier I asked questions on Stackoverflow for showing character one by one
 I asked this question on Stackoverflow for my project in Cordova.
 <br>https://stackoverflow.com/questions/60285131/i-want-one-character-at-a-time-on-html-page-after-completion-load-next-one
+<br>[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
 # License - Anki-xiehanzi (写汉字)
 Author : Mani (Infinyte7)
-<br>MIT License for using this code.
+<br>MIT License 2020
 
 The MIT License
 Permission is hereby granted, free of charge, to any person obtaining a copy

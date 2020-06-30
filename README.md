@@ -126,6 +126,9 @@ is derived from the [ Make me a Hanzi](https://github.com/skishore/makemeahanzi)
  This implemention is in javascript. It works because Ankidroid uses Android Webview for flashcard review. It is just implementation of HanziWriter in Anki and AnkiDroid. It may not work in some devices. Please make backups of your AnkiDroid decks before importing xiehanzi hsk decks.
  Some audio files missing but using a simply python script audio file can be generated using text to speech. [Read](https://github.com/infinyte7/gtts-textToMp3)
 
+
+### Update xiehanzi deck on AnkiDesktop [Read more](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Update%20xiehanzi%20deck%20on%20AnkiDesktop.md)  
+
 ### Add / Remove buttons [Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/add_remove_buttons.md) 
 
 ### Create your own deck [Read More](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Create%20new%20Deck%20From%20Scratch.md)

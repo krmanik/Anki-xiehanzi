@@ -157,9 +157,9 @@
             document.getElementById("showOutLineId").checked = false;
         }
         if (showOutlineState == null) {
-            showOutlineState = false;
+            showOutlineState = true;
             show_outline = showOutlineState;
-            document.getElementById("showOutLineId").checked = false;
+            document.getElementById("showOutLineId").checked = true;
             Persistence.setItem("outline_per", showOutlineState);
         }
     }
@@ -191,9 +191,9 @@
             Persistence.setItem("simp_per", false);
         }
         if (showSimpState == null) {
-            showSimpState = false;
-            document.getElementById("showSimpId").checked = false;
-            document.getElementById("ch_sim").style.opacity = "0";
+            showSimpState = true;
+            document.getElementById("showSimpId").checked = true;
+            document.getElementById("ch_sim").style.opacity = "1";
             Persistence.setItem("simp_per", showSimpState);
         }
     }
@@ -259,9 +259,9 @@
             Persistence.setItem("pinyin_per", false);
         }
         if (showPinyinState == null) {
-            showPinyinState = false;
-            document.getElementById("showPinId").checked = false;
-            document.getElementById("ch_pin").style.display = "none";
+            showPinyinState = true;
+            document.getElementById("showPinId").checked = true;
+            document.getElementById("ch_pin").style.display = "block";
             Persistence.setItem("pinyin_per", showPinyinState);
         }
     }
@@ -293,9 +293,9 @@
             Persistence.setItem("meaning_per", false);
         }
         if (showMeaningState == null) {
-            showMeaningState = false;
-            document.getElementById("showMeanId").checked = false;
-            document.getElementById("ch_mean").style.display = "none";
+            showMeaningState = true;
+            document.getElementById("showMeanId").checked = true;
+            document.getElementById("ch_mean").style.display = "block";
             Persistence.setItem("meaning_per", showMeaningState);
         }
     }

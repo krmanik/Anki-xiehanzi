@@ -1,3 +1,23 @@
+## To turn off auto showAnswer();
+
+This is <b>front side</b> of card template. Just remove the contents in <b><script></b> tag.
+```javascript
+{{Pinyin}}
+<script>
+var isMobile = /Android/i.test(navigator.userAgent);
+if (isMobile) {
+  showAnswer();    // <---   remove this function or comment it.
+}else{
+  pycmd('ans');
+}
+</script>
+```
+
+#### Afetr removing above, the front side of card template will like this.
+```
+{{Pinyin}}
+```
+
 ## Change default setting of showing and hiding characters, pinyin and meaning in card.html
 Read commented out line to change.
 ## Simplified 

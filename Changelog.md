@@ -5,7 +5,7 @@
 - Practice simplified as well as traditional characters
 
 ### Image 
-<img src="https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/new_design.PNG" height="500" width="300"></img>
+<img src="https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/new_design.png" height="560" width="300"></img>
 
 ### Related files
 

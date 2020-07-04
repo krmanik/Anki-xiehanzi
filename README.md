@@ -23,13 +23,15 @@ Download latest xiehanzi anki deck from [release page](https://github.com/infiny
 - Change size of characters
 - Change drawing stroke width
 - HSK1 - HSK6 audio included in the decks
-- Practice simplified as well as traditional characters
-- Show or hide Simplified, Traditional characters, Pinyin or Meaning
 - View meaning by opening [Pleco dictionary](https://www.pleco.com/) on phone.
 - View character details using [https://hanzicraft.com/](https://hanzicraft.com/) 
 - View mnemonics of characters using [http://rtega.be/chmn/](http://rtega.be/chmn/)
+- Practice simplified as well as traditional characters
+- Show or hide Simplified, Traditional characters, Pinyin or Meaning
 - Draw characters to learn Mandarin with Simplified, Traditional, Pinyin and Meaning
 - Indicator at bottom for showing if character loaded or not (```green - loaded, red - not loaded or some error```)
+
+Note: Some changes will get reflect from next card.
 
 **View [Changelog.md](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Changelog.md) for more**
 

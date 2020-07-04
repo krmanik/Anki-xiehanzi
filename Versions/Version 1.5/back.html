@@ -133,7 +133,8 @@
     <a style="float:right; font-size:16px;" id="changeLangID" onclick="switchLangClick()"></a>
 </div>
 <!-- end sidebar -->
-<!-- more info -->
+
+
 <div id="moreInfoSidebar" class="more-info-sidebar">
     <a href="javascript:void(0)" class="closebtn btn" onclick="closeMoreNav()">
         <div class="icon" style="background-color:#ea2322;">
@@ -151,7 +152,6 @@
         <img src="_rtega.png"></img>
     </a>
 </div>
-<!-- end - more info -->
 <div id='ch_sim' class="text-color4 ">{{Simplified}}</div>
 <div id='ch_trad' class="text-color2">{{Traditional}}</div>
 <div id='ch_pin' class="text-color1">{{Pinyin}}</div>
@@ -188,6 +188,7 @@
 </div>
 
 <script>
+
     // start - Change language
     var clickCount = 0;
 
@@ -224,6 +225,7 @@
             switchLang(lang);
         }
     }
+
 
     function switchLang(l) {
 

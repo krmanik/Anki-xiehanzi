@@ -1,3 +1,10 @@
+# Updated 2020-07-05
+- New design
+- Updated for iOS
+- Switch language in sidebar menu
+- Practice simplified as well as traditional characters
+
+
 # Update 2020-06-30
 - Indicator at bottom for showing if character loaded or not (```green - loaded, red - not loaded or some error```)
 - Added sidebar at right side with more button

@@ -4,6 +4,12 @@
 - Switch language in sidebar menu
 - Practice simplified as well as traditional characters
 
+### Image 
+<img src="https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/new_design.PNG" height="500" width="300"></img>
+
+### Related files
+
+[Version 1.5](https://github.com/infinyte7/Anki-xiehanzi/tree/master/Versions/Version%201.5)
 
 # Update 2020-06-30
 - Indicator at bottom for showing if character loaded or not (```green - loaded, red - not loaded or some error```)

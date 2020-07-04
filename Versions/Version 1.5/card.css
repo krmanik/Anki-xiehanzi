@@ -5,10 +5,10 @@
     --stroke: #555;
     --outline: #DDD;
     --drawing: #333;
-    --pinyin-color: #03a9f4;
-    --simplified-color: #ea2322;
-    --traditional-color: #607d8b;
-    --meaning-color: #4caf50;
+    --pinyin-color: #ef6c00;
+    --simplified-color: #6495ed;
+    --traditional-color: #00796b;
+    --meaning-color: #607d8b;
     --icon-button-background: #63759d;
     --icon-button-background-focus: #7d92c2;
     --sidebar-color: white;
@@ -28,7 +28,7 @@
     --outline: #5B5B5B;
     --drawing: #fff;
     --pinyin-color: #27b46e;
-    --simplified-color: #ea2322;
+    --simplified-color: #6495ed;
     --traditional-color: #fba910;
     --meaning-color: #29b6f6;
     --icon-button-background: #63759d;
@@ -99,7 +99,7 @@
 /* bottom button */
 
 .modal-footer1 {
-    margin-top: 5px;
+    padding-top: 15px;
     text-align: center;
 }
 

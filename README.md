@@ -8,6 +8,8 @@ Learn, read, write and practice Mandarin by drawing strokes in [Anki Desktop](ht
 
 <img src="https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/xiehanzi_anki_demo.gif?raw=true" height="560" width="264"></img>
 
+### View more [Demo](Demo.md)
+
 # Quick Start
 Download HSK Anki apkg file for Anki Desktop, AnkiDroid or AnkiMobile
 

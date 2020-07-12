@@ -1,3 +1,18 @@
+# Updated 2020-07-12
+- Added options to change default settings at beginning of review.
+Change ```true``` to ```false``` to show / hide as default at beginning of review in note editor.
+```
+<script>
+    var default_show_outline = true;
+    var default_practice_simplified = true;
+    var default_show_simplified = true;
+    var default_show_traditional = true;
+    var default_show_pinyin = true;
+    var default_show_meaning = true;
+</script>
+```
+- Tapping the "Reveal button" when outline not showing, click once to show outline, click twice to animate characters
+
 # Updated 2020-07-05
 - New design
 - Updated for iOS

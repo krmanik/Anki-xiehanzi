@@ -55,7 +55,7 @@ is derived from [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
 View [wiki](https://github.com/infinyte7/Anki-xiehanzi/wiki)
 
 # My other anki decks
-[Anki Decks](https://ankiweb.net/shared/byauthor/2120672269) 
+[Anki Decks](https://ankiweb.net/shared/byauthor/119943820) 
 
 ## License - Anki-xiehanzi (写汉字)
 Author : Mani (Infinyte7)

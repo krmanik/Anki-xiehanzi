@@ -1,6 +1,6 @@
 # Anki xiě hànzì (写汉字）
 
-https://simplezhongwen.blogspot.com/
+[SIMPLE 中文](https://simplezhongwen.blogspot.com/)
 
 Learn, read, write and practice Mandarin by drawing strokes in [Anki Desktop](https://apps.ankiweb.net/), [AnkiDroid](https://play.google.com/store/apps/details?id=com.ichi2.anki) and [AnkiMobile](https://apps.apple.com/us/app/ankimobile-flashcards/id373493387) with audio of HSK1 to HSK6 characters. 
 

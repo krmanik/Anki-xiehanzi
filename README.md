@@ -49,7 +49,8 @@ is derived from [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
  Some audio files missing but using a simple python script audio file can be generated using text to speech. [Read](https://github.com/infinyte7/gtts-textToMp3)
 
 ## To create word list view this
-[Anki Chinese Vocabulary Generator](https://github.com/infinyte7/Anki-Chinese-Vocabulary-Generator)
+- [Anki Chinese Vocabulary Generator](https://github.com/infinyte7/Anki-Chinese-Vocabulary-Generator)
+- [Vocabulary](https://simplezhongwen.blogspot.com/search/label/vocabulary)
 
 ## Contribute
  View [Contributing.md](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Contributing.md)

@@ -1,6 +1,9 @@
 # Anki- xiě hànzì (写汉字）
 
-https://infinyte7.github.io/Anki-xiehanzi/
+[Simple 中文](http://simplezhongwen.blogspot.com/)
+
+# To Create wordlists
+https://github.com/infinyte7/Anki-Chinese-Vocabulary-Generator
 
 # Create your own word list from this sample apkg (Anki Desktop required)
 

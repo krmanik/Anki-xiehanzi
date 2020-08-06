@@ -61,6 +61,8 @@ View [wiki](https://github.com/infinyte7/Anki-xiehanzi/wiki)
 # My other anki decks
 [Anki Decks](https://ankiweb.net/shared/byauthor/119943820) 
 
+<a href='https://ko-fi.com/L3L820U7D' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://cdn.ko-fi.com/cdn/kofi3.png?v=2' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+
 ## License - Anki-xiehanzi (写汉字)
 Author : Mani (Infinyte7)
 <br>The MIT License

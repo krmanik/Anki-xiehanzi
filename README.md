@@ -1,6 +1,6 @@
 # Anki xiě hànzì (写汉字）
 
-https://infinyte7.github.io/Anki-xiehanzi/
+[SIMPLE 中文](https://simplezhongwen.blogspot.com/)
 
 Learn, read, write and practice Mandarin by drawing strokes in [Anki Desktop](https://apps.ankiweb.net/), [AnkiDroid](https://play.google.com/store/apps/details?id=com.ichi2.anki) and [AnkiMobile](https://apps.apple.com/us/app/ankimobile-flashcards/id373493387) with audio of HSK1 to HSK6 characters. 
 
@@ -48,6 +48,10 @@ is derived from [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
  This implementation is in javascript. It works because Anki uses webview for flashcard review. It may not work on some devices. Please make backups of your decks with scheduling information before importing xiehanzi hsk decks.
  Some audio files missing but using a simple python script audio file can be generated using text to speech. [Read](https://github.com/infinyte7/gtts-textToMp3)
 
+## To create word list view this
+- [Anki Chinese Vocabulary Generator](https://github.com/infinyte7/Anki-Chinese-Vocabulary-Generator)
+- [Vocabulary](https://simplezhongwen.blogspot.com/search/label/vocabulary)
+
 ## Contribute
  View [Contributing.md](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Contributing.md)
 
@@ -55,7 +59,9 @@ is derived from [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
 View [wiki](https://github.com/infinyte7/Anki-xiehanzi/wiki)
 
 # My other anki decks
-[Anki Decks](https://ankiweb.net/shared/byauthor/2120672269) 
+[Anki Decks](https://ankiweb.net/shared/byauthor/119943820) 
+
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/L3L820U7D)
 
 ## License - Anki-xiehanzi (写汉字)
 Author : Mani (Infinyte7)

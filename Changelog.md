@@ -1,3 +1,26 @@
+# Updates 2020-08-18
+- Added custom card layouts. 
+```
+For AnkiDroid only, Turn full screen and hide top bar
+AnkiDroid -> Settings -> Reviewing -> Fullscreen mode -> Hide the system bars
+&
+AnkiDroid -> Settings -> Reviewing -> Show Top Bar (Uncheck)
+```
+
+To remove it, Remove or comment all inside.
+```
+/* <--- to comment
+
+<!-- Custom Card Layout (Deck title, Card count and time)-->
+...
+...
+<!-- end-custom card layout-->
+
+to comment --> */
+```
+
+![Top bar](https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/night_mode.PNG)
+
 # Updated 2020-07-12
 - Added options to change default settings at beginning of review.
 Change ```true``` to ```false``` to show / hide as default at beginning of review in note editor.

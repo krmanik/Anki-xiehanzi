@@ -45,6 +45,9 @@
 
                 var t = AnkiDroidJS.ankiGetETA();
                 document.getElementById("timeID").innerHTML = t + " mins.";
+            } else {
+                document.getElementById("card_count_dot").style.display = "none";
+                document.getElementById("deck_title").style.display = "none";
             }
         }
     } else {

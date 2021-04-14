@@ -29,7 +29,7 @@ Download latest xiehanzi anki deck from [release page](https://github.com/infiny
 ### Download from GitHub (HSK 1 - HSK 6)
 [xiehanzi HSK 3.0](https://github.com/infinyte7/Anki-xiehanzi/releases/tag/v1.7.3)
 
-### Download (HSK 7 - HSK 9) decks from AnkiWeb
+### Download (HSK 7 - HSK 9) decks
 [From Patreon](https://www.patreon.com/posts/50014123)
 
 # Features

@@ -6,6 +6,11 @@ The Hanzi Writer source code is released under terms of the MIT license. The MIT
 
 The Hanzi Writer data comes from the [Make Me A Hanzi](https://github.com/skishore/makemeahanzi) project, which extracted the data from fonts by Arphic Technology, a Taiwanese font forge that released their work under a permissive license in 1999. You can redistribute and/or modify this data under the terms of the Arphic Public License as published by Arphic Technology Co., Ltd. A copy of this license can be found in  [ARPHICPL.TXT](https://github.com/infinyte7/Anki-maobi/blob/master/ARPHICPL.TXT).
 
+### HSK 3.0 Words list
+MIT License<br>
+https://plecoforums.com/threads/hsk-3-0-flashcards.6706/<br>
+https://github.com/infinyte7/HSK-3.0-words-list
+
 ### New HSK Word Lists
 Copyright Alan Davies, alan@hskhsk.com 2013-2020
 Free to be copied, distributed, or modified for non-commercial use.

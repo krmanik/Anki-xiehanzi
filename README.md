@@ -23,14 +23,14 @@ Download HSK Anki apkg file for Anki Desktop, AnkiDroid or AnkiMobile
 Download latest xiehanzi anki deck from [release page](https://github.com/infinyte7/Anki-xiehanzi/releases)
 
 ## HSK 3.0
-### Download from AnkiWeb (HSK 1 - HSK 6)
+### Download from AnkiWeb (HSK 1 - HSK 9)
 [xiehanzi HSK 3.0: Learn Mandarin Chinese by drawing strokes](https://ankiweb.net/shared/info/536858343)
 
 ### Download from GitHub (HSK 1 - HSK 6)
-[xiehanzi HSK 3.0](https://github.com/infinyte7/Anki-xiehanzi/releases/tag/v1.7.3)
+[xiehanzi HSK 3.0](https://github.com/infinyte7/Anki-xiehanzi/releases)
 
-### Download (HSK 7 - HSK 9) decks
-[From Patreon](https://www.patreon.com/posts/50014123)
+### Download from GitHub (HSK 7 - HSK 9)
+[xiehanzi HSK 3.0 (HSK 7-9)](https://github.com/infinyte7/Anki-xiehanzi/releases)
 
 # Features
 - Night mode

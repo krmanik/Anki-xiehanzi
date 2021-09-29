@@ -1,19 +1,24 @@
-Update existing xiehanzi deck
+## Import TSV file generated for Anki
+1. Download HSK words lists from [here]()
+2. Import in Anki one by one in respective decks. <br>
+For e.g. import `HSK 1.txt` in `HSK 1` deck
+
+## Now update HTML/CSS
 
 ### Front
 Copy this and paste into front side of card template
 
-https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/Version%201.4/front.html
+https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/Version%201.8/front.html
 
 ### CSS
 Copy this and paste into styling css of card template
 
-https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/Version%201.4/card.css
+https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/Version%201.8/card.css
 
 ### Back
 Copy this and paste into back side of card template
 
-https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/Version%201.4/back.html
+https://github.com/infinyte7/Anki-xiehanzi/blob/master/Versions/Version%201.8/back.html
 
 ### This Deck used three images so download and copy that image to collection.media folder.
 

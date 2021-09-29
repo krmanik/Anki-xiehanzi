@@ -6,7 +6,7 @@ Learn, read, write and practice Mandarin by drawing strokes in [Anki Desktop](ht
 
 # Demo
 
-<img src="https://github.com/infinyte7/Anki-xiehanzi/blob/master/image/xiehanzi_anki_demo.gif?raw=true" height="560" width="264"></img>
+<img src="https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/xiehanzi_v1.8.gif" height="560" width="264"></img>
 
 ### View more [Demo](Demo.md)
 
@@ -36,7 +36,8 @@ Download latest xiehanzi anki deck from [release page](https://github.com/infiny
 - Night mode
 - Change size of characters
 - Change drawing stroke width
-- HSK1 - HSK6 audio included in the decks
+- Pinyin with tone color in HSK 3.0 decks
+- HSK1 - HSK9 audio included in the decks
 - View meaning by opening [Pleco dictionary](https://www.pleco.com/) on phone.
 - View character details using [https://hanzicraft.com/](https://hanzicraft.com/) 
 - View mnemonics of characters using [http://rtega.be/chmn/](http://rtega.be/chmn/)

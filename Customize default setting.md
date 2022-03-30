@@ -266,5 +266,5 @@ Above text-color css used in card.html
 ```
 
 ### Code with default settings in card.html 
-- [card.html](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.2/card.html)
-- [card.css](https://github.com/infinyte7/Anki-xiehanzi/blob/master/version%201.2/card.css)
+- [card.html](https://github.com/krmanik/Anki-xiehanzi/blob/master/version%201.2/card.html)
+- [card.css](https://github.com/krmanik/Anki-xiehanzi/blob/master/version%201.2/card.css)

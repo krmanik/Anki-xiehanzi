@@ -6,7 +6,7 @@ Learn, read, write and practice Mandarin by drawing strokes in [Anki Desktop](ht
 
 # Demo
 
-<img src="https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/xiehanzi_v1.8.gif" height="560" width="264"></img>
+<img src="https://raw.githubusercontent.com/krmanik/Anki-xiehanzi/master/image/xiehanzi_v1.8.gif" height="560" width="264"></img>
 
 ### View more [Demo](Demo.md)
 
@@ -20,17 +20,17 @@ Download HSK Anki apkg file for Anki Desktop, AnkiDroid or AnkiMobile
 [Practice Mandarin HSK1--HSK6 by drawing strokes (with audio)](https://ankiweb.net/shared/info/119943820)
 
 ### Download from GitHub (HSK 1 - HSK 6)
-Download latest xiehanzi anki deck from [release page](https://github.com/infinyte7/Anki-xiehanzi/releases)
+Download latest xiehanzi anki deck from [release page](https://github.com/krmanik/Anki-xiehanzi/releases)
 
 ## HSK 3.0
 ### Download from AnkiWeb (HSK 1 - HSK 9)
 [xiehanzi HSK 3.0: Learn Mandarin Chinese by drawing strokes](https://ankiweb.net/shared/info/536858343)
 
 ### Download from GitHub (HSK 1 - HSK 6)
-[xiehanzi HSK 3.0](https://github.com/infinyte7/Anki-xiehanzi/releases)
+[xiehanzi HSK 3.0](https://github.com/krmanik/Anki-xiehanzi/releases)
 
 ### Download from GitHub (HSK 7 - HSK 9)
-[xiehanzi HSK 3.0 (HSK 7-9)](https://github.com/infinyte7/Anki-xiehanzi/releases)
+[xiehanzi HSK 3.0 (HSK 7-9)](https://github.com/krmanik/Anki-xiehanzi/releases)
 
 # Features
 - Night mode
@@ -48,7 +48,7 @@ Download latest xiehanzi anki deck from [release page](https://github.com/infiny
 
 Note: Some changes will get reflect from next card.
 
-**View [Changelog.md](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Changelog.md) for more**
+**View [Changelog.md](https://github.com/krmanik/Anki-xiehanzi/blob/master/Changelog.md) for more**
 
 ## Acknowledgement
 I have not designed the writing chinese js library Hanziwriter. It comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library. 
@@ -58,24 +58,24 @@ is derived from [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
   
 ## Disclaimer
  This implementation is in javascript. It works because Anki uses webview for flashcard review. It may not work on some devices. Please make backups of your decks with scheduling information before importing xiehanzi hsk decks.
- Some audio files missing but using a simple python script audio file can be generated using text to speech. [Read](https://github.com/infinyte7/gtts-textToMp3)
+ Some audio files missing but using a simple python script audio file can be generated using text to speech. [Read](https://github.com/krmanik/gtts-textToMp3)
 
 ## To create word list view this
-- [Anki Chinese Vocabulary Generator](https://github.com/infinyte7/Anki-Chinese-Vocabulary-Generator)
+- [Anki Chinese Vocabulary Generator](https://github.com/krmanik/Anki-Chinese-Vocabulary-Generator)
 - [Vocabulary](https://simplezhongwen.blogspot.com/search/label/vocabulary)
 
 ## Contribute
- View [Contributing.md](https://github.com/infinyte7/Anki-xiehanzi/blob/master/Contributing.md)
+ View [Contributing.md](https://github.com/krmanik/Anki-xiehanzi/blob/master/Contributing.md)
 
 ## Wiki
-View [wiki](https://github.com/infinyte7/Anki-xiehanzi/wiki)
+View [wiki](https://github.com/krmanik/Anki-xiehanzi/wiki)
 
 # My other anki decks
 [Anki Decks](https://ankiweb.net/shared/byauthor/119943820) 
 
 ## License - Anki-xiehanzi (写汉字)
-Author : Mani (Infinyte7)
+Author : Mani (krmanik)
 <br>The MIT License
 
 ## Other Third Party License
-[License](https://github.com/infinyte7/Anki-xiehanzi/blob/master/License.md)
+[License](https://github.com/krmanik/Anki-xiehanzi/blob/master/License.md)

@@ -12,11 +12,11 @@ This deck will work on AnkiDesktop as well as AnkiDroid. By default all options 
   loaded successfully 
 ```
 ### AnkiDroid
-<img src="https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/char_indicator_mobile.PNG" height="544" width="260"></img>
+<img src="https://raw.githubusercontent.com/krmanik/Anki-xiehanzi/master/image/char_indicator_mobile.PNG" height="544" width="260"></img>
 
 ### AnkiDesktop
 
-<img src="https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/char_indicator.PNG"></img>
+<img src="https://raw.githubusercontent.com/krmanik/Anki-xiehanzi/master/image/char_indicator.PNG"></img>
 
 
 ## Added sidebar at right side with more button
@@ -31,10 +31,10 @@ New images for button that open ```Pleco Dictionary```, ```hanzicraft.com``` and
 - Rtega
 <br> Mainly for mnemonics 
 
-<img src="https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/xiehanzi_v1.4.PNG" height="544" width="330"></img>
+<img src="https://raw.githubusercontent.com/krmanik/Anki-xiehanzi/master/image/xiehanzi_v1.4.PNG" height="544" width="330"></img>
 
 ## By default all option turned off, to make it work on AnkiDesktop as well as AnkiDroid
 
 Earlier version of xiehanzi deck not work on AnkiDesktop. But turning on all options off it work on AnkiDroid as well as AnkiDesktop
 
-![Anki Desktop Demo](https://raw.githubusercontent.com/infinyte7/Anki-xiehanzi/master/image/anki_desktop_demo.gif)
+![Anki Desktop Demo](https://raw.githubusercontent.com/krmanik/Anki-xiehanzi/master/image/anki_desktop_demo.gif)

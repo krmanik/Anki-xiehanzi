@@ -4,12 +4,12 @@ https://hanziwriter.org/docs.html
 
 The Hanzi Writer source code is released under terms of the MIT license. The MIT License is simple and easy to understand and it places almost no restrictions on what you can do with the Project. You are free to use the Project in any other project (even commercial projects) as long as the copyright header is left intact.
 
-The Hanzi Writer data comes from the [Make Me A Hanzi](https://github.com/skishore/makemeahanzi) project, which extracted the data from fonts by Arphic Technology, a Taiwanese font forge that released their work under a permissive license in 1999. You can redistribute and/or modify this data under the terms of the Arphic Public License as published by Arphic Technology Co., Ltd. A copy of this license can be found in  [ARPHICPL.TXT](https://github.com/infinyte7/Anki-maobi/blob/master/ARPHICPL.TXT).
+The Hanzi Writer data comes from the [Make Me A Hanzi](https://github.com/skishore/makemeahanzi) project, which extracted the data from fonts by Arphic Technology, a Taiwanese font forge that released their work under a permissive license in 1999. You can redistribute and/or modify this data under the terms of the Arphic Public License as published by Arphic Technology Co., Ltd. A copy of this license can be found in  [ARPHICPL.TXT](https://github.com/krmanik/Anki-maobi/blob/master/ARPHICPL.TXT).
 
 ### HSK 3.0 Words list
 MIT License<br>
 https://plecoforums.com/threads/hsk-3-0-flashcards.6706/<br>
-https://github.com/infinyte7/HSK-3.0-words-list
+https://github.com/krmanik/HSK-3.0-words-list
 
 ### New HSK Word Lists
 Copyright Alan Davies, alan@hskhsk.com 2013-2020
@@ -75,7 +75,7 @@ I asked this question on Stackoverflow for my project in Cordova.
 <br>[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
 
 # License - Anki-xiehanzi (写汉字)
-Author : Mani (Infinyte7)
+Author : Mani (krmanik)
 <br>MIT License 2020
 
 The MIT License

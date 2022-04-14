@@ -66,7 +66,7 @@ It may not work on some devices. But tested to be work on most devices.
  No, I have just implemeted existing js library HanziWriter in Anki and Ankidroid.
  
 ### Did it work on mobile?
- Yes, It is working. But you have to select card template carefully or download [Sample Deck](https://github.com/krmanik/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true). For more read below.
+ Yes, It is working. But you have to select card template carefully or download [Sample Deck](https://github.com/krmanik/Anki-xiehanzi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true). For more read below.
  
 ### Does it work offline?
  No, It will not work offline. 

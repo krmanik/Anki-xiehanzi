@@ -10,19 +10,19 @@ https://github.com/krmanik/Anki-Chinese-Vocabulary-Generator
 ## Sample 1
 ![Demo](https://github.com/krmanik/Anki-xiehanzi/blob/master/image/create_from_scratch_demo.gif?raw=true)
 
-  #### 1. Download this sample apkg [Write_Chinese.apkg](https://github.com/krmanik/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)
+  #### 1. Download this sample apkg [Write_Chinese.apkg](https://github.com/krmanik/Anki-xiehanzi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)
   
   #### 2. Import this sample deck in Anki Desktop
   
-  ![Image Import Desktop](https://github.com/krmanik/Anki-maobi/blob/master/image/Import_Deck_Rename.png)
+  ![Image Import Desktop](https://github.com/krmanik/Anki-xiehanzi/blob/master/image/Import_Deck_Rename.png)
   
   #### 3. After that again click import and select wordlist. Then change note type to 'Basic ( Write Chinese )' and Deck to newly imported and renamed deck. After that map the field of words list. Note:- field {{Simplified}} is used for stroke order.
   
-  ![Image Import Desktop](https://github.com/krmanik/Anki-maobi/blob/master/image/map_to_field_1.png)
+  ![Image Import Desktop](https://github.com/krmanik/Anki-xiehanzi/blob/master/image/map_to_field_1.png)
   
   #### 4. After done everything correctly.
   
-  ![Image Import Desktop](https://github.com/krmanik/Anki-maobi/blob/master/image/xiehanzi.png)
+  ![Image Import Desktop](https://github.com/krmanik/Anki-xiehanzi/blob/master/image/xiehanzi.png)
   
   #### 5. Export that deck to apkg and import it in mobile.
 
@@ -34,7 +34,7 @@ https://github.com/krmanik/Anki-xiehanzi/blob/master/backcard
 #### css of card - add this to css of card
 https://github.com/krmanik/Anki-xiehanzi/blob/master/cardCSS
 
-#### four fields used in the [sample deck](https://github.com/krmanik/Anki-maobi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)
+#### four fields used in the [sample deck](https://github.com/krmanik/Anki-xiehanzi/blob/master/HSK%20Anki%20apkg/Write_Chinese.apkg?raw=true)
 ##### {{Simplified}}
 ##### {{Traditional}}
 ##### {{Pinyin}}
@@ -79,16 +79,16 @@ document.getElementById('ch_length').innerHTML = characters.length;
 ### If you are getting correct length then proceed otherwise change card template to basic or use my [sample deck].
 #### Incorrect length of character ‘我’. It should be 1 but due some error in card template in anki it is showing 3. So check next for correct card template. 
 
-![Image Incorrect](https://github.com/krmanik/Anki-maobi/blob/master/image/incorrect.png)
+![Image Incorrect](https://github.com/krmanik/Anki-xiehanzi/blob/master/image/incorrect.png)
 
 
 #### Add basic type deck in Manage note of AnkiDroid and then add and edit field for Simplified, Traditional, Pinyin and Meaning
 
-![Image Correct](https://github.com/krmanik/Anki-maobi/blob/master/image/correct_1.png)
+![Image Correct](https://github.com/krmanik/Anki-xiehanzi/blob/master/image/correct_1.png)
 
 ### Now It gives correct length for characters
 
-![Image Correct](https://github.com/krmanik/Anki-maobi/blob/master/image/correct.png)
+![Image Correct](https://github.com/krmanik/Anki-xiehanzi/blob/master/image/correct.png)
 
 
 ## For implementing this
@@ -293,7 +293,7 @@ https://ankiweb.net/account/login
 
 ### Before doing the following steps, please make backups of anki decks. Otherwise it may overwrite previous anki decks and data may lost.
 [Practice Mandarin in Anki and Ankidroid by drawing strokes .apkg file](https://ankiweb.net/shared/info/820120967)
-![Image Import Anki Deck](https://github.com/krmanik/Anki-maobi/blob/master/image/anki_demo_import.gif)
+![Image Import Anki Deck](https://github.com/krmanik/Anki-xiehanzi/blob/master/image/anki_demo_import.gif)
 
 
 # License - Anki-xiehanzi (写汉字)

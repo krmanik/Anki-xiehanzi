@@ -1,7 +1,7 @@
 # Create new decks with customized templates
 
 ## First get tsv files from here
-Download [HSK 1 - 9.zip](https://github.com/krmanik/Anki-xiehanzi/releases/download/v1.7.9/HSK.1.-.9.zip) file and extract the zip file,  the files have separated pinyin and meanings.
+Download [HSK 1 - 9.zip](https://github.com/krmanik/Anki-xiehanzi/releases/download/v1.7.9/HSK.1-9.zip) file and extract the zip file,  the files have separated pinyin and meanings.
 
 ## Create card template in Anki
 

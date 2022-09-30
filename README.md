@@ -4,6 +4,8 @@
 
 Learn, read, write and practice Mandarin by drawing strokes in [Anki Desktop](https://apps.ankiweb.net/), [AnkiDroid](https://play.google.com/store/apps/details?id=com.ichi2.anki) and [AnkiMobile](https://apps.apple.com/us/app/ankimobile-flashcards/id373493387) with audio of HSK1 to HSK6 characters. 
 
+<img src="https://raw.githubusercontent.com/krmanik/Anki-xiehanzi/main/static/img/xiehanzi_v2.0.gif" height="450px"></img>
+
 # Quick Start
 Download HSK Anki apkg file for Anki Desktop, AnkiDroid or AnkiMobile
 
@@ -11,7 +13,7 @@ Download HSK Anki apkg file for Anki Desktop, AnkiDroid or AnkiMobile
 
 ## Anki xiehanzi - HSK 3.0 (Recommended)
 ### Download from AnkiWeb (HSK 1 - HSK 9)
-[Anki xiehanzi HSK 3.0: Learn Mandarin by drawing strokes](https://ankiweb.net/shared/info/536858343)
+[Anki xiehanzi HSK 3.0: Learn Mandarin by drawing strokes](https://ankiweb.net/shared/info/1063372083)
 
 ### Download from GitHub (HSK 1 - HSK 9)
 [Anki xiehanzi HSK 3.0](https://github.com/krmanik/Anki-xiehanzi/releases)

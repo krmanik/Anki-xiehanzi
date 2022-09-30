@@ -64,6 +64,7 @@ is derived from [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
 ## License - Anki-xiehanzi (写汉字)
 Author : Mani (krmanik)
 <br>The MIT License
+<br>The GPL 3.0
 
 ## Other Third Party License
 [License](https://github.com/krmanik/Anki-xiehanzi/blob/master/License.md)

@@ -65,6 +65,10 @@ https://github.com/google/material-design-icons
 <a href="https://www.w3schools.com/">W3Schools.com</a>
 <br>Copyright 1999-2020 by Refsnes Data
 
+### Sidebar components
+[gui-challenges](https://github.com/argyleink/gui-challenges)<br/>
+[Apache-2.0 license](https://github.com/argyleink/gui-challenges/blob/main/LICENSE)
+
 ### Button CSS
 I used css for button from following codepen.
 <br>https://codepen.io/sebj54/pen/oxluI

@@ -12,7 +12,7 @@ const config = {
   baseUrl: '/Anki-xiehanzi/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.png',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
@@ -60,7 +60,7 @@ const config = {
         title: 'Anki xiehanzi',
         logo: {
           alt: 'Anki xiehanzi Logo',
-          src: 'img/logo.svg',
+          src: 'img/logo.gif',
         },
         items: [
           {

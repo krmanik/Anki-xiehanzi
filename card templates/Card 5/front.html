@@ -250,10 +250,10 @@
                     continue;
                 }
                 if (_id == "text-pinyin") {
-                    document.querySelector(".pinyin").style.display = "none";
+                    showHide(".pinyin", false);
                 }
                 if (_id == "text-zhuyin") {
-                    document.querySelectorAll(".zhuyin")[1].style.display = "none";
+                    showHide(".zhuyin", false);
                 }
                 document.getElementById(divId).style.display = "none";
             } else {
@@ -292,8 +292,21 @@
 
             if (e.checked) {
                 document.getElementById(divId).style.display = "block";
+                if (e.id == "text-pinyin") {
+                    showHide(".pinyin", true);
+                }
+                if (e.id == "text-zhuyin") {
+                    showHide(".zhuyin", true);
+                }
             } else {
                 document.getElementById(divId).style.display = "none";
+
+                if (e.id == "text-pinyin") {
+                    showHide(".pinyin", false);
+                }
+                if (e.id == "text-zhuyin") {
+                    showHide(".zhuyin", false);
+                }
             }
         }
 
@@ -301,6 +314,18 @@
             localStorage.setItem(e.id, e.value);
             var elem = document.getElementById(e.id);
             elem.value = e.value;
+        }
+    }
+
+    function showHide(type, isShow) {
+        if (isShow) {
+            document.querySelectorAll(type).forEach(function (val) {
+                val.style.display = 'inline';
+            });
+        } else {
+            document.querySelectorAll(type).forEach(function (val) {
+                val.style.display = 'none';
+            });
         }
     }
 

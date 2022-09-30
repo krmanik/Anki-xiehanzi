@@ -46,10 +46,10 @@
                 document.getElementById(_id).checked = false;
                 document.getElementById(divId).style.display = "none";
                 if (_id == "text-pinyin") {
-                    document.querySelector(".pinyin").style.display = "none";
+                    showHide(".pinyin", false);
                 }
                 if (_id == "text-zhuyin") {
-                    document.querySelectorAll(".zhuyin")[1].style.display = "none";
+                    showHide(".zhuyin", false);
                 }
             } else {
                 document.getElementById(_id).checked = true;
@@ -70,18 +70,30 @@
         }
         if (e.id == "text-pinyin") {
             if (e.checked) {
-                document.querySelector(".pinyin").style.display = "inline";
+                showHide(".pinyin", true);
             } else {
-                document.querySelector(".pinyin").style.display = "none";
+                showHide(".pinyin", false);
             }
         }
 
         if (e.id == "text-zhuyin") {
             if (e.checked) {
-                document.querySelectorAll(".zhuyin")[1].style.display = "inline";
+                showHide(".zhuyin", true);
             } else {
-                document.querySelectorAll(".zhuyin")[1].style.display = "none";
+                showHide(".zhuyin", false);
             }
+        }
+    }
+
+    function showHide(type, isShow) {
+        if (isShow) {
+            document.querySelectorAll(type).forEach(function (val) {
+                val.style.display = 'inline';
+            });
+        } else {
+            document.querySelectorAll(type).forEach(function (val) {
+                val.style.display = 'none';
+            });
         }
     }
 

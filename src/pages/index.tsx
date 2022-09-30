@@ -26,7 +26,8 @@ function HomepageHeader() {
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div style={{
           display: "inline-flex",
-          flexWrap: "wrap"
+          flexWrap: "wrap",
+          justifyContent: "center"
         }}>
           <div className={styles.buttons}>
             <Link

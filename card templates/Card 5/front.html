@@ -288,6 +288,10 @@ if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki
     function setPrefs(e) {
         if (e.id == "practice-select") {
             Persistence.setItem(e.id, e.selectedIndex);
+            characters = document.getElementById("practice-select").selectedIndex == "0"
+            ? document.getElementById('char_sim').innerHTML
+            : document.getElementById('char_trad').innerHTML;
+            doPractice();
         }
 
         if (e.type == "checkbox") {
@@ -480,6 +484,12 @@ if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki
     async function writeFunction(c) {
         // Wrap the code inside a Promise constructor callback
         return new Promise(function (resolve, reject) {
+            if (Persistence.getItem("text-grid") == "true") {
+                document.getElementById("char_grid").style.display = "block";
+            } else {
+                document.getElementById("char_grid").style.display = "none";
+            }
+
             var writer = HanziWriter.create('grid-background-target', c, {
                 onLoadCharDataSuccess: function (data) {
                     document.getElementById("ch_load_status").style.color = "#4caf50";
@@ -500,12 +510,6 @@ if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki
                 showHintAfterMisses: strokeAfterMisses,
                 padding: 5
             });
-
-            if (Persistence.getItem("text-grid") == "true") {
-                document.getElementById("char_grid").style.display = "block";
-            } else {
-                document.getElementById("char_grid").style.display = "none";
-            }
 
             var revealClickCount = 0;
             document.getElementById("btnRevealChar").onclick = function () {

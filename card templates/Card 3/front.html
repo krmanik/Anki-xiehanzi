@@ -32,9 +32,14 @@
     }
 
     var pinyinList = document.getElementById("char_pinyin").children;
+    var pinyinQuestionList = []
     for (var pinyin of pinyinList) {
-        pinyin.innerText = removeToneMarks(pinyin);
+        var removedTone  = removeToneMarks(pinyin);
+        if (!pinyinQuestionList.includes(removedTone)) {
+            pinyinQuestionList.push(removedTone)
+        }
     }
+    document.getElementById("char_pinyin").innerText = pinyinQuestionList.join(", ");
 
     var zhuyinList = document.getElementById("char_zhuyin").children;
     var zhuyinQuestionList = []
@@ -42,6 +47,7 @@
         zhuyin.innerText = zhuyin.innerText.replace("ˋ", "");
         zhuyin.innerText = zhuyin.innerText.replace("ˊ", "");
         zhuyin.innerText = zhuyin.innerText.replace("˙", "");
+        zhuyin.innerText = zhuyin.innerText.replace("ˇ", "");
 
         if (!zhuyinQuestionList.includes(zhuyin.innerText)) {
             zhuyinQuestionList.push(zhuyin.innerText)

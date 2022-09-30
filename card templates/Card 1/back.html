@@ -1,0 +1,223 @@
+<div id="char_zhuyin">{{Zhuyin}}</div>
+<div id="char_pinyin">{{Pinyin}}</div>
+<div id="char_sim" class="char-card">{{Simplified}}</div>
+<div id="char_trad" class="char-card">{{Traditional}}</div>
+<div id='audio' style='display:none'>{{Audio}}</div>
+
+<div class="modal-footer1">
+    <a class="btn" id="btnShowMenu" onclick="openSidebar('sidebar')">
+        <div class="icon">
+            <i class="material-icons">menu</i>
+        </div>
+    </a>
+    <a class="btn" id='btnPlayAudio'>
+        <div class="icon">
+            <i class="material-icons">play_arrow</i>
+        </div>
+    </a>
+    <a class="btn" id='btnMoreOptions' onclick="openSidebar('more-info-sidebar')">
+        <div class="icon">
+            <i class="material-icons">more_vert</i>
+        </div>
+    </a>
+</div>
+
+<hr>
+
+<div id="char_meaning" class="meaning-card">{{Meaning}}</div>
+
+<!--sidebar-->
+<script>
+    function completeAudio() {
+        var audioDiv = document.getElementById('audio');
+        var audio = audioDiv.getElementsByTagName("*");
+        audio[0].click();
+    }
+
+    document.getElementById("btnPlayAudio").onclick = function () {
+        completeAudio();
+    };
+
+    var switchIdList = ["text-pinyin", "text-zhuyin", "text-meaning", "text-sim", "text-trad"];
+    function initSwitchPrefs() {
+        for (var _id of switchIdList) {
+            var divId = _id.replace("text-", "char_");
+            if (localStorage.getItem(_id) == "false") {
+                document.getElementById(_id).checked = false;
+                document.getElementById(divId).style.display = "none";
+                if (_id == "text-pinyin") {
+                    document.querySelector(".pinyin").style.display = "none";
+                }
+                if (_id == "text-zhuyin") {
+                    document.querySelectorAll(".zhuyin")[1].style.display = "none";
+                }
+            } else {
+                document.getElementById(_id).checked = true;
+                localStorage.setItem(_id, "true");
+            }
+        }
+    }
+
+    function setPrefs(e) {
+        if (e.type == "checkbox") {
+            localStorage.setItem(e.id, e.checked);
+            var divId = e.id.replace("text-", "char_");
+            if (e.checked) {
+                document.getElementById(divId).style.display = "block";
+            } else {
+                document.getElementById(divId).style.display = "none";
+            }
+        }
+        if (e.id == "text-pinyin") {
+            if (e.checked) {
+                document.querySelector(".pinyin").style.display = "inline";
+            } else {
+                document.querySelector(".pinyin").style.display = "none";
+            }
+        }
+
+        if (e.id == "text-zhuyin") {
+            if (e.checked) {
+                document.querySelectorAll(".zhuyin")[1].style.display = "inline";
+            } else {
+                document.querySelectorAll(".zhuyin")[1].style.display = "none";
+            }
+        }
+    }
+
+    function openSidebar(id) {
+        var width = id == "sidebar" ? "250px" : "160px";
+        document.getElementById(id).style.width = width;
+    }
+
+    function closeSidebar(id) {
+        document.getElementById(id).style.width = "0";
+    }
+
+    document.addEventListener('click', function (event) {
+        if (!document.getElementById("sidebar") || !document.getElementById("more-info-sidebar")) { return };
+
+        if (!document.getElementById("sidebar").contains(event.target)) {
+            closeSidebar("sidebar");
+        }
+
+        if (!document.getElementById("more-info-sidebar").contains(event.target)) {
+            closeSidebar("more-info-sidebar");
+        }
+
+        if (document.getElementById("btnShowMenu").contains(event.target)) {
+            openSidebar("sidebar");
+        }
+
+        if (document.getElementById("btnMoreOptions").contains(event.target)) {
+            openSidebar("more-info-sidebar");
+        }
+    });
+
+    if (document.querySelector(".win")) {
+        initSwitchPrefs();
+    } else {
+        window.addEventListener("load", initSwitchPrefs, false);
+    }
+</script>
+
+<div id="sidebar" class="sidebar">
+    <section>
+        <fieldset style="border:none;">
+            <div class="fieldset-item">
+                <div class="input-stack" style="text-align:center; color: var(--text2);">
+                    <label for="deck-title">
+                        <h3>xie hanzi</h3>
+                    </label>
+                </div>
+            </div>
+        </fieldset>
+    </section>
+
+    <section>
+        <fieldset>
+            <div class="fieldset-item fs-item-1">
+                <div class="input-stack">
+                    <label for="text-pinyin">
+                        Pinyin
+                    </label>
+                </div>
+                <input type="checkbox" id="text-pinyin" name="text-pinyin" onchange=setPrefs(this)>
+            </div>
+
+            <div class="fieldset-item fs-item-1">
+                <div class="input-stack">
+                    <label for="text-zhuyin">
+                        Zhuyin
+                    </label>
+                </div>
+                <input type="checkbox" id="text-zhuyin" name="text-zhuyin" onchange=setPrefs(this)>
+            </div>
+
+            <div class="fieldset-item fs-item-1">
+                <div class="input-stack">
+                    <label for="text-meaning">
+                        Meaning
+                    </label>
+                </div>
+                <input type="checkbox" id="text-meaning" name="text-meaning" onchange=setPrefs(this)>
+            </div>
+
+            <div class="fieldset-item fs-item-1">
+                <div class="input-stack">
+                    <label for="text-sim">
+                        Simplified
+                    </label>
+                </div>
+                <input type="checkbox" id="text-sim" name="text-sim" onchange=setPrefs(this)>
+            </div>
+
+            <div class="fieldset-item fs-item-1">
+                <div class="input-stack">
+                    <label for="text-trad">
+                        Traditional
+                    </label>
+                </div>
+                <input type="checkbox" id="text-trad" name="text-trad" onchange=setPrefs(this)>
+            </div>
+        </fieldset>
+    </section>
+
+    <section>
+        <fieldset>
+            <a href="https://github.com/krmanik/Anki-xiehanzi">
+                <div class="fieldset-item">
+                    <span style="font-size:14px; text-align:center;">View it on GitHub</span>
+                </div>
+            </a>
+        </fieldset>
+    </section>
+</div>
+
+<div id="more-info-sidebar" class="more-info-sidebar">
+    <a class="fieldset-item" id="plecoMobile" href="plecoapi://x-callback-url/df?hw={{Simplified}}">
+        <img src="_pleco.png"></img>
+        <small>Pleco</small>
+    </a>
+    <a class="fieldset-item" href="http://dict.youdao.com/search?q={{Simplified}}">
+        <img src="_youdao.png"></img>
+        <small>Youdao</small>
+    </a>
+    <a class="fieldset-item" href="https://hanzicraft.com/character/{{Simplified}}">
+        <img src="_hanzicraft.png"></img>
+        <small>HanziCraft</small>
+    </a>
+    <a class="fieldset-item" href="https://characterpop.com/characters/{{Simplified}}">
+        <img src="_characterpop.svg"></img>
+        <small>CharacterPop</small>
+    </a>
+    <a class="fieldset-item" href="http://rtega.be/chmn/index.php?c={{Simplified}}">
+        <img src="_rtega.png"></img>
+        <small>Rtega</small>
+    </a>
+    <a class="fieldset-item" href="https://tatoeba.org/en/sentences/search?from=cmn&query={{Simplified}}&to=">
+        <img src="_tatoeba.png"></img>
+        <small>Tatoeba</small>
+    </a>
+</div>
+<!----------->

@@ -67,6 +67,7 @@ https://github.com/google/material-design-icons
 
 ### Sidebar components
 [gui-challenges](https://github.com/argyleink/gui-challenges)<br/>
+[building-a-settings-component](https://web.dev/building-a-settings-component/)
 [Apache-2.0 license](https://github.com/argyleink/gui-challenges/blob/main/LICENSE)
 
 ### Button CSS

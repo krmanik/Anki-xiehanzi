@@ -1,0 +1,21 @@
+<div class="header">What is the <span class="question">meanings</span>?</div>
+
+<br>
+
+<div id="char_zhuyin">{{Zhuyin}}</div>
+<div id="char_pinyin">{{Pinyin}}</div>
+<div id="char_sim" class="char-card">{{Simplified}}</div>
+<div id="char_trad" class="char-card">{{Traditional}}</div>
+
+<script>
+    var switchIdList = ["text-pinyin", "text-zhuyin", "text-meaning", "text-sim", "text-trad"];
+    function initSwitchPrefs() {
+        for (var _id of switchIdList) {
+            var divId = _id.replace("text-", "char_");
+            if (localStorage.getItem(_id) == "false") {
+                document.getElementById(divId).style.display = "none";
+            }
+        }
+    }
+    initSwitchPrefs();
+</script>

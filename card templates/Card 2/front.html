@@ -1,0 +1,26 @@
+<div class="header">What is the <span class="question">pinyin & zhuyin</span>?</div>
+
+<br>
+
+<div id="char_sim" class="char-card">{{Simplified}}</div>
+<div id="char_trad" class="char-card">{{Traditional}}</div>
+
+<script>
+if (localStorage.getItem("text-pinyin") == "true" && localStorage.getItem("text-zhuyin") == "false") {
+    document.querySelector(".question").innerHTML = "pinyin";
+} else if (localStorage.getItem("text-pinyin") == "false" && localStorage.getItem("text-zhuyin") == "true") {
+    document.querySelector(".question").innerHTML = "zhuyin";
+} else {
+    document.querySelector(".question").innerHTML = "pinyin & zhuyin";
+}
+
+var pinyinList = document.querySelectorAll(".pinyin");
+for (var pinyin of pinyinList) {
+    pinyin.style.display = "none";
+}
+
+var zhuyinList = document.querySelectorAll(".zhuyin");
+for (var zhuyin of zhuyinList) {
+    zhuyin.style.display = "none";
+}
+</script>

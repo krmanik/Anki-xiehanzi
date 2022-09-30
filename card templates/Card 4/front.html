@@ -1,0 +1,38 @@
+<div class="header">What is the <span class="question">characters</span>?</div>
+
+<br>
+
+<div id="char_zhuyin">{{Zhuyin}}</div>
+<div id="char_pinyin">{{Pinyin}}</div>
+<div id='audio' style='display:none'>{{Audio}}</div>
+
+<div class="modal-footer1">
+    <a class="btn" id='btnPlayAudio'>
+        <div class="icon">
+            <i class="material-icons">play_arrow</i>
+        </div>
+    </a>
+</div>
+
+<script>
+    var switchIdList = ["text-pinyin", "text-zhuyin"];
+    function initSwitchPrefs() {
+        for (var _id of switchIdList) {
+            var divId = _id.replace("text-", "char_");
+            if (localStorage.getItem(_id) == "false") {
+                document.getElementById(divId).style.display = "none";
+            }
+        }
+    }
+    initSwitchPrefs();
+
+    function completeAudio() {
+        var audioDiv = document.getElementById('audio');
+        var audio = audioDiv.getElementsByTagName("*");
+        audio[0].click();
+    }
+
+    document.getElementById("btnPlayAudio").onclick = function () {
+        completeAudio();
+    };
+</script>

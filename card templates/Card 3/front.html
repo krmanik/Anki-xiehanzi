@@ -1,0 +1,63 @@
+<div class="header">What is the <span class="question">tone marks</span>?</div>
+
+<br>
+<div id="char_zhuyin">{{Zhuyin}}</div>
+<div id="char_pinyin">{{Pinyin}}</div>
+<div id="char_sim" class="char-card">{{Simplified}}</div>
+<div id="char_trad" class="char-card">{{Traditional}}</div>
+
+<script>
+
+    var switchIdList = ["text-pinyin", "text-zhuyin", "text-meaning", "text-sim", "text-trad"];
+    function initSwitchPrefs() {
+        for (var _id of switchIdList) {
+            var divId = _id.replace("text-", "char_");
+            if (localStorage.getItem(_id) == "false") {
+                document.getElementById(divId).style.display = "none";
+            }
+        }
+    }
+    initSwitchPrefs();
+    
+    var pinyinList = document.getElementById("char_pinyin").children;
+    for (var pinyin of pinyinList) {
+        pinyin.innerText = removeToneMarks(pinyin);
+    }
+
+    var zhuyinList = document.getElementById("char_zhuyin").children;
+    var zhuyinQuestionList = []
+    for (var zhuyin of zhuyinList) {
+        zhuyin.innerText = zhuyin.innerText.replace("ˋ", "");
+        zhuyin.innerText = zhuyin.innerText.replace("ˊ", "");
+        zhuyin.innerText = zhuyin.innerText.replace("˙", "");
+
+        if (!zhuyinQuestionList.includes(zhuyin.innerText)) {
+            zhuyinQuestionList.push(zhuyin.innerText)
+        }
+    }
+
+    document.getElementById("char_zhuyin").innerText = zhuyinQuestionList.join(", ");
+
+    function removeToneMarks(pinyin) {
+        pinyin = pinyin.innerText.toLowerCase();
+
+        var pinyinTones = {
+            'a': ['ā', 'á', 'ǎ', 'à'],
+            'e': ['ē', 'é', 'ě', 'è'],
+            'i': ['ī', 'í', 'ǐ', 'ì'],
+            'o': ['ō', 'ó', 'ǒ', 'ò'],
+            'u': ['ū', 'ú', 'ǔ', 'ù', 'ǖ', 'ǘ', 'ǚ', 'ǜ', 'ü']
+        };
+
+        for (const [key, value] of Object.entries(pinyinTones)) {
+            value.map((e) => {
+                for (char of pinyin) {
+                    if (char.includes(e)) {
+                        pinyin = pinyin.replace(e, key)
+                    }
+                }
+            })
+        }
+        return pinyin;
+    }
+</script>

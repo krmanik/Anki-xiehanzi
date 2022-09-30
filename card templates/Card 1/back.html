@@ -28,19 +28,19 @@
 
 <script>
 // v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/eeb2e1a9e37c941dd63e1fe6c2a257f043c40e0d/script.js
-if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/",t="_default";if(window.Persistence_localStorage=function(){var i=!1;try{null!==window.localStorage&&"object"==typeof window.localStorage&&(i=!0,this.clear=function(){for(var t=0;t<localStorage.length;t++){var i=localStorage.key(t);0==i.indexOf(e)&&(localStorage.removeItem(i),t--)}},this.setItem=function(i,n){void 0==n&&(n=i,i=t),localStorage.setItem(e+i,JSON.stringify(n))},this.getItem=function(i){return void 0==i&&(i=t),JSON.parse(localStorage.getItem(e+i))},this.removeItem=function(i){void 0==i&&(i=t),localStorage.removeItem(e+i)})}catch(n){}this.isAvailable=function(){return i}},window.Persistence_sessionStorage=function(){var i=!1;try{"object"==typeof window.sessionStorage&&(i=!0,this.clear=function(){for(var t=0;t<sessionStorage.length;t++){var i=sessionStorage.key(t);0==i.indexOf(e)&&(sessionStorage.removeItem(i),t--)}},this.setItem=function(i,n){void 0==n&&(n=i,i=t),sessionStorage.setItem(e+i,JSON.stringify(n))},this.getItem=function(i){return void 0==i&&(i=t),JSON.parse(sessionStorage.getItem(e+i))},this.removeItem=function(i){void 0==i&&(i=t),sessionStorage.removeItem(e+i)})}catch(n){}this.isAvailable=function(){return i}},window.Persistence_windowKey=function(i){var n=window[i],o=!1;"object"==typeof n&&(o=!0,this.clear=function(){n[e]={}},this.setItem=function(i,o){void 0==o&&(o=i,i=t),n[e][i]=o},this.getItem=function(i){return void 0==i&&(i=t),void 0==n[e][i]?null:n[e][i]},this.removeItem=function(i){void 0==i&&(i=t),delete n[e][i]},void 0==n[e]&&this.clear()),this.isAvailable=function(){return o}},window.Persistence=new Persistence_localStorage,Persistence.isAvailable()||(navigator.userAgent.indexOf("Mobile")>0?window.Persistence=new Persistence_sessionStorage:window.Persistence=new Persistence_windowKey("py")),!Persistence.isAvailable()){var i=window.location.toString().indexOf("title"),n=window.location.toString().indexOf("main",i);i>0&&n>0&&n-i<10&&(window.Persistence=new Persistence_windowKey("qt"))}}
+if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/",t="_default";if(window.Persistence_localStorage=function(){var i=!1;try{null!==window.localStorage&&"object"==typeof window.localStorage&&(i=!0,this.clear=function(){for(var t=0;t<localStorage.length;t++){var i=localStorage.key(t);0==i.indexOf(e)&&(localStorage.removeItem(i),t--)}},this.setItem=function(i,n){void 0==n&&(n=i,i=t),localStorage.setItem(e+i,JSON.stringify(n))},this.getItem=function(i){return void 0==i&&(i=t),JSON.parse(localStorage.getItem(e+i))},this.removeItem=function(i){void 0==i&&(i=t),localStorage.removeItem(e+i)})}catch(n){}this.isAvailable=function(){return i}},window.Persistence_sessionStorage=function(){var i=!1;try{"object"==typeof window.sessionStorage&&(i=!0,this.clear=function(){for(var t=0;t<sessionStorage.length;t++){var i=sessionStorage.key(t);0==i.indexOf(e)&&(sessionStorage.removeItem(i),t--)}},this.setItem=function(i,n){void 0==n&&(n=i,i=t),sessionStorage.setItem(e+i,JSON.stringify(n))},this.getItem=function(i){return void 0==i&&(i=t),JSON.parse(sessionStorage.getItem(e+i))},this.removeItem=function(i){void 0==i&&(i=t),sessionStorage.removeItem(e+i)})}catch(n){}this.isAvailable=function(){return i}},window.Persistence_windowKey=function(i){var n=window[i],o=!1;"object"==typeof n&&(o=!0,this.clear=function(){n[e]={}},this.setItem=function(i,o){void 0==o&&(o=i,i=t),n[e][i]=o},this.getItem=function(i){return void 0==i&&(i=t),void 0==n[e][i]?null:n[e][i]},this.removeItem=function(i){void 0==i&&(i=t),delete n[e][i]},void 0==n[e]&&this.clear()),this.isAvailable=function(){return o}},window.Persistence=new Persistence_sessionStorage,navigator.userAgent.indexOf("Mobile")>0&&(window.Persistence=new Persistence_localStorage,Persistence.isAvailable()||(window.Persistence=new Persistence_sessionStorage)),Persistence.isAvailable()||(window.Persistence=new Persistence_windowKey("py")),!Persistence.isAvailable()){var i=window.location.toString().indexOf("title"),n=window.location.toString().indexOf("main",i);i>0&&n>0&&n-i<10&&(window.Persistence=new Persistence_windowKey("qt"))}}
 </script>
 
 <!--sidebar-->
 <script>
-    function completeAudio() {
+    function playAudio() {
         var audioDiv = document.getElementById('audio');
         var audio = audioDiv.getElementsByTagName("*");
-        audio[0].click();
+        audio[0].tagName == "AUDIO" ? audio[0].play() : audio[0].click();
     }
 
     document.getElementById("btnPlayAudio").onclick = function () {
-        completeAudio();
+        playAudio();
     };
 
     var frontBack = "back";
@@ -145,7 +145,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
     });
 
     if (Persistence.isAvailable()) {
-        if (window.ankiPlatform == "desktop" || !isInWebView()) {
+        if (window.ankiPlatform == "desktop" || isInWebView()) {
             initSwitchPrefs();
         } else {
             window.addEventListener("load", initSwitchPrefs, false);
@@ -154,20 +154,12 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
     
     function isInWebView() {
         var UA = navigator.userAgent;
-        if (/Windows/i.test(UA) || /Macintosh/i.test(UA) || (/Linux/i.test(UA) && !/Android/i.test(UA))) {
-            // document.getElementById("plecoMobile").style.display = "none";
-            if (/QtWebEngine/i.test(UA)) {
-                return true;
-            }
-        } else if (/Android/i.test(UA)) {
-            if (/wv/i.test(UA)) {
-                return true;
-            }
-        } else if (/iPhone|iPod|iPad/.test(UA)) {
+        if (/iPhone|iPod|iPad/.test(UA)) {
             if (/(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(UA)) {
                 return true;
             }
-        } else {
+        }
+        if (window.location.href.includes("ankiuser.net")) {
             return true;
         }
         return false;
@@ -177,7 +169,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
 <div id="sidebar" class="sidebar">
     <section>
         <fieldset style="border:none;">
-            <div class="fieldset-item">
+            <div class="fieldset-item tappable">
                 <div class="input-stack" style="text-align:center; color: var(--text2);">
                     <label for="deck-title">
                         <h3>xie hanzi</h3>
@@ -195,7 +187,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
                         Pinyin
                     </label>
                 </div>
-                <input type="checkbox" id="text-pinyin" name="text-pinyin" onchange=setPrefs(this)>
+                <input class="tappable" type="checkbox" id="text-pinyin" name="text-pinyin" onchange=setPrefs(this)>
             </div>
 
             <div class="fieldset-item fs-item-1">
@@ -204,7 +196,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
                         Zhuyin
                     </label>
                 </div>
-                <input type="checkbox" id="text-zhuyin" name="text-zhuyin" onchange=setPrefs(this)>
+                <input class="tappable" type="checkbox" id="text-zhuyin" name="text-zhuyin" onchange=setPrefs(this)>
             </div>
 
             <div class="fieldset-item fs-item-1">
@@ -213,7 +205,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
                         Meaning
                     </label>
                 </div>
-                <input type="checkbox" id="text-meaning" name="text-meaning" onchange=setPrefs(this)>
+                <input class="tappable" type="checkbox" id="text-meaning" name="text-meaning" onchange=setPrefs(this)>
             </div>
 
             <div class="fieldset-item fs-item-1">
@@ -222,7 +214,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
                         Simplified
                     </label>
                 </div>
-                <input type="checkbox" id="text-sim" name="text-sim" onchange=setPrefs(this)>
+                <input class="tappable" type="checkbox" id="text-sim" name="text-sim" onchange=setPrefs(this)>
             </div>
 
             <div class="fieldset-item fs-item-1">
@@ -231,7 +223,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
                         Traditional
                     </label>
                 </div>
-                <input type="checkbox" id="text-trad" name="text-trad" onchange=setPrefs(this)>
+                <input class="tappable" type="checkbox" id="text-trad" name="text-trad" onchange=setPrefs(this)>
             </div>
         </fieldset>
     </section>
@@ -239,7 +231,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
     <section>
         <fieldset>
             <a href="https://github.com/krmanik/Anki-xiehanzi">
-                <div class="fieldset-item">
+                <div class="fieldset-item tappable">
                     <span style="font-size:14px; text-align:center;">View it on GitHub</span>
                 </div>
             </a>
@@ -248,27 +240,27 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
 </div>
 
 <div id="more-info-sidebar" class="more-info-sidebar">
-    <a class="fieldset-item" id="plecoMobile" href="plecoapi://x-callback-url/df?hw={{Simplified}}">
+    <a class="fieldset-item tappable" id="plecoMobile" href="plecoapi://x-callback-url/df?hw={{Simplified}}">
         <img src="_pleco.png"></img>
         <small>Pleco</small>
     </a>
-    <a class="fieldset-item" href="http://dict.youdao.com/search?q={{Simplified}}">
+    <a class="fieldset-item tappable" href="http://dict.youdao.com/search?q={{Simplified}}">
         <img src="_youdao.png"></img>
         <small>Youdao</small>
     </a>
-    <a class="fieldset-item" href="https://hanzicraft.com/character/{{Simplified}}">
+    <a class="fieldset-item tappable" href="https://hanzicraft.com/character/{{Simplified}}">
         <img src="_hanzicraft.png"></img>
         <small>HanziCraft</small>
     </a>
-    <a class="fieldset-item" href="https://characterpop.com/characters/{{Simplified}}">
+    <a class="fieldset-item tappable" href="https://characterpop.com/characters/{{Simplified}}">
         <img src="_characterpop.svg"></img>
         <small>CharacterPop</small>
     </a>
-    <a class="fieldset-item" href="http://rtega.be/chmn/index.php?c={{Simplified}}">
+    <a class="fieldset-item tappable" href="http://rtega.be/chmn/index.php?c={{Simplified}}">
         <img src="_rtega.png"></img>
         <small>Rtega</small>
     </a>
-    <a class="fieldset-item" href="https://tatoeba.org/en/sentences/search?from=cmn&query={{Simplified}}&to=">
+    <a class="fieldset-item tappable" href="https://tatoeba.org/en/sentences/search?from=cmn&query={{Simplified}}&to=">
         <img src="_tatoeba.png"></img>
         <small>Tatoeba</small>
     </a>

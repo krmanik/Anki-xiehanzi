@@ -24,7 +24,7 @@
     function initSwitchPrefs() {
         for (var _id of switchIdList) {
             var divId = _id.replace("text-", "char_");
-            if (Persistence.getItem(_id) == "false") {
+            if (Persistence.getItem("back" + _id) == "false") {
                 document.getElementById(divId).style.display = "none";
             }
         }

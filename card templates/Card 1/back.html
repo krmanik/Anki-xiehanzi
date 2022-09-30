@@ -43,49 +43,62 @@
         completeAudio();
     };
 
+    var frontBack = "back";
     var switchIdList = ["text-pinyin", "text-zhuyin", "text-meaning", "text-sim", "text-trad"];
     function initSwitchPrefs() {
         for (var _id of switchIdList) {
+            var perId = frontBack + _id;
             var divId = _id.replace("text-", "char_");
-            if (Persistence.getItem(_id) == "false") {
+            if (Persistence.getItem(perId) == "false") {
                 document.getElementById(_id).checked = false;
                 document.getElementById(divId).style.display = "none";
-                if (_id == "text-pinyin") {
-                    showHide(".pinyin", false);
-                }
-                if (_id == "text-zhuyin") {
-                    showHide(".zhuyin", false);
-                }
             } else {
                 document.getElementById(_id).checked = true;
-                Persistence.setItem(_id, "true");
+                Persistence.setItem(perId, "true");
+                document.getElementById(divId).style.display = "block";
+            }
+
+            var isShow = document.getElementById(_id).checked ? true : false;
+            if (_id == "text-pinyin") {
+                showHide(".pinyin", isShow);
+            }
+            if (_id == "text-zhuyin") {
+                showHide(".zhuyin", isShow);
+            }
+            if (_id == "text-sim") {
+                showHide("#char-sim-id", isShow);
+            }
+            if (_id == "text-trad") {
+                showHide("#char-trad-id", isShow);
+                showHide(".sep", isShow);
             }
         }
     }
 
     function setPrefs(e) {
+        var perId = frontBack + e.id;
         if (e.type == "checkbox") {
-            Persistence.setItem(e.id, e.checked.toString());
+            Persistence.setItem(perId, e.checked.toString());
             var divId = e.id.replace("text-", "char_");
             if (e.checked) {
                 document.getElementById(divId).style.display = "block";
             } else {
                 document.getElementById(divId).style.display = "none";
             }
-        }
-        if (e.id == "text-pinyin") {
-            if (e.checked) {
-                showHide(".pinyin", true);
-            } else {
-                showHide(".pinyin", false);
-            }
-        }
 
-        if (e.id == "text-zhuyin") {
-            if (e.checked) {
-                showHide(".zhuyin", true);
-            } else {
-                showHide(".zhuyin", false);
+            var isShow = document.getElementById(divId).style.display == "none" ? false : true;
+            if (e.id == "text-pinyin") {
+                showHide(".pinyin", isShow);
+            }
+            if (e.id == "text-zhuyin") {
+                showHide(".zhuyin", isShow);
+            }
+            if (e.id == "text-sim") {
+                showHide("#char-sim-id", isShow);
+            }
+            if (e.id == "text-trad") {
+                showHide("#char-trad-id", isShow);
+                showHide(".sep", isShow);
             }
         }
     }
@@ -132,7 +145,7 @@
     });
 
     if (Persistence.isAvailable()) {
-        if (document.querySelector(".win")) {
+        if (window.ankiPlatform == "desktop" || isInWebView()) {
             initSwitchPrefs();
         } else {
             window.addEventListener("load", initSwitchPrefs, false);

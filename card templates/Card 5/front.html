@@ -79,6 +79,14 @@
     </section>
     <section>
         <fieldset>
+            <div class="fieldset-item fs-item-3 practice fs-item-front-back">
+                <div id="text-front" class="input-stack front-back" onclick="setActive('text-front')">Front</div>
+                <div id="text-back" class="input-stack front-back" onclick="setActive('text-back')">Back</div>
+            </div>
+        </fieldset>
+    </section>
+    <section>
+        <fieldset>
             <div class="fieldset-item fs-item-1 practice">
                 <div class="input-stack">
                     <label for="practice-select">Practice</label>
@@ -224,12 +232,35 @@
 <!-----sidebar------>
 
 <script>
-// v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/eeb2e1a9e37c941dd63e1fe6c2a257f043c40e0d/script.js
+    // v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/eeb2e1a9e37c941dd63e1fe6c2a257f043c40e0d/script.js
 if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki-persistence/",_defaultKey="_default";if(window.Persistence_sessionStorage=function(){var e=!1;try{"object"==typeof window.sessionStorage&&(e=!0,this.clear=function(){for(var e=0;e<sessionStorage.length;e++){var t=sessionStorage.key(e);0==t.indexOf(_persistenceKey)&&(sessionStorage.removeItem(t),e--)}},this.setItem=function(e,t){null==t&&(t=e,e=_defaultKey),sessionStorage.setItem(_persistenceKey+e,JSON.stringify(t))},this.getItem=function(e){return null==e&&(e=_defaultKey),JSON.parse(sessionStorage.getItem(_persistenceKey+e))},this.removeItem=function(e){null==e&&(e=_defaultKey),sessionStorage.removeItem(_persistenceKey+e)})}catch(e){}this.isAvailable=function(){return e}},window.Persistence_windowKey=function(e){var t=window[e],n=!1;"object"==typeof t&&(n=!0,this.clear=function(){t[_persistenceKey]={}},this.setItem=function(e,n){null==n&&(n=e,e=_defaultKey),t[_persistenceKey][e]=n},this.getItem=function(e){return null==e&&(e=_defaultKey),null==t[_persistenceKey][e]?null:t[_persistenceKey][e]},this.removeItem=function(e){null==e&&(e=_defaultKey),delete t[_persistenceKey][e]},null==t[_persistenceKey]&&this.clear()),this.isAvailable=function(){return n}},window.Persistence=new Persistence_sessionStorage,Persistence.isAvailable()||(window.Persistence=new Persistence_windowKey("py")),!Persistence.isAvailable()){var titleStartIndex=window.location.toString().indexOf("title"),titleContentIndex=window.location.toString().indexOf("main",titleStartIndex);titleStartIndex>0&&titleContentIndex>0&&titleContentIndex-titleStartIndex<10&&(window.Persistence=new Persistence_windowKey("qt"))}}
 </script>
 
 <script>
     var charClass = document.getElementById("char-sim-id").children;
+
+    var switchIdList = ["text-grid", "text-pinyin", "text-zhuyin", "text-meaning", "text-sim", "text-trad", "text-stroke-color", "text-outline"];
+
+    var frontBack = "front";
+    function setActive(side) {
+        if (side == "text-front") {
+            frontBack = "front";
+            document.getElementById("text-front").classList.add("btn-active")
+            document.getElementById("text-back").classList.remove("btn-active")
+        }
+        if (side == "text-back") {
+            frontBack = "back";
+            document.getElementById("text-front").classList.remove("btn-active")
+            document.getElementById("text-back").classList.add("btn-active")
+        }
+        initSwitchPrefs();
+    }
+
+    if (!document.getElementById("back")) {
+        setActive("text-front");
+    } else {
+        setActive("text-back");
+    }
 
     function initPractice() {
         var _selectPracticeId = "practice-select";
@@ -246,26 +277,38 @@ if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki
         }
     }
 
-    var switchIdList = ["text-grid", "text-pinyin", "text-zhuyin", "text-meaning", "text-sim", "text-trad", "text-stroke-color", "text-outline"];
-
     function initSwitchPrefs() {
         for (var _id of switchIdList) {
+            var perId = frontBack + _id;
             var divId = _id.replace("text-", "char_");
-            if (Persistence.getItem(_id) == "false") {
+            if (Persistence.getItem(perId) == "false") {
                 document.getElementById(_id).checked = false;
                 if (_id == "text-grid" || _id == "text-stroke-color" || _id == "text-outline") {
                     continue;
                 }
-                if (_id == "text-pinyin") {
-                    showHide(".pinyin", false);
-                }
-                if (_id == "text-zhuyin") {
-                    showHide(".zhuyin", false);
-                }
                 document.getElementById(divId).style.display = "none";
             } else {
                 document.getElementById(_id).checked = true;
-                Persistence.setItem(_id, "true");
+                Persistence.setItem(perId, "true");
+                if (_id == "text-grid" || _id == "text-stroke-color" || _id == "text-outline") {
+                    continue;
+                }
+                document.getElementById(divId).style.display = "block";
+            }
+
+            var isShow = document.getElementById(_id).checked ? true : false;
+            if (_id == "text-pinyin") {
+                showHide(".pinyin", isShow);
+            }
+            if (_id == "text-zhuyin") {
+                showHide(".zhuyin", isShow);
+            }
+            if (_id == "text-sim") {
+                showHide("#char-sim-id", isShow);
+            }
+            if (_id == "text-trad") {
+                showHide("#char-trad-id", isShow);
+                showHide(".sep", isShow);
             }
         }
     }
@@ -273,29 +316,31 @@ if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki
     function initDrawPrefs() {
         var drawPrefsList = ["draw-size", "stroke-size", "hint-miss"];
         for (var _id of drawPrefsList) {
+            var perId = frontBack + _id;
             var elem = document.getElementById(_id);
-            var store = Persistence.getItem(_id);
+            var store = Persistence.getItem(perId);
             if (store) {
                 elem.value = store;
             } else {
                 var value = _id == "draw-size" ? "300" : _id == "stroke-size" ? "8" : "3";
                 elem.value = value;
-                Persistence.setItem(_id, value);
+                Persistence.setItem(perId, value);
             }
         }
     }
 
     function setPrefs(e) {
+        var perId = frontBack + e.id;
         if (e.id == "practice-select") {
-            Persistence.setItem(e.id, e.selectedIndex);
+            Persistence.setItem(perId, e.selectedIndex);
             characters = document.getElementById("practice-select").selectedIndex == "0"
-            ? document.getElementById('char_sim').innerHTML
-            : document.getElementById('char_trad').innerHTML;
+                ? document.getElementById('char_sim').innerHTML
+                : document.getElementById('char_trad').innerHTML;
             doPractice();
         }
 
         if (e.type == "checkbox") {
-            Persistence.setItem(e.id, e.checked.toString());
+            Persistence.setItem(perId, e.checked.toString());
             var divId = e.id.replace("text-", "char_");
             if (e.id == "text-stroke-color" || e.id == "text-outline") {
                 return;
@@ -303,26 +348,28 @@ if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki
 
             if (e.checked) {
                 document.getElementById(divId).style.display = "block";
-                if (e.id == "text-pinyin") {
-                    showHide(".pinyin", true);
-                }
-                if (e.id == "text-zhuyin") {
-                    showHide(".zhuyin", true);
-                }
             } else {
                 document.getElementById(divId).style.display = "none";
+            }
 
-                if (e.id == "text-pinyin") {
-                    showHide(".pinyin", false);
-                }
-                if (e.id == "text-zhuyin") {
-                    showHide(".zhuyin", false);
-                }
+            var isShow = document.getElementById(divId).style.display == "block" ? true : false;
+            if (e.id == "text-pinyin") {
+                showHide(".pinyin", isShow);
+            }
+            if (e.id == "text-zhuyin") {
+                showHide(".zhuyin", isShow);
+            }
+            if (e.id == "text-sim") {
+                showHide("#char-sim-id", isShow);
+            }
+            if (e.id == "text-trad") {
+                showHide("#char-trad-id", isShow);
+                showHide(".sep", isShow);
             }
         }
 
         if (e.type == "number") {
-            Persistence.setItem(e.id, e.value);
+            Persistence.setItem(perId, e.value);
             var elem = document.getElementById(e.id);
             elem.value = e.value;
         }
@@ -451,7 +498,7 @@ if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki
             var draw_grid = document.getElementById('character-target-div');
             draw_grid.innerHTML = grid_data;
 
-            if (Persistence.getItem("text-stroke-color") == "true") {
+            if (Persistence.getItem(frontBack + "text-stroke-color") == "true") {
                 stroke_color = getToneColor(charClass[i].className);
             }
 
@@ -484,7 +531,7 @@ if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki
     async function writeFunction(c) {
         // Wrap the code inside a Promise constructor callback
         return new Promise(function (resolve, reject) {
-            if (Persistence.getItem("text-grid") == "true") {
+            if (Persistence.getItem(frontBack + "text-grid") == "true") {
                 document.getElementById("char_grid").style.display = "block";
             } else {
                 document.getElementById("char_grid").style.display = "none";
@@ -501,7 +548,7 @@ if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki
                 width: char_width,
                 height: char_height,
                 showCharacter: false,
-                showOutline: Persistence.getItem("text-outline") == "true" ? true : false,
+                showOutline: Persistence.getItem(frontBack + "text-outline") == "true" ? true : false,
                 highlightOnComplete: true,
                 drawingWidth: strokeWidth,
                 strokeColor: stroke_color,

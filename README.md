@@ -18,19 +18,8 @@ Download HSK Anki apkg file for Anki Desktop, AnkiDroid or AnkiMobile
 ### Download from GitHub (HSK 1 - HSK 9)
 [Anki xiehanzi HSK 3.0](https://github.com/krmanik/Anki-xiehanzi/releases)
 
-## HSK 3.0
-### Download from AnkiWeb (HSK 1 - HSK 9)
-[xiehanzi HSK 3.0: Learn Mandarin Chinese by drawing strokes](https://ankiweb.net/shared/info/536858343)
-
-### Download from GitHub (HSK 1 - HSK 9)
-[xiehanzi HSK 3.0](https://github.com/krmanik/Anki-xiehanzi/releases)
-
-## HSK 2.0 
-### Download from AnkiWeb (HSK 1 - HSK 6)
-[Practice Mandarin HSK1--HSK6 by drawing strokes (with audio)](https://ankiweb.net/shared/info/119943820)
-
-### Download from GitHub (HSK 1 - HSK 6)
-Download latest xiehanzi anki deck from [release page](https://github.com/krmanik/Anki-xiehanzi/releases)
+## Download previous versions of deck from here
+[Download previous version](https://krmanik.github.io/Anki-xiehanzi/docs/gettings-started/download)
 
 # Features
 - Night mode

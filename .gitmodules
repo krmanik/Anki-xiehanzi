@@ -1,0 +1,3 @@
+[submodule "HSK-3.0-words-list"]
+	path = HSK-3.0-words-list
+	url = https://github.com/krmanik/HSK-3.0-words-list.git

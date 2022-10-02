@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
@@ -8,11 +8,20 @@ import HomepageFeatures from '@site/src/components/HomepageFeatures';
 import styles from './index.module.css';
 import { HomepageGetStarted, HomepageXiehanziCard } from '../components/HomepageCards';
 
+import HanziWriter from 'hanzi-writer';
+
 function HomepageHeader() {
+  const ref = useRef()
+
+  useEffect(() => {
+    createXieHanziLogo(ref);
+  }, []);
+
   const { siteConfig } = useDocusaurusContext();
   return (
     <header className={clsx('hero', styles.heroBanner)}>
       <div className="container">
+        <div ref={ref}></div>
         <h1 className="hero__title">{siteConfig.title}</h1>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div style={{
@@ -57,4 +66,18 @@ export default function Home(): JSX.Element {
       </section>
     </Layout>
   );
+}
+
+function createXieHanziLogo(ref) {
+  let xiehanzi = ["写", "汉", "字"];
+
+  for (let hanzi of xiehanzi) {
+    const writer = HanziWriter.create(ref.current, hanzi, {
+      width: 80,
+      height: 80,
+      padding: 5,
+      strokeColor: hanzi == "写" ? "#4caf50" : "#2196f3"
+    })
+    writer.loopCharacterAnimation();
+  }
 }

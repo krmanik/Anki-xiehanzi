@@ -366,7 +366,7 @@ img {
     color: var(--header-color);
 }
 
-.question {
+.question-sub-text {
     color: #f44336;
     font-weight: bold;
 }
@@ -410,6 +410,7 @@ img {
     line-height: 32px;
 }
 
+/* https://web.dev/building-a-settings-component */
 small {
     line-height: 1.5;
 }

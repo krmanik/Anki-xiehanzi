@@ -1,4 +1,4 @@
-<div class="header">What is the <span class="question">pinyin & zhuyin</span>?</div>
+<div class="header">What is the <span class="question-sub-text">pinyin & zhuyin</span>?</div>
 
 <br>
 
@@ -6,21 +6,28 @@
 <div id="char_trad" class="char-card">{{Traditional}}</div>
 
 <script>
-if (localStorage.getItem("text-pinyin") == "true" && localStorage.getItem("text-zhuyin") == "false") {
-    document.querySelector(".question").innerHTML = "pinyin";
-} else if (localStorage.getItem("text-pinyin") == "false" && localStorage.getItem("text-zhuyin") == "true") {
-    document.querySelector(".question").innerHTML = "zhuyin";
-} else {
-    document.querySelector(".question").innerHTML = "pinyin & zhuyin";
-}
+    // v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/eeb2e1a9e37c941dd63e1fe6c2a257f043c40e0d/script.js
+    if (void 0 === window.Persistence) { var _persistenceKey = "github.com/SimonLammer/anki-persistence/", _defaultKey = "_default"; if (window.Persistence_sessionStorage = function () { var e = !1; try { "object" == typeof window.sessionStorage && (e = !0, this.clear = function () { for (var e = 0; e < sessionStorage.length; e++) { var t = sessionStorage.key(e); 0 == t.indexOf(_persistenceKey) && (sessionStorage.removeItem(t), e--) } }, this.setItem = function (e, t) { null == t && (t = e, e = _defaultKey), sessionStorage.setItem(_persistenceKey + e, JSON.stringify(t)) }, this.getItem = function (e) { return null == e && (e = _defaultKey), JSON.parse(sessionStorage.getItem(_persistenceKey + e)) }, this.removeItem = function (e) { null == e && (e = _defaultKey), sessionStorage.removeItem(_persistenceKey + e) }) } catch (e) { } this.isAvailable = function () { return e } }, window.Persistence_windowKey = function (e) { var t = window[e], n = !1; "object" == typeof t && (n = !0, this.clear = function () { t[_persistenceKey] = {} }, this.setItem = function (e, n) { null == n && (n = e, e = _defaultKey), t[_persistenceKey][e] = n }, this.getItem = function (e) { return null == e && (e = _defaultKey), null == t[_persistenceKey][e] ? null : t[_persistenceKey][e] }, this.removeItem = function (e) { null == e && (e = _defaultKey), delete t[_persistenceKey][e] }, null == t[_persistenceKey] && this.clear()), this.isAvailable = function () { return n } }, window.Persistence = new Persistence_sessionStorage, Persistence.isAvailable() || (window.Persistence = new Persistence_windowKey("py")), !Persistence.isAvailable()) { var titleStartIndex = window.location.toString().indexOf("title"), titleContentIndex = window.location.toString().indexOf("main", titleStartIndex); titleStartIndex > 0 && titleContentIndex > 0 && titleContentIndex - titleStartIndex < 10 && (window.Persistence = new Persistence_windowKey("qt")) } }
+</script>
 
-var pinyinList = document.querySelectorAll(".pinyin");
-for (var pinyin of pinyinList) {
-    pinyin.style.display = "none";
-}
+<script>
+    if (Persistence.isAvailable()) {
+        if (Persistence.getItem("text-pinyin") == "true" && Persistence.getItem("text-zhuyin") == "false") {
+            document.querySelector(".question").innerHTML = "pinyin";
+        } else if (Persistence.getItem("text-pinyin") == "false" && Persistence.getItem("text-zhuyin") == "true") {
+            document.querySelector(".question").innerHTML = "zhuyin";
+        } else {
+            document.querySelector(".question").innerHTML = "pinyin & zhuyin";
+        }
+    }
 
-var zhuyinList = document.querySelectorAll(".zhuyin");
-for (var zhuyin of zhuyinList) {
-    zhuyin.style.display = "none";
-}
+    var pinyinList = document.querySelectorAll(".pinyin");
+    for (var pinyin of pinyinList) {
+        pinyin.style.display = "none";
+    }
+
+    var zhuyinList = document.querySelectorAll(".zhuyin");
+    for (var zhuyin of zhuyinList) {
+        zhuyin.style.display = "none";
+    }
 </script>

@@ -221,21 +221,28 @@
         <small>Tatoeba</small>
     </a>
 </div>
+<!-----sidebar------>
+
+<script>
+// v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/eeb2e1a9e37c941dd63e1fe6c2a257f043c40e0d/script.js
+if(void 0===window.Persistence){var _persistenceKey="github.com/SimonLammer/anki-persistence/",_defaultKey="_default";if(window.Persistence_sessionStorage=function(){var e=!1;try{"object"==typeof window.sessionStorage&&(e=!0,this.clear=function(){for(var e=0;e<sessionStorage.length;e++){var t=sessionStorage.key(e);0==t.indexOf(_persistenceKey)&&(sessionStorage.removeItem(t),e--)}},this.setItem=function(e,t){null==t&&(t=e,e=_defaultKey),sessionStorage.setItem(_persistenceKey+e,JSON.stringify(t))},this.getItem=function(e){return null==e&&(e=_defaultKey),JSON.parse(sessionStorage.getItem(_persistenceKey+e))},this.removeItem=function(e){null==e&&(e=_defaultKey),sessionStorage.removeItem(_persistenceKey+e)})}catch(e){}this.isAvailable=function(){return e}},window.Persistence_windowKey=function(e){var t=window[e],n=!1;"object"==typeof t&&(n=!0,this.clear=function(){t[_persistenceKey]={}},this.setItem=function(e,n){null==n&&(n=e,e=_defaultKey),t[_persistenceKey][e]=n},this.getItem=function(e){return null==e&&(e=_defaultKey),null==t[_persistenceKey][e]?null:t[_persistenceKey][e]},this.removeItem=function(e){null==e&&(e=_defaultKey),delete t[_persistenceKey][e]},null==t[_persistenceKey]&&this.clear()),this.isAvailable=function(){return n}},window.Persistence=new Persistence_sessionStorage,Persistence.isAvailable()||(window.Persistence=new Persistence_windowKey("py")),!Persistence.isAvailable()){var titleStartIndex=window.location.toString().indexOf("title"),titleContentIndex=window.location.toString().indexOf("main",titleStartIndex);titleStartIndex>0&&titleContentIndex>0&&titleContentIndex-titleStartIndex<10&&(window.Persistence=new Persistence_windowKey("qt"))}}
+</script>
+
 <script>
     var charClass = document.getElementById("char-sim-id").children;
 
     function initPractice() {
         var _selectPracticeId = "practice-select";
         var selectPracticeElem = document.getElementById(_selectPracticeId);
-        var selectPracticeStore = localStorage.getItem(_selectPracticeId);
+        var selectPracticeStore = Persistence.getItem(_selectPracticeId);
 
         if (selectPracticeStore == undefined) {
             selectPracticeElem.selectedIndex = 0;
-            localStorage.setItem(_selectPracticeId, "0");
+            Persistence.setItem(_selectPracticeId, "0");
         } else {
             var index = selectPracticeStore == "0" ? 0 : 1;
             selectPracticeElem.selectedIndex = parseInt(index);
-            localStorage.setItem(_selectPracticeId, index);
+            Persistence.setItem(_selectPracticeId, index);
         }
     }
 
@@ -244,7 +251,7 @@
     function initSwitchPrefs() {
         for (var _id of switchIdList) {
             var divId = _id.replace("text-", "char_");
-            if (localStorage.getItem(_id) == "false") {
+            if (Persistence.getItem(_id) == "false") {
                 document.getElementById(_id).checked = false;
                 if (_id == "text-grid" || _id == "text-stroke-color" || _id == "text-outline") {
                     continue;
@@ -258,7 +265,7 @@
                 document.getElementById(divId).style.display = "none";
             } else {
                 document.getElementById(_id).checked = true;
-                localStorage.setItem(_id, "true");
+                Persistence.setItem(_id, "true");
             }
         }
     }
@@ -267,24 +274,24 @@
         var drawPrefsList = ["draw-size", "stroke-size", "hint-miss"];
         for (var _id of drawPrefsList) {
             var elem = document.getElementById(_id);
-            var store = localStorage.getItem(_id);
+            var store = Persistence.getItem(_id);
             if (store) {
                 elem.value = store;
             } else {
                 var value = _id == "draw-size" ? "300" : _id == "stroke-size" ? "8" : "3";
                 elem.value = value;
-                localStorage.setItem(_id, value);
+                Persistence.setItem(_id, value);
             }
         }
     }
 
     function setPrefs(e) {
         if (e.id == "practice-select") {
-            localStorage.setItem(e.id, e.selectedIndex);
+            Persistence.setItem(e.id, e.selectedIndex);
         }
 
         if (e.type == "checkbox") {
-            localStorage.setItem(e.id, e.checked);
+            Persistence.setItem(e.id, e.checked.toString());
             var divId = e.id.replace("text-", "char_");
             if (e.id == "text-stroke-color" || e.id == "text-outline") {
                 return;
@@ -311,7 +318,7 @@
         }
 
         if (e.type == "number") {
-            localStorage.setItem(e.id, e.value);
+            Persistence.setItem(e.id, e.value);
             var elem = document.getElementById(e.id);
             elem.value = e.value;
         }
@@ -354,16 +361,17 @@
         }
     });
 
-    if (document.querySelector(".win")) {
-        initPractice();
-        initSwitchPrefs();
-        initDrawPrefs();
-    } else {
-        window.addEventListener("load", initPractice, false);
-        window.addEventListener("load", initSwitchPrefs, false);
-        window.addEventListener("load", initDrawPrefs, false);
+    if (Persistence.isAvailable()) {
+        if (document.querySelector(".win")) {
+            initPractice();
+            initSwitchPrefs();
+            initDrawPrefs();
+        } else {
+            window.addEventListener("load", initPractice, false);
+            window.addEventListener("load", initSwitchPrefs, false);
+            window.addEventListener("load", initDrawPrefs, false);
+        }
     }
-
     // audio in Anki Web on different systems
 
     if (!isInWebView()) {
@@ -439,7 +447,7 @@
             var draw_grid = document.getElementById('character-target-div');
             draw_grid.innerHTML = grid_data;
 
-            if (localStorage.getItem("text-stroke-color") == "true") {
+            if (Persistence.getItem("text-stroke-color") == "true") {
                 stroke_color = getToneColor(charClass[i].className);
             }
 
@@ -464,7 +472,9 @@
         }
     }
 
-    doPractice();
+    if (Persistence.isAvailable()) {
+        doPractice();
+    }
 
     // Make the function async, so it returns a promise
     async function writeFunction(c) {
@@ -481,7 +491,7 @@
                 width: char_width,
                 height: char_height,
                 showCharacter: false,
-                showOutline: localStorage.getItem("text-outline") == "true" ? true : false,
+                showOutline: Persistence.getItem("text-outline") == "true" ? true : false,
                 highlightOnComplete: true,
                 drawingWidth: strokeWidth,
                 strokeColor: stroke_color,
@@ -491,7 +501,7 @@
                 padding: 5
             });
 
-            if (localStorage.getItem("text-grid") == "true") {
+            if (Persistence.getItem("text-grid") == "true") {
                 document.getElementById("char_grid").style.display = "block";
             } else {
                 document.getElementById("char_grid").style.display = "none";

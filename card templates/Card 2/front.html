@@ -13,11 +13,11 @@
 <script>
     if (Persistence.isAvailable()) {
         if (Persistence.getItem("text-pinyin") == "true" && Persistence.getItem("text-zhuyin") == "false") {
-            document.querySelector(".question").innerHTML = "pinyin";
+            document.querySelector(".question-sub-text").innerHTML = "pinyin";
         } else if (Persistence.getItem("text-pinyin") == "false" && Persistence.getItem("text-zhuyin") == "true") {
-            document.querySelector(".question").innerHTML = "zhuyin";
+            document.querySelector(".question-sub-text").innerHTML = "zhuyin";
         } else {
-            document.querySelector(".question").innerHTML = "pinyin & zhuyin";
+            document.querySelector(".question-sub-text").innerHTML = "pinyin & zhuyin";
         }
     }
 

@@ -44,8 +44,6 @@
     --text1: rgb(48, 48, 48);
     --text2: rgb(94, 94, 94);
     --brand: rgb(47, 167, 214);
-    --brand-bg1: rgb(205, 58, 142);
-    --brand-bg2: rgb(0 0 0);
     --thumb-highlight-color: rgba(0, 0, 0, 0.2);
     font-size: 20px;
     text-align: center;
@@ -410,7 +408,6 @@ img {
     line-height: 32px;
 }
 
-/* https://web.dev/building-a-settings-component */
 small {
     line-height: 1.5;
 }
@@ -586,6 +583,25 @@ input[type=number] {
     grid-template-columns: 56px 1fr;
 }
 
+.fs-item-3 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.fs-item-front-back {
+    padding: unset;
+    text-align: center;
+    gap: unset;
+    cursor: pointer;
+}
+
+.front-back {
+    padding: var(--space-xs);
+}
+
+.btn-active {
+    color: white;
+    background: var(--brand-bg2);
+}
 
 .fieldset-item[focus-within] {
     background: var(--surface2)

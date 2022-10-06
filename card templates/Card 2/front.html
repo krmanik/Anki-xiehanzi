@@ -12,9 +12,9 @@
 
 <script>
     if (Persistence.isAvailable()) {
-        if (Persistence.getItem("text-pinyin") == "true" && Persistence.getItem("text-zhuyin") == "false") {
+        if (Persistence.getItem("backtext-pinyin") == "true" && Persistence.getItem("backtext-zhuyin") == "false") {
             document.querySelector(".question-sub-text").innerHTML = "pinyin";
-        } else if (Persistence.getItem("text-pinyin") == "false" && Persistence.getItem("text-zhuyin") == "true") {
+        } else if (Persistence.getItem("backtext-pinyin") == "false" && Persistence.getItem("backtext-zhuyin") == "true") {
             document.querySelector(".question-sub-text").innerHTML = "zhuyin";
         } else {
             document.querySelector(".question-sub-text").innerHTML = "pinyin & zhuyin";

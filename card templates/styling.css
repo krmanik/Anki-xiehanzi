@@ -110,11 +110,11 @@
 }
 /* macOS */
 .mac .char-card {
-   font-family: 'AR PL KaitiM GB', 'AR PL KaitiM Big5';
+    font-family: 'AR PL KaitiM GB', 'AR PL KaitiM Big5';
 }
 /* Linux desktops */
 .linux:not(.android) .char-card {
-   font-family: 'AR PL KaitiM GB', 'AR PL KaitiM Big5';
+    font-family: 'AR PL KaitiM GB', 'AR PL KaitiM Big5';
 }
 
 
@@ -351,13 +351,13 @@ img {
 }
 
 .py {
-   font-size: 14px;
-   color: gray;
+    font-size: 14px;
+    color: gray;
 }
 
 .zy {
-   font-size: 14px;
-   color: gray;
+    font-size: 14px;
+    color: gray;
 }
 
 .header {
@@ -484,6 +484,11 @@ fieldset:focus-within {
     box-shadow: 0 5px 20px -10px hsla(0, 0%, 0%, .5);
 }
 
+fieldset a {
+    text-decoration: none;
+    color: var(--text1);
+}
+
 select {
     outline: none;
     border: none;
@@ -496,12 +501,12 @@ select {
 }
 
 select>option {
-   border: none;
-   border-radius: 20px;
-   outline: none;
-   background: var(--surface3);
-   font-size: 22px;
-   color: var(--text1);
+    border: none;
+    border-radius: 20px;
+    outline: none;
+    background: var(--surface3);
+    font-size: 22px;
+    color: var(--text1);
 }
 
 input[type=checkbox] {

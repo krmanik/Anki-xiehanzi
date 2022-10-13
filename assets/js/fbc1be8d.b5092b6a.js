@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkanki_xiehanzi=self.webpackChunkanki_xiehanzi||[]).push([[308],{3029:e=>{e.exports=JSON.parse('{"permalink":"/Anki-xiehanzi/blog/tags/hsk","page":1,"postsPerPage":10,"totalPages":1,"totalCount":1,"blogDescription":"Blog","blogTitle":"Blog"}')}}]);

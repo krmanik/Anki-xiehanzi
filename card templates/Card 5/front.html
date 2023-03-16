@@ -32,24 +32,25 @@
 <div id="char_pinyin">{{Pinyin}}</div>
 <div id="char_sim" class="char-card">{{Simplified}}</div>
 <div id="char_trad" class="char-card">{{Traditional}}</div>
+<div id="onfinish-character-target-div" class="tappable"></div>
 <div id="character-target-div" class="tappable"></div>
-<div id="ch_load_status" style="color:#ea2322; margin-top: -36px;">&#8226;</div>
+<div id="ch_load_status" style="color:#ea2322; margin-top: -36px; display: none;">&#8226;</div>
 <div id='audio' style='display:none'>{{Audio}}</div>
 
 <div class="modal-footer1">
     <a class="btn" id="btnShowMenu" onclick="openSidebar('sidebar')">
         <div class="icon"><i class="material-icons">menu</i></div>
     </a>
+    <a class="btn" id='btnPlayAudio'>
+        <div class="icon"><i class="material-icons">play_arrow</i></div>
+    </a>
     <a class="btn" id='btnRevealChar'>
         <div class="icon">
             <i class="material-icons">gesture</i>
         </div>
     </a>
-    <a class="btn" id='btnReloadQuiz' style="display: none;" onclick="doPractice()">
+    <a class="btn" id='btnReloadQuiz'>
         <div class="icon"><i class="material-icons">replay</i></div>
-    </a>
-    <a class="btn" id='btnPlayAudio'>
-        <div class="icon"><i class="material-icons">play_arrow</i></div>
     </a>
     <a class="btn" id='btnGoNextCard'>
         <div class="icon"><i class="material-icons">navigate_next</i></div>
@@ -310,6 +311,23 @@
                 showHide(".sep", isShowField);
             }
         }
+
+        showTraditionalChar();
+    }
+
+    function showTraditionalChar() {
+        var tradChar = document.getElementById("char_trad");
+        var simChar = document.getElementById("char_sim");
+        var tradPer = Persistence
+        if (tradChar.innerHTML != simChar.innerHTML) {
+            if (Persistence.getItem(frontBack + "text-trad") == "true") {
+                tradChar.style.display = "block";
+            }
+        } else {
+            if (Persistence.getItem(frontBack + "text-sim") == "true") {
+                tradChar.style.display = "none";
+            }
+        }
     }
 
     function initDrawPrefs() {
@@ -383,10 +401,10 @@
         }
     }
 
-    function showHide(type, isShow) {
+    function showHide(type, isShow, style = "inline") {
         if (isShow) {
             document.querySelectorAll(type).forEach(function (val) {
-                val.style.display = 'inline';
+                val.style.display = style;
             });
         } else {
             document.querySelectorAll(type).forEach(function (val) {
@@ -453,8 +471,8 @@
 </script>
 <script>
     var charHW = document.getElementById("draw-size").value;
-    var char_height = charHW;
-    var char_width = charHW;
+    var charHeight = charHW;
+    var charWidth = charHW;
     var strokeWidth = document.getElementById("stroke-size").value;
     var strokeAfterMisses = document.getElementById("hint-miss").value;
 
@@ -481,60 +499,73 @@
         ? document.getElementById('char_sim').innerHTML
         : document.getElementById('char_trad').innerHTML;
 
-    async function doPractice() {
-        document.getElementById("btnGoNextCard").style.display = "unset";
-        document.getElementById("btnRevealChar").style.display = "unset";
-        document.getElementById("btnReloadQuiz").style.display = "none";
-        document.getElementById("ch_load_status").innerHTML = "&#8226;";
-        document.getElementById("ch_load_status").style.marginBottom = "0px";
+    function generateHanziOnFinishQuiz(style = "none", finish = false) {
+        var drawGrid = document.getElementById('onfinish-character-target-div');
+        drawGrid.innerHTML = "";
+        drawGrid.style = "";
+        drawGrid.style.position = "absolute";
+        drawGrid.style.display = "grid";
+        var size = 40;
+        if (finish) {
+            size = 100;
+            drawGrid.style.position = "unset";
+            drawGrid.style.display = "block";
+            drawGrid.style.whiteSpace = "nowrap";
+            drawGrid.style.overflow = "scroll";
+        }
 
-        var chars = characters;
-        for (i = 0; i < chars.length; i++) {
-            var draw_grid = document.getElementById('character-target-div');
-            draw_grid.innerHTML = grid_data;
-
-            if (Persistence.getItem(frontBack + "text-stroke-color") == "true") {
-                var toneColor = getToneColor(charClass[i].className);
-                drawing_color = toneColor;
-                stroke_color = toneColor;
-            }
-
-            await writeFunction(chars[i]);
-
-            document.getElementById('grid-background-target').innerHTML = "";
-            draw_grid.innerHTML = grid_data;
-
-            if (i == chars.length - 1) {
-                playAudio();
-                document.getElementById("char_trad").style.opacity = "1";
-                document.getElementById("char_sim").style.opacity = "1";
-                document.getElementById("char_meaning").style.display = "block";
-                document.getElementById('grid-background-target').innerHTML = "";
-                draw_grid.innerHTML = "";
-                document.getElementById("btnGoNextCard").style.display = "none";
-                document.getElementById("btnRevealChar").style.display = "none";
-                document.getElementById("btnReloadQuiz").style.display = "unset";
-                document.getElementById("ch_load_status").innerHTML = "";
-                document.getElementById("ch_load_status").style.marginBottom = "36px";
-            }
+        for (i = 0; i < characters.length; i++) {
+            var hanzi = characters[i];
+            var span = document.createElement('span');
+            span.innerHTML = grid_data;
+            span.children[0].id = "onfinish-grid-background-target" + i;
+            span.children[0].style.margin = finish ? "6px" : "2px";
+            span.style.display = style;
+            drawGrid.appendChild(span);
+            setStrokeColor(i);
+            var writer = HanziWriter.create("onfinish-grid-background-target" + i, hanzi, {
+                width: size,
+                height: size,
+                padding: 5,
+                strokeColor: stroke_color
+            })
         }
     }
 
-    if (Persistence.isAvailable()) {
-        doPractice();
+    document.getElementById("btnReloadQuiz").onclick = function () {
+        doPractice(true);
+        generateHanziOnFinishQuiz("none");
+        showNextAndRevealBtn(true);
     }
 
-    // Make the function async, so it returns a promise
-    async function writeFunction(c) {
-        // Wrap the code inside a Promise constructor callback
-        return new Promise(function (resolve, reject) {
-            if (Persistence.getItem(frontBack + "text-grid") == "true") {
-                document.getElementById("char_grid").style.display = "block";
-            } else {
-                document.getElementById("char_grid").style.display = "none";
-            }
+    function doPractice(p = false) {
+        if (document.getElementById("back")) {
+            generateHanziOnFinishQuiz("unset", true);
+            if (!p) {
+                showNextAndRevealBtn(false);
+                return;
+            };
+        } else {
+            generateHanziOnFinishQuiz("none");
+        }
 
-            var writer = HanziWriter.create('grid-background-target', c, {
+        document.getElementById("ch_load_status").innerHTML = "&#8226;";
+        document.getElementById("ch_load_status").style.marginBottom = "0px";
+        document.getElementById("ch_load_status").style.display = "block";
+
+        var hanziWriterList = [];
+        var drawGrid = document.getElementById('character-target-div');
+        drawGrid.innerHTML = "";
+
+        for (i = 0; i < characters.length; i++) {
+            var div = document.createElement('div');
+            div.id = "div" + i;
+            div.innerHTML = grid_data;
+            div.children[0].id = "grid-background-target" + i;
+            drawGrid.appendChild(div);
+            setStrokeColor(i);
+            var hanzi = characters[i];
+            var writer = HanziWriter.create('grid-background-target' + i, hanzi, {
                 onLoadCharDataSuccess: function (data) {
                     document.getElementById("ch_load_status").style.color = "#4caf50";
                 },
@@ -542,11 +573,12 @@
                     document.getElementById("ch_load_status").style.color = "#ea2322";
                 },
 
-                width: char_width,
-                height: char_height,
+                width: charWidth,
+                height: charHeight,
                 showCharacter: false,
                 showOutline: Persistence.getItem(frontBack + "text-outline") == "true" ? true : false,
                 highlightOnComplete: true,
+                highlightCompleteColor: stroke_color,
                 drawingWidth: strokeWidth,
                 strokeColor: stroke_color,
                 outlineColor: outline_color,
@@ -555,29 +587,24 @@
                 padding: 5
             });
 
+            writerQuiz(writer);
+            hanziWriterList.push(writer);
+
             var revealClickCount = 0;
-            document.getElementById("btnRevealChar").onclick = function () {
-                btnTapAudio();
-                writer.showOutline();
-
-                if (revealClickCount == 0) {
-                    writer.animateCharacter();
-                } else if (revealClickCount == 1) {
-                    writerQuiz();
-                } else if (revealClickCount == 2) {
-                    writer.hideOutline();
-                } else {
-                    revealClickCount = -1;
-                }
-                revealClickCount++;
-            };
-
             document.getElementById("btnGoNextCard").onclick = function () {
+                revealClickCount = 0;
                 btnTapAudio();
+                writer = hanziWriterList[getCurrentHanziNum()];
+                writer.showOutline();
                 writer.showCharacter();
+
                 setTimeout(function () {
-                    resolve();
-                }, 1000)
+                    onFinishQuizDrawHanzi();
+                }, 800);
+
+                setTimeout(function () {
+                    showNextHanzi();
+                }, 1000);
             };
 
             document.getElementById("text-outline").onclick = function () {
@@ -586,23 +613,118 @@
                     writer.showOutline() : writer.hideOutline();
             };
 
-            writerQuiz();
+            document.getElementById("btnRevealChar").onclick = function () {
+                btnTapAudio();
+                writer = hanziWriterList[getCurrentHanziNum()];
+                writer.showOutline();
+                if (revealClickCount == 0) {
+                    writer.animateCharacter();
+                } else if (revealClickCount == 1) {
+                    writer.showCharacter();
+                } else if (revealClickCount == 2) {
+                    writer.hideCharacter();
+                    writer.hideOutline();
+                    writerQuiz(writer);
+                } else {
+                    revealClickCount = -1;
+                    writerQuiz(writer);
+                }
+                revealClickCount++;
+            };
 
-            function writerQuiz() {
+            function writerQuiz(writer) {
                 writer.quiz({
-                    onMistake: function (strokeData) {
-                    },
-                    onCorrectStroke: function (strokeData) {
-                    },
                     onComplete: function (summaryData) {
-                        setTimeout(function () {
-                            document.getElementById("ch_load_status").style.color = "#ea2322";
-                            resolve();
-                        }, 1000)
+                        onFinishQuizDrawHanzi();
 
+                        setTimeout(function () {
+                            showNextHanzi();
+                        }, 1000)
                     }
                 });
             }
-        });
+
+            function getCurrentHanziNum() {
+                var characterDiv = document.querySelector('#character-target-div');
+                var characterElements = characterDiv.children;
+                var len = characterElements.length;
+                for (i = 0; i < len; i++) {
+                    var style = characterElements[i].style.display;
+                    if (style === 'block' || style === "") {
+                        return i;
+                    }
+                }
+            }
+
+            function onFinishQuizDrawHanzi() {
+                var finishCharacterDiv = document.getElementById('onfinish-character-target-div');
+                var characterElements = finishCharacterDiv.children;
+                var len = characterElements.length;
+                for (i = 0; i < len; i++) {
+                    var style = characterElements[i].style.display;
+                    if (style === 'none' || style === "") {
+                        characterElements[i].style.display = "unset";
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    function setStrokeColor(i) {
+        if (Persistence.getItem(frontBack + "text-stroke-color") == "true") {
+            var toneColor = getToneColor(charClass[i].className);
+            drawing_color = toneColor;
+            stroke_color = toneColor;
+        }
+    }
+
+    function showNextHanzi() {
+        var characterDiv = document.querySelector('#character-target-div');
+        var characterElements = characterDiv.children;
+        var len = characterElements.length;
+
+        for (i = 0; i < len; i++) {
+            var style = characterElements[i].style.display;
+            if (style === 'block' || style === "") {
+                characterElements[i].style.display = 'none';
+                characterElements[(i + 1) % characterElements.length].style.display = 'block';
+                onFinishQuiz(i, len);
+                break;
+            }
+        }
+    }
+
+    function onFinishQuiz(i, len) {
+        if (i != len - 1) {
+            return;
+        }
+
+        if (i + 1 == len) {
+            document.querySelector('#character-target-div').innerHTML = "";
+            document.getElementById("ch_load_status").style.display = "none";
+            generateHanziOnFinishQuiz("unset", true);
+        }
+
+        playAudio();
+        showHide("#char_sim", true);
+        showTraditionalChar();
+        showHide("#char_meaning", true, "block");
+        if (document.getElementById("text-pinyin").checked) {
+            showHide(".pinyin", true);
+        }
+        if (document.getElementById("text-zhuyin").checked) {
+            showHide(".zhuyin", true);
+        }
+        showNextAndRevealBtn(false);
+    }
+
+    function showNextAndRevealBtn(show) {
+        showHide("#btnGoNextCard", show);
+        showHide("#btnRevealChar", show);
+    }
+
+    if (Persistence.isAvailable()) {
+        doPractice();
     }
 </script>

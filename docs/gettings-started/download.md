@@ -10,8 +10,26 @@ import styles from '../styles.module.css';
 First of all download the latest version xiehanzi decks from Ankiweb or GitHub releases page.<br/>
 **Note:- Before importing Anki Deck please make backups with scheduling information.**
 
-## Anki xiehanzi - HSK 3.0 (Recommended)
-The deck contains notes with five note types to practice meaning, pinyin or zhuyin, audio, tone marks and writing of characters.
+## New HSK 3.0 Mandarin Chinese Deck (Recommended)
+The deck contains notes with five note types to practice meaning, pinyin or zhuyin, audio, tone marks and writing of characters **in** frequency order.
+<div className={styles.buttons}>
+    <Link
+    className="button button--primary button--md margin--sm"
+    to="https://ankiweb.net/shared/info/239300382">
+    Download from Ankiweb
+    </Link>
+</div>
+
+<div className={styles.buttons}>
+    <Link
+    className="button button--primary button--md margin--sm"
+    to="https://github.com/krmanik/Anki-xiehanzi/releases">
+    Download from GitHub
+    </Link>
+</div>
+
+## Anki xiehanzi - HSK 3.0
+The deck contains notes with five note types to practice meaning, pinyin or zhuyin, audio, tone marks and writing of characters **not in** frequency order.
 <div className={styles.buttons}>
     <Link
     className="button button--primary button--md margin--sm"

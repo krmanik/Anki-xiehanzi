@@ -11,9 +11,9 @@ Download HSK Anki apkg file for Anki Desktop, AnkiDroid or AnkiMobile
 
 **Before importing Anki Deck please make backups with scheduling information.**
 
-## Anki xiehanzi - HSK 3.0 (Recommended)
+## New HSK 3.0 Mandarin Chinese Deck
 ### Download from AnkiWeb (HSK 1 - HSK 9)
-[Anki xiehanzi HSK 3.0: Learn Mandarin by drawing strokes](https://ankiweb.net/shared/info/1063372083)
+[Anki xiehanzi HSK 3.0: Learn Mandarin by drawing strokes](https://ankiweb.net/shared/info/239300382)
 
 ### Download from GitHub (HSK 1 - HSK 9)
 [Anki xiehanzi HSK 3.0](https://github.com/krmanik/Anki-xiehanzi/releases)
@@ -25,6 +25,7 @@ Download HSK Anki apkg file for Anki Desktop, AnkiDroid or AnkiMobile
 - Night mode
 - Change size of characters
 - Change drawing stroke width
+- New Deck with frequency order
 - Colored strokes and characters
 - Pinyin with tone color in HSK 3.0 decks
 - HSK1 - HSK9 audio included in the decks

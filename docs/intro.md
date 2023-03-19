@@ -25,12 +25,12 @@ View full features [here](features.md).
 
 ## Quick Start
 
-Download Anki xiehanzi HSK 3.0 decks for Anki Desktop, AnkiDroid and AnkiMobile.
+Download `New HSK 3.0 Mandarin Chinese Deck` for Anki Desktop, AnkiDroid and AnkiMobile.
 
 <div className={styles.buttons}>
     <Link
     className="button button--primary button--md margin--sm"
-    to="https://ankiweb.net/shared/info/1063372083">
+    to="https://ankiweb.net/shared/info/239300382">
     Download from Ankiweb
     </Link>
 </div>

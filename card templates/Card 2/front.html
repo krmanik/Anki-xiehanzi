@@ -11,6 +11,24 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
 </script>
 
 <script>
+    var switchIdList = ["text-sim", "text-trad"];
+    function initSwitchPrefs() {
+        for (var _id of switchIdList) {
+            var divId = _id.replace("text-", "char_");
+            if (Persistence.getItem("back" + _id) == "false") {
+                document.getElementById(divId).style.display = "none";
+            }
+        }
+    }
+
+    if (Persistence.isAvailable()) {
+        if (window.ankiPlatform == "desktop" || isInWebView()) {
+            initSwitchPrefs();
+        } else {
+            window.addEventListener("load", initSwitchPrefs, false);
+        }
+    }
+
     if (Persistence.isAvailable()) {
         if (Persistence.getItem("backtext-pinyin") == "true" && Persistence.getItem("backtext-zhuyin") == "false") {
             document.querySelector(".question-sub-text").innerHTML = "pinyin";

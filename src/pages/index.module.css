@@ -35,3 +35,56 @@
   padding: 2rem 0;
   width: 100%;
 }
+
+section {
+  padding: 2rem 8rem 2rem 8rem;
+}
+
+/* media query */
+@media screen and (max-width: 996px) {
+  section {
+    padding: 1rem;
+  }
+}
+
+.mb {
+  margin-bottom: 1.5rem;
+}
+
+.mt {
+  margin-top: 1.5rem;
+}
+
+.tabs__item {
+  padding: 4px 0px 4px 10px !important;
+}
+
+.tabs__item_add {
+  padding: 4px 10px 4px 10px !important;
+}
+
+.tab_content {
+  padding: 10px;
+}
+
+ul,
+ol {
+  margin: unset;
+  padding: unset;
+}
+
+.select_type {
+  margin: 18px 0px 18px 0px !important;
+}
+
+.button_bar {
+  margin: 10px 0px 10px 0px !important
+}
+
+h2 {
+  margin: 18px 0px 18px 0px !important
+}
+
+.mr_2 {
+  margin-right: 8px;
+}

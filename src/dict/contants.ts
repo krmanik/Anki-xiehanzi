@@ -7,8 +7,61 @@ const FIELDS = {
     AUDIO: 'Audio',
 };
 
-const DECK_HTML =
-    `
+const DECK_HTML_FRONT =
+`
+<div id="char_zhuyin">{{Zhuyin}}</div>
+<div id="char_pinyin">{{Pinyin}}</div>
+<div id="char_sim" class="char-card">{{Simplified}}</div>
+<div id="char_trad" class="char-card">{{Traditional}}</div>
+<div id="char_meaning" class="meaning-card">{{Definitions}}</div>
+
+<script>
+// v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/eeb2e1a9e37c941dd63e1fe6c2a257f043c40e0d/script.js
+if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/",t="_default";if(window.Persistence_localStorage=function(){var i=!1;try{null!==window.localStorage&&"object"==typeof window.localStorage&&(i=!0,this.clear=function(){for(var t=0;t<localStorage.length;t++){var i=localStorage.key(t);0==i.indexOf(e)&&(localStorage.removeItem(i),t--)}},this.setItem=function(i,n){void 0==n&&(n=i,i=t),localStorage.setItem(e+i,JSON.stringify(n))},this.getItem=function(i){return void 0==i&&(i=t),JSON.parse(localStorage.getItem(e+i))},this.removeItem=function(i){void 0==i&&(i=t),localStorage.removeItem(e+i)})}catch(n){}this.isAvailable=function(){return i}},window.Persistence_sessionStorage=function(){var i=!1;try{"object"==typeof window.sessionStorage&&(i=!0,this.clear=function(){for(var t=0;t<sessionStorage.length;t++){var i=sessionStorage.key(t);0==i.indexOf(e)&&(sessionStorage.removeItem(i),t--)}},this.setItem=function(i,n){void 0==n&&(n=i,i=t),sessionStorage.setItem(e+i,JSON.stringify(n))},this.getItem=function(i){return void 0==i&&(i=t),JSON.parse(sessionStorage.getItem(e+i))},this.removeItem=function(i){void 0==i&&(i=t),sessionStorage.removeItem(e+i)})}catch(n){}this.isAvailable=function(){return i}},window.Persistence_windowKey=function(i){var n=window[i],o=!1;"object"==typeof n&&(o=!0,this.clear=function(){n[e]={}},this.setItem=function(i,o){void 0==o&&(o=i,i=t),n[e][i]=o},this.getItem=function(i){return void 0==i&&(i=t),void 0==n[e][i]?null:n[e][i]},this.removeItem=function(i){void 0==i&&(i=t),delete n[e][i]},void 0==n[e]&&this.clear()),this.isAvailable=function(){return o}},window.Persistence=new Persistence_sessionStorage,navigator.userAgent.indexOf("Mobile")>0&&(window.Persistence=new Persistence_localStorage,Persistence.isAvailable()||(window.Persistence=new Persistence_sessionStorage)),Persistence.isAvailable()||(window.Persistence=new Persistence_windowKey("py")),!Persistence.isAvailable()){var i=window.location.toString().indexOf("title"),n=window.location.toString().indexOf("main",i);i>0&&n>0&&n-i<10&&(window.Persistence=new Persistence_windowKey("qt"))}}
+</script>
+
+<script>
+    var switchIdList = ["text-pinyin", "text-zhuyin", "text-meaning", "text-sim", "text-trad"];
+    function initSwitchPrefs() {
+        for (var _id of switchIdList) {
+            var divId = _id.replace("text-", "char_");
+            if (Persistence.getItem("back" + _id) == "false") {
+                document.getElementById(divId).style.display = "none";
+            }
+        }
+    }
+    
+    if (Persistence.isAvailable()) {
+        if (window.ankiPlatform == "desktop" || isInWebView()) {
+            initSwitchPrefs();
+        } else {
+            window.addEventListener("load", initSwitchPrefs, false);
+        }
+    }
+
+    function isInWebView() {
+        var UA = navigator.userAgent;
+        if (/iPhone|iPod|iPad/.test(UA)) {
+            if (/(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(UA)) {
+                return true;
+            }
+        }
+        if (window.location.href.includes("ankiuser.net")) {
+            return true;
+        }
+        return false;
+    }
+</script>
+`;
+
+const DECK_HTML_BACK =
+`
+<div id="char_zhuyin">{{Zhuyin}}</div>
+<div id="char_pinyin">{{Pinyin}}</div>
+<div id="char_sim" class="char-card">{{Simplified}}</div>
+<div id="char_trad" class="char-card">{{Traditional}}</div>
+<div id='audio' style='display:none'>{{Audio}}</div>
+
 <div class="modal-footer1">
     <a class="btn" id="btnShowMenu" onclick="openSidebar('sidebar')">
         <div class="icon">
@@ -271,7 +324,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
     </a>
 </div>
 <!-----sidebar------>
-`
+`;
 
 const DECK_CSS =
     `
@@ -995,6 +1048,10 @@ const DECK_HTML_WITH_HANZI_WRITER =
     }
 </script>
 
+<div id="char_zhuyin">{{Zhuyin}}</div>
+<div id="char_pinyin">{{Pinyin}}</div>
+<div id="char_sim" class="char-card">{{Simplified}}</div>
+<div id="char_trad" class="char-card">{{Traditional}}</div>
 <div id="onfinish-character-target-div" class="tappable"></div>
 <div id="character-target-div" class="tappable"></div>
 <div id="ch_load_status" style="color:#ea2322; margin-top: -36px; display: none;">&#8226;</div>
@@ -1024,6 +1081,9 @@ const DECK_HTML_WITH_HANZI_WRITER =
 </div>
 
 <hr>
+
+<div id="char_meaning" class="meaning-card">{{Definitions}}</div>
+
 
 <!--sidebar-->
 
@@ -1690,7 +1750,8 @@ const DECK_HTML_WITH_HANZI_WRITER =
 
 export default {
     FIELDS,
-    DECK_HTML,
+    DECK_HTML_FRONT,
+    DECK_HTML_BACK,
     DECK_HTML_WITH_HANZI_WRITER,
     DECK_CSS
 };

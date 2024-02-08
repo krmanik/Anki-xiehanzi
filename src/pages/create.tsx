@@ -21,6 +21,7 @@ import { Toolbar } from 'primereact/toolbar';
 import { Model, Deck, Package } from "genanki-js";
 
 import initSqlJs from "sql.js";
+import { Message } from 'primereact/message';
 
 export default function CreateDeck(): JSX.Element {
 
@@ -52,7 +53,6 @@ export default function CreateDeck(): JSX.Element {
 
     const prevNextButtonText = [
         "",
-        "Create Deck Fields",
         "Create Card Types",
         "Input Chinese Characters",
     ];
@@ -81,7 +81,7 @@ export default function CreateDeck(): JSX.Element {
     ];
 
     const additionalComponents = [
-        { id: 'coloredHanzi', label: 'Colored Hanzi' },
+        // { id: 'coloredHanzi', label: 'Colored Hanzi' },
         { id: 'writingComponent', label: 'Writing Component' },
     ];
 
@@ -318,68 +318,100 @@ export default function CreateDeck(): JSX.Element {
         let req = [];
         let tmpls = [];
 
-        fields.forEach(f => {
+        fields.forEach((f, i) => {
             flds.push({ name: f })
-            req.push([0, "all", [0]]);
+            req.push([i, "all", [i]]);
         });
 
         for (let card in tabContent) {
-            let frontFields = []
-            let backFields = []
+            let hideSimp = true;
+            let hideTrad = true;
+            let hidePin = true;
+            let hideZhu = true;
+            let hideDef = true;
+
+            let hides = []
 
             for (let front of tabContent[card]["front"]) {
-                let f = `<div id='${front}'>{{${front.split("front")[1]}}}</div>`
-
                 if (front.includes("Simplified")) {
-                    f = `<div id='char_simp'>{{${front.split("front")[1]}}}</div>`
+                    hideSimp = false;
                 }
                 if (front.includes("Traditional")) {
-                    f = `<div id='char_trad'>{{${front.split("front")[1]}}}</div>`
+                    hideTrad = false;
                 }
                 if (front.includes("Pinyin")) {
-                    f = `<div id='char_pinyin'>{{${front.split("front")[1]}}}</div>`
+                    hidePin = false;
                 }
                 if (front.includes("Zhuyin")) {
-                    f = `<div id='char_zhuyin'>{{${front.split("front")[1]}}}</div>`
+                    hideZhu = false;
                 }
                 if (front.includes("Definitions")) {
-                    f = `<div id="char_meaning" class="meaning-card">{{${front.split("front")[1]}}}</div>`
+                    hideDef = false;
                 }
-                if (front.includes("Audio")) {
-                    f = `<div id='char_audio'>{{${front.split("front")[1]}}}</div>`
-                }
-                frontFields.push(f);
             }
 
-            for (let back of tabContent[card]["back"]) {
-                let f = `<div id='${back}'>{{${back.split("back")[1]}}}</div>`
-
-                if (back.includes("Simplified")) {
-                    f = `<div id='char_simp'>{{${back.split("back")[1]}}}</div>`
-                }
-                if (back.includes("Traditional")) {
-                    f = `<div id='char_trad'>{{${back.split("back")[1]}}}</div>`
-                }
-                if (back.includes("Pinyin")) {
-                    f = `<div id='char_pinyin'>{{${back.split("back")[1]}}}</div>`
-                }
-                if (back.includes("Zhuyin")) {
-                    f = `<div id='char_zhuyin'>{{${back.split("back")[1]}}}</div>`
-                }
-                if (back.includes("Definitions")) {
-                    f = `<div id="char_meaning" class="meaning-card">{{${back.split("back")[1]}}}</div>`
-                }
-                if (back.includes("Audio")) {
-                    f = `<div id='char_audio'>{{${back.split("back")[1]}}}</div>`
-                }
-                backFields.push(f);
+            // TODO-remove redundant code
+            if (hideSimp) {
+                hides.push("char_sim")
             }
 
-            let QFMT = frontFields.join("\n");
-            let AFMT = backFields.join("\n") + CONSTANTS.DECK_HTML;
+            if (hideTrad) {
+                hides.push("char_trad")
+            }
+
+            if (hidePin) {
+                hides.push("char_pinyin")
+            }
+
+            if (hideZhu) {
+                hides.push("char_zhuyin")
+            }
+
+            if (hideDef) {
+                hides.push("char_meaning")
+            }
+
+            let hideScript = `
+<script>
+var hideList = ['${hides.join("', '")}'];
+
+function showHide(type, isShow, style = "inline") {
+    if (isShow) {
+        document.querySelectorAll(type).forEach(function (val) {
+            val.style.display = style;
+        });
+    } else {
+        document.querySelectorAll(type).forEach(function (val) {
+            val.style.display = 'none';
+        });
+    }
+}
+
+for (var _hide of hideList) {
+    document.getElementById(_hide).style.display = "none";
+
+    var isShowField = document.getElementById(_hide).style.display == "none" ? false : true;
+    if (_hide == "char_pinyin") {
+        showHide(".pinyin", isShowField);
+    }
+    if (_hide == "char_zhuyin") {
+        showHide(".zhuyin", isShowField);
+    }
+    if (_hide == "char_sim") {
+        showHide("#char-sim-id", isShowField);
+    }
+    if (_hide == "char_trad") {
+        showHide("#char-trad-id", isShowField);
+        showHide(".sep", isShowField);
+    }
+}
+</script>`;
+
+            let QFMT = CONSTANTS.DECK_HTML_FRONT + hideScript;
+            let AFMT = CONSTANTS.DECK_HTML_BACK;
 
             if (tabContent[card]["additional"].includes("writingComponent")) {
-                QFMT = frontFields.join("\n") + CONSTANTS.DECK_HTML_WITH_HANZI_WRITER;
+                QFMT = CONSTANTS.DECK_HTML_WITH_HANZI_WRITER;
                 AFMT = `<div id="back">{{FrontSide}}</div>`;
             }
 
@@ -392,14 +424,14 @@ export default function CreateDeck(): JSX.Element {
 
         const m = new Model({
             name: "Basic - (Anki-xiehanzi)",
-            id: "1543634829843",
+            id: "1372444668843",
             flds: flds,
             css: CONSTANTS.DECK_CSS,
-            req: req,
+            req: [req],
             tmpls: tmpls,
         });
 
-        const d = new Deck(1276438724672, deckName);
+        const d = new Deck(1372444668672, deckName);
 
         words.forEach(word => {
             let Simplified = word.Simplified;
@@ -447,7 +479,13 @@ export default function CreateDeck(): JSX.Element {
                         })
 
                         let html = `<div class="meaning-container">
-    <div class="char"><div id="char-sim-id">${simp}</div>${trad}</div>
+    <div class="char">
+        <span id="char-sim-id">${simp}</span>
+        <span class="sep">〔</span>
+            <span id="char-trad-id">${trad}</span>
+        <span class="sep">〕</span>
+        </span>
+    </div>
     <div class="pinyin">${pin[i]}</div>
     <div class="zhuyin">${zhu[i]}</div>
     <div class="meaning">${def[i]}</div>
@@ -470,17 +508,37 @@ export default function CreateDeck(): JSX.Element {
         p.setSqlJs(db);
         p.addDeck(d);
 
-        const iconFile = "_MaterialIcons-Regular.woff2";
-        const blob = await fetch('https://fonts.gstatic.com/s/materialicons/v141/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2')
-            .then(response => {
-                if (!response.ok) {
-                    return null;
-                }
-                return response.blob();
-            });
+        const mediaFiles = [
+            "_MaterialIcons-Regular.woff2",
+            "_characterpop.svg",
+            "_hanzicraft.png",
+            "_pleco.png",
+            "_rtega.png",
+            "_youdao.png",
+            "_tatoeba.png"
+        ];
 
-        p.addMedia(blob, iconFile);
-        p.writeToFile(`${deckName}.apkg`);
+        const fetchFile = async (file) => {
+            const response = await fetch(`./img/${file}`);
+            if (!response.ok) {
+                return null;
+            }
+            return response.blob();
+        };
+
+        Promise.all(mediaFiles.map(fetchFile))
+            .then(blobs => {
+                blobs.forEach((blob, index) => {
+                    if (blob) {
+                        p.addMedia(blob, mediaFiles[index]);
+                    }
+                });
+            })
+            .catch(error => {
+                console.error("Error fetching or adding media:", error);
+            }).finally(() => {
+                p.writeToFile(`${deckName}.apkg`);
+            });
     }
 
     return (
@@ -543,20 +601,11 @@ export default function CreateDeck(): JSX.Element {
 
                                             <h3 className={styles.mt}>Back Side</h3>
                                             <div>
-                                                {fieldsArray.map((field, index) => {
-                                                    if (fields.includes(field.id)) {
-                                                        let id = `back${field.id}`;
-                                                        return (
-                                                            <div key={index}>
-                                                                <input type="checkbox" id={id}
-                                                                    onChange={() => handleCheckboxChange(id, 'back')}
-                                                                    checked={tabContent[tabs[activeTab]].back.includes(id)}
-                                                                ></input>
-                                                                <label htmlFor={id}>{field.label}</label>
-                                                            </div>
-                                                        );
-                                                    }
-                                                })}
+                                                <Message severity="info" text={`
+                                            All fields are available in back side, use side bar during deck review
+                                            and turn off the fields you don't want to see.
+                                            `} />
+
                                             </div>
 
                                             <h3 className={styles.mt}>Additional Components</h3>
@@ -572,7 +621,7 @@ export default function CreateDeck(): JSX.Element {
                                                 ))}
                                             </div>
 
-                                            <h3 className={styles.mt}>Preview</h3>
+                                            {/* <h3 className={styles.mt}>Preview</h3>
                                             <div>
                                                 <div className={styles.card_preview}>
                                                     <div className={styles.card_preview__front}>
@@ -590,7 +639,7 @@ export default function CreateDeck(): JSX.Element {
                                                         ))}
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </div> */}
 
                                         </div>
                                     )}

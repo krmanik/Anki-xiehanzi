@@ -30,6 +30,7 @@ export default function CreateDeck(): JSX.Element {
         Pinyin: string,
         Zhuyin: string,
         Definitions: string,
+        Syllable: string,
     }[]>([]);
 
     const FIELDS = CONSTANTS.FIELDS;
@@ -80,7 +81,6 @@ export default function CreateDeck(): JSX.Element {
     ];
 
     const additionalComponents = [
-        { id: 'coloredPinyin', label: 'Colored Pinyin' },
         { id: 'coloredHanzi', label: 'Colored Hanzi' },
         { id: 'writingComponent', label: 'Writing Component' },
     ];
@@ -160,12 +160,14 @@ export default function CreateDeck(): JSX.Element {
 
         let Pinyin = []
         let Zhuyin = []
+        let Syllable = []
         let Definitions = []
 
         for (let res of result) {
             if (res.simplified == result[0].simplified) {
                 Pinyin.push(parser.parseFromString(res.pinyin, 'text/html').body.textContent);
                 Zhuyin.push(parser.parseFromString(res.zhuyin, 'text/html').body.textContent);
+                Syllable.push(parser.parseFromString(res.syllable, 'text/html').body.textContent);
                 Definitions.push(res.definitions)
             }
         }
@@ -175,7 +177,8 @@ export default function CreateDeck(): JSX.Element {
             Traditional: result[0].traditional,
             Pinyin: Pinyin.join(", "),
             Zhuyin: Zhuyin.join(", "),
-            Definitions: Definitions.join(" │ ")
+            Definitions: Definitions.join(" │ "),
+            Syllable: Syllable.join(", ")
         }]);
     }
 
@@ -215,12 +218,14 @@ export default function CreateDeck(): JSX.Element {
                 let result = await DICT.makeHtml(res, true);
                 let Pinyin = []
                 let Zhuyin = []
+                let Syllable = []
                 let Definitions = []
 
                 for (let res of result) {
                     if (res.simplified == result[0].simplified) {
                         Pinyin.push(parser.parseFromString(res.pinyin, 'text/html').body.textContent);
                         Zhuyin.push(parser.parseFromString(res.zhuyin, 'text/html').body.textContent);
+                        Syllable.push(parser.parseFromString(res.syllable, 'text/html').body.textContent);
                         Definitions.push(res.definitions)
                     }
                 }
@@ -234,7 +239,8 @@ export default function CreateDeck(): JSX.Element {
                     Traditional: result[0].traditional,
                     Pinyin: Pinyin.join(", "),
                     Zhuyin: Zhuyin.join(", "),
-                    Definitions: Definitions.join(" │ ")
+                    Definitions: Definitions.join(" │ "),
+                    Syllable: Syllable.join(", ")
                 });
             }
 
@@ -277,12 +283,14 @@ export default function CreateDeck(): JSX.Element {
 
             let Pinyin = []
             let Zhuyin = []
+            let Syllable = []
             let Definitions = []
 
             for (let res of result) {
                 if (res.simplified == result[0].simplified) {
                     Pinyin.push(parser.parseFromString(res.pinyin, 'text/html').body.textContent);
                     Zhuyin.push(parser.parseFromString(res.zhuyin, 'text/html').body.textContent);
+                    Syllable.push(parser.parseFromString(res.syllable, 'text/html').body.textContent);
                     Definitions.push(res.definitions)
                 }
             }
@@ -296,7 +304,8 @@ export default function CreateDeck(): JSX.Element {
                 Traditional: result[0].traditional,
                 Pinyin: Pinyin.join(", "),
                 Zhuyin: Zhuyin.join(", "),
-                Definitions: Definitions.join(" │ ")
+                Definitions: Definitions.join(" │ "),
+                Syllable: Syllable.join(", ")
             });
         }
 
@@ -319,7 +328,8 @@ export default function CreateDeck(): JSX.Element {
             let backFields = []
 
             for (let front of tabContent[card]["front"]) {
-                let f = front;
+                let f = `<div id='${front}'>{{${front.split("front")[1]}}}</div>`
+
                 if (front.includes("Simplified")) {
                     f = `<div id='char_simp'>{{${front.split("front")[1]}}}</div>`
                 }
@@ -332,18 +342,51 @@ export default function CreateDeck(): JSX.Element {
                 if (front.includes("Zhuyin")) {
                     f = `<div id='char_zhuyin'>{{${front.split("front")[1]}}}</div>`
                 }
+                if (front.includes("Definitions")) {
+                    f = `<div id="char_meaning" class="meaning-card">{{${front.split("front")[1]}}}</div>`
+                }
+                if (front.includes("Audio")) {
+                    f = `<div id='char_audio'>{{${front.split("front")[1]}}}</div>`
+                }
                 frontFields.push(f);
             }
 
             for (let back of tabContent[card]["back"]) {
-                let b = `<div id='${back}'>{{${back.split("back")[1]}}}</div>`
-                backFields.push(b);
+                let f = `<div id='${back}'>{{${back.split("back")[1]}}}</div>`
+
+                if (back.includes("Simplified")) {
+                    f = `<div id='char_simp'>{{${back.split("back")[1]}}}</div>`
+                }
+                if (back.includes("Traditional")) {
+                    f = `<div id='char_trad'>{{${back.split("back")[1]}}}</div>`
+                }
+                if (back.includes("Pinyin")) {
+                    f = `<div id='char_pinyin'>{{${back.split("back")[1]}}}</div>`
+                }
+                if (back.includes("Zhuyin")) {
+                    f = `<div id='char_zhuyin'>{{${back.split("back")[1]}}}</div>`
+                }
+                if (back.includes("Definitions")) {
+                    f = `<div id="char_meaning" class="meaning-card">{{${back.split("back")[1]}}}</div>`
+                }
+                if (back.includes("Audio")) {
+                    f = `<div id='char_audio'>{{${back.split("back")[1]}}}</div>`
+                }
+                backFields.push(f);
+            }
+
+            let QFMT = frontFields.join("\n");
+            let AFMT = backFields.join("\n") + CONSTANTS.DECK_HTML;
+
+            if (tabContent[card]["additional"].includes("writingComponent")) {
+                QFMT = frontFields.join("\n") + CONSTANTS.DECK_HTML_WITH_HANZI_WRITER;
+                AFMT = `<div id="back">{{FrontSide}}</div>`;
             }
 
             tmpls.push({
                 name: card,
-                qfmt: frontFields.join("\n"),
-                afmt: backFields.join("\n"),
+                qfmt: QFMT,
+                afmt: AFMT,
             });
         }
 
@@ -387,19 +430,27 @@ export default function CreateDeck(): JSX.Element {
                     let def = Definitions.split(" │ ");
                     let definition = [];
 
-                    let trad = ""
-
-                    if (Simplified != Traditional) {
-                        trad = `\n<div class="def-traditional">〔${Traditional}〕</div>`;
-                    }
+                    let syllable = word.Syllable;
+                    let syllableSp = syllable.split(", ");
 
                     for (let i = 0; i < pin.length; i++) {
 
-                        let html = `<div class="definition-container">
-    <div class="def-simplified">${Simplified}</div>${trad}
-    <div class="def-pinyin">${pin[i]}</div>
-    <div class="def-zhuyin">${zhu[i]}</div>
-    <div class="def-definition">${def[i]}</div>
+                        let sp = syllableSp[i].split(" ");
+                        let simp = "";
+                        let trad = "";
+                        let simpSp = Simplified.split("");
+                        let tradSp = Traditional.split("");
+
+                        sp.forEach((k, j) => {
+                            simp += `<span class="char-tone${k[k.length - 1]}">${simpSp[j]}</span>`
+                            trad += `<span class="char-tone${k[k.length - 1]}">${tradSp[j]}</span>`
+                        })
+
+                        let html = `<div class="meaning-container">
+    <div class="char"><div id="char-sim-id">${simp}</div>${trad}</div>
+    <div class="pinyin">${pin[i]}</div>
+    <div class="zhuyin">${zhu[i]}</div>
+    <div class="meaning">${def[i]}</div>
 </div>`
                         definition.push(html);
                     }
@@ -418,6 +469,17 @@ export default function CreateDeck(): JSX.Element {
         await setupSql();
         p.setSqlJs(db);
         p.addDeck(d);
+
+        const iconFile = "_MaterialIcons-Regular.woff2";
+        const blob = await fetch('https://fonts.gstatic.com/s/materialicons/v141/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2')
+            .then(response => {
+                if (!response.ok) {
+                    return null;
+                }
+                return response.blob();
+            });
+
+        p.addMedia(blob, iconFile);
         p.writeToFile(`${deckName}.apkg`);
     }
 

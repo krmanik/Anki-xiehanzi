@@ -175,6 +175,7 @@ async function makeHtml(result, showToneColors): Promise<{
     pinyin: string,
     zhuyin: string,
     definitions: string,
+    syllable: string
 }[]> {
 
     let entry;
@@ -184,6 +185,7 @@ async function makeHtml(result, showToneColors): Promise<{
         pinyin: '',
         zhuyin: '',
         definitions: '',
+        syllable: '',
     }];
 
     if (result === null) return html;
@@ -197,6 +199,7 @@ async function makeHtml(result, showToneColors): Promise<{
             pinyin: '',
             zhuyin: '',
             definitions: '',
+            syllable: ''
         };
 
         if (!entry) continue;
@@ -211,6 +214,7 @@ async function makeHtml(result, showToneColors): Promise<{
         let pinyinClass = 'w-pinyin';
         let p = await pinyinAndZhuyin(entry[3], showToneColors, pinyinClass);
         html[i].pinyin = p[0];
+        html[i].syllable = entry[3];
 
         // Zhuyin
 

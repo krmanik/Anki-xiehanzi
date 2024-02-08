@@ -69,7 +69,7 @@ const config = {
             position: 'left',
             label: 'Tutorial',
           },
-          {to: '/blog', label: 'Blog', position: 'left'},
+          { to: '/blog', label: 'Blog', position: 'left' },
           {
             href: 'https://github.com/krmanik/Anki-xiehanzi',
             label: 'GitHub',
@@ -123,6 +123,12 @@ const config = {
         darkTheme: darkCodeTheme,
       },
     }),
+
+
+  plugins: [
+    "custom-docusaurus-plugin"
+  ],
+
 };
 
 module.exports = config;

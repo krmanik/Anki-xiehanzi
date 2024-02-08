@@ -18,6 +18,9 @@ import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 import { FileUpload, FileUploadUploadEvent } from 'primereact/fileupload';
 import { Toolbar } from 'primereact/toolbar';
+import { Model, Deck, Package } from "genanki-js";
+
+import initSqlJs from "sql.js";
 
 export default function CreateDeck(): JSX.Element {
 
@@ -35,6 +38,7 @@ export default function CreateDeck(): JSX.Element {
     const [wordValue, setWordValue] = React.useState<string>('');
     const [selectType, setSelectType] = React.useState({ selectType: 'Word' });
     const [texAreaValue, setTexAreaValue] = React.useState<string>('');
+    const [db, setDb] = useState(null);
 
     const prevNextButtonText = [
         "",
@@ -64,7 +68,6 @@ export default function CreateDeck(): JSX.Element {
         { id: FIELDS.PINYIN, label: 'Pinyin' },
         { id: FIELDS.ZHUYIN, label: 'Zhuyin' },
         { id: FIELDS.DEFINITIONS, label: 'English Definitions' },
-        { id: FIELDS.WRITING_COMPONENT, label: 'Writing Component' }
     ];
 
     const [activeTab, setActiveTab] = useState(0);
@@ -167,7 +170,21 @@ export default function CreateDeck(): JSX.Element {
 
     useEffect(() => {
         DICT.loadDict();
+        setupSql();
     }, []);
+
+    const setupSql = async () => {
+        try {
+            const SQL = await initSqlJs({
+                locateFile: filename => "https://cdn.jsdelivr.net/npm/sql.js/dist/sql-wasm.wasm"
+            });
+            let db = new SQL.Database();
+            setDb(db);
+            console.log("db", db);
+        } catch (err) {
+            console.log(err);
+        }
+    }
 
     const generateWords = async (event) => {
         let file = event.files[0];
@@ -272,14 +289,94 @@ export default function CreateDeck(): JSX.Element {
         setWords([...words, ..._words]);
     }
 
-    function generateDeck(e): void {
+    async function generateDeck(e) {
+
+        console.log(fields)
+        console.log(tabContent)
+
+        let flds = [];
+
+        fields.forEach(f => {
+            flds.push({ name: f })
+        });
+
+        console.log(flds)
+
+        let tmpls = [];
+
+        for (let card in tabContent) {
+            console.log(card, tabContent[card])
+
+            let frontFields = []
+            let backFields = []
+
+            for (let front of tabContent[card]["front"]) {
+                console.log(front);
+                let f = `{{${front.split("front")[1]}}}`
+                frontFields.push(f);
+            }
+
+            for (let back of tabContent[card]["back"]) {
+                console.log(back)
+                let b = `{{${back.split("back")[1]}}}`
+                backFields.push(b);
+            }
+
+            tmpls.push({
+                name: card,
+                qfmt: frontFields.join("\n"),
+                afmt: backFields.join("\n"),
+            });
+        }
+
+        const m = new Model({
+            name: "Basic - (Anki-xiehanzi)",
+            id: "1543634829843",
+            flds: flds,
+            req: [
+                [0, "all", [0]],
+                [1, "all", [1]]
+            ],
+            tmpls: tmpls,
+        });
+
+        const d = new Deck(1276438724672, deckName);
+
         words.forEach(word => {
             let simplified = word.simplified;
             let traditional = word.traditional;
             let pinyin = word.pinyin;
             let zhuyin = word.zhuyin;
             let definitions = word.definitions;
-        })
+
+            let note = []
+
+            flds.some(function (obj) {
+                if (JSON.stringify(obj) === JSON.stringify({ name: 'Simplified' })) {
+                    note.push(simplified)
+                }
+                if (JSON.stringify(obj) === JSON.stringify({ name: 'Traditional' })) {
+                    note.push(traditional)
+                }
+                if (JSON.stringify(obj) === JSON.stringify({ name: 'Pinyin' })) {
+                    note.push(pinyin)
+                }
+                if (JSON.stringify(obj) === JSON.stringify({ name: 'Zhuyin' })) {
+                    note.push(zhuyin)
+                }
+                if (JSON.stringify(obj) === JSON.stringify({ name: 'Definitions' })) {
+                    note.push(definitions)
+                }
+            });
+
+            d.addNote(m.note(note));
+        });
+
+        const p = new Package();
+        await setupSql();
+        p.setSqlJs(db);
+        p.addDeck(d);
+        p.writeToFile(`${deckName}.apkg`);
     }
 
     return (
@@ -344,7 +441,7 @@ export default function CreateDeck(): JSX.Element {
                                             <div>
                                                 {fieldsArray.map((field, index) => {
                                                     if (fields.includes(field.id)) {
-                                                        let id = `front${field.id}${index}`;
+                                                        let id = `front${field.id}`;
                                                         return (
                                                             <div key={index}>
                                                                 <input type="checkbox" id={id}
@@ -362,7 +459,7 @@ export default function CreateDeck(): JSX.Element {
                                             <div>
                                                 {fieldsArray.map((field, index) => {
                                                     if (fields.includes(field.id)) {
-                                                        let id = `back${field.id}${index}`;
+                                                        let id = `back${field.id}`;
                                                         return (
                                                             <div key={index}>
                                                                 <input type="checkbox" id={id}

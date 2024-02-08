@@ -12,14 +12,6 @@ module.exports = function (context, options) {
                     },
                     fallback: {
                         fs: false,
-                    },
-                    module: {
-                        rules: [
-                            {
-                                test: /\.wasm$/,
-                                use: ['file-loader'],
-                            },
-                        ]
                     }
                 },
             };

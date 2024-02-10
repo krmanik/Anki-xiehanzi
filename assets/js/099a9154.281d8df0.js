@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkanki_xiehanzi=self.webpackChunkanki_xiehanzi||[]).push([[19],{5305:e=>{e.exports=JSON.parse('[{"label":"hsk","permalink":"/Anki-xiehanzi/blog/tags/hsk","count":1}]')}}]);

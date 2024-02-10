@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkanki_xiehanzi=self.webpackChunkanki_xiehanzi||[]).push([[512],{4352:e=>{e.exports=JSON.parse('{"title":"Recent posts","items":[{"title":"Create new decks with customized templates","permalink":"/Anki-xiehanzi/blog/2022/09/30/create-deck-from-scratch"},{"title":"Anki xiehanzi HSK 3.0 deck","permalink":"/Anki-xiehanzi/blog/xiehanzi-hsk-3.0"}]}')}}]);

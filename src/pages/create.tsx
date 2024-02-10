@@ -243,7 +243,7 @@ export default function CreateDeck(): JSX.Element {
       });
       let db = new SQL.Database();
       setDb(db);
-      console.log("db", db);
+      console.log("SQL DB loaded...");
     } catch (err) {
       console.log(err);
     }
@@ -294,11 +294,12 @@ export default function CreateDeck(): JSX.Element {
           result[0].traditional = Chinese.s2t(line.trim());
 
           let pin = pinyin(line.trim(), { toneToNumber: true });
+          pin = pin.replace(/0/g, "5");
           let pizh = await pinzhu.pinyinAndZhuyin(pin, "", "");
 
           Pinyin = [decodeHtmlEntities(pizh[1])];
           Zhuyin = [decodeHtmlEntities(pizh[2])];
-          Syllable = Pinyin;
+          Syllable = [pin];
           Definitions.push(data[0][0][0]);
         }
 
@@ -313,9 +314,6 @@ export default function CreateDeck(): JSX.Element {
       }
 
       setWords([...words, ..._words]);
-
-      console.log(_words);
-      console.log(doNotAdd);
 
       // not react way but for now use this
       document
@@ -393,17 +391,20 @@ export default function CreateDeck(): JSX.Element {
 
     fields.forEach((f, i) => {
       flds.push({ name: f });
-      req.push([i, "all", [i]]);
     });
 
+    let ri = 0;
     for (let card in tabContent) {
+      req.push( [ ri, "any", [ ri ] ] );
+      ri++;
+
       let hideSimp = true;
       let hideTrad = true;
       let hidePin = true;
       let hideZhu = true;
       let hideDef = true;
 
-      let hides = [];
+      let addToFront = [];
 
       for (let front of tabContent[card]["front"]) {
         if (front.includes("Simplified")) {
@@ -423,25 +424,37 @@ export default function CreateDeck(): JSX.Element {
         }
       }
 
-      // TODO-remove redundant code
-      if (hideSimp) {
-        hides.push("char_sim");
+      // TODO-remove redundant code, used for creating in order
+      if (!hideSimp) {
+        addToFront.push(
+          `<div id="char_sim" class="char-card">{{Simplified}}</div>`
+        );
       }
 
-      if (hideTrad) {
-        hides.push("char_trad");
+      if (!hideTrad) {
+        addToFront.push(
+          `<div id="char_trad" class="char-card">{{Traditional}}</div>`
+        );
       }
 
-      if (hidePin) {
-        hides.push("char_pinyin");
+      if (!hidePin) {
+        addToFront.push(`<div id="char_pinyin">{{Pinyin}}</div>`);
       }
 
-      if (hideZhu) {
-        hides.push("char_zhuyin");
+      if (!hideZhu) {
+        addToFront.push(`<div id="char_zhuyin">{{Zhuyin}}</div>`);
       }
 
-      if (hideDef) {
-        hides.push("char_meaning");
+      let hides = [];
+      if (!hideDef) {
+        if (hideSimp) hides.push("char_sim");
+        if (hideTrad) hides.push("char_trad");
+        if (hidePin) hides.push("char_pinyin");
+        if (hideZhu) hides.push("char_zhuyin");
+
+        addToFront.push(
+          `<div id="char_meaning" class="meaning-card">{{Definitions}}</div>`
+        );
       }
 
       let hideScript = `
@@ -461,26 +474,30 @@ function showHide(type, isShow, style = "inline") {
 }
 
 for (var _hide of hideList) {
-    document.getElementById(_hide).style.display = "none";
+    var el = document.getElementById(_hide);
+    if (el) {
+        el.style.display = "none";
+    }
 
-    var isShowField = document.getElementById(_hide).style.display == "none" ? false : true;
     if (_hide == "char_pinyin") {
-        showHide(".pinyin", isShowField);
+        showHide(".pinyin", false);
     }
     if (_hide == "char_zhuyin") {
-        showHide(".zhuyin", isShowField);
+        showHide(".zhuyin", false);
     }
     if (_hide == "char_sim") {
-        showHide("#char-sim-id", isShowField);
+        showHide("#char-sim-id", false);
     }
     if (_hide == "char_trad") {
-        showHide("#char-trad-id", isShowField);
-        showHide(".sep", isShowField);
+        showHide("#char-trad-id", false);
+        showHide(".sep", false);
     }
 }
 </script>`;
 
-      let QFMT = CONSTANTS.DECK_HTML_FRONT + hideScript;
+      hideScript = hideDef ? "" : hideScript;
+
+      let QFMT = addToFront.join("\n") + hideScript + CONSTANTS.DECK_HTML_FRONT;
       let AFMT = CONSTANTS.DECK_HTML_BACK;
 
       if (tabContent[card]["additional"].includes("writingComponent")) {
@@ -495,16 +512,19 @@ for (var _hide of hideList) {
       });
     }
 
+    const modelId = Math.floor(Math.random() * (1 << 30) + (1 << 30));
+
     const m = new Model({
       name: "Basic - (Anki-xiehanzi)",
-      id: "1372444668843",
+      id: modelId.toString(),
       flds: flds,
       css: CONSTANTS.DECK_CSS,
       req: [req],
       tmpls: tmpls,
     });
 
-    const d = new Deck(1372444668672, deckName);
+    const deckId = Math.floor(Math.random() * (1 << 30) + (1 << 30));
+    const d = new Deck(deckId, deckName);
 
     words.forEach((word) => {
       let Simplified = word.Simplified;

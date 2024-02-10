@@ -172,8 +172,10 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
             <div class="fieldset-item tappable">
                 <div class="input-stack" style="text-align:center; color: var(--text2);">
                     <label for="deck-title">
-                        <h3>xie hanzi</h3>
+                        <h3 class="brand-title">写汉字</h3>
+                        <div class="brand-sub-title">xiě hànzì</div>
                     </label>
+                    <a onclick="closeSidebar('sidebar')" class="close-button">✖</a>
                 </div>
             </div>
         </fieldset>
@@ -240,6 +242,13 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
 </div>
 
 <div id="more-info-sidebar" class="more-info-sidebar">
+    <a class="fieldset-item tappable">
+        <div class="more-side-brand">
+            <div class="brand-title">写汉字</div>
+            <div class="brand-sub-title">xiě hànzì</div>
+        </div>
+        <div onclick="closeSidebar('more-info-sidebar')" class="close-button close2">✖</div>
+    </a>
     <a class="fieldset-item tappable" id="plecoMobile" href="plecoapi://x-callback-url/df?hw={{Simplified}}">
         <img src="_pleco.png"></img>
         <small>Pleco</small>

@@ -124,11 +124,9 @@ const config = {
       },
     }),
 
-
   plugins: [
-    "custom-docusaurus-plugin"
+    "custom-docusaurus-plugin",
   ],
-
 };
 
 module.exports = config;

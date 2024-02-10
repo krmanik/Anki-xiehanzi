@@ -2,6 +2,7 @@ import { unzip } from 'unzipit';
 import pinzhu from './pinyinzhuyin';
 
 let dict;
+let host = "https://krmanik.github.io/Anki-xiehanzi";
 
 // https://github.com/cschiller/zhongwen
 class ZhongwenDictionary {
@@ -114,12 +115,12 @@ async function getCedict(url) {
 }
 
 async function loadDictData() {
-    let wordDict = getCedict(`./data/cedict_ts.zip`);
+    let wordDict = getCedict(`${host}/data/cedict_ts.zip`);
 
     // let wordDict = await fetch(`./data/cedict_ts.u8`).then(r => r.text());
-    let wordIndex = await fetch(`./data/cedict.idx`).then(r => r.text());
-    let grammarKeywords = await fetch(`./data/grammarKeywordsMin.json`).then(r => r.json());
-    let vocabKeywords = await fetch(`./data/vocabularyKeywordsMin.json`).then(r => r.json());
+    let wordIndex = await fetch(`${host}/data/cedict.idx`).then(r => r.text());
+    let grammarKeywords = await fetch(`${host}/data/grammarKeywordsMin.json`).then(r => r.json());
+    let vocabKeywords = await fetch(`${host}/data/vocabularyKeywordsMin.json`).then(r => r.json());
 
     return Promise.all([wordDict, wordIndex, grammarKeywords, vocabKeywords]);
 }

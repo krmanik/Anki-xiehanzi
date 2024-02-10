@@ -1,6 +1,6 @@
 import styles from './index.module.css';
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Layout from '@theme/Layout';
 import { RiCloseCircleFill } from "react-icons/ri";
 import CONSTANTS from '../dict/contants';
@@ -22,6 +22,11 @@ import { Model, Deck, Package } from "genanki-js";
 
 import initSqlJs from "sql.js";
 import { Message } from 'primereact/message';
+
+import Chinese from 'chinese-s2t';
+import pinzhu from '../dict/pinyinzhuyin';
+
+import pinyin from "chinese-to-pinyin";
 
 export default function CreateDeck(): JSX.Element {
 
@@ -50,6 +55,11 @@ export default function CreateDeck(): JSX.Element {
     const [selectType, setSelectType] = React.useState({ selectType: 'Word' });
     const [texAreaValue, setTexAreaValue] = React.useState<string>('');
     const [db, setDb] = useState(null);
+    const dt = useRef(null);
+
+    const exportCSV = (selectionOnly) => {
+        dt.current.exportCSV({ selectionOnly });
+    };
 
     const prevNextButtonText = [
         "",
@@ -148,7 +158,36 @@ export default function CreateDeck(): JSX.Element {
         });
     };
 
-    const parser = new DOMParser();
+    function decodeHtmlEntities(input) {
+        const htmlEntityRegex = /&#(\d+);|&([^;]+);/g;
+        const entityMappings = {
+            772: '̄',
+            769: '́',
+            780: '̌',
+            768: '̀',
+            nbsp: ' ',
+            'uuml': 'ü',
+        };
+
+        function replaceEntity(match, decimal, named) {
+            if (decimal) {
+                if (entityMappings.hasOwnProperty(decimal)) {
+                    return entityMappings[decimal];
+                } else {
+                    return match;
+                }
+            } else if (named) {
+                if (entityMappings.hasOwnProperty(named)) {
+                    return entityMappings[named];
+                } else {
+                    return match;
+                }
+            }
+        }
+
+        const decodedText = input.replace(htmlEntityRegex, replaceEntity);
+        return decodedText;
+    }
 
     const searchAndAdd = async (word) => {
         let res = DICT.search(word);
@@ -165,9 +204,9 @@ export default function CreateDeck(): JSX.Element {
 
         for (let res of result) {
             if (res.simplified == result[0].simplified) {
-                Pinyin.push(parser.parseFromString(res.pinyin, 'text/html').body.textContent);
-                Zhuyin.push(parser.parseFromString(res.zhuyin, 'text/html').body.textContent);
-                Syllable.push(parser.parseFromString(res.syllable, 'text/html').body.textContent);
+                Pinyin.push(decodeHtmlEntities(res.pinyin));
+                Zhuyin.push(decodeHtmlEntities(res.zhuyin));
+                Syllable.push(res.syllable);
                 Definitions.push(res.definitions)
             }
         }
@@ -212,6 +251,7 @@ export default function CreateDeck(): JSX.Element {
             const lines = text.split('\n');
 
             let _words = [];
+            let doNotAdd = [];
 
             for (let line of lines) {
                 let res = DICT.search(line);
@@ -223,15 +263,36 @@ export default function CreateDeck(): JSX.Element {
 
                 for (let res of result) {
                     if (res.simplified == result[0].simplified) {
-                        Pinyin.push(parser.parseFromString(res.pinyin, 'text/html').body.textContent);
-                        Zhuyin.push(parser.parseFromString(res.zhuyin, 'text/html').body.textContent);
-                        Syllable.push(parser.parseFromString(res.syllable, 'text/html').body.textContent);
-                        Definitions.push(res.definitions)
+                        if (line.trim() !== result[0].simplified) {
+                            doNotAdd.push(line.trim());
+                        } else {
+                            Pinyin.push(decodeHtmlEntities(res.pinyin));
+                            Zhuyin.push(decodeHtmlEntities(res.zhuyin));
+                            Syllable.push(res.syllable);
+                            Definitions.push(res.definitions)
+                        }
                     }
                 }
 
                 if (words.some(w => w.Simplified === result[0].simplified)) {
                     continue;
+                }
+
+                if (doNotAdd.includes(line.trim())) {
+                    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-CN&tl=en-US&dt=t&q=${line.trim()}`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    result[0].simplified = line.trim();
+                    result[0].traditional = Chinese.s2t(line.trim());
+
+                    let pin = pinyin(line.trim(), {toneToNumber: true});
+                    let pizh = await pinzhu.pinyinAndZhuyin(pin, "", "");
+
+                    Pinyin = [decodeHtmlEntities(pizh[1])];
+                    Zhuyin = [decodeHtmlEntities(pizh[2])];
+                    Syllable = Pinyin;
+                    Definitions.push(data[0][0][0]);
                 }
 
                 _words.push({
@@ -247,6 +308,7 @@ export default function CreateDeck(): JSX.Element {
             setWords([...words, ..._words]);
 
             console.log(_words);
+            console.log(doNotAdd);
 
             // not react way but for now use this
             document.querySelector(".p-fileupload-file-badge").classList.remove("p-badge-warning");
@@ -288,9 +350,9 @@ export default function CreateDeck(): JSX.Element {
 
             for (let res of result) {
                 if (res.simplified == result[0].simplified) {
-                    Pinyin.push(parser.parseFromString(res.pinyin, 'text/html').body.textContent);
-                    Zhuyin.push(parser.parseFromString(res.zhuyin, 'text/html').body.textContent);
-                    Syllable.push(parser.parseFromString(res.syllable, 'text/html').body.textContent);
+                    Pinyin.push(decodeHtmlEntities(res.pinyin));
+                    Zhuyin.push(decodeHtmlEntities(res.zhuyin));
+                    Syllable.push(res.syllable);
                     Definitions.push(res.definitions)
                 }
             }
@@ -696,12 +758,15 @@ for (var _hide of hideList) {
                                         </React.Fragment>
                                     )}
                                     end={(
-                                        <Button className={`${styles.mr_2} mr-2`} label="Generate Deck" onClick={generateDeck} />
+                                        <React.Fragment>
+                                            <Button className={`${styles.mr_2} mr-2`} label="Export CSV" onClick={exportCSV} />
+                                            <Button className={`${styles.mr_2} mr-2`} label="Generate Deck" onClick={generateDeck} />
+                                        </React.Fragment>
                                     )} />
                             </div>
 
                             <DataTable
-                                paginator rows={10}
+                                ref={dt} paginator rows={10} rowsPerPageOptions={[5, 10, 25, 50, 100, 500]}
                                 selectionMode={rowClick ? null : 'radiobutton'}
                                 selection={selectWord} onSelectionChange={(e) => setSelectWord(e.value)}
                                 value={words} tableStyle={{ minWidth: '60rem' }}

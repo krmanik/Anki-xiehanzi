@@ -56,11 +56,6 @@ async function pinyinAndZhuyin(syllables, showToneColors, pinyinClass) {
     let zhuyin = '';
     let a = syllables.split(/[\s·]+/);
 
-    let pinyinzhunyin = {
-        pinyin: '',
-        zhuyin: ''
-    }
-
     for (let i = 0; i < a.length; i++) {
         let syllable = a[i];
 
@@ -540,4 +535,8 @@ const accentedPinyin2Zhuyin = (syllable) => {
     return zhuyinMap[key] + zhuyinTones[tone];
 };
 
-export default pinyinAndZhuyin;
+export default {
+    pinyinAndZhuyin,
+    numericPinyin2Zhuyin,
+    accentedPinyin2Zhuyin
+}

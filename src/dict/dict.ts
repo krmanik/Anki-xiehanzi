@@ -1,5 +1,5 @@
 import { unzip } from 'unzipit';
-import pinyinAndZhuyin from './pinyinzhuyin';
+import pinzhu from './pinyinzhuyin';
 
 let dict;
 
@@ -212,7 +212,7 @@ async function makeHtml(result, showToneColors): Promise<{
         // Pinyin
 
         let pinyinClass = 'w-pinyin';
-        let p = await pinyinAndZhuyin(entry[3], showToneColors, pinyinClass);
+        let p = await pinzhu.pinyinAndZhuyin(entry[3], showToneColors, pinyinClass);
         html[i].pinyin = p[0];
         html[i].syllable = entry[3];
 

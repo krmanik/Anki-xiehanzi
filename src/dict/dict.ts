@@ -2,7 +2,7 @@ import { unzip } from 'unzipit';
 import pinzhu from './pinyinzhuyin';
 
 let dict;
-let host = "https://krmanik.github.io/Anki-xiehanzi";
+let host = "http://localhost:3000/Anki-xiehanzi/";
 
 // https://github.com/cschiller/zhongwen
 class ZhongwenDictionary {

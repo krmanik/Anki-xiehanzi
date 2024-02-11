@@ -1,35 +1,37 @@
-import styles from "./index.module.css";
-import create_styles from "./create.module.css";
-
-import React, { useEffect, useRef, useState } from "react";
-import Layout from "@theme/Layout";
-import { RiCloseCircleFill } from "react-icons/ri";
-import CONSTANTS from "../dict/contants";
-import DICT from "../dict/dict";
-
-import { DataTable } from "primereact/datatable";
-import { Column } from "primereact/column";
-import { InputTextarea } from "primereact/inputtextarea";
-import { Dropdown } from "primereact/dropdown";
+/**
+ * Anki-xiehanzi
+ * Copyright (C) 2024 krmanik
+ * https://github.com/krmanik/Anki-xiehanzi
+ * This code is licensed under the GPL-3.0 License. Full license text is available in the LICENSE file.
+ */
 
 import "primereact/resources/themes/lara-light-cyan/theme.css";
 
-import { PrimeReactProvider } from "primereact/api";
-import { InputText } from "primereact/inputtext";
-import { Button } from "primereact/button";
-import { FileUpload, FileUploadUploadEvent } from "primereact/fileupload";
-import { Toolbar } from "primereact/toolbar";
-import { Model, Deck, Package } from "genanki-js";
-
-import initSqlJs from "sql.js";
-import { Message } from "primereact/message";
-
 import Chinese from "chinese-s2t";
-import pinzhu from "../dict/pinyinzhuyin";
-
 import pinyin from "chinese-to-pinyin";
-
+import { Deck, Model, Package } from "genanki-js";
 import init, { cut } from "jieba-wasm/pkg/web/jieba_rs_wasm.js";
+import { PrimeReactProvider } from "primereact/api";
+import { Button } from "primereact/button";
+import { Column } from "primereact/column";
+import { DataTable } from "primereact/datatable";
+import { Dropdown } from "primereact/dropdown";
+import { FileUpload, FileUploadUploadEvent } from "primereact/fileupload";
+import { InputText } from "primereact/inputtext";
+import { InputTextarea } from "primereact/inputtextarea";
+import { Message } from "primereact/message";
+import { Toolbar } from "primereact/toolbar";
+import React, { useEffect, useRef, useState } from "react";
+import { RiCloseCircleFill } from "react-icons/ri";
+import initSqlJs from "sql.js";
+
+import Layout from "@theme/Layout";
+
+import CONSTANTS from "../dict/contants";
+import DICT from "../dict/dict";
+import pinzhu from "../dict/pinyinzhuyin";
+import create_styles from "./create.module.css";
+import styles from "./index.module.css";
 
 export default function CreateDeck(): JSX.Element {
   const [words, setWords] = useState<

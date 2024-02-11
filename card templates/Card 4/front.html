@@ -59,6 +59,12 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
             var divId = _id.replace("text-", "char_");
             if (Persistence.getItem("back" + _id) == "false") {
                 document.getElementById(divId).style.display = "none";
+                if (_id == "text-pinyin") {
+                    showHide(".pinyin", false);
+                }
+                if (_id == "text-zhuyin") {
+                    showHide(".zhuyin", false);
+                }
             }
         }
     }

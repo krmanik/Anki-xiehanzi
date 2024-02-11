@@ -724,6 +724,8 @@ for (var _hide of hideList) {
     let progress = 0;
     let total = wordFiles.length + mediaFiles.length;
 
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
     const fetchAudio = async (word) => {
       const tts = new MsEdgeTTS();
       await tts.setMetadata(
@@ -732,39 +734,48 @@ for (var _hide of hideList) {
       );
       const readable = tts.toStream(word);
       const blob = await streamToBlob(readable, "audio/mp3");
-
       progress += 1;
       setProgressbarValue((progress / total) * 100);
-
+      await delay(1200);
       return blob;
     };
 
-    // edge tts mp3 audio
-    Promise.all(wordFiles.map(fetchAudio))
+    const batchSize = 4;
+    const fetchBatch = async (batch) => {
+      const blobs = await Promise.all(batch.map(fetchAudio));
+      blobs.forEach((blob, index) => {
+        p.addMedia(blob, `cmn-${batch[index]}.mp3`);
+      });
+    };
+
+    const processWordsSequentially = async (wordFiles) => {
+      const totalBatches = Math.ceil(wordFiles.length / batchSize);
+
+      for (let i = 0; i < totalBatches; i++) {
+        const start = i * batchSize;
+        const end = start + batchSize;
+        const currentBatch = wordFiles.slice(start, end);
+
+        await fetchBatch(currentBatch);
+      }
+    };
+
+    await processWordsSequentially(wordFiles);
+
+    // sidebar icons
+    Promise.all(mediaFiles.map(fetchFile))
       .then((blobs) => {
         blobs.forEach((blob, index) => {
-          p.addMedia(blob, `cmn-${wordFiles[index]}.mp3`);
+          if (blob) {
+            p.addMedia(blob, mediaFiles[index]);
+          }
         });
       })
       .catch((error) => {
         console.error("Error fetching or adding media:", error);
       })
       .finally(async () => {
-        // sidebar icons
-        Promise.all(mediaFiles.map(fetchFile))
-          .then((blobs) => {
-            blobs.forEach((blob, index) => {
-              if (blob) {
-                p.addMedia(blob, mediaFiles[index]);
-              }
-            });
-          })
-          .catch((error) => {
-            console.error("Error fetching or adding media:", error);
-          })
-          .finally(async () => {
-            p.writeToFile(`${deckName}.apkg`);
-          });
+        p.writeToFile(`${deckName}.apkg`);
       });
   }
 
@@ -966,7 +977,7 @@ for (var _hide of hideList) {
                 </div>
               )}
 
-              <ProgressBar value={progressbarValue}></ProgressBar>
+              <ProgressBar value={progressbarValue.toFixed(2)}></ProgressBar>
 
               <div className={`${styles.button_bar}`}>
                 <Toolbar

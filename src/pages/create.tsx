@@ -1,4 +1,5 @@
 import styles from "./index.module.css";
+import create_styles from "./create.module.css";
 
 import React, { useEffect, useRef, useState } from "react";
 import Layout from "@theme/Layout";
@@ -830,7 +831,7 @@ for (var _hide of hideList) {
             <div>
               <h2>Enter Chinese Characters</h2>
 
-              <div className={styles.select_type}>
+              <div className={`${styles.select_type} ${create_styles.ul}`}>
                 <span className="p-float-label w-full md:w-14rem">
                   <Dropdown
                     inputId="select-type"

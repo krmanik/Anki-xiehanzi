@@ -63,6 +63,7 @@ const config = {
           src: 'img/logo.gif',
         },
         items: [
+          { to: '/create', label: 'Create', position: 'left' },
           {
             type: 'doc',
             docId: 'intro',
@@ -105,6 +106,10 @@ const config = {
           {
             title: 'More',
             items: [
+              {
+                label: 'Create',
+                to: '/create',
+              },
               {
                 label: 'Blog',
                 to: '/blog',

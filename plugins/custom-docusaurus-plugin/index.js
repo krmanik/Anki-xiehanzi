@@ -1,3 +1,5 @@
+const webpack = require('webpack');
+
 module.exports = function (context, options) {
     return {
         name: 'custom-docusaurus-plugin',
@@ -12,11 +14,18 @@ module.exports = function (context, options) {
                         crypto: require.resolve("crypto-browserify"),
                         buffer: require.resolve("buffer/"),
                         stream: require.resolve("stream-browserify"),
+                        process: "process/browser",
                     },
                     fallback: {
                         fs: false,
+                        ws: false,
                     }
                 },
+                plugins: [
+                    new webpack.ProvidePlugin({
+                        process: 'process/browser'
+                    })
+                ]
             };
         },
     };

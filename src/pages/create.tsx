@@ -33,6 +33,9 @@ import pinzhu from "../dict/pinyinzhuyin";
 import create_styles from "./create.module.css";
 import styles from "./index.module.css";
 
+import { MsEdgeTTS, OUTPUT_FORMAT } from "msedge-tts";
+import { ProgressBar } from "primereact/progressbar";
+
 export default function CreateDeck(): JSX.Element {
   const [words, setWords] = useState<
     {
@@ -62,6 +65,7 @@ export default function CreateDeck(): JSX.Element {
   const [texAreaValue, setTexAreaValue] = React.useState<string>("");
   const [db, setDb] = useState(null);
   const dt = useRef(null);
+  const [progressbarValue, setProgressbarValue] = useState(0);
 
   const exportCSV = (selectionOnly) => {
     dt.current.exportCSV({ selectionOnly });
@@ -454,6 +458,26 @@ export default function CreateDeck(): JSX.Element {
     setWords([...words, ..._words]);
   }
 
+  // https://github.com/feross/stream-to-blob/blob/master/index.js
+  function streamToBlob(stream, mimeType): Promise<Blob> {
+    if (mimeType != null && typeof mimeType !== "string") {
+      throw new Error("Invalid mimetype, expected string.");
+    }
+    return new Promise((resolve, reject) => {
+      const chunks = [];
+      stream
+        .on("data", (chunk) => chunks.push(chunk))
+        .once("end", () => {
+          const blob =
+            mimeType != null
+              ? new Blob(chunks, { type: mimeType })
+              : new Blob(chunks);
+          resolve(blob);
+        })
+        .once("error", reject);
+    });
+  }
+
   async function generateDeck(e) {
     let flds = [];
     let req = [];
@@ -582,11 +606,11 @@ for (var _hide of hideList) {
       });
     }
 
-    const modelId = Math.floor(Math.random() * (1 << 30) + (1 << 30));
+    // const modelId = Math.floor(Math.random() * (1 << 30) + (1 << 30));
 
     const m = new Model({
       name: "Basic - (Anki-xiehanzi)",
-      id: modelId.toString(),
+      id: "1969669503",
       flds: flds,
       css: CONSTANTS.DECK_CSS,
       req: req,
@@ -688,22 +712,59 @@ for (var _hide of hideList) {
       if (!response.ok) {
         return null;
       }
+
+      progress += 1;
+      setProgressbarValue((progress / total) * 100);
+
       return response.blob();
     };
 
-    Promise.all(mediaFiles.map(fetchFile))
+    const wordFiles = words.map((word) => word.Simplified);
+
+    let progress = 0;
+    let total = wordFiles.length + mediaFiles.length;
+
+    const fetchAudio = async (word) => {
+      const tts = new MsEdgeTTS();
+      await tts.setMetadata(
+        "zh-CN-XiaoxiaoNeural",
+        OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3
+      );
+      const readable = tts.toStream(word);
+      const blob = await streamToBlob(readable, "audio/mp3");
+
+      progress += 1;
+      setProgressbarValue((progress / total) * 100);
+
+      return blob;
+    };
+
+    // edge tts mp3 audio
+    Promise.all(wordFiles.map(fetchAudio))
       .then((blobs) => {
         blobs.forEach((blob, index) => {
-          if (blob) {
-            p.addMedia(blob, mediaFiles[index]);
-          }
+          p.addMedia(blob, `cmn-${wordFiles[index]}.mp3`);
         });
       })
       .catch((error) => {
         console.error("Error fetching or adding media:", error);
       })
-      .finally(() => {
-        p.writeToFile(`${deckName}.apkg`);
+      .finally(async () => {
+        // sidebar icons
+        Promise.all(mediaFiles.map(fetchFile))
+          .then((blobs) => {
+            blobs.forEach((blob, index) => {
+              if (blob) {
+                p.addMedia(blob, mediaFiles[index]);
+              }
+            });
+          })
+          .catch((error) => {
+            console.error("Error fetching or adding media:", error);
+          })
+          .finally(async () => {
+            p.writeToFile(`${deckName}.apkg`);
+          });
       });
   }
 
@@ -904,6 +965,8 @@ for (var _hide of hideList) {
                   </div>
                 </div>
               )}
+
+              <ProgressBar value={progressbarValue}></ProgressBar>
 
               <div className={`${styles.button_bar}`}>
                 <Toolbar

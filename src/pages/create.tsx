@@ -197,6 +197,33 @@ export default function CreateDeck(): JSX.Element {
     return decodedText;
   }
 
+  const fetchMeaningGoogleTranslate = async (word) => {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-CN&tl=en-US&dt=t&q=${word.trim()}`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    let simplified = word.trim();
+    let traditional = Chinese.s2t(word.trim());
+
+    let pin = pinyin(word.trim(), { toneToNumber: true });
+    pin = pin.replace(/0/g, "5");
+    let pizh = await pinzhu.pinyinAndZhuyin(pin, "", "");
+
+    let pinyin1 = [decodeHtmlEntities(pizh[1])];
+    let zhuyin1 = [decodeHtmlEntities(pizh[2])];
+    let syllable1 = [pin];
+    let definitions1 = [data[0][0][0]];
+
+    return {
+      Simplified: simplified,
+      Traditional: traditional,
+      Pinyin: pinyin1,
+      Zhuyin: zhuyin1,
+      Definitions: definitions1,
+      Syllable: syllable1,
+    };
+  };
+
   const searchAndAdd = async (word) => {
     let res = DICT.search(word);
     let result = await DICT.makeHtml(res, true);
@@ -225,21 +252,15 @@ export default function CreateDeck(): JSX.Element {
     }
 
     if (doNotAdd.includes(word.trim())) {
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-CN&tl=en-US&dt=t&q=${word.trim()}`;
-      const response = await fetch(url);
-      const data = await response.json();
+      const fetchedMeaning = await fetchMeaningGoogleTranslate(word);
 
-      result[0].simplified = word.trim();
-      result[0].traditional = Chinese.s2t(word.trim());
+      result[0].simplified = fetchedMeaning.Simplified;
+      result[0].traditional = fetchedMeaning.Traditional;
 
-      let pin = pinyin(word.trim(), { toneToNumber: true });
-      pin = pin.replace(/0/g, "5");
-      let pizh = await pinzhu.pinyinAndZhuyin(pin, "", "");
-
-      Pinyin = [decodeHtmlEntities(pizh[1])];
-      Zhuyin = [decodeHtmlEntities(pizh[2])];
-      Syllable = [pin];
-      Definitions.push(data[0][0][0]);
+      Pinyin = fetchedMeaning.Pinyin;
+      Zhuyin = fetchedMeaning.Zhuyin;
+      Syllable = fetchedMeaning.Syllable;
+      Definitions = fetchedMeaning.Definitions;
     }
 
     setWords([
@@ -317,21 +338,15 @@ export default function CreateDeck(): JSX.Element {
         }
 
         if (doNotAdd.includes(line.trim())) {
-          const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-CN&tl=en-US&dt=t&q=${line.trim()}`;
-          const response = await fetch(url);
-          const data = await response.json();
+          const fetchedMeaning = await fetchMeaningGoogleTranslate(line.trim());
 
-          result[0].simplified = line.trim();
-          result[0].traditional = Chinese.s2t(line.trim());
+          result[0].simplified = fetchedMeaning.Simplified;
+          result[0].traditional = fetchedMeaning.Traditional;
 
-          let pin = pinyin(line.trim(), { toneToNumber: true });
-          pin = pin.replace(/0/g, "5");
-          let pizh = await pinzhu.pinyinAndZhuyin(pin, "", "");
-
-          Pinyin = [decodeHtmlEntities(pizh[1])];
-          Zhuyin = [decodeHtmlEntities(pizh[2])];
-          Syllable = [pin];
-          Definitions.push(data[0][0][0]);
+          Pinyin = fetchedMeaning.Pinyin;
+          Zhuyin = fetchedMeaning.Zhuyin;
+          Syllable = fetchedMeaning.Syllable;
+          Definitions = fetchedMeaning.Definitions;
         }
 
         _words.push({
@@ -415,21 +430,15 @@ export default function CreateDeck(): JSX.Element {
       }
 
       if (doNotAdd.includes(word.trim())) {
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-CN&tl=en-US&dt=t&q=${word.trim()}`;
-        const response = await fetch(url);
-        const data = await response.json();
+        const fetchedMeaning = await fetchMeaningGoogleTranslate(word.trim());
 
-        result[0].simplified = word.trim();
-        result[0].traditional = Chinese.s2t(word.trim());
+        result[0].simplified = fetchedMeaning.Simplified;
+        result[0].traditional = fetchedMeaning.Traditional;
 
-        let pin = pinyin(word.trim(), { toneToNumber: true });
-        pin = pin.replace(/0/g, "5");
-        let pizh = await pinzhu.pinyinAndZhuyin(pin, "", "");
-
-        Pinyin = [decodeHtmlEntities(pizh[1])];
-        Zhuyin = [decodeHtmlEntities(pizh[2])];
-        Syllable = [pin];
-        Definitions.push(data[0][0][0]);
+        Pinyin = fetchedMeaning.Pinyin;
+        Zhuyin = fetchedMeaning.Zhuyin;
+        Syllable = fetchedMeaning.Syllable;
+        Definitions = fetchedMeaning.Definitions;
       }
 
       _words.push({

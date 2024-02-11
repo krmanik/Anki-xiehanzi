@@ -6,7 +6,14 @@ module.exports = function (context, options) {
         configureWebpack(config, isServer, utils) {
             return {
                 module: {
-                    rules: [],
+                    rules: [
+                        {
+                            test: /\.m?js/,
+                            resolve: {
+                                fullySpecified: false
+                            }
+                        }
+                    ],
                 },
                 resolve: {
                     alias: {

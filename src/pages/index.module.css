@@ -67,12 +67,6 @@ section {
   padding: 10px;
 }
 
-ul,
-ol {
-  margin: unset;
-  padding: unset;
-}
-
 .select_type {
   margin: 18px 0px 18px 0px !important;
 }

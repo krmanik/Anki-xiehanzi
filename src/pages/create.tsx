@@ -28,6 +28,8 @@ import pinzhu from "../dict/pinyinzhuyin";
 
 import pinyin from "chinese-to-pinyin";
 
+import init, { cut } from "jieba-wasm/pkg/web/jieba_rs_wasm.js";
+
 export default function CreateDeck(): JSX.Element {
   const [words, setWords] = useState<
     {
@@ -204,14 +206,37 @@ export default function CreateDeck(): JSX.Element {
     let Zhuyin = [];
     let Syllable = [];
     let Definitions = [];
+    let doNotAdd = [];
 
     for (let res of result) {
       if (res.simplified == result[0].simplified) {
-        Pinyin.push(decodeHtmlEntities(res.pinyin));
-        Zhuyin.push(decodeHtmlEntities(res.zhuyin));
-        Syllable.push(res.syllable);
-        Definitions.push(res.definitions);
+        if (word.trim() !== result[0].simplified) {
+          doNotAdd.push(word.trim());
+        } else {
+          Pinyin.push(decodeHtmlEntities(res.pinyin));
+          Zhuyin.push(decodeHtmlEntities(res.zhuyin));
+          Syllable.push(res.syllable);
+          Definitions.push(res.definitions);
+        }
       }
+    }
+
+    if (doNotAdd.includes(word.trim())) {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-CN&tl=en-US&dt=t&q=${word.trim()}`;
+      const response = await fetch(url);
+      const data = await response.json();
+
+      result[0].simplified = word.trim();
+      result[0].traditional = Chinese.s2t(word.trim());
+
+      let pin = pinyin(word.trim(), { toneToNumber: true });
+      pin = pin.replace(/0/g, "5");
+      let pizh = await pinzhu.pinyinAndZhuyin(pin, "", "");
+
+      Pinyin = [decodeHtmlEntities(pizh[1])];
+      Zhuyin = [decodeHtmlEntities(pizh[2])];
+      Syllable = [pin];
+      Definitions.push(data[0][0][0]);
     }
 
     setWords([
@@ -233,6 +258,9 @@ export default function CreateDeck(): JSX.Element {
   useEffect(() => {
     DICT.loadDict();
     setupSql();
+    init(
+      "https://cdn.jsdelivr.net/npm/jieba-wasm@latest/pkg/web/jieba_rs_wasm_bg.wasm"
+    );
   }, []);
 
   const setupSql = async () => {
@@ -343,32 +371,62 @@ export default function CreateDeck(): JSX.Element {
     setSelectWord(null);
   }
 
+  function filterChineseWords(array) {
+    const chineseRegex = /[\u4e00-\u9fa5]/;
+    const chineseWords = array.filter((word) => chineseRegex.test(word));
+    return chineseWords;
+  }
+
   async function generateFromParagraph(e) {
     let text = texAreaValue;
     let _words = [];
 
-    while (text.trim() != "") {
-      let res = DICT.search(text);
+    let cutWords = cut(text, true);
+    cutWords = filterChineseWords(cutWords);
+
+    for (let word of cutWords) {
+      let res = DICT.search(word);
       let result = await DICT.makeHtml(res, true);
-      let pattern = new RegExp(result[0].simplified, "g");
-      text = text.replace(pattern, "");
 
       let Pinyin = [];
       let Zhuyin = [];
       let Syllable = [];
       let Definitions = [];
+      let doNotAdd = [];
 
       for (let res of result) {
         if (res.simplified == result[0].simplified) {
-          Pinyin.push(decodeHtmlEntities(res.pinyin));
-          Zhuyin.push(decodeHtmlEntities(res.zhuyin));
-          Syllable.push(res.syllable);
-          Definitions.push(res.definitions);
+          if (word.trim() !== result[0].simplified) {
+            doNotAdd.push(word.trim());
+          } else {
+            Pinyin.push(decodeHtmlEntities(res.pinyin));
+            Zhuyin.push(decodeHtmlEntities(res.zhuyin));
+            Syllable.push(res.syllable);
+            Definitions.push(res.definitions);
+          }
         }
       }
 
       if (words.some((w) => w.Simplified === result[0].simplified)) {
         continue;
+      }
+
+      if (doNotAdd.includes(word.trim())) {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-CN&tl=en-US&dt=t&q=${word.trim()}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        result[0].simplified = word.trim();
+        result[0].traditional = Chinese.s2t(word.trim());
+
+        let pin = pinyin(word.trim(), { toneToNumber: true });
+        pin = pin.replace(/0/g, "5");
+        let pizh = await pinzhu.pinyinAndZhuyin(pin, "", "");
+
+        Pinyin = [decodeHtmlEntities(pizh[1])];
+        Zhuyin = [decodeHtmlEntities(pizh[2])];
+        Syllable = [pin];
+        Definitions.push(data[0][0][0]);
       }
 
       _words.push({
@@ -395,7 +453,7 @@ export default function CreateDeck(): JSX.Element {
 
     let ri = 0;
     for (let card in tabContent) {
-      req.push( [ ri, "any", [ ri ] ] );
+      req.push([ri, "any", [ri]]);
       ri++;
 
       let hideSimp = true;
@@ -519,7 +577,7 @@ for (var _hide of hideList) {
       id: modelId.toString(),
       flds: flds,
       css: CONSTANTS.DECK_CSS,
-      req: [req],
+      req: req,
       tmpls: tmpls,
     });
 

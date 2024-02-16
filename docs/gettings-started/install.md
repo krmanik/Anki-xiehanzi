@@ -46,9 +46,4 @@ style={{paddingLeft:"8px"}}>
         src="https://raw.githubusercontent.com/krmanik/Anki-Android/main/docs/graphics/logos/amazon-badge.png"/>
 </a>
 
-<a href="https://appgallery5.huawei.com/#/app/C102711481">
-    <img alt="Get it on Huawei app gallery" style={{height:"80px"}}
-        src="https://raw.githubusercontent.com/krmanik/Anki-Android/main/docs/graphics/logos/huawei-badge.png"/>
-</a>
-
 </div>

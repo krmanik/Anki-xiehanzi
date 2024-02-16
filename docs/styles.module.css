@@ -11,3 +11,11 @@
 .buttons {
   display: inline-flex;
 }
+
+p {
+  margin: 0;
+}
+
+img {
+  height: 80vh;
+}

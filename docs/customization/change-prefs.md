@@ -2,6 +2,8 @@
 sidebar_position: 1
 ---
 
+import styles from '../styles.module.css';
+
 # Change Preferences
 
 ![](../../static/img/options.png)

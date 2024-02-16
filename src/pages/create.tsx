@@ -30,7 +30,6 @@ import Layout from "@theme/Layout";
 import CONSTANTS from "../dict/contants";
 import DICT from "../dict/dict";
 import pinzhu from "../dict/pinyinzhuyin";
-import create_styles from "./create.module.css";
 import styles from "./index.module.css";
 
 import { MsEdgeTTS, OUTPUT_FORMAT } from "msedge-tts";
@@ -283,7 +282,7 @@ export default function CreateDeck(): JSX.Element {
   const [selectWord, setSelectWord] = useState(null);
   const [rowClick, setRowClick] = useState(true);
 
-  useEffect(() => {
+  useEffect(() => {    
     DICT.loadDict();
     setupSql();
     init(
@@ -708,7 +707,7 @@ for (var _hide of hideList) {
     ];
 
     const fetchFile = async (file) => {
-      const response = await fetch(`./img/${file}`);
+      const response = await fetch(`https://krmanik.github.io/Anki-xiehanzi/img/${file}`);
       if (!response.ok) {
         return null;
       }
@@ -914,7 +913,7 @@ for (var _hide of hideList) {
             <div>
               <h2>Enter Chinese Characters</h2>
 
-              <div className={`${styles.select_type} ${create_styles.ul}`}>
+              <div className={`${styles.select_type}`}>
                 <span className="p-float-label w-full md:w-14rem">
                   <Dropdown
                     inputId="select-type"

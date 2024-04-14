@@ -16,7 +16,7 @@ let utones = {
 };
 
 function parse(s) {
-    return s.match(/([^AEIOU:aeiou]*)([AEIOUaeiou:]+)([^aeiou:]*)([1-5])/);
+    return s.match(/([^AEIOUV:aeiouv]*)([AEIOUVaeiouv:]+)([^aeiouv:]*)([1-5])/);
 }
 
 function tonify(vowels, tone) {
@@ -289,6 +289,7 @@ const zhuyinMap = {
     'lun': '\u310c\u3129',
     'lu:n': '\u310c\u3129\u3123',
     'luo': '\u310c\u3129\u3123',
+    'lv': '\u310c\u3129\u02c7',
     'ma': '\u3107\u311a',
     'mai': '\u3107\u311e',
     'man': '\u3107\u3122',

@@ -235,7 +235,7 @@ export default function CreateDeck(): JSX.Element {
     let res = DICT.search(word);
     let result = await DICT.makeHtml(res, true);
 
-    if (words.some((w) => w.Simplified === result[0].simplified)) {
+    if (words.some((w) => w.Simplified === word.trim())) {
       return;
     }
 
@@ -340,7 +340,11 @@ export default function CreateDeck(): JSX.Element {
           }
         }
 
-        if (words.some((w) => w.Simplified === result[0].simplified)) {
+        if (words.some((w) => w.Simplified === line.trim())) {
+          continue;
+        }
+
+        if (_words.some((w) => w.Simplified === line.trim())) {
           continue;
         }
 
@@ -408,6 +412,7 @@ export default function CreateDeck(): JSX.Element {
 
     let cutWords = cut(text, true);
     cutWords = filterChineseWords(cutWords);
+    cutWords = [...new Set(cutWords)];
 
     for (let word of cutWords) {
       let res = DICT.search(word);
@@ -432,7 +437,7 @@ export default function CreateDeck(): JSX.Element {
         }
       }
 
-      if (words.some((w) => w.Simplified === result[0].simplified)) {
+      if (words.some((w) => w.Simplified === word.trim())) {
         continue;
       }
 

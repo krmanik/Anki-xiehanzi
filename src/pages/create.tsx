@@ -210,6 +210,10 @@ export default function CreateDeck(): JSX.Element {
 
     let pin = pinyin(word.trim(), { toneToNumber: true });
     pin = pin.replace(/0/g, "5");
+
+    // replace v3 with u:3
+    pin = pin.replace(/v/g, "u:");
+
     let pizh = await pinzhu.pinyinAndZhuyin(pin, "", "");
 
     let pinyin1 = [decodeHtmlEntities(pizh[1])];

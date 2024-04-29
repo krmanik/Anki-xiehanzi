@@ -462,7 +462,8 @@ const DECK_CSS =
   src: local("Material Icons"), local("MaterialIcons-Regular"),
     url(_MaterialIcons-Regular.woff2) format("woff2"),
     url(_MaterialIcons-Regular.woff) format("woff"),
-    url(_MaterialIcons-Regular.ttf) format("truetype");
+    url(_MaterialIcons-Regular.ttf) format("truetype"),
+    url(https://fonts.gstatic.com/s/materialicons/v141/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
 }
 
 .material-icons {

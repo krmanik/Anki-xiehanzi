@@ -10,7 +10,7 @@ import "primereact/resources/themes/lara-light-cyan/theme.css";
 import Chinese from "chinese-s2t";
 import pinyin from "chinese-to-pinyin";
 import { Deck, Model, Package } from "genanki-js";
-import init, { cut } from "jieba-wasm/pkg/web/jieba_rs_wasm.js";
+import init, {cut} from 'jieba-wasm';
 import { PrimeReactProvider } from "primereact/api";
 import { Button } from "primereact/button";
 import { Column } from "primereact/column";

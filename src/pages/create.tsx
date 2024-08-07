@@ -35,6 +35,8 @@ import styles from "./index.module.css";
 import { MsEdgeTTS, OUTPUT_FORMAT } from "msedge-tts";
 import { ProgressBar } from "primereact/progressbar";
 
+let host = "https://krmanik.github.io/Anki-xiehanzi";
+
 export default function CreateDeck(): JSX.Element {
   const [words, setWords] = useState<
     {
@@ -290,7 +292,7 @@ export default function CreateDeck(): JSX.Element {
     DICT.loadDict();
     setupSql();
     init(
-      "https://cdn.jsdelivr.net/npm/jieba-wasm@latest/pkg/web/jieba_rs_wasm_bg.wasm"
+      `${host}/data/jieba_rs_wasm_bg.wasm`
     );
   }, []);
 
@@ -298,7 +300,7 @@ export default function CreateDeck(): JSX.Element {
     try {
       const SQL = await initSqlJs({
         locateFile: (filename) =>
-          "https://cdn.jsdelivr.net/npm/sql.js/dist/sql-wasm.wasm",
+          `${host}/data/sql-wasm.wasm`,
       });
       let db = new SQL.Database();
       setDb(db);

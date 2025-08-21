@@ -38,6 +38,13 @@ function HomepageHeader() {
           </div>
           <div className={styles.buttons}>
             <Link
+              className="button button--info button--outline button--lg margin--sm"
+              to="/create">
+              Create Deck
+            </Link>
+          </div>
+          <div className={styles.buttons}>
+            <Link
               className="button button--success button--outline button--lg margin--sm"
               to="/docs/gettings-started/download">
               Download Decks

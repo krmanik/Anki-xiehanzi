@@ -60,6 +60,7 @@ export default function CreateDeck(): JSX.Element {
     FIELDS.DEFINITIONS,
     FIELDS.AUDIO,
   ]);
+  const [includeAudio, setIncludeAudio] = React.useState<boolean>(false);
   const [page, setPage] = React.useState<number>(1);
   const [wordValue, setWordValue] = React.useState<string>("");
   const [selectType, setSelectType] = React.useState({ selectType: "Word" });
@@ -93,12 +94,22 @@ export default function CreateDeck(): JSX.Element {
     }
   };
 
+  // Effect to sync Audio field with includeAudio checkbox
+  useEffect(() => {
+    if (includeAudio && !fields.includes(FIELDS.AUDIO)) {
+      setFields([...fields, FIELDS.AUDIO]);
+    } else if (!includeAudio && fields.includes(FIELDS.AUDIO)) {
+      setFields(fields.filter((field) => field !== FIELDS.AUDIO));
+    }
+  }, [includeAudio]);
+
   const fieldsArray = [
     { id: FIELDS.SIMPLIFIED, label: "Simplified" },
     { id: FIELDS.TRADITIONAL, label: "Traditional" },
     { id: FIELDS.PINYIN, label: "Pinyin" },
     { id: FIELDS.ZHUYIN, label: "Zhuyin" },
     { id: FIELDS.DEFINITIONS, label: "English Definitions" },
+    { id: FIELDS.AUDIO, label: "Audio" },
   ];
 
   const additionalComponents = [
@@ -489,11 +500,16 @@ export default function CreateDeck(): JSX.Element {
   }
 
   async function generateDeck(e) {
+    setProgressbarValue(0); // Reset progress bar
+    
     let flds = [];
     let req = [];
     let tmpls = [];
 
-    fields.forEach((f, i) => {
+    // Filter out Audio field if includeAudio is false
+    const filteredFields = includeAudio ? fields : fields.filter(f => f !== FIELDS.AUDIO);
+    
+    filteredFields.forEach((f, i) => {
       flds.push({ name: f });
     });
 
@@ -602,7 +618,18 @@ for (var _hide of hideList) {
       hideScript = hideDef ? "" : hideScript;
 
       let QFMT = addToFront.join("\n") + hideScript + CONSTANTS.DECK_HTML_FRONT;
+      
+      // Create dynamic back template based on includeAudio setting
       let AFMT = CONSTANTS.DECK_HTML_BACK;
+      if (!includeAudio) {
+        // Remove audio div and play button if audio is not included
+        AFMT = AFMT.replace(`<div id='audio' style='display:none'>{{Audio}}</div>`, '');
+        AFMT = AFMT.replace(`    <a class="btn" id='btnPlayAudio'>
+        <div class="icon">
+            <i class="material-icons">play_arrow</i>
+        </div>
+    </a>`, '');
+      }
 
       if (tabContent[card]["additional"].includes("writingComponent")) {
         QFMT = CONSTANTS.DECK_HTML_WITH_HANZI_WRITER;
@@ -732,7 +759,7 @@ for (var _hide of hideList) {
     const wordFiles = words.map((word) => word.Simplified);
 
     let progress = 0;
-    let total = wordFiles.length + mediaFiles.length;
+    let total = mediaFiles.length + (includeAudio ? wordFiles.length : 0);
 
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -770,7 +797,10 @@ for (var _hide of hideList) {
       }
     };
 
-    await processWordsSequentially(wordFiles);
+    // Only process audio if includeAudio is true
+    if (includeAudio) {
+      await processWordsSequentially(wordFiles);
+    }
 
     // sidebar icons
     Promise.all(mediaFiles.map(fetchFile))
@@ -786,6 +816,8 @@ for (var _hide of hideList) {
       })
       .finally(async () => {
         p.writeToFile(`${deckName}.apkg`);
+        setProgressbarValue(100); // Complete the progress bar
+        setTimeout(() => setProgressbarValue(0), 2000); // Reset after 2 seconds
       });
   }
 
@@ -805,6 +837,25 @@ for (var _hide of hideList) {
                 style={{ width: "60%" }}
                 value={deckName}
               ></InputText>
+
+              <h2 className={styles.mt}>Audio Settings</h2>
+              <div>
+                <input
+                  type="checkbox"
+                  id="includeAudio"
+                  checked={includeAudio}
+                  onChange={(e) => setIncludeAudio(e.target.checked)}
+                />
+                <label htmlFor="includeAudio" style={{ marginLeft: "8px" }}>
+                  Include Audio (Text-to-Speech)
+                </label>
+                <div style={{ marginTop: "8px", fontSize: "0.9em", color: "#666" }}>
+                  {includeAudio 
+                    ? "⚠️ Audio generation may take longer and requires internet connection" 
+                    : "Audio files will not be generated for faster deck creation"
+                  }
+                </div>
+              </div>
 
               <h2 className={styles.mt}>Create Card Types</h2>
               <div>
@@ -987,7 +1038,14 @@ for (var _hide of hideList) {
                 </div>
               )}
 
-              <ProgressBar value={progressbarValue.toFixed(2)}></ProgressBar>
+              <ProgressBar 
+                value={progressbarValue.toFixed(2)}
+                displayValueTemplate={() => 
+                  progressbarValue > 0 
+                    ? `${progressbarValue.toFixed(1)}% - ${includeAudio ? 'Processing audio and media files...' : 'Processing media files...'}`
+                    : includeAudio ? 'Ready to generate (includes audio)' : 'Ready to generate (no audio)'
+                }
+              ></ProgressBar>
 
               <div className={`${styles.button_bar}`}>
                 <Toolbar

@@ -646,7 +646,7 @@ for (var _hide of hideList) {
     // const modelId = Math.floor(Math.random() * (1 << 30) + (1 << 30));
 
     const m = new Model({
-      name: "Basic - (Anki-xiehanzi)",
+      name: includeAudio ? "Basic - (Anki-xiehanzi)" : "Basic - (Anki-xiehanzi) - No Audio",
       id: "1969669503",
       flds: flds,
       css: CONSTANTS.DECK_CSS,

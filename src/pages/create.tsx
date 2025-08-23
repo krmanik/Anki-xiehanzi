@@ -633,6 +633,17 @@ for (var _hide of hideList) {
 
       if (tabContent[card]["additional"].includes("writingComponent")) {
         QFMT = CONSTANTS.DECK_HTML_WITH_HANZI_WRITER;
+
+        if (!includeAudio) {
+          // Adjust QFMT and AFMT if audio is not included
+          QFMT = QFMT.replace(`<div id='audio' style='display:none'>{{Audio}}</div>`, '');
+          QFMT = QFMT.replace(`    <a class="btn" id='btnPlayAudio'>
+        <div class="icon"><i class="material-icons">play_arrow</i></div>
+    </a>`, '');
+        }
+        
+        // console.log(QFMT)
+
         AFMT = `<div id="back">{{FrontSide}}</div>`;
       }
 

@@ -82,3 +82,8 @@ h2 {
 .mr_2 {
   margin-right: 8px;
 }
+
+ul, ol {
+  padding-left: 0rem;
+  margin-bottom: 0rem;
+}

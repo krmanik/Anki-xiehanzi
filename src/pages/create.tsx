@@ -32,7 +32,7 @@ import DICT from "../dict/dict";
 import pinzhu from "../dict/pinyinzhuyin";
 import styles from "./index.module.css";
 
-import { MsEdgeTTS, OUTPUT_FORMAT } from "msedge-tts";
+import EdgeTTSBrowser from "@kingdanx/edge-tts-browser";
 import { ProgressBar } from "primereact/progressbar";
 
 let host = "https://krmanik.github.io/Anki-xiehanzi";
@@ -479,26 +479,6 @@ export default function CreateDeck(): JSX.Element {
     setWords([...words, ..._words]);
   }
 
-  // https://github.com/feross/stream-to-blob/blob/master/index.js
-  function streamToBlob(stream, mimeType): Promise<Blob> {
-    if (mimeType != null && typeof mimeType !== "string") {
-      throw new Error("Invalid mimetype, expected string.");
-    }
-    return new Promise((resolve, reject) => {
-      const chunks = [];
-      stream
-        .on("data", (chunk) => chunks.push(chunk))
-        .once("end", () => {
-          const blob =
-            mimeType != null
-              ? new Blob(chunks, { type: mimeType })
-              : new Blob(chunks);
-          resolve(blob);
-        })
-        .once("error", reject);
-    });
-  }
-
   async function generateDeck(e) {
     setProgressbarValue(0); // Reset progress bar
     
@@ -775,13 +755,14 @@ for (var _hide of hideList) {
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     const fetchAudio = async (word) => {
-      const tts = new MsEdgeTTS();
-      await tts.setMetadata(
-        "zh-CN-XiaoxiaoNeural",
-        OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3
-      );
-      const readable = tts.toStream(word);
-      const blob = await streamToBlob(readable, "audio/mp3");
+      const tts = new EdgeTTSBrowser();
+      tts.tts.setVoiceParams({
+        text: word,
+        voice: "zh-CN-XiaoxiaoNeural"
+      });
+      
+      const fileName = `cmn-${word}.mp3`;
+      const blob = await tts.ttsToFile(fileName);
       progress += 1;
       setProgressbarValue((progress / total) * 100);
       await delay(1200);
@@ -1053,7 +1034,7 @@ for (var _hide of hideList) {
                 value={progressbarValue.toFixed(2)}
                 displayValueTemplate={() => 
                   progressbarValue > 0 
-                    ? `${progressbarValue.toFixed(1)}% - ${includeAudio ? 'Processing audio and media files...' : 'Processing media files...'}`
+                    ? `${progressbarValue.toFixed(1)}% - ${includeAudio ? 'Processing audio...' : 'Processing...'}`
                     : includeAudio ? 'Ready to generate (includes audio)' : 'Ready to generate (no audio)'
                 }
               ></ProgressBar>

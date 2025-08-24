@@ -765,7 +765,9 @@ for (var _hide of hideList) {
       const blob = await tts.ttsToFile(fileName);
       progress += 1;
       setProgressbarValue((progress / total) * 100);
-      await delay(1200);
+      // random delay value
+      const randomDelay = Math.floor(Math.random() * 1000) + 500; // 500ms to 1500ms
+      await delay(randomDelay);
       return blob;
     };
 

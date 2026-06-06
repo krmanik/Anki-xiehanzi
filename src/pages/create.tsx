@@ -666,7 +666,7 @@ for (var _hide of hideList) {
 
     const m = new Model({
       name: includeAudio ? "Basic - (Anki-xiehanzi)" : "Basic - (Anki-xiehanzi) - No Audio",
-      id: "1969669503",
+      id: includeAudio ? "1969669503" : "1969669504",
       flds: flds,
       css: CONSTANTS.DECK_CSS,
       req: req,

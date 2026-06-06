@@ -17,7 +17,7 @@
 		TableHeadCell,
 		Textarea
 	} from 'flowbite-svelte';
-	import { CircleX } from '@lucide/svelte';
+	import CircleX from '@lucide/svelte/icons/circle-x';
 
 	import CONSTANTS from '$lib/dict/contants';
 	import {

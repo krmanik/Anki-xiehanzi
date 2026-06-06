@@ -27,6 +27,7 @@
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@tailwindcss/vite": "^4.3.0",
     "flowbite-svelte": "^1.33.1",
+    "mdsvex": "^0.12.7",
     "svelte": "^5.56.2",
     "svelte-check": "^4.1.0",
     "tailwindcss": "^4.3.0",

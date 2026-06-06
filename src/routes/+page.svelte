@@ -1,16 +1,14 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
-	import {
-		Shapes,
-		Languages,
-		AudioLines,
-		Brush,
-		SpellCheck,
-		Download,
-		SquarePen,
-		Book
-	} from '@lucide/svelte';
+	import Shapes from '@lucide/svelte/icons/shapes';
+	import Languages from '@lucide/svelte/icons/languages';
+	import AudioLines from '@lucide/svelte/icons/audio-lines';
+	import Brush from '@lucide/svelte/icons/brush';
+	import SpellCheck from '@lucide/svelte/icons/spell-check';
+	import Download from '@lucide/svelte/icons/download';
+	import SquarePen from '@lucide/svelte/icons/square-pen';
+	import Book from '@lucide/svelte/icons/book';
 
 	const repo = 'https://github.com/krmanik/Anki-xiehanzi';
 	const tagline = 'Learn, read, write and practice Mandarin by drawing strokes in Anki';
@@ -43,9 +41,9 @@
 	];
 
 	const cards = [
-		{ title: 'Import', icon: Download, link: `${repo}/releases`, description: 'Import HSK 3.0 decks in Anki with simplified, traditional, pinyin, zhuyin, audio and meanings.' },
+		{ title: 'Import', icon: Download, link: `${base}/decks`, description: 'Import HSK 3.0 decks in Anki with simplified, traditional, pinyin, zhuyin, audio and meanings.' },
 		{ title: 'Create', icon: SquarePen, link: `${base}/create`, description: 'Create your own xiehanzi decks for Anki with simplified, traditional, pinyin, zhuyin, audio and meanings.' },
-		{ title: 'Guide', icon: Book, link: `${repo}#readme`, description: 'Follow documentations on how to customize and update the Anki xiehanzi decks.' }
+		{ title: 'Guide', icon: Book, link: `${base}/features`, description: 'Follow documentations on how to customize and update the Anki xiehanzi decks.' }
 	];
 </script>
 
@@ -60,7 +58,7 @@
 		<p class="mt-2 text-lg text-gray-600">{tagline}</p>
 		<div class="mt-6 flex flex-wrap justify-center gap-3">
 			<a
-				href="{repo}#readme"
+				href="{base}/features"
 				class="rounded border border-sky-500 px-5 py-2 font-medium text-sky-600 hover:bg-sky-50"
 				>Getting Started</a
 			>
@@ -70,7 +68,7 @@
 				>Create Deck</a
 			>
 			<a
-				href="{repo}/releases"
+				href="{base}/decks"
 				class="rounded border border-green-500 px-5 py-2 font-medium text-green-600 hover:bg-green-50"
 				>Download Decks</a
 			>

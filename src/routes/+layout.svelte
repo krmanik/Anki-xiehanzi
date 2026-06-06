@@ -14,6 +14,9 @@
 		</a>
 		<div class="flex items-center gap-5 text-sm font-medium text-gray-700">
 			<a href="{base}/create" class="hover:text-indigo-700">Create</a>
+			<a href="{base}/decks" class="hover:text-indigo-700">Decks</a>
+			<a href="{base}/features" class="hover:text-indigo-700">Features</a>
+			<a href="{base}/faq" class="hover:text-indigo-700">FAQ</a>
 			<a href={repo} class="hover:text-indigo-700">GitHub</a>
 		</div>
 	</div>
@@ -27,7 +30,9 @@
 	<div class="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-4 py-10 md:grid-cols-3">
 		<div>
 			<h3 class="mb-3 font-semibold text-white">Docs</h3>
-			<a class="block hover:text-white" href="{repo}#readme">Tutorial</a>
+			<a class="block hover:text-white" href="{base}/features">Features</a>
+			<a class="block hover:text-white" href="{base}/faq">FAQ</a>
+			<a class="block hover:text-white" href="{base}/decks">Decks</a>
 		</div>
 		<div>
 			<h3 class="mb-3 font-semibold text-white">Community</h3>

@@ -1,6 +1,10 @@
-@import 'tailwindcss';
+/* source(none) disables Tailwind v4 automatic content detection so it does not
+   try to scan the multi-MB binaries in static/data (cedict_ts.u8, *.idx, *.zip,
+   *.db, *.wasm), which makes the build hang. Sources are declared explicitly. */
+@import 'tailwindcss' source(none);
 @plugin 'flowbite/plugin';
 
+@source '../src';
 @source '../node_modules/flowbite-svelte/dist';
 
 :root {

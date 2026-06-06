@@ -68,6 +68,7 @@ export default function CreateDeck(): JSX.Element {
   const [db, setDb] = useState(null);
   const dt = useRef(null);
   const [progressbarValue, setProgressbarValue] = useState(0);
+  const [hskWordsDict, setHskWordsDict] = useState(new Set());
 
   const exportCSV = (selectionOnly) => {
     dt.current.exportCSV({ selectionOnly });
@@ -305,7 +306,34 @@ export default function CreateDeck(): JSX.Element {
     init(
       `${host}/data/jieba_rs_wasm_bg.wasm`
     );
+    loadHskWordsDict();
   }, []);
+
+  const loadHskWordsDict = async () => {
+    try {
+      const response = await fetch(`${host}/data/HSK_All_Words.json`);
+      if (response.ok) {
+        const hskData = await response.json();
+        const wordsSet = new Set();
+        
+        // Extract all simplified characters from the HSK data
+        Object.values(hskData).forEach((levelData: any) => {
+          if (levelData) {
+            levelData.forEach((wordObj: any) => {
+              if (wordObj) {
+                wordsSet.add(wordObj);
+              }
+            });
+          }
+        });
+        
+        setHskWordsDict(wordsSet);
+        console.log(`HSK dictionary loaded with ${wordsSet.size} words`);
+      }
+    } catch (error) {
+      console.log('Failed to load HSK words dictionary:', error);
+    }
+  };
 
   const setupSql = async () => {
     try {
@@ -755,27 +783,55 @@ for (var _hide of hideList) {
     const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     const fetchAudio = async (word) => {
-      const tts = new EdgeTTSBrowser();
-      tts.tts.setVoiceParams({
-        text: word,
-        voice: "zh-CN-XiaoxiaoNeural"
-      });
-      
-      const fileName = `cmn-${word}.mp3`;
-      const blob = await tts.ttsToFile(fileName);
-      progress += 1;
-      setProgressbarValue((progress / total) * 100);
-      // random delay value
-      const randomDelay = Math.floor(Math.random() * 1000) + 500; // 500ms to 1500ms
-      await delay(randomDelay);
-      return blob;
+      // Check if word exists in HSK dictionary first
+      if (hskWordsDict.has(word)) {
+        console.log(`Fetching audio for HSK word: ${word}`);
+        // Try to fetch from jsdelivr CDN
+        const encodedWord = encodeURIComponent(word);
+        const jsdelivrUrl = `https://cdn.jsdelivr.net/gh/krmanik/HSK-3.0/New%20HSK%20(2025)/Audio/cmn-${encodedWord}.mp3`;
+        
+        try {
+          const response = await fetch(jsdelivrUrl);
+          if (response.ok) {
+            const blob = await response.blob();
+            progress += 1;
+            setProgressbarValue((progress / total) * 100);
+            return blob;
+          }
+        } catch (error) {
+          console.log(`Audio fetch failed for ${word} from jsdelivr:`, error);
+        }
+      }
+
+      try {
+        const tts = new EdgeTTSBrowser();
+        tts.tts.setVoiceParams({
+          text: word,
+          voice: "zh-CN-XiaoxiaoNeural"
+        });
+
+        const fileName = `cmn-${word}.mp3`;
+        const blob = await tts.ttsToFile(fileName);
+        progress += 1;
+        setProgressbarValue((progress / total) * 100);
+        const randomDelay = Math.floor(Math.random() * 1000) + 500;
+        await delay(randomDelay);
+        return blob;
+      } catch (error) {
+        console.log(`TTS failed for ${word}:`, error);
+        progress += 1;
+        setProgressbarValue((progress / total) * 100);
+        return null;
+      }
     };
 
     const batchSize = 4;
     const fetchBatch = async (batch) => {
       const blobs = await Promise.all(batch.map(fetchAudio));
       blobs.forEach((blob, index) => {
-        p.addMedia(blob, `cmn-${batch[index]}.mp3`);
+        if (blob) {
+          p.addMedia(blob, `cmn-${batch[index]}.mp3`);
+        }
       });
     };
 

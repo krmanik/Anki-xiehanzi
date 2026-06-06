@@ -9,15 +9,10 @@
 		Label,
 		Progressbar,
 		Select,
-		Table,
-		TableBody,
-		TableBodyCell,
-		TableBodyRow,
-		TableHead,
-		TableHeadCell,
 		Textarea
 	} from 'flowbite-svelte';
 	import CircleX from '@lucide/svelte/icons/circle-x';
+	import WordCard from '$lib/components/WordCard.svelte';
 
 	import CONSTANTS from '$lib/dict/contants';
 	import {
@@ -191,6 +186,15 @@
 		selected = new Set();
 	}
 
+	function deleteWord(word: Word) {
+		words = words.filter((w) => w !== word);
+		if (selected.has(word)) {
+			const next = new Set(selected);
+			next.delete(word);
+			selected = next;
+		}
+	}
+
 	function cancelSelection() {
 		selected = new Set();
 	}
@@ -224,7 +228,6 @@
 	}
 
 	// derived view
-	let displayColumns = $derived(fields.filter((f) => f !== FIELDS.AUDIO));
 	let totalPages = $derived(Math.max(1, Math.ceil(words.length / rowsPerPage)));
 	let pagedWords = $derived(
 		words.slice((currentPage - 1) * rowsPerPage, (currentPage - 1) * rowsPerPage + rowsPerPage)
@@ -372,28 +375,22 @@
 				</div>
 			</div>
 
-			<Table>
-				<TableHead>
-					<TableHeadCell class="w-12"></TableHeadCell>
-					{#each displayColumns as col}
-						<TableHeadCell>{col}</TableHeadCell>
-					{/each}
-				</TableHead>
-				<TableBody>
+			{#if words.length === 0}
+				<p class="rounded-lg border border-dashed border-neutral-300 py-10 text-center text-sm text-neutral-400">
+					No words yet. Add words above to build your deck.
+				</p>
+			{:else}
+				<div class="grid gap-3">
 					{#each pagedWords as word (word)}
-						<TableBodyRow>
-							<TableBodyCell>
-								<Checkbox checked={selected.has(word)} onchange={() => toggleRow(word)} />
-							</TableBodyCell>
-							{#each displayColumns as col}
-								<TableBodyCell class="whitespace-normal align-top"
-									>{@html (word as any)[col]}</TableBodyCell
-								>
-							{/each}
-						</TableBodyRow>
+						<WordCard
+							{word}
+							selected={selected.has(word)}
+							onToggle={() => toggleRow(word)}
+							onDelete={() => deleteWord(word)}
+						/>
 					{/each}
-				</TableBody>
-			</Table>
+				</div>
+			{/if}
 
 			<div class="my-4 flex items-center justify-between">
 				<div class="flex items-center gap-2">

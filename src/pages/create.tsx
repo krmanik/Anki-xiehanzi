@@ -905,6 +905,14 @@ for (var _hide of hideList) {
                     : "Audio files will not be generated for faster deck creation"
                   }
                 </div>
+                {includeAudio &&
+                <div>
+                  <Message
+                    severity="info"
+                    text={`Please open Anki-xiehanzi in Microsoft Edge browser to generate audio using Text-to-Speech.`}
+                  />
+                </div>
+                }
               </div>
 
               <h2 className={styles.mt}>Create Card Types</h2>

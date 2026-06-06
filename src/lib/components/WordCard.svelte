@@ -4,20 +4,34 @@
 	import { colorizeHanzi } from '$lib/tone';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import Volume2 from '@lucide/svelte/icons/volume-2';
 
 	let {
 		word,
 		selected = false,
 		colorize = true,
 		onToggle,
-		onDelete
+		onDelete,
+		onPlay
 	}: {
 		word: Word;
 		selected?: boolean;
 		colorize?: boolean;
 		onToggle?: () => void;
 		onDelete?: () => void;
+		onPlay?: () => void | Promise<void>;
 	} = $props();
+
+	let playing = $state(false);
+	async function play() {
+		if (!onPlay || playing) return;
+		playing = true;
+		try {
+			await onPlay();
+		} finally {
+			playing = false;
+		}
+	}
 
 	const firstSyllable = $derived(word.readings[0]?.syllable ?? '');
 	const simpChars = $derived(colorizeHanzi(word.Simplified, firstSyllable));
@@ -103,14 +117,26 @@
 			{/if}
 		</div>
 
-		{#if onDelete}
-			<button
-				onclick={onDelete}
-				aria-label="delete word"
-				class="shrink-0 rounded p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"
-			>
-				<Trash2 size={16} />
-			</button>
-		{/if}
+		<div class="flex shrink-0 flex-col gap-1">
+			{#if onPlay}
+				<button
+					onclick={play}
+					disabled={playing}
+					aria-label="play audio"
+					class="rounded p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900 disabled:opacity-40"
+				>
+					<Volume2 size={16} class={playing ? 'animate-pulse' : ''} />
+				</button>
+			{/if}
+			{#if onDelete}
+				<button
+					onclick={onDelete}
+					aria-label="delete word"
+					class="rounded p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"
+				>
+					<Trash2 size={16} />
+				</button>
+			{/if}
+		</div>
 	</div>
 </div>

@@ -87,6 +87,45 @@ export async function loadHskWordsDict(): Promise<Set<string>> {
 	return wordsSet;
 }
 
+/**
+ * Play audio for a single word: HSK CDN recording first, then Edge TTS
+ * (Edge browser only). Returns true if something played.
+ */
+export async function playWordAudio(word: string, hskWordsDict: Set<string>): Promise<boolean> {
+	const play = (blob: Blob) => {
+		const url = URL.createObjectURL(blob);
+		const audio = new Audio(url);
+		audio.onended = () => URL.revokeObjectURL(url);
+		void audio.play();
+	};
+
+	if (hskWordsDict.has(word)) {
+		try {
+			const encoded = encodeURIComponent(word);
+			const res = await fetch(
+				`https://cdn.jsdelivr.net/gh/krmanik/HSK-3.0/New%20HSK%20(2025)/Audio/cmn-${encoded}.mp3`
+			);
+			if (res.ok) {
+				play(await res.blob());
+				return true;
+			}
+		} catch (e) {
+			console.log('HSK audio fetch failed', e);
+		}
+	}
+
+	try {
+		const tts = new EdgeTTSBrowser();
+		tts.tts.setVoiceParams({ text: word, voice: 'zh-CN-XiaoxiaoNeural' });
+		const blob = await tts.ttsToFile(`cmn-${word}.mp3`);
+		play(blob);
+		return true;
+	} catch (e) {
+		console.log('TTS failed', e);
+		return false;
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Word lookup
 // ---------------------------------------------------------------------------

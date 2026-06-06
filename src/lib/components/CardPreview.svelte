@@ -37,6 +37,30 @@
 	const trad = $derived(colorizeHanzi(ex.Traditional, ex.syllable));
 	const has = (f: string) => fieldsOnSide.includes(f);
 	const empty = $derived(fieldsOnSide.length === 0 && !hasWriting);
+
+	let writerEl: HTMLDivElement | undefined = $state();
+	$effect(() => {
+		if (!hasWriting || !writerEl) return;
+		let writer: any;
+		let cancelled = false;
+		writerEl.innerHTML = '';
+		import('hanzi-writer').then(({ default: HanziWriter }) => {
+			if (cancelled || !writerEl) return;
+			writer = HanziWriter.create(writerEl, ex.Simplified[0], {
+				width: 80,
+				height: 80,
+				padding: 4,
+				showOutline: true,
+				strokeColor: colorize ? '#2196f3' : '#333'
+			});
+			writer.loopCharacterAnimation();
+		});
+		return () => {
+			cancelled = true;
+			if (writer) writer.hideCharacter();
+			if (writerEl) writerEl.innerHTML = '';
+		};
+	});
 </script>
 
 <div class="overflow-hidden rounded-xl border border-neutral-200 bg-white">
@@ -63,11 +87,7 @@
 			</div>
 		{/if}
 		{#if hasWriting}
-			<div
-				class="flex h-20 w-20 items-center justify-center rounded border border-dashed border-neutral-300 text-xs text-neutral-400"
-			>
-				✍ writing
-			</div>
+			<div bind:this={writerEl} class="h-20 w-20"></div>
 		{/if}
 		{#if has('Pinyin')}
 			<div class="text-lg text-neutral-600">{ex.pinyin}</div>

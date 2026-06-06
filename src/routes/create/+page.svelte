@@ -6,7 +6,6 @@
 		Checkbox,
 		Fileupload,
 		Input,
-		Label,
 		Progressbar,
 		Select,
 		Textarea
@@ -26,6 +25,7 @@
 		loadDict,
 		loadHskWordsDict,
 		lookupWord,
+		playWordAudio,
 		setupSql,
 		type TabContent,
 		type Word
@@ -50,16 +50,22 @@
 		};
 	}
 
+	const WRITING = 'writingComponent';
+
 	let words = $state<Word[]>([]);
 	let deckName = $state('xiehanzi');
-	let fields = $state<string[]>([
+	// Ordered list of card items: note fields + the writing component, all
+	// reorderable. `fields` (the apkg note fields) is derived from it.
+	let order = $state<string[]>([
 		FIELDS.SIMPLIFIED,
 		FIELDS.TRADITIONAL,
 		FIELDS.PINYIN,
 		FIELDS.ZHUYIN,
 		FIELDS.DEFINITIONS,
-		FIELDS.AUDIO
+		FIELDS.AUDIO,
+		WRITING
 	]);
+	let fields = $derived(order.filter((o) => o !== WRITING));
 	let includeAudio = $state(false);
 	let template = $state({ mono: false, colorHanzi: true, colorPinyin: true, font: 'default' });
 	let page = $state(1);
@@ -90,10 +96,9 @@
 		{ value: 'File', name: 'File' }
 	];
 
-	const additionalComponents = [{ id: 'writingComponent', label: 'Writing Component' }];
-
 	const fieldLabels: Record<string, string> = Object.fromEntries(
 		[
+			{ id: WRITING, label: 'Writing Component' },
 			{ id: FIELDS.SIMPLIFIED, label: 'Simplified' },
 			{ id: FIELDS.TRADITIONAL, label: 'Traditional' },
 			{ id: FIELDS.PINYIN, label: 'Pinyin' },
@@ -108,18 +113,18 @@
 
 	function moveField(index: number, dir: -1 | 1) {
 		const j = index + dir;
-		if (j < 0 || j >= fields.length) return;
-		const next = [...fields];
+		if (j < 0 || j >= order.length) return;
+		const next = [...order];
 		[next[index], next[j]] = [next[j], next[index]];
-		fields = next;
+		order = next;
 	}
 
 	function onFieldDrop(target: number) {
 		if (dragIndex === null || dragIndex === target) return;
-		const next = [...fields];
+		const next = [...order];
 		const [moved] = next.splice(dragIndex, 1);
 		next.splice(target, 0, moved);
-		fields = next;
+		order = next;
 		dragIndex = null;
 	}
 
@@ -136,12 +141,15 @@
 
 	const rowsPerPageOptions = [5, 10, 25, 50, 100, 500].map((n) => ({ value: n, name: String(n) }));
 
-	// Sync Audio field with includeAudio checkbox
+	// Sync Audio field with includeAudio checkbox (Audio sits before the writing component)
 	$effect(() => {
-		if (includeAudio && !fields.includes(FIELDS.AUDIO)) {
-			fields = [...fields, FIELDS.AUDIO];
-		} else if (!includeAudio && fields.includes(FIELDS.AUDIO)) {
-			fields = fields.filter((field) => field !== FIELDS.AUDIO);
+		if (includeAudio && !order.includes(FIELDS.AUDIO)) {
+			const wi = order.indexOf(WRITING);
+			const next = [...order];
+			next.splice(wi === -1 ? next.length : wi, 0, FIELDS.AUDIO);
+			order = next;
+		} else if (!includeAudio && order.includes(FIELDS.AUDIO)) {
+			order = order.filter((o) => o !== FIELDS.AUDIO);
 		}
 	});
 
@@ -405,20 +413,20 @@
 								><span class="text-center">Back</span>
 							</div>
 							<ul class="divide-y divide-neutral-200 rounded-lg border border-neutral-200">
-								{#each fields as field, index (field)}
+								{#each order as item, index (item)}
 									<li
 										draggable="true"
 										ondragstart={() => (dragIndex = index)}
 										ondragover={(e) => e.preventDefault()}
 										ondrop={() => onFieldDrop(index)}
-										class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 bg-white px-3 py-2 {dragIndex ===
-										index
-											? 'opacity-50'
-											: ''}"
+										class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 py-2 {item ===
+										WRITING
+											? 'bg-neutral-50'
+											: 'bg-white'} {dragIndex === index ? 'opacity-50' : ''}"
 									>
 										<span class="flex items-center gap-2">
 											<GripVertical size={15} class="cursor-grab text-neutral-300" />
-											<span class="text-sm">{fieldLabels[field] ?? field}</span>
+											<span class="text-sm">{fieldLabels[item] ?? item}</span>
 											<span class="ml-auto flex flex-col">
 												<button
 													class="text-neutral-400 hover:text-neutral-900 disabled:opacity-20"
@@ -428,48 +436,45 @@
 												>
 												<button
 													class="text-neutral-400 hover:text-neutral-900 disabled:opacity-20"
-													disabled={index === fields.length - 1}
+													disabled={index === order.length - 1}
 													onclick={() => moveField(index, 1)}
 													aria-label="move down"><ChevronDown size={13} /></button
 												>
 											</span>
 										</span>
-										<span class="text-center">
-											<input
-												type="checkbox"
-												class="h-4 w-4 accent-neutral-900"
-												checked={tabContent[tabs[activeTab]].front.includes(`front${field}`)}
-												onchange={() => handleCheckboxChange(`front${field}`, 'front')}
-											/>
-										</span>
-										<span class="text-center">
-											<input
-												type="checkbox"
-												class="h-4 w-4 accent-neutral-900"
-												checked={tabContent[tabs[activeTab]].back.includes(`back${field}`)}
-												onchange={() => handleCheckboxChange(`back${field}`, 'back')}
-											/>
-										</span>
+										{#if item === WRITING}
+											<span class="col-span-2 text-center">
+												<input
+													type="checkbox"
+													class="h-4 w-4 accent-neutral-900"
+													checked={tabContent[tabs[activeTab]].additional.includes(WRITING)}
+													onchange={() => handleCheckboxChange(WRITING, 'additional')}
+												/>
+											</span>
+										{:else}
+											<span class="text-center">
+												<input
+													type="checkbox"
+													class="h-4 w-4 accent-neutral-900"
+													checked={tabContent[tabs[activeTab]].front.includes(`front${item}`)}
+													onchange={() => handleCheckboxChange(`front${item}`, 'front')}
+												/>
+											</span>
+											<span class="text-center">
+												<input
+													type="checkbox"
+													class="h-4 w-4 accent-neutral-900"
+													checked={tabContent[tabs[activeTab]].back.includes(`back${item}`)}
+													onchange={() => handleCheckboxChange(`back${item}`, 'back')}
+												/>
+											</span>
+										{/if}
 									</li>
 								{/each}
 							</ul>
-
-							<div class="mt-4">
-								<h3 class="mb-1 font-mono text-[10px] uppercase tracking-wider text-neutral-400">
-									Additional
-								</h3>
-								{#each additionalComponents as component}
-									<label class="flex items-center gap-2 text-sm">
-										<input
-											type="checkbox"
-											class="h-4 w-4 accent-neutral-900"
-											checked={tabContent[tabs[activeTab]].additional.includes(component.id)}
-											onchange={() => handleCheckboxChange(component.id, 'additional')}
-										/>
-										{component.label}
-									</label>
-								{/each}
-							</div>
+							<p class="mt-1 px-1 text-xs text-neutral-400">
+								Writing Component spans front & back (it shows the stroke practice card).
+							</p>
 						</div>
 
 						<!-- live preview -->
@@ -499,14 +504,25 @@
 		<div>
 			<h2 class="text-xl font-semibold">Enter Chinese Characters</h2>
 
-			<div class="my-4 w-60">
-				<Label class="mb-1">Input type</Label>
-				<Select items={selectionTypes} bind:value={selectType} />
+			<div class="my-4 inline-flex overflow-hidden rounded-lg border border-neutral-300">
+				{#each selectionTypes as st}
+					<button
+						class="px-4 py-1.5 text-sm {selectType === st.value
+							? 'bg-neutral-900 text-white'
+							: 'text-neutral-600 hover:bg-neutral-100'}"
+						onclick={() => (selectType = st.value)}>{st.name}</button
+					>
+				{/each}
 			</div>
 
 			{#if selectType === 'Word'}
-				<div class="my-4 flex items-center gap-4">
-					<Input class="w-3/5" bind:value={wordValue} />
+				<div class="my-4 flex items-center gap-3">
+					<Input
+						class="w-3/5"
+						placeholder="Type a word, e.g. 中国"
+						bind:value={wordValue}
+						onkeydown={(e) => e.key === 'Enter' && searchAndAdd(wordValue)}
+					/>
 					<Button onclick={() => searchAndAdd(wordValue)}>Add</Button>
 				</div>
 			{/if}
@@ -514,15 +530,24 @@
 			{#if selectType === 'File'}
 				<div class="my-4">
 					<Fileupload accept="text/*" onchange={handleFileChange} />
-					{#if fileStatus}<p class="mt-1 text-sm text-gray-500">{fileStatus}</p>{/if}
+					<p class="mt-1 text-sm text-neutral-500">
+						{fileStatus || 'Upload a text file with one word per line.'}
+					</p>
 				</div>
 			{/if}
 
 			{#if selectType === 'Paragraph'}
 				<div class="my-4">
-					<Textarea rows={5} bind:value={texAreaValue} />
+					<Textarea
+						class="w-full"
+						rows={6}
+						placeholder="Paste Chinese text — it will be segmented into words."
+						bind:value={texAreaValue}
+					/>
 					<div class="mt-2">
-						<Button onclick={generateFromParagraph}>Generate</Button>
+						<Button onclick={generateFromParagraph} disabled={!texAreaValue.trim()}>
+							Generate words
+						</Button>
 					</div>
 				</div>
 			{/if}
@@ -557,8 +582,10 @@
 						<WordCard
 							{word}
 							selected={selected.has(word)}
+							colorize={!template.mono && template.colorHanzi}
 							onToggle={() => toggleRow(word)}
 							onDelete={() => deleteWord(word)}
+							onPlay={() => playWordAudio(word.Simplified, hskWordsDict)}
 						/>
 					{/each}
 				</div>

@@ -106,6 +106,10 @@
 				<div class="text-lg text-neutral-600">{ex.pinyin}</div>
 			{:else if item === 'Zhuyin'}
 				<div class="text-base text-neutral-500">{ex.zhuyin}</div>
+			{:else if item === 'PartOfSpeech'}
+				<div class="flex flex-wrap justify-center gap-1">
+					<span class="rounded-full bg-neutral-900 px-2 py-0.5 text-[11px] text-white">Place Name</span>
+				</div>
 			{:else if item === 'SimpleMeaning'}
 				<div class="text-[15px] font-semibold text-neutral-800">{ex.simple}</div>
 			{:else if item === 'Definitions'}

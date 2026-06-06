@@ -164,6 +164,7 @@ export interface CedictEntry {
 	traditional: string;
 	commonMeaning: string;
 	pos: string[]; // raw codes
+	dominantPos: string; // raw code
 	classifiers: string[];
 	level: string | null;
 	rank: number | null;
@@ -193,7 +194,7 @@ export async function lookup(word: string): Promise<CedictEntry | null> {
 	const w = word.trim();
 	const row = queryOne(
 		cedictDb,
-		`SELECT simplified, traditional, pinyin, definitions, classifiers, all_PoS, eng_Tran, rank
+		`SELECT simplified, traditional, pinyin, definitions, classifiers, all_PoS, dominant_PoS, eng_Tran, rank
 		 FROM cedict WHERE simplified = ?
 		 ORDER BY CASE WHEN rank IS NULL THEN 1 ELSE 0 END, rank ASC LIMIT 1`,
 		[w]
@@ -211,6 +212,7 @@ export async function lookup(word: string): Promise<CedictEntry | null> {
 		traditional: row.traditional || row.simplified,
 		commonMeaning: (row.eng_Tran || '').replace(/\//g, '; '),
 		pos: parsePoS(row.all_PoS),
+		dominantPos: (row.dominant_PoS || '').trim(),
 		classifiers: safeJSON<string[]>(row.classifiers, []),
 		level: levelRow?.level ?? null,
 		rank: typeof row.rank === 'number' ? row.rank : null,

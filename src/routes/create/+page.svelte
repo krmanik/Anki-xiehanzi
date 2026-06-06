@@ -38,6 +38,7 @@
 		FIELDS.TRADITIONAL,
 		FIELDS.PINYIN,
 		FIELDS.ZHUYIN,
+		FIELDS.PART_OF_SPEECH,
 		FIELDS.SIMPLE_MEANING,
 		FIELDS.DEFINITIONS
 	];
@@ -62,6 +63,7 @@
 		FIELDS.TRADITIONAL,
 		FIELDS.PINYIN,
 		FIELDS.ZHUYIN,
+		FIELDS.PART_OF_SPEECH,
 		FIELDS.SIMPLE_MEANING,
 		FIELDS.DEFINITIONS,
 		FIELDS.AUDIO,
@@ -111,6 +113,7 @@
 			{ id: FIELDS.TRADITIONAL, label: 'Traditional' },
 			{ id: FIELDS.PINYIN, label: 'Pinyin' },
 			{ id: FIELDS.ZHUYIN, label: 'Zhuyin' },
+			{ id: FIELDS.PART_OF_SPEECH, label: 'Part of Speech' },
 			{ id: FIELDS.SIMPLE_MEANING, label: 'Simple Meaning' },
 			{ id: FIELDS.DEFINITIONS, label: 'Dictionary Definitions' },
 			{ id: FIELDS.AUDIO, label: 'Audio' }

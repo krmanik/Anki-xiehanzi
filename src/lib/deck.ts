@@ -24,6 +24,7 @@ import {
 	loadCedict,
 	loadHskMeanings,
 	simpleMeaningOf,
+	posDisplay,
 	type Reading
 } from './dict/cedict';
 
@@ -41,6 +42,7 @@ export interface Word {
 	// Rich metadata from cedict.db (used by the UI; not part of the apkg fields)
 	commonMeaning: string;
 	pos: string[];
+	dominantPos: string;
 	classifiers: string[];
 	level: string | null;
 	rank: number | null;
@@ -225,6 +227,7 @@ export async function lookupWord(word: string): Promise<Word> {
 			SimpleMeaning: simpleMeaningOf(fetched.Simplified) || fetched.Definitions.join('; '),
 			commonMeaning: fetched.Definitions.join('; '),
 			pos: [],
+			dominantPos: '',
 			classifiers: [],
 			level: null,
 			rank: null,
@@ -243,6 +246,7 @@ export async function lookupWord(word: string): Promise<Word> {
 		SimpleMeaning: simpleMeaningOf(entry.simplified) || entry.commonMeaning,
 		commonMeaning: entry.commonMeaning,
 		pos: entry.pos,
+		dominantPos: entry.dominantPos,
 		classifiers: entry.classifiers,
 		level: entry.level,
 		rank: entry.rank,
@@ -296,7 +300,11 @@ function buildCssOverride(t: TemplateOpts): string {
 		'.simple-card{font-weight:600;padding:10px;}\n' +
 		'.simple-card:empty{display:none;}\n' +
 		'.dict-details{text-align:left;margin:6px auto;max-width:90%;}\n' +
-		'.dict-details>summary{cursor:pointer;color:#888;font-size:0.85em;list-style:none;}\n';
+		'.dict-details>summary{cursor:pointer;color:#888;font-size:0.85em;list-style:none;}\n' +
+		'.pos-row{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:6px 0;}\n' +
+		'.pos-row:empty{display:none;}\n' +
+		'.pos-chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid #ccc;color:#666;}\n' +
+		'.pos-chip.pos-dominant{background:#111;color:#fff;border-color:#111;}\n';
 	if (t.mono || !t.colorHanzi) {
 		css += '.char-tone1,.char-tone2,.char-tone3,.char-tone4,.char-tone5{color:inherit !important;}\n';
 	}
@@ -367,6 +375,7 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 			Traditional: `<div id="char_trad" class="char-card">{{Traditional}}</div>`,
 			Pinyin: `<div id="char_pinyin">{{Pinyin}}</div>`,
 			Zhuyin: `<div id="char_zhuyin">{{Zhuyin}}</div>`,
+			PartOfSpeech: `<div id="char_pos" class="pos-row">{{PartOfSpeech}}</div>`,
 			SimpleMeaning: `<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>`
 		};
 		for (const f of fields) {
@@ -457,6 +466,14 @@ for (var _hide of hideList) {
 			.join('\n');
 		if (orderedTop) AFMT = AFMT.replace(origTop, orderedTop);
 
+		// Part-of-speech chips on the back (above the controls) when selected.
+		if (backSel.includes('backPartOfSpeech')) {
+			AFMT = AFMT.replace(
+				`<div class="modal-footer1">`,
+				`<div id="char_pos" class="pos-row">{{PartOfSpeech}}</div>\n<div class="modal-footer1">`
+			);
+		}
+
 		// Inject the simple-meaning div (above the dictionary block) when selected.
 		const dictDiv = `<div id="char_meaning" class="meaning-card">{{Definitions}}</div>`;
 		if (backSel.includes('backSimpleMeaning')) {
@@ -519,6 +536,24 @@ for (var _hide of hideList) {
 			if (writingBack) AFMT = writingFront ? `<div id="back">{{FrontSide}}</div>` : writerTpl;
 		}
 
+		// When Simplified and Traditional are identical, hide the redundant
+		// traditional display so the card shows a single hanzi (runtime check, in
+		// the Anki template, since it depends on each note's content).
+		const dedupeScript = `
+<script>
+(function () {
+    var s = document.getElementById('char_sim');
+    var t = document.getElementById('char_trad');
+    if (s && t) {
+        var a = s.textContent.trim();
+        var b = t.textContent.replace(/[〔〕\\s]/g, '');
+        if (a && a === b) { t.style.display = 'none'; }
+    }
+})();
+</script>`;
+		QFMT += dedupeScript;
+		AFMT += dedupeScript;
+
 		tmpls.push({
 			name: card,
 			qfmt: QFMT,
@@ -559,6 +594,15 @@ for (var _hide of hideList) {
 			}
 			if (JSON.stringify(obj) === JSON.stringify({ name: 'Zhuyin' })) {
 				note.push(Zhuyin);
+			}
+			if (JSON.stringify(obj) === JSON.stringify({ name: 'PartOfSpeech' })) {
+				const chips = word.pos
+					.map((c) => {
+						const dom = c === word.dominantPos ? ' pos-dominant' : '';
+						return `<span class="pos-chip${dom}">${posDisplay(c)}</span>`;
+					})
+					.join('');
+				note.push(chips);
 			}
 			if (JSON.stringify(obj) === JSON.stringify({ name: 'SimpleMeaning' })) {
 				// Dedupe: if the simple meaning matches the dictionary text, leave it

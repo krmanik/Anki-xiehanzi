@@ -3,6 +3,7 @@ const FIELDS = {
     TRADITIONAL: 'Traditional',
     PINYIN: 'Pinyin',
     ZHUYIN: 'Zhuyin',
+    PART_OF_SPEECH: 'PartOfSpeech',
     SIMPLE_MEANING: 'SimpleMeaning',
     DEFINITIONS: 'Definitions',
     AUDIO: 'Audio',

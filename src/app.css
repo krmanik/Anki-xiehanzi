@@ -1,0 +1,19 @@
+@import 'tailwindcss';
+@plugin 'flowbite/plugin';
+
+@source '../node_modules/flowbite-svelte/dist';
+
+:root {
+	--xie-green: #4caf50;
+	--xie-blue: #2196f3;
+}
+
+body {
+	margin: 0;
+	font-family:
+		system-ui,
+		-apple-system,
+		'Segoe UI',
+		Roboto,
+		sans-serif;
+}

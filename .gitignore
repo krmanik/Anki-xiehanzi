@@ -7,6 +7,9 @@
 # Generated files
 .docusaurus
 .cache-loader
+.svelte-kit
+/.vercel
+/.netlify
 
 # Misc
 .DS_Store

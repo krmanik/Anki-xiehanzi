@@ -6,13 +6,22 @@
 		label,
 		fieldsOnSide,
 		hasWriting = false,
-		colorize = true
+		colorize = true,
+		font = 'default'
 	}: {
 		label: string;
 		fieldsOnSide: string[]; // ordered field ids shown on this side
 		hasWriting?: boolean;
 		colorize?: boolean;
+		font?: string;
 	} = $props();
+
+	const fontStacks: Record<string, string> = {
+		default: '',
+		kaiti: '"Kaiti SC", "STKaiti", "KaiTi", serif',
+		songti: '"Songti SC", "STSong", "SimSun", serif'
+	};
+	const hanziFont = $derived(fontStacks[font] || '');
 
 	// Dummy example word used purely for the preview.
 	const ex = {
@@ -42,12 +51,12 @@
 		{/if}
 
 		{#if has('Simplified')}
-			<div class="text-4xl font-semibold leading-none">
+			<div class="text-4xl font-semibold leading-none" style:font-family={hanziFont || null}>
 				{#each simp as c}<span class={colorize ? `tone${c.tone}` : ''}>{c.ch}</span>{/each}
 			</div>
 		{/if}
 		{#if has('Traditional')}
-			<div class="text-2xl leading-none text-neutral-700">
+			<div class="text-2xl leading-none text-neutral-700" style:font-family={hanziFont || null}>
 				<span class="text-neutral-300">〔</span>{#each trad as c}<span
 						class={colorize ? `tone${c.tone}` : ''}>{c.ch}</span
 					>{/each}<span class="text-neutral-300">〕</span>

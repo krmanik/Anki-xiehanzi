@@ -218,6 +218,42 @@ export function cutParagraph(text: string): string[] {
 // Deck generation
 // ---------------------------------------------------------------------------
 
+export interface TemplateOpts {
+	mono: boolean;
+	colorHanzi: boolean;
+	colorPinyin: boolean;
+	font: string; // 'default' | 'kaiti' | 'songti'
+}
+
+export const DEFAULT_TEMPLATE: TemplateOpts = {
+	mono: false,
+	colorHanzi: true,
+	colorPinyin: true,
+	font: 'default'
+};
+
+const FONT_STACKS: Record<string, string> = {
+	default: '',
+	kaiti: '"Kaiti SC", "STKaiti", "KaiTi", "楷体", serif',
+	songti: '"Songti SC", "STSong", "SimSun", "宋体", serif'
+};
+
+/** Build CSS appended to DECK_CSS. With DEFAULT_TEMPLATE this is a no-op comment. */
+function buildCssOverride(t: TemplateOpts): string {
+	let css = '\n/* template customization */\n';
+	if (t.mono || !t.colorHanzi) {
+		css += '.char-tone1,.char-tone2,.char-tone3,.char-tone4,.char-tone5{color:inherit !important;}\n';
+	}
+	if (t.mono || !t.colorPinyin) {
+		css += '.tone1,.tone2,.tone3,.tone4,.tone5{color:inherit !important;}\n';
+	}
+	const stack = FONT_STACKS[t.font];
+	if (stack) {
+		css += `.char-card,.char,#char-sim-id,#char-trad-id{font-family:${stack} !important;}\n`;
+	}
+	return css;
+}
+
 export interface GenerateDeckOptions {
 	words: Word[];
 	deckName: string;
@@ -226,11 +262,13 @@ export interface GenerateDeckOptions {
 	tabContent: TabContent;
 	hskWordsDict: Set<string>;
 	db: any;
+	template?: TemplateOpts;
 	onProgress?: (value: number) => void;
 }
 
 export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 	const { words, deckName, includeAudio, fields, tabContent, hskWordsDict, db } = opts;
+	const template = opts.template ?? DEFAULT_TEMPLATE;
 	const onProgress = opts.onProgress ?? (() => {});
 
 	onProgress(0);
@@ -390,7 +428,7 @@ for (var _hide of hideList) {
 		name: includeAudio ? 'Basic - (Anki-xiehanzi)' : 'Basic - (Anki-xiehanzi) - No Audio',
 		id: includeAudio ? '1969669503' : '1969669504',
 		flds: flds,
-		css: CONSTANTS.DECK_CSS,
+		css: CONSTANTS.DECK_CSS + buildCssOverride(template),
 		req: req,
 		tmpls: tmpls
 	});

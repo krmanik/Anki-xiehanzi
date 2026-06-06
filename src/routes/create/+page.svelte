@@ -61,6 +61,7 @@
 		FIELDS.AUDIO
 	]);
 	let includeAudio = $state(false);
+	let template = $state({ mono: false, colorHanzi: true, colorPinyin: true, font: 'default' });
 	let page = $state(1);
 	let wordValue = $state('');
 	let selectType = $state('Word');
@@ -277,6 +278,7 @@
 			tabContent,
 			hskWordsDict,
 			db,
+			template,
 			onProgress: (v) => (progressbarValue = v)
 		});
 	}
@@ -318,6 +320,53 @@
 						</Alert>
 					</div>
 				{/if}
+			</div>
+
+			<h2 class="mt-6 text-xl font-semibold">Card Template</h2>
+			<div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+				<div class="inline-flex overflow-hidden rounded-lg border border-neutral-300">
+					<button
+						class="px-3 py-1.5 text-sm {!template.mono
+							? 'bg-neutral-900 text-white'
+							: 'text-neutral-600'}"
+						onclick={() => (template.mono = false)}>Tone colors</button
+					>
+					<button
+						class="px-3 py-1.5 text-sm {template.mono
+							? 'bg-neutral-900 text-white'
+							: 'text-neutral-600'}"
+						onclick={() => (template.mono = true)}>Black & white</button
+					>
+				</div>
+
+				<label class="flex items-center gap-2 text-sm {template.mono ? 'opacity-40' : ''}">
+					<input
+						type="checkbox"
+						class="h-4 w-4 accent-neutral-900"
+						bind:checked={template.colorHanzi}
+						disabled={template.mono}
+					/> Color hanzi
+				</label>
+				<label class="flex items-center gap-2 text-sm {template.mono ? 'opacity-40' : ''}">
+					<input
+						type="checkbox"
+						class="h-4 w-4 accent-neutral-900"
+						bind:checked={template.colorPinyin}
+						disabled={template.mono}
+					/> Color pinyin
+				</label>
+
+				<label class="flex items-center gap-2 text-sm">
+					Hanzi font
+					<select
+						bind:value={template.font}
+						class="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+					>
+						<option value="default">Default (sans)</option>
+						<option value="kaiti">Kaiti 楷体</option>
+						<option value="songti">Songti 宋体</option>
+					</select>
+				</label>
 			</div>
 
 			<h2 class="mt-6 text-xl font-semibold">Create Card Types</h2>
@@ -425,11 +474,19 @@
 
 						<!-- live preview -->
 						<div class="space-y-3">
-							<CardPreview label="Front" fieldsOnSide={frontOnSide} hasWriting={writingOn} />
+							<CardPreview
+								label="Front"
+								fieldsOnSide={frontOnSide}
+								hasWriting={writingOn}
+								colorize={!template.mono && template.colorHanzi}
+								font={template.font}
+							/>
 							<CardPreview
 								label="Back"
 								fieldsOnSide={writingOn ? frontOnSide : backOnSide}
 								hasWriting={writingOn}
+								colorize={!template.mono && template.colorHanzi}
+								font={template.font}
 							/>
 						</div>
 					</div>

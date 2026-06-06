@@ -348,6 +348,20 @@ for (var _hide of hideList) {
 			);
 		}
 
+		// Back-side show/hide: drop the div for any display field deselected for the
+		// back. Default keeps every field, so the output is unchanged unless edited.
+		const backSel = tabContent[card]['back'];
+		const backFieldDivs: Record<string, string> = {
+			Simplified: `<div id="char_sim" class="char-card">{{Simplified}}</div>`,
+			Traditional: `<div id="char_trad" class="char-card">{{Traditional}}</div>`,
+			Pinyin: `<div id="char_pinyin">{{Pinyin}}</div>`,
+			Zhuyin: `<div id="char_zhuyin">{{Zhuyin}}</div>`,
+			Definitions: `<div id="char_meaning" class="meaning-card">{{Definitions}}</div>`
+		};
+		for (const [f, div] of Object.entries(backFieldDivs)) {
+			if (!backSel.includes(`back${f}`)) AFMT = AFMT.replace(div, '');
+		}
+
 		if (tabContent[card]['additional'].includes('writingComponent')) {
 			QFMT = CONSTANTS.DECK_HTML_WITH_HANZI_WRITER;
 

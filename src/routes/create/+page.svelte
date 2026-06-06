@@ -12,7 +12,11 @@
 		Textarea
 	} from 'flowbite-svelte';
 	import CircleX from '@lucide/svelte/icons/circle-x';
+	import GripVertical from '@lucide/svelte/icons/grip-vertical';
+	import ChevronUp from '@lucide/svelte/icons/chevron-up';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import WordCard from '$lib/components/WordCard.svelte';
+	import CardPreview from '$lib/components/CardPreview.svelte';
 
 	import CONSTANTS from '$lib/dict/contants';
 	import {
@@ -28,6 +32,23 @@
 	} from '$lib/deck';
 
 	const FIELDS = CONSTANTS.FIELDS;
+
+	const DISPLAY_FIELDS = [
+		FIELDS.SIMPLIFIED,
+		FIELDS.TRADITIONAL,
+		FIELDS.PINYIN,
+		FIELDS.ZHUYIN,
+		FIELDS.DEFINITIONS
+	];
+
+	// Defaults for a new card type: Simplified on front, all display fields on back.
+	function newCard() {
+		return {
+			front: [`front${FIELDS.SIMPLIFIED}`],
+			back: DISPLAY_FIELDS.map((f) => `back${f}`),
+			additional: [] as string[]
+		};
+	}
 
 	let words = $state<Word[]>([]);
 	let deckName = $state('xiehanzi');
@@ -52,7 +73,7 @@
 	let activeTab = $state(0);
 	let tabs = $state<string[]>(['Card 1']);
 	let tabContent = $state<TabContent>({
-		'Card 1': { front: [], back: [], additional: [] }
+		'Card 1': newCard()
 	});
 
 	// table selection / pagination
@@ -68,16 +89,49 @@
 		{ value: 'File', name: 'File' }
 	];
 
-	const fieldsArray = [
-		{ id: FIELDS.SIMPLIFIED, label: 'Simplified' },
-		{ id: FIELDS.TRADITIONAL, label: 'Traditional' },
-		{ id: FIELDS.PINYIN, label: 'Pinyin' },
-		{ id: FIELDS.ZHUYIN, label: 'Zhuyin' },
-		{ id: FIELDS.DEFINITIONS, label: 'English Definitions' },
-		{ id: FIELDS.AUDIO, label: 'Audio' }
-	];
-
 	const additionalComponents = [{ id: 'writingComponent', label: 'Writing Component' }];
+
+	const fieldLabels: Record<string, string> = Object.fromEntries(
+		[
+			{ id: FIELDS.SIMPLIFIED, label: 'Simplified' },
+			{ id: FIELDS.TRADITIONAL, label: 'Traditional' },
+			{ id: FIELDS.PINYIN, label: 'Pinyin' },
+			{ id: FIELDS.ZHUYIN, label: 'Zhuyin' },
+			{ id: FIELDS.DEFINITIONS, label: 'English Definitions' },
+			{ id: FIELDS.AUDIO, label: 'Audio' }
+		].map((f) => [f.id, f.label])
+	);
+
+	// ---- field ordering (drag + up/down) ----
+	let dragIndex = $state<number | null>(null);
+
+	function moveField(index: number, dir: -1 | 1) {
+		const j = index + dir;
+		if (j < 0 || j >= fields.length) return;
+		const next = [...fields];
+		[next[index], next[j]] = [next[j], next[index]];
+		fields = next;
+	}
+
+	function onFieldDrop(target: number) {
+		if (dragIndex === null || dragIndex === target) return;
+		const next = [...fields];
+		const [moved] = next.splice(dragIndex, 1);
+		next.splice(target, 0, moved);
+		fields = next;
+		dragIndex = null;
+	}
+
+	// active card preview: ordered field ids selected on each side
+	const frontOnSide = $derived(
+		fields.filter((f) => tabContent[tabs[activeTab]]?.front.includes(`front${f}`))
+	);
+	const backOnSide = $derived(
+		fields.filter((f) => tabContent[tabs[activeTab]]?.back.includes(`back${f}`))
+	);
+	const writingOn = $derived(
+		tabContent[tabs[activeTab]]?.additional.includes('writingComponent') ?? false
+	);
 
 	const rowsPerPageOptions = [5, 10, 25, 50, 100, 500].map((n) => ({ value: n, name: String(n) }));
 
@@ -108,7 +162,7 @@
 	function handleAddTab() {
 		const name = `Card ${findNextTabNumber()}`;
 		tabs = [...tabs, name];
-		tabContent = { ...tabContent, [name]: { front: [], back: [], additional: [] } };
+		tabContent = { ...tabContent, [name]: newCard() };
 		activeTab = tabs.length - 1;
 	}
 
@@ -267,58 +321,119 @@
 			</div>
 
 			<h2 class="mt-6 text-xl font-semibold">Create Card Types</h2>
+			<p class="mb-2 text-sm text-neutral-500">
+				Each card type is one Anki template. Drag to set field order, then choose which fields show
+				on the front and back. The preview updates live.
+			</p>
 			<div>
-				<ul class="flex flex-wrap gap-2 border-b border-gray-200">
+				<ul class="flex flex-wrap gap-2 border-b border-neutral-200">
 					{#each tabs as tab, index (tab)}
 						<li
-							class="flex cursor-pointer items-center gap-1 rounded-t px-3 py-2 {activeTab === index
-								? 'bg-gray-100 font-semibold'
-								: ''}"
+							class="flex cursor-pointer items-center gap-1 rounded-t px-3 py-2 text-sm {activeTab ===
+							index
+								? 'border-b-2 border-neutral-900 font-semibold'
+								: 'text-neutral-500'}"
 						>
 							<span onclick={() => (activeTab = index)} role="button" tabindex="0">{tab}</span>
-							<button onclick={() => handleCloseTab(index)} aria-label="close tab">
-								<CircleX size={16} />
-							</button>
+							{#if tabs.length > 1}
+								<button onclick={() => handleCloseTab(index)} aria-label="close tab">
+									<CircleX size={15} />
+								</button>
+							{/if}
 						</li>
 					{/each}
-					<li class="cursor-pointer px-3 py-2 text-lg" onclick={handleAddTab}>+</li>
+					<li class="cursor-pointer px-3 py-2 text-lg text-neutral-500" onclick={handleAddTab}>+</li>
 				</ul>
 
-				<div class="py-4">
-					{#if tabContent[tabs[activeTab]]}
-						<h3 class="mt-4 font-semibold">Front Side</h3>
+				{#if tabContent[tabs[activeTab]]}
+					<div class="grid gap-6 py-4 lg:grid-cols-[1fr_320px]">
+						<!-- field editor -->
 						<div>
-							{#each fieldsArray as field}
-								{#if fields.includes(field.id)}
-									<Checkbox
-										checked={tabContent[tabs[activeTab]].front.includes(`front${field.id}`)}
-										onchange={() => handleCheckboxChange(`front${field.id}`, 'front')}
+							<div
+								class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 pb-1 font-mono text-[10px] uppercase tracking-wider text-neutral-400"
+							>
+								<span>Field</span><span class="text-center">Front</span
+								><span class="text-center">Back</span>
+							</div>
+							<ul class="divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+								{#each fields as field, index (field)}
+									<li
+										draggable="true"
+										ondragstart={() => (dragIndex = index)}
+										ondragover={(e) => e.preventDefault()}
+										ondrop={() => onFieldDrop(index)}
+										class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 bg-white px-3 py-2 {dragIndex ===
+										index
+											? 'opacity-50'
+											: ''}"
 									>
-										{field.label}
-									</Checkbox>
-								{/if}
-							{/each}
+										<span class="flex items-center gap-2">
+											<GripVertical size={15} class="cursor-grab text-neutral-300" />
+											<span class="text-sm">{fieldLabels[field] ?? field}</span>
+											<span class="ml-auto flex flex-col">
+												<button
+													class="text-neutral-400 hover:text-neutral-900 disabled:opacity-20"
+													disabled={index === 0}
+													onclick={() => moveField(index, -1)}
+													aria-label="move up"><ChevronUp size={13} /></button
+												>
+												<button
+													class="text-neutral-400 hover:text-neutral-900 disabled:opacity-20"
+													disabled={index === fields.length - 1}
+													onclick={() => moveField(index, 1)}
+													aria-label="move down"><ChevronDown size={13} /></button
+												>
+											</span>
+										</span>
+										<span class="text-center">
+											<input
+												type="checkbox"
+												class="h-4 w-4 accent-neutral-900"
+												checked={tabContent[tabs[activeTab]].front.includes(`front${field}`)}
+												onchange={() => handleCheckboxChange(`front${field}`, 'front')}
+											/>
+										</span>
+										<span class="text-center">
+											<input
+												type="checkbox"
+												class="h-4 w-4 accent-neutral-900"
+												checked={tabContent[tabs[activeTab]].back.includes(`back${field}`)}
+												onchange={() => handleCheckboxChange(`back${field}`, 'back')}
+											/>
+										</span>
+									</li>
+								{/each}
+							</ul>
+
+							<div class="mt-4">
+								<h3 class="mb-1 font-mono text-[10px] uppercase tracking-wider text-neutral-400">
+									Additional
+								</h3>
+								{#each additionalComponents as component}
+									<label class="flex items-center gap-2 text-sm">
+										<input
+											type="checkbox"
+											class="h-4 w-4 accent-neutral-900"
+											checked={tabContent[tabs[activeTab]].additional.includes(component.id)}
+											onchange={() => handleCheckboxChange(component.id, 'additional')}
+										/>
+										{component.label}
+									</label>
+								{/each}
+							</div>
 						</div>
 
-						<h3 class="mt-4 font-semibold">Back Side</h3>
-						<Alert color="blue">
-							All fields are available in back side, use side bar during deck review and turn off the
-							fields you don't want to see.
-						</Alert>
-
-						<h3 class="mt-4 font-semibold">Additional Components</h3>
-						<div>
-							{#each additionalComponents as component}
-								<Checkbox
-									checked={tabContent[tabs[activeTab]].additional.includes(component.id)}
-									onchange={() => handleCheckboxChange(component.id, 'additional')}
-								>
-									{component.label}
-								</Checkbox>
-							{/each}
+						<!-- live preview -->
+						<div class="space-y-3">
+							<CardPreview label="Front" fieldsOnSide={frontOnSide} hasWriting={writingOn} />
+							<CardPreview
+								label="Back"
+								fieldsOnSide={writingOn ? frontOnSide : backOnSide}
+								hasWriting={writingOn}
+							/>
 						</div>
-					{/if}
-				</div>
+					</div>
+				{/if}
 			</div>
 		</div>
 	{/if}

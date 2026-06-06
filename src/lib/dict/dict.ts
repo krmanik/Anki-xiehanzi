@@ -1,8 +1,10 @@
 import { unzip } from 'unzipit';
+import { base } from '$app/paths';
 import pinzhu from './pinyinzhuyin';
 
 let dict;
-let host = "https://krmanik.github.io/Anki-xiehanzi";
+// Runtime data (cedict, indexes) is bundled in static/data and served same-origin.
+let host = base;
 
 // https://github.com/cschiller/zhongwen
 class ZhongwenDictionary {

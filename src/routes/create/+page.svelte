@@ -142,6 +142,7 @@
 		if (words.some((w) => w.Simplified === word.trim())) return;
 		const result = await lookupWord(word);
 		words = [...words, result];
+		wordValue = '';
 	}
 
 	async function generateWords(file: File) {

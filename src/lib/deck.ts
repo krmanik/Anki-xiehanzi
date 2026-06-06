@@ -18,8 +18,8 @@ import EdgeTTSBrowser from '@kingdanx/edge-tts-browser';
 import { base } from '$app/paths';
 
 import CONSTANTS from './dict/contants';
-import DICT from './dict/dict';
 import pinzhu from './dict/pinyinzhuyin';
+import { lookup as cedictLookup, loadCedict, type Reading } from './dict/cedict';
 
 const host = base;
 const FIELDS = CONSTANTS.FIELDS;
@@ -31,6 +31,13 @@ export interface Word {
 	Zhuyin: string;
 	Definitions: string;
 	Syllable: string;
+	// Rich metadata from cedict.db (used by the UI; not part of the apkg fields)
+	commonMeaning: string;
+	pos: string[];
+	classifiers: string[];
+	level: string | null;
+	rank: number | null;
+	readings: Reading[];
 }
 
 export interface TabContent {
@@ -42,7 +49,7 @@ export interface TabContent {
 // ---------------------------------------------------------------------------
 
 export function loadDict() {
-	return DICT.loadDict();
+	return loadCedict();
 }
 
 export function initJieba() {
@@ -146,50 +153,52 @@ export async function fetchMeaningGoogleTranslate(word: string) {
 }
 
 /**
- * Look up a single word and build its Word record. Mirrors the per-word block
- * shared by searchAndAdd / generateWords / generateFromParagraph in the
- * original. Dedup is the caller's responsibility.
+ * Look up a single word and build its Word record from cedict.db. Words not in
+ * the dictionary fall back to Google Translate. Dedup is the caller's job.
  */
 export async function lookupWord(word: string): Promise<Word> {
-	const res = DICT.search(word);
-	const result = await DICT.makeHtml(res, true);
+	const entry = await cedictLookup(word);
 
-	let Pinyin: string[] = [];
-	let Zhuyin: string[] = [];
-	let Syllable: string[] = [];
-	let Definitions: string[] = [];
-	const doNotAdd: string[] = [];
-
-	for (const r of result) {
-		if (r.simplified == result[0].simplified) {
-			if (word.trim() !== result[0].simplified) {
-				doNotAdd.push(word.trim());
-			} else {
-				Pinyin.push(decodeHtmlEntities(r.pinyin));
-				Zhuyin.push(decodeHtmlEntities(r.zhuyin));
-				Syllable.push(r.syllable);
-				Definitions.push(r.definitions);
-			}
-		}
+	if (!entry) {
+		// Fallback: word not in cedict.db
+		const fetched = await fetchMeaningGoogleTranslate(word.trim());
+		const readings: Reading[] = fetched.Syllable.map((syl, i) => ({
+			syllable: syl,
+			pinyin: fetched.Pinyin[i],
+			pinyinPlain: fetched.Pinyin[i],
+			zhuyin: fetched.Zhuyin[i],
+			definition: fetched.Definitions[i]
+		}));
+		return {
+			Simplified: fetched.Simplified,
+			Traditional: fetched.Traditional,
+			Pinyin: fetched.Pinyin.join(', '),
+			Zhuyin: fetched.Zhuyin.join(', '),
+			Definitions: fetched.Definitions.join(' │ '),
+			Syllable: fetched.Syllable.join(', '),
+			commonMeaning: fetched.Definitions.join('; '),
+			pos: [],
+			classifiers: [],
+			level: null,
+			rank: null,
+			readings
+		};
 	}
 
-	if (doNotAdd.includes(word.trim())) {
-		const fetchedMeaning = await fetchMeaningGoogleTranslate(word.trim());
-		result[0].simplified = fetchedMeaning.Simplified;
-		result[0].traditional = fetchedMeaning.Traditional;
-		Pinyin = fetchedMeaning.Pinyin;
-		Zhuyin = fetchedMeaning.Zhuyin;
-		Syllable = fetchedMeaning.Syllable;
-		Definitions = fetchedMeaning.Definitions;
-	}
-
+	const readings = entry.readings;
 	return {
-		Simplified: result[0].simplified,
-		Traditional: result[0].traditional,
-		Pinyin: Pinyin.join(', '),
-		Zhuyin: Zhuyin.join(', '),
-		Definitions: Definitions.join(' │ '),
-		Syllable: Syllable.join(', ')
+		Simplified: entry.simplified,
+		Traditional: entry.traditional,
+		Pinyin: readings.map((r) => decodeHtmlEntities(r.pinyin)).join(', '),
+		Zhuyin: readings.map((r) => decodeHtmlEntities(r.zhuyin)).join(', '),
+		Definitions: readings.map((r) => r.definition).join(' │ '),
+		Syllable: readings.map((r) => r.syllable).join(', '),
+		commonMeaning: entry.commonMeaning,
+		pos: entry.pos,
+		classifiers: entry.classifiers,
+		level: entry.level,
+		rank: entry.rank,
+		readings
 	};
 }
 

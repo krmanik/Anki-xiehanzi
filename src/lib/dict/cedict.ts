@@ -13,6 +13,34 @@ import pinzhu from './pinyinzhuyin';
 let SQL: any = null;
 let cedictDb: any = null;
 let sentencesDb: any = null;
+let hskWords: Map<string, string> | null = null;
+
+/** Load the simple HSK glosses (word -> short meaning) from hsk_words.json. */
+export async function loadHskMeanings(): Promise<void> {
+	if (hskWords) return;
+	hskWords = new Map();
+	try {
+		const res = await fetch(`${base}/data/hsk_words.json`);
+		if (res.ok) {
+			const data = await res.json();
+			for (const level of Object.values<any>(data)) {
+				if (!Array.isArray(level)) continue;
+				for (const entry of level) {
+					if (entry?.word && entry?.meaning && !hskWords.has(entry.word)) {
+						hskWords.set(entry.word, String(entry.meaning).trim());
+					}
+				}
+			}
+			console.log(`HSK simple meanings loaded: ${hskWords.size}`);
+		}
+	} catch (e) {
+		console.log('Failed to load hsk_words.json', e);
+	}
+}
+
+export function simpleMeaningOf(word: string): string {
+	return hskWords?.get(word.trim()) ?? '';
+}
 
 /** Part-of-speech code -> human readable name (ICTCLAS-style tags used by cedict.db). */
 export function posDisplay(raw: string): string {

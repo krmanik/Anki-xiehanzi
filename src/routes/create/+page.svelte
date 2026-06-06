@@ -38,6 +38,7 @@
 		FIELDS.TRADITIONAL,
 		FIELDS.PINYIN,
 		FIELDS.ZHUYIN,
+		FIELDS.SIMPLE_MEANING,
 		FIELDS.DEFINITIONS
 	];
 
@@ -61,13 +62,20 @@
 		FIELDS.TRADITIONAL,
 		FIELDS.PINYIN,
 		FIELDS.ZHUYIN,
+		FIELDS.SIMPLE_MEANING,
 		FIELDS.DEFINITIONS,
 		FIELDS.AUDIO,
 		WRITING
 	]);
 	let fields = $derived(order.filter((o) => o !== WRITING));
 	let includeAudio = $state(false);
-	let template = $state({ mono: false, colorHanzi: true, colorPinyin: true, font: 'default' });
+	let template = $state({
+		mono: false,
+		colorHanzi: true,
+		colorPinyin: true,
+		font: 'default',
+		collapseDict: false
+	});
 	let page = $state(1);
 	let wordValue = $state('');
 	let selectType = $state('Word');
@@ -103,7 +111,8 @@
 			{ id: FIELDS.TRADITIONAL, label: 'Traditional' },
 			{ id: FIELDS.PINYIN, label: 'Pinyin' },
 			{ id: FIELDS.ZHUYIN, label: 'Zhuyin' },
-			{ id: FIELDS.DEFINITIONS, label: 'English Definitions' },
+			{ id: FIELDS.SIMPLE_MEANING, label: 'Simple Meaning' },
+			{ id: FIELDS.DEFINITIONS, label: 'Dictionary Definitions' },
 			{ id: FIELDS.AUDIO, label: 'Audio' }
 		].map((f) => [f.id, f.label])
 	);
@@ -135,8 +144,11 @@
 	const backOnSide = $derived(
 		fields.filter((f) => tabContent[tabs[activeTab]]?.back.includes(`back${f}`))
 	);
-	const writingOn = $derived(
-		tabContent[tabs[activeTab]]?.additional.includes('writingComponent') ?? false
+	const writingFront = $derived(
+		tabContent[tabs[activeTab]]?.front.includes(`front${WRITING}`) ?? false
+	);
+	const writingBack = $derived(
+		tabContent[tabs[activeTab]]?.back.includes(`back${WRITING}`) ?? false
 	);
 
 	const rowsPerPageOptions = [5, 10, 25, 50, 100, 500].map((n) => ({ value: n, name: String(n) }));
@@ -375,6 +387,14 @@
 						<option value="songti">Songti 宋体</option>
 					</select>
 				</label>
+
+				<label class="flex items-center gap-2 text-sm">
+					<input
+						type="checkbox"
+						class="h-4 w-4 accent-neutral-900"
+						bind:checked={template.collapseDict}
+					/> Collapse dictionary definitions
+				</label>
 			</div>
 
 			<h2 class="mt-6 text-xl font-semibold">Create Card Types</h2>
@@ -442,39 +462,25 @@
 												>
 											</span>
 										</span>
-										{#if item === WRITING}
-											<span class="col-span-2 text-center">
-												<input
-													type="checkbox"
-													class="h-4 w-4 accent-neutral-900"
-													checked={tabContent[tabs[activeTab]].additional.includes(WRITING)}
-													onchange={() => handleCheckboxChange(WRITING, 'additional')}
-												/>
-											</span>
-										{:else}
-											<span class="text-center">
-												<input
-													type="checkbox"
-													class="h-4 w-4 accent-neutral-900"
-													checked={tabContent[tabs[activeTab]].front.includes(`front${item}`)}
-													onchange={() => handleCheckboxChange(`front${item}`, 'front')}
-												/>
-											</span>
-											<span class="text-center">
-												<input
-													type="checkbox"
-													class="h-4 w-4 accent-neutral-900"
-													checked={tabContent[tabs[activeTab]].back.includes(`back${item}`)}
-													onchange={() => handleCheckboxChange(`back${item}`, 'back')}
-												/>
-											</span>
-										{/if}
+										<span class="text-center">
+											<input
+												type="checkbox"
+												class="h-4 w-4 accent-neutral-900"
+												checked={tabContent[tabs[activeTab]].front.includes(`front${item}`)}
+												onchange={() => handleCheckboxChange(`front${item}`, 'front')}
+											/>
+										</span>
+										<span class="text-center">
+											<input
+												type="checkbox"
+												class="h-4 w-4 accent-neutral-900"
+												checked={tabContent[tabs[activeTab]].back.includes(`back${item}`)}
+												onchange={() => handleCheckboxChange(`back${item}`, 'back')}
+											/>
+										</span>
 									</li>
 								{/each}
 							</ul>
-							<p class="mt-1 px-1 text-xs text-neutral-400">
-								Writing Component spans front & back (it shows the stroke practice card).
-							</p>
 						</div>
 
 						<!-- live preview -->
@@ -482,16 +488,18 @@
 							<CardPreview
 								label="Front"
 								fieldsOnSide={frontOnSide}
-								hasWriting={writingOn}
+								hasWriting={writingFront}
 								colorize={!template.mono && template.colorHanzi}
 								font={template.font}
+								collapseDict={template.collapseDict}
 							/>
 							<CardPreview
 								label="Back"
-								fieldsOnSide={writingOn ? frontOnSide : backOnSide}
-								hasWriting={writingOn}
+								fieldsOnSide={backOnSide}
+								hasWriting={writingBack}
 								colorize={!template.mono && template.colorHanzi}
 								font={template.font}
+								collapseDict={template.collapseDict}
 							/>
 						</div>
 					</div>

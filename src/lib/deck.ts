@@ -19,7 +19,13 @@ import { base } from '$app/paths';
 
 import CONSTANTS from './dict/contants';
 import pinzhu from './dict/pinyinzhuyin';
-import { lookup as cedictLookup, loadCedict, type Reading } from './dict/cedict';
+import {
+	lookup as cedictLookup,
+	loadCedict,
+	loadHskMeanings,
+	simpleMeaningOf,
+	type Reading
+} from './dict/cedict';
 
 const host = base;
 const FIELDS = CONSTANTS.FIELDS;
@@ -31,6 +37,7 @@ export interface Word {
 	Zhuyin: string;
 	Definitions: string;
 	Syllable: string;
+	SimpleMeaning: string;
 	// Rich metadata from cedict.db (used by the UI; not part of the apkg fields)
 	commonMeaning: string;
 	pos: string[];
@@ -49,7 +56,7 @@ export interface TabContent {
 // ---------------------------------------------------------------------------
 
 export function loadDict() {
-	return loadCedict();
+	return Promise.all([loadCedict(), loadHskMeanings()]);
 }
 
 export function initJieba() {
@@ -215,6 +222,7 @@ export async function lookupWord(word: string): Promise<Word> {
 			Zhuyin: fetched.Zhuyin.join(', '),
 			Definitions: fetched.Definitions.join(' │ '),
 			Syllable: fetched.Syllable.join(', '),
+			SimpleMeaning: simpleMeaningOf(fetched.Simplified) || fetched.Definitions.join('; '),
 			commonMeaning: fetched.Definitions.join('; '),
 			pos: [],
 			classifiers: [],
@@ -232,6 +240,7 @@ export async function lookupWord(word: string): Promise<Word> {
 		Zhuyin: readings.map((r) => decodeHtmlEntities(r.zhuyin)).join(', '),
 		Definitions: readings.map((r) => r.definition).join(' │ '),
 		Syllable: readings.map((r) => r.syllable).join(', '),
+		SimpleMeaning: simpleMeaningOf(entry.simplified) || entry.commonMeaning,
 		commonMeaning: entry.commonMeaning,
 		pos: entry.pos,
 		classifiers: entry.classifiers,
@@ -262,13 +271,15 @@ export interface TemplateOpts {
 	colorHanzi: boolean;
 	colorPinyin: boolean;
 	font: string; // 'default' | 'kaiti' | 'songti'
+	collapseDict: boolean; // show dictionary definitions inside a collapsed <details>
 }
 
 export const DEFAULT_TEMPLATE: TemplateOpts = {
 	mono: false,
 	colorHanzi: true,
 	colorPinyin: true,
-	font: 'default'
+	font: 'default',
+	collapseDict: false
 };
 
 const FONT_STACKS: Record<string, string> = {
@@ -277,9 +288,15 @@ const FONT_STACKS: Record<string, string> = {
 	songti: '"Songti SC", "STSong", "SimSun", "宋体", serif'
 };
 
-/** Build CSS appended to DECK_CSS. With DEFAULT_TEMPLATE this is a no-op comment. */
+/** Build CSS appended to DECK_CSS. */
 function buildCssOverride(t: TemplateOpts): string {
-	let css = '\n/* template customization */\n';
+	// Base styles for the simple-meaning card and collapsible dictionary.
+	let css =
+		'\n/* template customization */\n' +
+		'.simple-card{font-weight:600;padding:10px;}\n' +
+		'.simple-card:empty{display:none;}\n' +
+		'.dict-details{text-align:left;margin:6px auto;max-width:90%;}\n' +
+		'.dict-details>summary{cursor:pointer;color:#888;font-size:0.85em;list-style:none;}\n';
 	if (t.mono || !t.colorHanzi) {
 		css += '.char-tone1,.char-tone2,.char-tone3,.char-tone4,.char-tone5{color:inherit !important;}\n';
 	}
@@ -333,6 +350,7 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 		let hidePin = true;
 		let hideZhu = true;
 		let hideDef = true;
+		let hideSimpleMeaning = true;
 
 		const addToFront: string[] = [];
 
@@ -341,7 +359,8 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 			if (front.includes('Traditional')) hideTrad = false;
 			if (front.includes('Pinyin')) hidePin = false;
 			if (front.includes('Zhuyin')) hideZhu = false;
-			if (front.includes('Definitions')) hideDef = false;
+			if (front.includes('SimpleMeaning')) hideSimpleMeaning = false;
+			else if (front.includes('Definitions')) hideDef = false;
 		}
 
 		// TODO-remove redundant code, used for creating in order
@@ -356,6 +375,10 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 		}
 		if (!hideZhu) {
 			addToFront.push(`<div id="char_zhuyin">{{Zhuyin}}</div>`);
+		}
+		// Simple meaning sits above the dictionary definitions.
+		if (!hideSimpleMeaning) {
+			addToFront.push(`<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>`);
 		}
 
 		const hides: string[] = [];
@@ -425,35 +448,54 @@ for (var _hide of hideList) {
 			);
 		}
 
+		const backSel = tabContent[card]['back'];
+
+		// Inject the simple-meaning div (above the dictionary block) when selected.
+		const dictDiv = `<div id="char_meaning" class="meaning-card">{{Definitions}}</div>`;
+		if (backSel.includes('backSimpleMeaning')) {
+			AFMT = AFMT.replace(
+				dictDiv,
+				`<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>\n${dictDiv}`
+			);
+		}
+
+		// Collapse the dictionary definitions inside a <details> when requested.
+		if (template.collapseDict) {
+			AFMT = AFMT.replace(
+				dictDiv,
+				`<details class="dict-details"><summary>Dictionary</summary>${dictDiv}</details>`
+			);
+		}
+
 		// Back-side show/hide: drop the div for any display field deselected for the
 		// back. Default keeps every field, so the output is unchanged unless edited.
-		const backSel = tabContent[card]['back'];
 		const backFieldDivs: Record<string, string> = {
 			Simplified: `<div id="char_sim" class="char-card">{{Simplified}}</div>`,
 			Traditional: `<div id="char_trad" class="char-card">{{Traditional}}</div>`,
 			Pinyin: `<div id="char_pinyin">{{Pinyin}}</div>`,
 			Zhuyin: `<div id="char_zhuyin">{{Zhuyin}}</div>`,
-			Definitions: `<div id="char_meaning" class="meaning-card">{{Definitions}}</div>`
+			Definitions: dictDiv
 		};
 		for (const [f, div] of Object.entries(backFieldDivs)) {
 			if (!backSel.includes(`back${f}`)) AFMT = AFMT.replace(div, '');
 		}
 
-		if (tabContent[card]['additional'].includes('writingComponent')) {
-			QFMT = CONSTANTS.DECK_HTML_WITH_HANZI_WRITER;
-
+		// Writing component: independent front and back placement.
+		const writingFront = tabContent[card]['front'].includes('frontwritingComponent');
+		const writingBack = tabContent[card]['back'].includes('backwritingComponent');
+		if (writingFront || writingBack) {
+			let writerTpl = CONSTANTS.DECK_HTML_WITH_HANZI_WRITER;
 			if (!includeAudio) {
-				// Adjust QFMT and AFMT if audio is not included
-				QFMT = QFMT.replace(`<div id='audio' style='display:none'>{{Audio}}</div>`, '');
-				QFMT = QFMT.replace(
+				writerTpl = writerTpl.replace(`<div id='audio' style='display:none'>{{Audio}}</div>`, '');
+				writerTpl = writerTpl.replace(
 					`    <a class="btn" id='btnPlayAudio'>
         <div class="icon"><i class="material-icons">play_arrow</i></div>
     </a>`,
 					''
 				);
 			}
-
-			AFMT = `<div id="back">{{FrontSide}}</div>`;
+			if (writingFront) QFMT = writerTpl;
+			if (writingBack) AFMT = writingFront ? `<div id="back">{{FrontSide}}</div>` : writerTpl;
 		}
 
 		tmpls.push({
@@ -496,6 +538,13 @@ for (var _hide of hideList) {
 			}
 			if (JSON.stringify(obj) === JSON.stringify({ name: 'Zhuyin' })) {
 				note.push(Zhuyin);
+			}
+			if (JSON.stringify(obj) === JSON.stringify({ name: 'SimpleMeaning' })) {
+				// Dedupe: if the simple meaning matches the dictionary text, leave it
+				// blank (the .simple-card:empty rule hides it) so only one is shown.
+				const norm = (s: string) => s.toLowerCase().replace(/[\s;,│/]+/g, ' ').trim();
+				const dup = norm(word.SimpleMeaning) === norm(Definitions) || norm(word.SimpleMeaning) === norm(word.commonMeaning);
+				note.push(dup ? '' : word.SimpleMeaning || '');
 			}
 			if (JSON.stringify(obj) === JSON.stringify({ name: 'Definitions' })) {
 				const pin = Pinyin.split(', ');

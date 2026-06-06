@@ -7,13 +7,15 @@
 		fieldsOnSide,
 		hasWriting = false,
 		colorize = true,
-		font = 'default'
+		font = 'default',
+		collapseDict = false
 	}: {
 		label: string;
 		fieldsOnSide: string[]; // ordered field ids shown on this side
 		hasWriting?: boolean;
 		colorize?: boolean;
 		font?: string;
+		collapseDict?: boolean;
 	} = $props();
 
 	const fontStacks: Record<string, string> = {
@@ -30,6 +32,7 @@
 		syllable: 'Zhong1 guo2',
 		pinyin: 'Zhōng guó',
 		zhuyin: 'ㄓㄨㄥ ㄍㄨㄛˊ',
+		simple: 'China',
 		definition: 'China; Middle Kingdom'
 	};
 
@@ -95,8 +98,18 @@
 		{#if has('Zhuyin')}
 			<div class="text-base text-neutral-500">{ex.zhuyin}</div>
 		{/if}
+		{#if has('SimpleMeaning')}
+			<div class="text-[15px] font-semibold text-neutral-800">{ex.simple}</div>
+		{/if}
 		{#if has('Definitions')}
-			<div class="text-sm text-neutral-700">{ex.definition}</div>
+			{#if collapseDict}
+				<details class="text-sm text-neutral-700">
+					<summary class="cursor-pointer text-xs text-neutral-400">Dictionary</summary>
+					{ex.definition}
+				</details>
+			{:else}
+				<div class="text-sm text-neutral-700">{ex.definition}</div>
+			{/if}
 		{/if}
 		{#if has('Audio')}
 			<div class="mt-1 inline-flex items-center gap-1 text-neutral-400">

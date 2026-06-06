@@ -311,8 +311,9 @@
 	<title>Create Deck — Anki xiehanzi</title>
 </svelte:head>
 
-<section class="mx-auto max-w-5xl px-4 py-6">
-	<h1 class="mb-4 text-3xl font-bold">Create Deck</h1>
+<section class="mx-auto max-w-5xl px-5 py-10">
+	<p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">Deck generator</p>
+	<h1 class="mb-6 mt-2 text-4xl font-extrabold tracking-tight">Create Deck</h1>
 
 	{#if page === 1}
 		<div>

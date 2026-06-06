@@ -9,9 +9,9 @@
 	import Download from '@lucide/svelte/icons/download';
 	import SquarePen from '@lucide/svelte/icons/square-pen';
 	import Book from '@lucide/svelte/icons/book';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 
 	const repo = 'https://github.com/krmanik/Anki-xiehanzi';
-	const tagline = 'Learn, read, write and practice Mandarin by drawing strokes in Anki';
 
 	let logoEl: HTMLDivElement;
 
@@ -22,106 +22,114 @@
 			const target = document.createElement('div');
 			logoEl.appendChild(target);
 			const writer = HanziWriter.create(target, hanzi, {
-				width: 80,
-				height: 80,
-				padding: 5,
-				strokeColor: hanzi == '写' ? '#4caf50' : '#2196f3'
+				width: 72,
+				height: 72,
+				padding: 4,
+				strokeColor: hanzi == '写' ? '#4f46e5' : '#171717'
 			});
 			writer.loopCharacterAnimation();
 		}
 	});
 
 	const features = [
-		{ title: 'HSK 3.0', icon: Shapes, description: 'Learn, read and write HSK 3.0 (HSK 1-9) characters in Anki.' },
-		{ title: 'Meanings', icon: Languages, description: 'Learn definitions of characters with audio and detailed meaning.' },
-		{ title: 'Pinyin', icon: SpellCheck, description: 'Learn pronunciations of character with Pinyin and Zhuyin.' },
-		{ title: 'Strokes', icon: Brush, description: 'Practice strokes order of simplified and traditional characters by drawing strokes.' },
-		{ title: 'Audio', icon: AudioLines, description: 'Learn definitions of characters with audio and detailed meaning.' },
-		{ title: 'Zhuyin', icon: SpellCheck, description: 'Learn pronunciations of character with Pinyin and Zhuyin.' }
+		{ title: 'HSK 3.0', icon: Shapes, description: 'Learn, read and write HSK 1–9 characters in Anki.' },
+		{ title: 'Meanings', icon: Languages, description: 'Common meanings plus full dictionary definitions.' },
+		{ title: 'Pinyin', icon: SpellCheck, description: 'Tone-marked pinyin with matching tone colors.' },
+		{ title: 'Strokes', icon: Brush, description: 'Practice stroke order for simplified and traditional.' },
+		{ title: 'Audio', icon: AudioLines, description: 'HSK recordings and text-to-speech audio.' },
+		{ title: 'Zhuyin', icon: SpellCheck, description: 'Bopomofo (zhuyin) alongside every word.' }
 	];
 
 	const cards = [
-		{ title: 'Import', icon: Download, link: `${base}/decks`, description: 'Import HSK 3.0 decks in Anki with simplified, traditional, pinyin, zhuyin, audio and meanings.' },
-		{ title: 'Create', icon: SquarePen, link: `${base}/create`, description: 'Create your own xiehanzi decks for Anki with simplified, traditional, pinyin, zhuyin, audio and meanings.' },
-		{ title: 'Guide', icon: Book, link: `${base}/features`, description: 'Follow documentations on how to customize and update the Anki xiehanzi decks.' }
+		{ title: 'Import', icon: Download, link: `${base}/decks`, description: 'Download ready-made HSK 3.0 decks for Anki.' },
+		{ title: 'Create', icon: SquarePen, link: `${base}/create`, description: 'Build custom xiehanzi decks from your own words.' },
+		{ title: 'Guide', icon: Book, link: `${base}/features`, description: 'See features and how to customize the decks.' }
 	];
 </script>
 
 <svelte:head>
-	<title>Anki xiehanzi</title>
+	<title>Anki xiehanzi — learn to write Chinese</title>
 </svelte:head>
 
-<header class="relative overflow-hidden py-16 text-center">
-	<div class="container mx-auto px-4">
+<!-- hero -->
+<header class="border-b border-neutral-200">
+	<div class="mx-auto max-w-3xl px-5 py-20 text-center">
 		<div bind:this={logoEl} class="flex justify-center gap-2"></div>
-		<h1 class="mt-4 text-4xl font-bold">Anki xiehanzi</h1>
-		<p class="mt-2 text-lg text-gray-600">{tagline}</p>
-		<div class="mt-6 flex flex-wrap justify-center gap-3">
-			<a
-				href="{base}/features"
-				class="rounded border border-sky-500 px-5 py-2 font-medium text-sky-600 hover:bg-sky-50"
-				>Getting Started</a
-			>
+		<p class="mt-6 font-mono text-xs uppercase tracking-[0.3em] text-neutral-400">
+			Mandarin · Anki · open source
+		</p>
+		<h1 class="mt-3 text-4xl font-extrabold tracking-tight text-neutral-900 sm:text-5xl">
+			Learn to <span class="text-indigo-600">write</span> Chinese.
+		</h1>
+		<p class="mx-auto mt-4 max-w-xl text-lg text-neutral-600">
+			Read, write and practice Mandarin by drawing strokes in Anki — with pinyin, zhuyin, audio and
+			rich dictionary meanings.
+		</p>
+		<div class="mt-8 flex flex-wrap justify-center gap-3">
 			<a
 				href="{base}/create"
-				class="rounded border border-sky-500 px-5 py-2 font-medium text-sky-600 hover:bg-sky-50"
-				>Create Deck</a
+				class="inline-flex items-center gap-1.5 rounded-lg bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-700"
 			>
+				Create a deck <ArrowRight size={16} />
+			</a>
 			<a
 				href="{base}/decks"
-				class="rounded border border-green-500 px-5 py-2 font-medium text-green-600 hover:bg-green-50"
-				>Download Decks</a
+				class="rounded-lg border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-900"
+				>Download decks</a
 			>
 		</div>
 	</div>
 </header>
 
-<section class="py-8">
-	<div class="container mx-auto px-4">
-		<div class="mb-8 text-center text-3xl font-bold">Features</div>
-		<div class="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3">
-			{#each features as f}
-				<div class="px-2 text-center">
-					<div class="flex justify-center text-indigo-600">
-						<f.icon size={36} />
-					</div>
-					<h3 class="mt-2 text-xl font-semibold">{f.title}</h3>
-					<p class="text-gray-600">{f.description}</p>
-				</div>
-			{/each}
-		</div>
+<!-- features -->
+<section class="mx-auto max-w-6xl px-5 py-16">
+	<p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">What you get</p>
+	<h2 class="mt-2 text-2xl font-bold tracking-tight">Everything to practice hanzi</h2>
+	<div class="mt-8 grid gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 sm:grid-cols-2 lg:grid-cols-3">
+		{#each features as f}
+			<div class="bg-white p-6 transition hover:bg-neutral-50">
+				<f.icon size={22} class="text-indigo-600" />
+				<h3 class="mt-3 font-semibold">{f.title}</h3>
+				<p class="mt-1 text-sm leading-relaxed text-neutral-600">{f.description}</p>
+			</div>
+		{/each}
 	</div>
 </section>
 
-<section class="px-4">
-	<div class="my-12 flex flex-col items-center bg-indigo-600 p-12 text-center">
-		<div class="p-4 text-3xl font-bold text-white">
-			Want to generate your own Anki xiehanzi decks?
-		</div>
+<!-- create banner -->
+<section class="mx-auto max-w-6xl px-5 pb-16">
+	<div class="flex flex-col items-center gap-4 rounded-2xl bg-neutral-900 px-6 py-12 text-center">
+		<h2 class="max-w-xl text-2xl font-bold tracking-tight text-white sm:text-3xl">
+			Generate your own Anki xiehanzi decks
+		</h2>
+		<p class="max-w-md text-neutral-400">
+			Paste words or text, pick fields and card layout, export an <code class="text-neutral-200">.apkg</code>.
+		</p>
 		<a
 			href="{base}/create"
-			class="m-2 rounded bg-white px-6 py-3 font-semibold text-indigo-600 hover:bg-gray-100"
-			>Create Now</a
+			class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-neutral-900 transition hover:bg-neutral-200"
 		>
+			Create now <ArrowRight size={16} />
+		</a>
 	</div>
 </section>
 
-<section class="py-8">
-	<div class="mb-8 text-center text-4xl font-bold">Ready to dive in?</div>
-	<div class="container mx-auto px-4">
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-3">
-			{#each cards as c}
-				<a
-					href={c.link}
-					class="group rounded border border-gray-200 p-4 transition hover:bg-indigo-600 hover:text-white"
-				>
-					<div class="mt-4 flex justify-center text-indigo-600 group-hover:text-white">
-						<c.icon size={36} />
-					</div>
-					<h3 class="mt-2 text-center text-xl font-semibold">{c.title}</h3>
-					<p class="mt-2 text-gray-600 group-hover:text-white">{c.description}</p>
-				</a>
-			{/each}
-		</div>
+<!-- get started cards -->
+<section class="mx-auto max-w-6xl px-5 pb-20">
+	<p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">Get started</p>
+	<div class="mt-6 grid gap-4 md:grid-cols-3">
+		{#each cards as c}
+			<a
+				href={c.link}
+				class="group rounded-xl border border-neutral-200 p-6 transition hover:-translate-y-0.5 hover:border-neutral-900 hover:shadow-[4px_4px_0_0_#111]"
+			>
+				<c.icon size={22} class="text-indigo-600" />
+				<h3 class="mt-3 flex items-center gap-1 font-semibold">
+					{c.title}
+					<ArrowRight size={15} class="opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
+				</h3>
+				<p class="mt-1 text-sm leading-relaxed text-neutral-600">{c.description}</p>
+			</a>
+		{/each}
 	</div>
 </section>

@@ -137,18 +137,12 @@
 		dragIndex = null;
 	}
 
-	// active card preview: ordered field ids selected on each side
-	const frontOnSide = $derived(
-		fields.filter((f) => tabContent[tabs[activeTab]]?.front.includes(`front${f}`))
+	// active card preview: ordered ids (fields + writing) selected on each side
+	const frontItems = $derived(
+		order.filter((o) => tabContent[tabs[activeTab]]?.front.includes(`front${o}`))
 	);
-	const backOnSide = $derived(
-		fields.filter((f) => tabContent[tabs[activeTab]]?.back.includes(`back${f}`))
-	);
-	const writingFront = $derived(
-		tabContent[tabs[activeTab]]?.front.includes(`front${WRITING}`) ?? false
-	);
-	const writingBack = $derived(
-		tabContent[tabs[activeTab]]?.back.includes(`back${WRITING}`) ?? false
+	const backItems = $derived(
+		order.filter((o) => tabContent[tabs[activeTab]]?.back.includes(`back${o}`))
 	);
 
 	const rowsPerPageOptions = [5, 10, 25, 50, 100, 500].map((n) => ({ value: n, name: String(n) }));
@@ -487,16 +481,14 @@
 						<div class="space-y-3">
 							<CardPreview
 								label="Front"
-								fieldsOnSide={frontOnSide}
-								hasWriting={writingFront}
+								items={frontItems}
 								colorize={!template.mono && template.colorHanzi}
 								font={template.font}
 								collapseDict={template.collapseDict}
 							/>
 							<CardPreview
 								label="Back"
-								fieldsOnSide={backOnSide}
-								hasWriting={writingBack}
+								items={backItems}
 								colorize={!template.mono && template.colorHanzi}
 								font={template.font}
 								collapseDict={template.collapseDict}

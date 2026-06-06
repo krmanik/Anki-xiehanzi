@@ -1,18 +1,23 @@
 <script lang="ts">
 	import { colorizeHanzi } from '$lib/tone';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
+	import Menu from '@lucide/svelte/icons/menu';
+	import PenLine from '@lucide/svelte/icons/pen-line';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
+
+	const WRITING = 'writingComponent';
 
 	let {
 		label,
-		fieldsOnSide,
-		hasWriting = false,
+		items,
 		colorize = true,
 		font = 'default',
 		collapseDict = false
 	}: {
 		label: string;
-		fieldsOnSide: string[]; // ordered field ids shown on this side
-		hasWriting?: boolean;
+		items: string[]; // ordered ids on this side (field ids or 'writingComponent')
 		colorize?: boolean;
 		font?: string;
 		collapseDict?: boolean;
@@ -38,8 +43,7 @@
 
 	const simp = $derived(colorizeHanzi(ex.Simplified, ex.syllable));
 	const trad = $derived(colorizeHanzi(ex.Traditional, ex.syllable));
-	const has = (f: string) => fieldsOnSide.includes(f);
-	const empty = $derived(fieldsOnSide.length === 0 && !hasWriting);
+	const hasWriting = $derived(items.includes(WRITING));
 
 	let writerEl: HTMLDivElement | undefined = $state();
 	$effect(() => {
@@ -73,48 +77,51 @@
 		{label}
 	</div>
 	<div class="flex min-h-[150px] flex-col items-center justify-center gap-2 p-6 text-center">
-		{#if empty}
+		{#if items.length === 0}
 			<span class="text-sm text-neutral-300">Nothing selected</span>
 		{/if}
 
-		{#if has('Simplified')}
-			<div class="text-4xl font-semibold leading-none" style:font-family={hanziFont || null}>
-				{#each simp as c}<span class={colorize ? `tone${c.tone}` : ''}>{c.ch}</span>{/each}
-			</div>
-		{/if}
-		{#if has('Traditional')}
-			<div class="text-2xl leading-none text-neutral-700" style:font-family={hanziFont || null}>
-				<span class="text-neutral-300">〔</span>{#each trad as c}<span
-						class={colorize ? `tone${c.tone}` : ''}>{c.ch}</span
-					>{/each}<span class="text-neutral-300">〕</span>
-			</div>
-		{/if}
-		{#if hasWriting}
-			<div bind:this={writerEl} class="h-20 w-20"></div>
-		{/if}
-		{#if has('Pinyin')}
-			<div class="text-lg text-neutral-600">{ex.pinyin}</div>
-		{/if}
-		{#if has('Zhuyin')}
-			<div class="text-base text-neutral-500">{ex.zhuyin}</div>
-		{/if}
-		{#if has('SimpleMeaning')}
-			<div class="text-[15px] font-semibold text-neutral-800">{ex.simple}</div>
-		{/if}
-		{#if has('Definitions')}
-			{#if collapseDict}
-				<details class="text-sm text-neutral-700">
-					<summary class="cursor-pointer text-xs text-neutral-400">Dictionary</summary>
-					{ex.definition}
-				</details>
-			{:else}
-				<div class="text-sm text-neutral-700">{ex.definition}</div>
+		{#each items as item (item)}
+			{#if item === 'Simplified'}
+				<div class="text-4xl font-semibold leading-none" style:font-family={hanziFont || null}>
+					{#each simp as c}<span class={colorize ? `tone${c.tone}` : ''}>{c.ch}</span>{/each}
+				</div>
+			{:else if item === 'Traditional'}
+				<div class="text-2xl leading-none text-neutral-700" style:font-family={hanziFont || null}>
+					<span class="text-neutral-300">〔</span>{#each trad as c}<span
+							class={colorize ? `tone${c.tone}` : ''}>{c.ch}</span
+						>{/each}<span class="text-neutral-300">〕</span>
+				</div>
+			{:else if item === WRITING}
+				<div bind:this={writerEl} class="h-24 w-24"></div>
+				<div class="mt-1 flex items-center justify-center gap-1.5 text-white">
+					{#each [Menu, PenLine, RotateCcw, ChevronRight, EllipsisVertical] as Icon}
+						<span class="flex h-6 w-6 items-center justify-center rounded bg-[#5b6a9e]">
+							<Icon size={13} />
+						</span>
+					{/each}
+				</div>
+				<hr class="my-1 w-full border-neutral-200" />
+			{:else if item === 'Pinyin'}
+				<div class="text-lg text-neutral-600">{ex.pinyin}</div>
+			{:else if item === 'Zhuyin'}
+				<div class="text-base text-neutral-500">{ex.zhuyin}</div>
+			{:else if item === 'SimpleMeaning'}
+				<div class="text-[15px] font-semibold text-neutral-800">{ex.simple}</div>
+			{:else if item === 'Definitions'}
+				{#if collapseDict}
+					<details class="text-sm text-neutral-700">
+						<summary class="cursor-pointer text-xs text-neutral-400">Dictionary</summary>
+						{ex.definition}
+					</details>
+				{:else}
+					<div class="text-sm text-neutral-700">{ex.definition}</div>
+				{/if}
+			{:else if item === 'Audio'}
+				<div class="mt-1 inline-flex items-center gap-1 text-neutral-400">
+					<Volume2 size={16} /> <span class="text-xs">audio</span>
+				</div>
 			{/if}
-		{/if}
-		{#if has('Audio')}
-			<div class="mt-1 inline-flex items-center gap-1 text-neutral-400">
-				<Volume2 size={16} /> <span class="text-xs">audio</span>
-			</div>
-		{/if}
+		{/each}
 	</div>
 </div>

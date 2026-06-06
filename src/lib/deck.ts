@@ -350,7 +350,6 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 		let hidePin = true;
 		let hideZhu = true;
 		let hideDef = true;
-		let hideSimpleMeaning = true;
 
 		const addToFront: string[] = [];
 
@@ -359,26 +358,20 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 			if (front.includes('Traditional')) hideTrad = false;
 			if (front.includes('Pinyin')) hidePin = false;
 			if (front.includes('Zhuyin')) hideZhu = false;
-			if (front.includes('SimpleMeaning')) hideSimpleMeaning = false;
-			else if (front.includes('Definitions')) hideDef = false;
+			if (front.includes('Definitions') && !front.includes('SimpleMeaning')) hideDef = false;
 		}
 
-		// TODO-remove redundant code, used for creating in order
-		if (!hideSimp) {
-			addToFront.push(`<div id="char_sim" class="char-card">{{Simplified}}</div>`);
-		}
-		if (!hideTrad) {
-			addToFront.push(`<div id="char_trad" class="char-card">{{Traditional}}</div>`);
-		}
-		if (!hidePin) {
-			addToFront.push(`<div id="char_pinyin">{{Pinyin}}</div>`);
-		}
-		if (!hideZhu) {
-			addToFront.push(`<div id="char_zhuyin">{{Zhuyin}}</div>`);
-		}
-		// Simple meaning sits above the dictionary definitions.
-		if (!hideSimpleMeaning) {
-			addToFront.push(`<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>`);
+		// Build the front in the user's field order.
+		const frontDivs: Record<string, string> = {
+			Simplified: `<div id="char_sim" class="char-card">{{Simplified}}</div>`,
+			Traditional: `<div id="char_trad" class="char-card">{{Traditional}}</div>`,
+			Pinyin: `<div id="char_pinyin">{{Pinyin}}</div>`,
+			Zhuyin: `<div id="char_zhuyin">{{Zhuyin}}</div>`,
+			SimpleMeaning: `<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>`
+		};
+		for (const f of fields) {
+			if (!tabContent[card]['front'].includes(`front${f}`)) continue;
+			if (frontDivs[f]) addToFront.push(frontDivs[f]);
 		}
 
 		const hides: string[] = [];
@@ -450,6 +443,20 @@ for (var _hide of hideList) {
 
 		const backSel = tabContent[card]['back'];
 
+		// Reorder the back's top fields to match the user's field order.
+		const backTop: Record<string, string> = {
+			Zhuyin: `<div id="char_zhuyin">{{Zhuyin}}</div>`,
+			Pinyin: `<div id="char_pinyin">{{Pinyin}}</div>`,
+			Simplified: `<div id="char_sim" class="char-card">{{Simplified}}</div>`,
+			Traditional: `<div id="char_trad" class="char-card">{{Traditional}}</div>`
+		};
+		const origTop = `${backTop.Zhuyin}\n${backTop.Pinyin}\n${backTop.Simplified}\n${backTop.Traditional}`;
+		const orderedTop = fields
+			.filter((f) => backTop[f])
+			.map((f) => backTop[f])
+			.join('\n');
+		if (orderedTop) AFMT = AFMT.replace(origTop, orderedTop);
+
 		// Inject the simple-meaning div (above the dictionary block) when selected.
 		const dictDiv = `<div id="char_meaning" class="meaning-card">{{Definitions}}</div>`;
 		if (backSel.includes('backSimpleMeaning')) {
@@ -492,6 +499,20 @@ for (var _hide of hideList) {
         <div class="icon"><i class="material-icons">play_arrow</i></div>
     </a>`,
 					''
+				);
+			}
+			// Simple meaning sits below the writer controls and above the dictionary.
+			const dictDivW = `<div id="char_meaning" class="meaning-card">{{Definitions}}</div>`;
+			if (flds.some((x) => x.name === 'SimpleMeaning')) {
+				writerTpl = writerTpl.replace(
+					dictDivW,
+					`<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>\n${dictDivW}`
+				);
+			}
+			if (template.collapseDict) {
+				writerTpl = writerTpl.replace(
+					dictDivW,
+					`<details class="dict-details"><summary>Dictionary</summary>${dictDivW}</details>`
 				);
 			}
 			if (writingFront) QFMT = writerTpl;

@@ -29,6 +29,7 @@
 	} from '$lib/deck';
 
 	import CONSTANTS from '$lib/dict/contants';
+	import { posDisplay } from '$lib/dict/cedict';
 	import {
 		cutParagraph,
 		generateDeck,
@@ -89,10 +90,11 @@
 	let wordValue = $state('');
 	let selectType = $state('Word');
 	let texAreaValue = $state('');
-	let db = $state<any>(null);
 	let progressbarValue = $state(0);
 	let hskWordsDict = $state<Set<string>>(new Set());
 	let fileStatus = $state('');
+	let fileProgress = $state(0);
+	let fileProcessing = $state(false);
 
 	let activeTab = $state(0);
 	let tabs = $state<string[]>(['Card 1']);
@@ -112,6 +114,14 @@
 		{ value: 'Paragraph', name: 'Paragraph' },
 		{ value: 'File', name: 'File' }
 	];
+
+	// Button styles matching the site's black/neutral design system.
+	const btnPrimary =
+		'rounded-lg bg-neutral-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40';
+	const btnSecondary =
+		'rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition hover:border-neutral-900 hover:text-neutral-900 disabled:opacity-40';
+	const btnDanger =
+		'rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100 disabled:opacity-40';
 
 	const fieldLabels: Record<string, string> = Object.fromEntries(
 		[
@@ -220,8 +230,6 @@
 
 		loadDict();
 		initJieba();
-		db = await setupSql();
-		console.log('SQL DB loaded...');
 		hskWordsDict = await loadHskWordsDict();
 	});
 
@@ -269,16 +277,21 @@
 
 	async function generateWords(file: File) {
 		fileStatus = 'Processing...';
+		fileProcessing = true;
+		fileProgress = 0;
 		const text = await file.text();
-		const lines = text.split('\n');
+		const lines = text.split('\n').filter((l) => l.trim());
 		const added: Word[] = [];
-		for (const line of lines) {
-			if (!line.trim()) continue;
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i];
+			fileProgress = Math.round(((i + 1) / lines.length) * 100);
 			if (words.some((w) => w.Simplified === line.trim())) continue;
 			if (added.some((w) => w.Simplified === line.trim())) continue;
 			added.push(await lookupWord(line));
 		}
 		words = [...words, ...added];
+		fileProgress = 100;
+		fileProcessing = false;
 		fileStatus = 'Completed';
 	}
 
@@ -326,11 +339,18 @@
 		selected = new Set();
 	}
 
+	// Cell value for a CSV column. PartOfSpeech lives on `word.pos` (an array of
+	// codes), not a direct field — map it to display labels so it isn't blank.
+	function csvCell(w: Word, col: string): string {
+		if (col === FIELDS.PART_OF_SPEECH) return w.pos.map((p) => posDisplay(p)).join('; ');
+		return (w as any)[col] ?? '';
+	}
+
 	function exportCSV() {
 		const cols = fields.filter((f) => f !== FIELDS.AUDIO);
 		const escape = (v: string) => `"${(v ?? '').replace(/"/g, '""')}"`;
 		const header = cols.map(escape).join(',');
-		const rows = words.map((w) => cols.map((c) => escape((w as any)[c])).join(','));
+		const rows = words.map((w) => cols.map((c) => escape(csvCell(w, c))).join(','));
 		const csv = [header, ...rows].join('\n');
 		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
 		const url = URL.createObjectURL(blob);
@@ -341,18 +361,29 @@
 		URL.revokeObjectURL(url);
 	}
 
+	let isGenerating = $state(false);
 	async function doGenerateDeck() {
-		await generateDeck({
-			words,
-			deckName,
-			includeAudio,
-			fields,
-			tabContent,
-			hskWordsDict,
-			db,
-			template,
-			onProgress: (v) => (progressbarValue = v)
-		});
+		if (isGenerating || words.length === 0) return;
+		isGenerating = true;
+		try {
+			// Fresh SQLite db per export — genanki runs CREATE TABLE without
+			// IF NOT EXISTS, so reusing a db throws "table col already exists" on
+			// the second click.
+			const exportDb = await setupSql();
+			await generateDeck({
+				words,
+				deckName,
+				includeAudio,
+				fields,
+				tabContent,
+				hskWordsDict,
+				db: exportDb,
+				template,
+				onProgress: (v) => (progressbarValue = v)
+			});
+		} finally {
+			isGenerating = false;
+		}
 	}
 
 	// derived view
@@ -395,16 +426,7 @@
 				{/if}
 			</div>
 
-			<div class="mt-6 flex items-center gap-3">
-				<h2 class="text-xl font-semibold">Card Template</h2>
-				<button
-					onclick={() => (showCustomizer = true)}
-					class="ml-auto flex items-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-1.5 text-sm text-neutral-600 transition hover:border-neutral-900 hover:text-neutral-900"
-				>
-					<Settings2 size={14} />
-					Advanced customisation
-				</button>
-			</div>
+			<h2 class="mt-6 text-xl font-semibold">Card Template</h2>
 			<div class="flex flex-wrap items-center gap-x-6 gap-y-3">
 				<div class="inline-flex overflow-hidden rounded-lg border border-neutral-300">
 					<button
@@ -459,7 +481,16 @@
 				</label>
 			</div>
 
-			<h2 class="mt-6 text-xl font-semibold">Create Card Types</h2>
+			<div class="mt-6 flex items-center gap-3">
+				<h2 class="text-xl font-semibold">Create Card Types</h2>
+				<button
+					onclick={() => (showCustomizer = true)}
+					class="ml-auto flex items-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-1.5 text-sm text-neutral-600 transition hover:border-neutral-900 hover:text-neutral-900"
+				>
+					<Settings2 size={14} />
+					Advanced customisation
+				</button>
+			</div>
 			<p class="mb-2 text-sm text-neutral-500">
 				Each card type is one Anki template. Drag to set field order, then choose which fields show
 				on the front and back. The preview updates live.
@@ -602,16 +633,26 @@
 						bind:value={wordValue}
 						onkeydown={(e) => e.key === 'Enter' && searchAndAdd(wordValue)}
 					/>
-					<Button onclick={() => searchAndAdd(wordValue)}>Add</Button>
+					<button class={btnPrimary} onclick={() => searchAndAdd(wordValue)}>Add</button>
 				</div>
 			{/if}
 
 			{#if selectType === 'File'}
 				<div class="my-4">
 					<Fileupload accept="text/*" onchange={handleFileChange} />
-					<p class="mt-1 text-sm text-neutral-500">
-						{fileStatus || 'Upload a text file with one word per line.'}
-					</p>
+					{#if fileProcessing || fileProgress > 0}
+						<div class="mt-3">
+							<div class="mb-1 flex justify-between text-xs text-neutral-500">
+								<span>{fileProcessing ? 'Processing…' : 'Completed'}</span>
+								<span>{fileProgress}%</span>
+							</div>
+							<Progressbar progress={fileProgress} />
+						</div>
+					{:else}
+						<p class="mt-1 text-sm text-neutral-500">
+							{fileStatus || 'Upload a text file with one word per line.'}
+						</p>
+					{/if}
 				</div>
 			{/if}
 
@@ -624,9 +665,9 @@
 						bind:value={texAreaValue}
 					/>
 					<div class="mt-2">
-						<Button onclick={generateFromParagraph} disabled={!texAreaValue.trim()}>
+						<button class={btnPrimary} onclick={generateFromParagraph} disabled={!texAreaValue.trim()}>
 							Generate words
-						</Button>
+						</button>
 					</div>
 				</div>
 			{/if}
@@ -642,12 +683,14 @@
 
 			<div class="my-4 flex flex-wrap items-center justify-between gap-2">
 				<div class="flex gap-2">
-					<Button color="red" onclick={deleteSelectedWord}>Delete</Button>
-					<Button color="alternative" onclick={cancelSelection}>Cancel</Button>
+					<button class={btnDanger} onclick={deleteSelectedWord}>Delete</button>
+					<button class={btnSecondary} onclick={cancelSelection}>Cancel</button>
 				</div>
 				<div class="flex gap-2">
-					<Button color="alternative" onclick={exportCSV}>Export CSV</Button>
-					<Button onclick={doGenerateDeck}>Generate Deck</Button>
+					<button class={btnSecondary} onclick={exportCSV} disabled={words.length === 0}>Export CSV</button>
+					<button class={btnPrimary} onclick={doGenerateDeck} disabled={words.length === 0 || isGenerating}>
+						{isGenerating ? 'Generating…' : 'Generate Deck'}
+					</button>
 				</div>
 			</div>
 
@@ -704,6 +747,10 @@
 		<CardCustomizer
 			bind:template
 			bind:elementStyles={tabContent[tabs[activeTab]].elementStyles}
+			bind:front={tabContent[tabs[activeTab]].front}
+			bind:back={tabContent[tabs[activeTab]].back}
+			{order}
+			{fieldLabels}
 			frontItems={frontItems}
 			backItems={backItems}
 			cardName={tabs[activeTab]}

@@ -143,7 +143,14 @@ export function elementStyleToCSS(style: ElementStyle, fontStacks: Record<string
 	}
 	if (style.fontWeight) r.push(`font-weight:${style.fontWeight} !important`);
 	if (style.color) r.push(`color:${style.color} !important`);
-	if (style.textAlign) r.push(`text-align:${style.textAlign} !important`);
+	if (style.textAlign) {
+		// Position the block within the card window (card body is a flex column),
+		// and align its inner text the same way.
+		const as =
+			style.textAlign === 'left' ? 'flex-start' : style.textAlign === 'right' ? 'flex-end' : 'center';
+		r.push(`text-align:${style.textAlign} !important`);
+		r.push(`align-self:${as} !important`);
+	}
 	if (style.marginTop) r.push(`margin-top:${style.marginTop} !important`);
 	if (style.marginBottom) r.push(`margin-bottom:${style.marginBottom} !important`);
 	if (style.backgroundColor) r.push(`background-color:${style.backgroundColor} !important`);
@@ -169,9 +176,9 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		'.meaning-arrow{transition:transform 0.2s ease;display:inline-block;}\n' +
 		'.meaning-bar.collapsed .meaning-arrow{transform:rotate(-90deg);}\n' +
 		'.meaning-content{padding:10px;}\n' +
-		'.pos-row{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:6px 0;}\n' +
+		'.pos-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0;}\n' +
 		'.pos-row:empty{display:none;}\n' +
-		'.pos-chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid #ccc;color:#666;}\n' +
+		'.pos-chip{font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid #ccc;color:#666;}\n' +
 		'.pos-chip.pos-dominant{background:#111;color:#fff;border-color:#111;}\n';
 
 	const globalStack = FONT_STACKS[t.font];

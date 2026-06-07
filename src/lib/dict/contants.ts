@@ -1451,7 +1451,8 @@ input[type="number"] {
 hr {
   border: 0;
   height: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  width: 100%;
+  border-bottom: 1px solid var(--surface4);
 }
 
 #character-target-div {
@@ -1519,27 +1520,27 @@ hr {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  margin-top: 6px;
-  font-size: 0.82em;
+  gap: 6px;
+  margin-top: 10px;
 }
 
 .cl-label {
   font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--text2, #888);
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: var(--surface3, #eee);
-  font-size: 0.75em;
+  font-size: 0.62em;
 }
 
 .cl-chip {
   display: inline-flex;
   align-items: baseline;
-  padding: 2px 6px;
-  border-radius: 4px;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
   border: 1px solid var(--surface4, #ddd);
-  background: var(--surface2, #f5f5f5);
+  background: var(--surface3, #f5f5f5);
+  font-size: 0.85em;
 }
 
 .cl-simp {
@@ -1548,9 +1549,9 @@ hr {
 }
 
 .cl-pin {
-  font-size: 0.75em;
+  font-size: 0.7em;
   color: var(--text2, #999);
-  margin-left: 3px;
+  letter-spacing: 0.02em;
 }
 `;
 

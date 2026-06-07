@@ -82,7 +82,11 @@
 			r.push(`font-family:${fontStacks[s.fontFamily] ?? s.fontFamily}`);
 		if (s.fontWeight)      r.push(`font-weight:${s.fontWeight}`);
 		if (s.color)           r.push(`color:${s.color}`);
-		if (s.textAlign)       r.push(`text-align:${s.textAlign}`);
+		if (s.textAlign) {
+			const as = s.textAlign === 'left' ? 'flex-start' : s.textAlign === 'right' ? 'flex-end' : 'center';
+			r.push(`text-align:${s.textAlign}`);
+			r.push(`align-self:${as}`);
+		}
 		if (s.marginTop)       r.push(`margin-top:${s.marginTop}`);
 		if (s.marginBottom)    r.push(`margin-bottom:${s.marginBottom}`);
 		if (s.backgroundColor) r.push(`background-color:${s.backgroundColor}`);
@@ -186,7 +190,7 @@
 				onclick={(e) => select('hr', e)}
 				onkeydown={onkey('hr')}
 			>
-				<hr class="border-neutral-200" style={elStyle('hr')} />
+				<hr class="w-full border-t border-neutral-300" style={elStyle('hr')} />
 				{#if interactive && selectedElement === 'hr'}<div class="mt-0.5 text-center font-mono text-[9px] text-blue-500">separator</div>{/if}
 			</div>
 		{/if}

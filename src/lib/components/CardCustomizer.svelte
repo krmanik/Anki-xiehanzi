@@ -26,6 +26,10 @@
 		elementStyles = $bindable<CardElementStyles>(),
 		frontItems,
 		backItems,
+		order = [],
+		front = $bindable<string[]>([]),
+		back = $bindable<string[]>([]),
+		fieldLabels = {},
 		cardName = '',
 		onclose
 	}: {
@@ -33,9 +37,24 @@
 		elementStyles: CardElementStyles;
 		frontItems: string[];
 		backItems: string[];
+		order?: string[];
+		front?: string[];
+		back?: string[];
+		fieldLabels?: Record<string, string>;
 		cardName?: string;
 		onclose?: () => void;
 	} = $props();
+
+	// Toggle a field on the front/back directly from the customiser, so the user
+	// can change which fields show without closing the dialog.
+	function toggleField(item: string, side: 'front' | 'back') {
+		const id = `${side}${item}`;
+		if (side === 'front') {
+			front = front.includes(id) ? front.filter((f) => f !== id) : [...front, id];
+		} else {
+			back = back.includes(id) ? back.filter((f) => f !== id) : [...back, id];
+		}
+	}
 
 	// Work on local copies; Cancel discards, Save commits. `localT` holds the
 	// deck-wide tone/font options, `localES` the per-card-type element styles.
@@ -43,6 +62,7 @@
 	let localES = $state<CardElementStyles>(JSON.parse(JSON.stringify(elementStyles ?? {})));
 	let mobilePreview = $state(false);
 	let selectedElement = $state<CardElementId | null>(null);
+	let fieldsCollapsed = $state(false);
 
 	// ── Element metadata ─────────────────────────────────────────────────────
 
@@ -238,10 +258,10 @@
 		</div>
 
 		<!-- Body -->
-		<div class="flex min-h-0 flex-1 overflow-hidden">
+		<div class="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
 
 			<!-- ── Left: element list + properties ─────────────── -->
-			<div class="flex w-64 shrink-0 flex-col overflow-hidden border-r border-neutral-200 xl:w-72">
+			<div class="flex max-h-[45vh] w-full min-h-0 shrink-0 flex-col overflow-y-auto border-b border-neutral-200 md:max-h-none md:w-64 md:overflow-y-auto md:border-b-0 md:border-r xl:w-72">
 
 				<!-- Global tone settings -->
 				<div class="border-b border-neutral-100 p-3">
@@ -279,8 +299,50 @@
 					</div>
 				</div>
 
+				<!-- Fields on front / back (so the user needn't close the dialog) -->
+				{#if order.length}
+					<div class="border-b border-neutral-100 p-3">
+						<button
+							class="mb-2 flex w-full items-center gap-1.5 text-left"
+							onclick={() => (fieldsCollapsed = !fieldsCollapsed)}
+							aria-expanded={!fieldsCollapsed}
+						>
+							<ChevronDown size={12} class="text-neutral-400 transition {fieldsCollapsed ? '-rotate-90' : ''}" />
+							<span class="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">Fields — front / back</span>
+						</button>
+						{#if !fieldsCollapsed}
+							<div class="rounded-lg border border-neutral-200">
+								<div class="grid grid-cols-[1fr_2rem_2rem] items-center gap-1 border-b border-neutral-100 px-2 py-1.5">
+									<span class="font-mono text-[9px] uppercase tracking-wider text-neutral-400">Field</span>
+									<span class="text-center font-mono text-[9px] uppercase tracking-wider text-neutral-400">F</span>
+									<span class="text-center font-mono text-[9px] uppercase tracking-wider text-neutral-400">B</span>
+								</div>
+								{#each order as item, i (item)}
+									<div class="grid grid-cols-[1fr_2rem_2rem] items-center gap-1 px-2 py-1.5 text-xs {i > 0 ? 'border-t border-neutral-50' : ''}">
+										<span class="truncate text-neutral-600">{fieldLabels[item] ?? item}</span>
+										<input
+											type="checkbox"
+											class="mx-auto h-3.5 w-3.5 accent-neutral-900"
+											checked={front.includes(`front${item}`)}
+											onchange={() => toggleField(item, 'front')}
+											aria-label={`${fieldLabels[item] ?? item} front`}
+										/>
+										<input
+											type="checkbox"
+											class="mx-auto h-3.5 w-3.5 accent-neutral-900"
+											checked={back.includes(`back${item}`)}
+											onchange={() => toggleField(item, 'back')}
+											aria-label={`${fieldLabels[item] ?? item} back`}
+										/>
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				{/if}
+
 				<!-- Properties panel for selected element -->
-				<div class="flex-1 overflow-y-auto p-3">
+				<div class="p-3">
 					{#if !selectedElement}
 						<p class="mt-4 text-center text-xs text-neutral-300">Click an element chip above or click directly in the card preview to select it.</p>
 					{:else}
@@ -429,15 +491,6 @@
 									</div>
 								</div>
 								<div>
-									<p class="mb-1 text-xs font-medium">Alignment</p>
-									<div class="inline-flex w-full overflow-hidden rounded-lg border border-neutral-200">
-										{#each [{ v: 'left', I: AlignLeft }, { v: 'center', I: AlignCenter }, { v: 'right', I: AlignRight }] as o (o.v)}
-											<button class="flex flex-1 items-center justify-center py-1.5 transition {selStyle.textAlign === o.v ? 'bg-neutral-900 text-white' : 'text-neutral-400 hover:bg-neutral-50'}"
-												onclick={() => setStyle({ textAlign: o.v as 'left'|'center'|'right' })}><o.I size={14} /></button>
-										{/each}
-									</div>
-								</div>
-								<div>
 									<p class="mb-1 text-xs font-medium">Line height</p>
 									<input type="text" placeholder="e.g. 1.5" value={selStyle.lineHeight ?? ''}
 										oninput={(e) => { const v = (e.target as HTMLInputElement).value; v ? setStyle({ lineHeight: v }) : clearStyle('lineHeight'); }}
@@ -512,6 +565,19 @@
 									<input type="text" placeholder="e.g. 0.875em" value={selStyle.fontSize ?? ''}
 										oninput={(e) => { const v = (e.target as HTMLInputElement).value; v ? setStyle({ fontSize: v }) : clearStyle('fontSize'); }}
 										class="w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-xs" />
+								</div>
+							{/if}
+
+							<!-- Alignment — every non-card element; positions it within the card window -->
+							{#if selectedElement !== 'card'}
+								<div>
+									<p class="mb-1 text-xs font-medium">Alignment (in card)</p>
+									<div class="inline-flex w-full overflow-hidden rounded-lg border border-neutral-200">
+										{#each [{ v: 'left', I: AlignLeft }, { v: 'center', I: AlignCenter }, { v: 'right', I: AlignRight }] as o (o.v)}
+											<button class="flex flex-1 items-center justify-center py-1.5 transition {selStyle.textAlign === o.v ? 'bg-neutral-900 text-white' : 'text-neutral-400 hover:bg-neutral-50'}"
+												onclick={() => setStyle({ textAlign: o.v as 'left'|'center'|'right' })} aria-label={`align ${o.v}`}><o.I size={14} /></button>
+										{/each}
+									</div>
 								</div>
 							{/if}
 

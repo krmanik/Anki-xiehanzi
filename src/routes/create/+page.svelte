@@ -14,6 +14,8 @@
 	import GripVertical from '@lucide/svelte/icons/grip-vertical';
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import WordCard from '$lib/components/WordCard.svelte';
 	import CardPreview from '$lib/components/CardPreview.svelte';
 
@@ -378,7 +380,7 @@
 					Hanzi font
 					<select
 						bind:value={template.font}
-						class="rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+						class="min-w-[10rem] rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
 					>
 						<option value="default">Default (sans)</option>
 						<option value="kaiti">Kaiti 楷体</option>
@@ -625,20 +627,32 @@
 		</div>
 	{/if}
 
-	<nav class="mt-8 flex justify-between">
+	<nav class="mt-10 flex items-center justify-between gap-4 border-t border-neutral-200 pt-6">
 		{#if page > 1}
-			<button class="text-left" onclick={() => (page = page - 1)}>
-				<div class="text-sm text-gray-500">Previous</div>
-				<div class="font-semibold">{prevNextButtonText[page - 1]}</div>
+			<button
+				class="group flex items-center gap-3 rounded-lg border border-neutral-200 px-4 py-3 transition hover:border-neutral-900 hover:shadow-[4px_4px_0_0_#111]"
+				onclick={() => (page = page - 1)}
+			>
+				<ArrowLeft size={16} class="shrink-0 text-neutral-400 transition group-hover:text-neutral-900" />
+				<div class="text-left">
+					<div class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">Previous</div>
+					<div class="font-semibold text-neutral-900">{prevNextButtonText[page - 1]}</div>
+				</div>
 			</button>
 		{:else}
 			<div></div>
 		{/if}
 
 		{#if page < 2}
-			<button class="text-right" onclick={() => (page = page + 1)}>
-				<div class="text-sm text-gray-500">Next</div>
-				<div class="font-semibold">{prevNextButtonText[page + 1]}</div>
+			<button
+				class="group flex items-center gap-3 rounded-lg border border-neutral-200 px-4 py-3 transition hover:border-neutral-900 hover:shadow-[4px_4px_0_0_#111]"
+				onclick={() => (page = page + 1)}
+			>
+				<div class="text-right">
+					<div class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">Next</div>
+					<div class="font-semibold text-neutral-900">{prevNextButtonText[page + 1]}</div>
+				</div>
+				<ArrowRight size={16} class="shrink-0 text-neutral-400 transition group-hover:text-neutral-900" />
 			</button>
 		{:else}
 			<div></div>

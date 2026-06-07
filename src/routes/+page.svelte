@@ -43,7 +43,7 @@
 	const cards = [
 		{ title: 'Import', icon: Download, link: `${base}/decks`, description: 'Download ready-made HSK 3.0 decks for Anki.' },
 		{ title: 'Create', icon: SquarePen, link: `${base}/create`, description: 'Build custom xiehanzi decks from your own words.' },
-		{ title: 'Guide', icon: Book, link: `${base}/features`, description: 'See features and how to customize the decks.' }
+		{ title: 'Guide', icon: Book, link: `${base}/docs`, description: 'See features and how to customize the decks.' }
 	];
 </script>
 

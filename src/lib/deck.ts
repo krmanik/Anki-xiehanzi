@@ -297,26 +297,54 @@ function buildCssOverride(t: TemplateOpts): string {
 	// Base styles for the simple-meaning card and collapsible dictionary.
 	let css =
 		'\n/* template customization */\n' +
-		'.simple-card{font-weight:600;padding:10px;}\n' +
-		'.simple-card:empty{display:none;}\n' +
-		'.dict-details{text-align:left;margin:6px auto;max-width:90%;}\n' +
-		'.dict-details>summary{cursor:pointer;color:#888;font-size:0.85em;list-style:none;}\n' +
+		// Simple meaning + dictionary share one width (--card-w) and border style.
+		':root{--card-w:90%;}\n' +
+		'.simple-card{font-weight:600;padding:10px;margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;border:1px solid var(--surface4);border-radius:8px;}\n' +
+		'.simple-card:empty{display:none;border:0;}\n' +
+		'.meaning-card{margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;border:1px solid var(--surface4);border-radius:8px;padding:0;overflow:hidden;text-align:left;}\n' +
+		'.meaning-bar{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:6px 10px;font-size:0.8em;font-weight:600;color:var(--text2);background:var(--surface3);-webkit-user-select:none;user-select:none;}\n' +
+		'.meaning-arrow{transition:transform 0.2s ease;display:inline-block;}\n' +
+		'.meaning-bar.collapsed .meaning-arrow{transform:rotate(-90deg);}\n' +
+		'.meaning-content{padding:10px;}\n' +
 		'.pos-row{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:6px 0;}\n' +
 		'.pos-row:empty{display:none;}\n' +
 		'.pos-chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid #ccc;color:#666;}\n' +
 		'.pos-chip.pos-dominant{background:#111;color:#fff;border-color:#111;}\n';
-	if (t.mono || !t.colorHanzi) {
-		css += '.char-tone1,.char-tone2,.char-tone3,.char-tone4,.char-tone5{color:inherit !important;}\n';
-	}
-	if (t.mono || !t.colorPinyin) {
-		css += '.tone1,.tone2,.tone3,.tone4,.tone5{color:inherit !important;}\n';
-	}
+	// Tone colors are toggled at runtime via the sidebar (body.no-*-color classes);
+	// the export options only seed the initial state — see colorDefaultScript.
 	const stack = FONT_STACKS[t.font];
 	if (stack) {
 		css += `.char-card,.char,#char-sim-id,#char-trad-id{font-family:${stack} !important;}\n`;
 	}
 	return css;
 }
+
+async function buildHanziDataSubset(_words: Word[]): Promise<string> {
+	const res = await fetch(`${host}/data/hanzi-writer-data.json`);
+	return res.text();
+}
+
+// Display-field markup, shared by front and back so both honor the user's order.
+const FIELD_DIV: Record<string, string> = {
+	Simplified: `<div id="char_sim" class="char-card">{{Simplified}}</div>`,
+	Traditional: `<div id="char_trad" class="char-card">{{Traditional}}</div>`,
+	Pinyin: `<div id="char_pinyin">{{Pinyin}}</div>`,
+	Zhuyin: `<div id="char_zhuyin">{{Zhuyin}}</div>`,
+	PartOfSpeech: `<div id="char_pos" class="pos-row">{{PartOfSpeech}}</div>`,
+	SimpleMeaning: `<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>`,
+	Definitions: CONSTANTS.MEANING_CARD
+};
+
+// Toggle id (sidebar checkbox) for each display field, used to seed default-off.
+const FIELD_TOGGLE: Record<string, string> = {
+	Simplified: 'text-sim',
+	Traditional: 'text-trad',
+	Pinyin: 'text-pinyin',
+	Zhuyin: 'text-zhuyin',
+	PartOfSpeech: 'text-pos',
+	SimpleMeaning: 'text-simple',
+	Definitions: 'text-meaning'
+};
 
 export interface GenerateDeckOptions {
 	words: Word[];
@@ -337,6 +365,16 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 
 	onProgress(0);
 
+	// Seed runtime defaults from the export options. Runs before each template's
+	// init (prepended) so it sets the initial body classes + collapse default; the
+	// user can override later via the sidebar / toolbar (stored in Persistence).
+	const noHanziColor = template.mono || !template.colorHanzi;
+	const noPinyinColor = template.mono || !template.colorPinyin;
+	const colorDefaultScript =
+		`<script>(function(){var b=document.body;${noHanziColor ? 'b.classList.add("no-hanzi-color");' : ''}${
+			noPinyinColor ? 'b.classList.add("no-pinyin-color");' : ''
+		}window.MEANING_COLLAPSE_DEFAULT=${template.collapseDict ? 'true' : 'false'};})();</script>\n`;
+
 	const flds: { name: string }[] = [];
 	const req: any[] = [];
 	const tmpls: { name: string; qfmt: string; afmt: string }[] = [];
@@ -348,10 +386,13 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 		flds.push({ name: f });
 	});
 
+	let usesWriter = false;
 	let ri = 0;
 	for (const card in tabContent) {
 		req.push([ri, 'any', [ri]]);
 		ri++;
+
+		const frontSel = tabContent[card]['front'];
 
 		let hideSimp = true;
 		let hideTrad = true;
@@ -359,9 +400,7 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 		let hideZhu = true;
 		let hideDef = true;
 
-		const addToFront: string[] = [];
-
-		for (const front of tabContent[card]['front']) {
+		for (const front of frontSel) {
 			if (front.includes('Simplified')) hideSimp = false;
 			if (front.includes('Traditional')) hideTrad = false;
 			if (front.includes('Pinyin')) hidePin = false;
@@ -369,28 +408,21 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 			if (front.includes('Definitions') && !front.includes('SimpleMeaning')) hideDef = false;
 		}
 
-		// Build the front in the user's field order.
-		const frontDivs: Record<string, string> = {
-			Simplified: `<div id="char_sim" class="char-card">{{Simplified}}</div>`,
-			Traditional: `<div id="char_trad" class="char-card">{{Traditional}}</div>`,
-			Pinyin: `<div id="char_pinyin">{{Pinyin}}</div>`,
-			Zhuyin: `<div id="char_zhuyin">{{Zhuyin}}</div>`,
-			PartOfSpeech: `<div id="char_pos" class="pos-row">{{PartOfSpeech}}</div>`,
-			SimpleMeaning: `<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>`
-		};
+		// Build the front in the user's field order (Definitions included in place).
+		const addToFront: string[] = [];
 		for (const f of fields) {
-			if (!tabContent[card]['front'].includes(`front${f}`)) continue;
-			if (frontDivs[f]) addToFront.push(frontDivs[f]);
+			if (!frontSel.includes(`front${f}`)) continue;
+			if (FIELD_DIV[f]) addToFront.push(FIELD_DIV[f]);
 		}
 
+		// When Definitions is shown, hide the dictionary's internal sim/pinyin/etc
+		// for fields the user did not also select on the front.
 		const hides: string[] = [];
 		if (!hideDef) {
 			if (hideSimp) hides.push('char_sim');
 			if (hideTrad) hides.push('char_trad');
 			if (hidePin) hides.push('char_pinyin');
 			if (hideZhu) hides.push('char_zhuyin');
-
-			addToFront.push(`<div id="char_meaning" class="meaning-card">{{Definitions}}</div>`);
 		}
 
 		let hideScript = `
@@ -452,62 +484,25 @@ for (var _hide of hideList) {
 
 		const backSel = tabContent[card]['back'];
 
-		// Reorder the back's top fields to match the user's field order.
-		const backTop: Record<string, string> = {
-			Zhuyin: `<div id="char_zhuyin">{{Zhuyin}}</div>`,
-			Pinyin: `<div id="char_pinyin">{{Pinyin}}</div>`,
-			Simplified: `<div id="char_sim" class="char-card">{{Simplified}}</div>`,
-			Traditional: `<div id="char_trad" class="char-card">{{Traditional}}</div>`
-		};
-		const origTop = `${backTop.Zhuyin}\n${backTop.Pinyin}\n${backTop.Simplified}\n${backTop.Traditional}`;
-		const orderedTop = fields
-			.filter((f) => backTop[f])
-			.map((f) => backTop[f])
+		// Build the back's display fields in the user's field order; every field is
+		// present so the sidebar can toggle it, but fields not selected for the back
+		// start hidden (seeded into defaultOff, below).
+		const backFieldsHtml = fields
+			.filter((f) => FIELD_DIV[f])
+			.map((f) => FIELD_DIV[f])
 			.join('\n');
-		if (orderedTop) AFMT = AFMT.replace(origTop, orderedTop);
+		AFMT = AFMT.replace('<!--FIELDS-->', backFieldsHtml);
 
-		// Part-of-speech chips on the back (above the controls) when selected.
-		if (backSel.includes('backPartOfSpeech')) {
-			AFMT = AFMT.replace(
-				`<div class="modal-footer1">`,
-				`<div id="char_pos" class="pos-row">{{PartOfSpeech}}</div>\n<div class="modal-footer1">`
-			);
-		}
-
-		// Inject the simple-meaning div (above the dictionary block) when selected.
-		const dictDiv = `<div id="char_meaning" class="meaning-card">{{Definitions}}</div>`;
-		if (backSel.includes('backSimpleMeaning')) {
-			AFMT = AFMT.replace(
-				dictDiv,
-				`<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>\n${dictDiv}`
-			);
-		}
-
-		// Collapse the dictionary definitions inside a <details> when requested.
-		if (template.collapseDict) {
-			AFMT = AFMT.replace(
-				dictDiv,
-				`<details class="dict-details"><summary>Dictionary</summary>${dictDiv}</details>`
-			);
-		}
-
-		// Back-side show/hide: drop the div for any display field deselected for the
-		// back. Default keeps every field, so the output is unchanged unless edited.
-		const backFieldDivs: Record<string, string> = {
-			Simplified: `<div id="char_sim" class="char-card">{{Simplified}}</div>`,
-			Traditional: `<div id="char_trad" class="char-card">{{Traditional}}</div>`,
-			Pinyin: `<div id="char_pinyin">{{Pinyin}}</div>`,
-			Zhuyin: `<div id="char_zhuyin">{{Zhuyin}}</div>`,
-			Definitions: dictDiv
-		};
-		for (const [f, div] of Object.entries(backFieldDivs)) {
-			if (!backSel.includes(`back${f}`)) AFMT = AFMT.replace(div, '');
-		}
+		const defaultOff = fields
+			.filter((f) => FIELD_DIV[f] && !backSel.includes(`back${f}`))
+			.map((f) => FIELD_TOGGLE[f]);
+		AFMT = AFMT.replace('var defaultOff = [];', `var defaultOff = ${JSON.stringify(defaultOff)};`);
 
 		// Writing component: independent front and back placement.
 		const writingFront = tabContent[card]['front'].includes('frontwritingComponent');
 		const writingBack = tabContent[card]['back'].includes('backwritingComponent');
 		if (writingFront || writingBack) {
+			usesWriter = true;
 			let writerTpl = CONSTANTS.DECK_HTML_WITH_HANZI_WRITER;
 			if (!includeAudio) {
 				writerTpl = writerTpl.replace(`<div id='audio' style='display:none'>{{Audio}}</div>`, '');
@@ -519,17 +514,10 @@ for (var _hide of hideList) {
 				);
 			}
 			// Simple meaning sits below the writer controls and above the dictionary.
-			const dictDivW = `<div id="char_meaning" class="meaning-card">{{Definitions}}</div>`;
 			if (flds.some((x) => x.name === 'SimpleMeaning')) {
 				writerTpl = writerTpl.replace(
-					dictDivW,
-					`<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>\n${dictDivW}`
-				);
-			}
-			if (template.collapseDict) {
-				writerTpl = writerTpl.replace(
-					dictDivW,
-					`<details class="dict-details"><summary>Dictionary</summary>${dictDivW}</details>`
+					CONSTANTS.MEANING_CARD,
+					`<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>\n${CONSTANTS.MEANING_CARD}`
 				);
 			}
 			if (writingFront) QFMT = writerTpl;
@@ -551,8 +539,8 @@ for (var _hide of hideList) {
     }
 })();
 </script>`;
-		QFMT += dedupeScript;
-		AFMT += dedupeScript;
+		QFMT = colorDefaultScript + QFMT + dedupeScript;
+		AFMT = colorDefaultScript + AFMT + dedupeScript;
 
 		tmpls.push({
 			name: card,
@@ -662,6 +650,7 @@ for (var _hide of hideList) {
 	p.setSqlJs(db);
 	p.addDeck(d);
 
+	// Image/font media live in /img.
 	const mediaFiles = [
 		'_MaterialIcons-Regular.woff2',
 		'_characterpop.svg',
@@ -672,12 +661,25 @@ for (var _hide of hideList) {
 		'_tatoeba.png'
 	];
 
+	// Script media live in /data. Persistence ships with every deck; the writer
+	// engine + its stroke data only when a card uses the writing component.
+	const dataFiles = ['_anki-persistence.js'];
+	if (usesWriter) {
+		dataFiles.push('_hanzi-writer.min.js');
+		try {
+			const dataJson = await buildHanziDataSubset(words);
+			p.addMedia(dataJson, '_hanzi-writer-data.json');
+		} catch (error) {
+			console.error('Failed to build offline Hanzi Writer data:', error);
+		}
+	}
+
 	let progress = 0;
 	const wordFiles = words.map((word) => word.Simplified);
-	const total = mediaFiles.length + (includeAudio ? wordFiles.length : 0);
+	const total = mediaFiles.length + dataFiles.length + (includeAudio ? wordFiles.length : 0);
 
-	const fetchFile = async (file: string) => {
-		const response = await fetch(`${host}/img/${file}`);
+	const fetchFrom = (dir: string) => async (file: string) => {
+		const response = await fetch(`${host}/${dir}/${file}`);
 		if (!response.ok) {
 			return null;
 		}
@@ -685,6 +687,8 @@ for (var _hide of hideList) {
 		onProgress((progress / total) * 100);
 		return response.blob();
 	};
+	const fetchFile = fetchFrom('img');
+	const fetchDataFile = fetchFrom('data');
 
 	const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -755,12 +759,15 @@ for (var _hide of hideList) {
 		await processWordsSequentially(wordFiles);
 	}
 
-	// sidebar icons
-	return Promise.all(mediaFiles.map(fetchFile))
-		.then((blobs) => {
-			blobs.forEach((blob, index) => {
+	// sidebar icons (/img) + scripts (/data)
+	return Promise.all([
+		...mediaFiles.map((f) => fetchFile(f).then((blob) => ({ blob, name: f }))),
+		...dataFiles.map((f) => fetchDataFile(f).then((blob) => ({ blob, name: f })))
+	])
+		.then((items) => {
+			items.forEach(({ blob, name }) => {
 				if (blob) {
-					p.addMedia(blob, mediaFiles[index]);
+					p.addMedia(blob, name);
 				}
 			});
 		})

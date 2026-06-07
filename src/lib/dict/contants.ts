@@ -1,3 +1,14 @@
+/**
+ * Anki card templates (front / back / writing component) and shared CSS.
+ *
+ * Offline-first: no network CDNs. The persistence library, the Hanzi Writer
+ * library and the stroke-order data all ship inside the .apkg as media files
+ * (underscore-prefixed names so Anki keeps them and syncs them across devices):
+ *   _anki-persistence.js     review preferences (https://github.com/SimonLammer/anki-persistence)
+ *   _hanzi-writer.min.js     stroke animation/quiz engine
+ *   _hanzi-writer-data.json  { char: {strokes, medians} } subset for the deck's words
+ */
+
 const FIELDS = {
     SIMPLIFIED: 'Simplified',
     TRADITIONAL: 'Traditional',
@@ -9,220 +20,81 @@ const FIELDS = {
     AUDIO: 'Audio',
 };
 
-const DECK_HTML_FRONT =
-`
-<script>
-// v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/eeb2e1a9e37c941dd63e1fe6c2a257f043c40e0d/script.js
-if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/",t="_default";if(window.Persistence_localStorage=function(){var i=!1;try{null!==window.localStorage&&"object"==typeof window.localStorage&&(i=!0,this.clear=function(){for(var t=0;t<localStorage.length;t++){var i=localStorage.key(t);0==i.indexOf(e)&&(localStorage.removeItem(i),t--)}},this.setItem=function(i,n){void 0==n&&(n=i,i=t),localStorage.setItem(e+i,JSON.stringify(n))},this.getItem=function(i){return void 0==i&&(i=t),JSON.parse(localStorage.getItem(e+i))},this.removeItem=function(i){void 0==i&&(i=t),localStorage.removeItem(e+i)})}catch(n){}this.isAvailable=function(){return i}},window.Persistence_sessionStorage=function(){var i=!1;try{"object"==typeof window.sessionStorage&&(i=!0,this.clear=function(){for(var t=0;t<sessionStorage.length;t++){var i=sessionStorage.key(t);0==i.indexOf(e)&&(sessionStorage.removeItem(i),t--)}},this.setItem=function(i,n){void 0==n&&(n=i,i=t),sessionStorage.setItem(e+i,JSON.stringify(n))},this.getItem=function(i){return void 0==i&&(i=t),JSON.parse(sessionStorage.getItem(e+i))},this.removeItem=function(i){void 0==i&&(i=t),sessionStorage.removeItem(e+i)})}catch(n){}this.isAvailable=function(){return i}},window.Persistence_windowKey=function(i){var n=window[i],o=!1;"object"==typeof n&&(o=!0,this.clear=function(){n[e]={}},this.setItem=function(i,o){void 0==o&&(o=i,i=t),n[e][i]=o},this.getItem=function(i){return void 0==i&&(i=t),void 0==n[e][i]?null:n[e][i]},this.removeItem=function(i){void 0==i&&(i=t),delete n[e][i]},void 0==n[e]&&this.clear()),this.isAvailable=function(){return o}},window.Persistence=new Persistence_sessionStorage,navigator.userAgent.indexOf("Mobile")>0&&(window.Persistence=new Persistence_localStorage,Persistence.isAvailable()||(window.Persistence=new Persistence_sessionStorage)),Persistence.isAvailable()||(window.Persistence=new Persistence_windowKey("py")),!Persistence.isAvailable()){var i=window.location.toString().indexOf("title"),n=window.location.toString().indexOf("main",i);i>0&&n>0&&n-i<10&&(window.Persistence=new Persistence_windowKey("qt"))}}
-</script>
+// Persistence library, loaded from bundled media (works offline, one copy).
+const PERSISTENCE = `<script src="_anki-persistence.js"></script>`;
 
-<script>
-    var switchIdList = ["text-pinyin", "text-zhuyin", "text-meaning", "text-sim", "text-trad"];
-    function initSwitchPrefs() {
-        for (var _id of switchIdList) {
-            var divId = _id.replace("text-", "char_");
-            if (Persistence.getItem("back" + _id) == "false") {
-                document.getElementById(divId).style.display = "none";
-            }
-        }
-    }
-    
-    if (Persistence.isAvailable()) {
-        if (window.ankiPlatform == "desktop" || isInWebView()) {
-            initSwitchPrefs();
-        } else {
-            window.addEventListener("load", initSwitchPrefs, false);
-        }
-    }
-
-    function isInWebView() {
-        var UA = navigator.userAgent;
-        if (/iPhone|iPod|iPad/.test(UA)) {
-            if (/(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(UA)) {
-                return true;
-            }
-        }
-        if (window.location.href.includes("ankiuser.net")) {
-            return true;
-        }
-        return false;
-    }
-</script>
-`;
-
-const DECK_HTML_BACK =
-`<div id="char_zhuyin">{{Zhuyin}}</div>
-<div id="char_pinyin">{{Pinyin}}</div>
-<div id="char_sim" class="char-card">{{Simplified}}</div>
-<div id="char_trad" class="char-card">{{Traditional}}</div>
-<div id='audio' style='display:none'>{{Audio}}</div>
-
-<div class="modal-footer1">
-    <a class="btn" id="btnShowMenu" onclick="openSidebar('sidebar')">
-        <div class="icon">
-            <i class="material-icons">menu</i>
+// Right-side dictionary links. Identical on every template; {{Simplified}} only.
+const MORE_INFO_SIDEBAR =
+`<div id="more-info-sidebar" class="more-info-sidebar">
+    <a class="fieldset-item tappable">
+        <div class="more-side-brand">
+            <div class="brand-title">写汉字</div>
+            <div class="brand-sub-title">xiě hànzì</div>
         </div>
+        <div onclick="closeSidebar('more-info-sidebar')" class="close-button close2">✖</div>
     </a>
-    <a class="btn" id='btnPlayAudio'>
-        <div class="icon">
-            <i class="material-icons">play_arrow</i>
-        </div>
-    </a>
-    <a class="btn" id='btnMoreOptions' onclick="openSidebar('more-info-sidebar')">
-        <div class="icon">
-            <i class="material-icons">more_vert</i>
-        </div>
-    </a>
-</div>
+    <a class="fieldset-item tappable" id="plecoMobile" href="plecoapi://x-callback-url/df?hw={{Simplified}}"><img src="_pleco.png"><small>Pleco</small></a>
+    <a class="fieldset-item tappable" href="http://dict.youdao.com/search?q={{Simplified}}"><img src="_youdao.png"><small>Youdao</small></a>
+    <a class="fieldset-item tappable" href="https://hanzicraft.com/character/{{Simplified}}"><img src="_hanzicraft.png"><small>HanziCraft</small></a>
+    <a class="fieldset-item tappable" href="https://characterpop.com/characters/{{Simplified}}"><img src="_characterpop.svg"><small>CharacterPop</small></a>
+    <a class="fieldset-item tappable" href="http://rtega.be/chmn/index.php?c={{Simplified}}"><img src="_rtega.png"><small>Rtega</small></a>
+    <a class="fieldset-item tappable" href="https://tatoeba.org/en/sentences/search?from=cmn&query={{Simplified}}&to="><img src="_tatoeba.png"><small>Tatoeba</small></a>
+</div>`;
 
-<hr>
-
-<div id="char_meaning" class="meaning-card">{{Definitions}}</div>
-
-<script>
-// v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/eeb2e1a9e37c941dd63e1fe6c2a257f043c40e0d/script.js
-if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/",t="_default";if(window.Persistence_localStorage=function(){var i=!1;try{null!==window.localStorage&&"object"==typeof window.localStorage&&(i=!0,this.clear=function(){for(var t=0;t<localStorage.length;t++){var i=localStorage.key(t);0==i.indexOf(e)&&(localStorage.removeItem(i),t--)}},this.setItem=function(i,n){void 0==n&&(n=i,i=t),localStorage.setItem(e+i,JSON.stringify(n))},this.getItem=function(i){return void 0==i&&(i=t),JSON.parse(localStorage.getItem(e+i))},this.removeItem=function(i){void 0==i&&(i=t),localStorage.removeItem(e+i)})}catch(n){}this.isAvailable=function(){return i}},window.Persistence_sessionStorage=function(){var i=!1;try{"object"==typeof window.sessionStorage&&(i=!0,this.clear=function(){for(var t=0;t<sessionStorage.length;t++){var i=sessionStorage.key(t);0==i.indexOf(e)&&(sessionStorage.removeItem(i),t--)}},this.setItem=function(i,n){void 0==n&&(n=i,i=t),sessionStorage.setItem(e+i,JSON.stringify(n))},this.getItem=function(i){return void 0==i&&(i=t),JSON.parse(sessionStorage.getItem(e+i))},this.removeItem=function(i){void 0==i&&(i=t),sessionStorage.removeItem(e+i)})}catch(n){}this.isAvailable=function(){return i}},window.Persistence_windowKey=function(i){var n=window[i],o=!1;"object"==typeof n&&(o=!0,this.clear=function(){n[e]={}},this.setItem=function(i,o){void 0==o&&(o=i,i=t),n[e][i]=o},this.getItem=function(i){return void 0==i&&(i=t),void 0==n[e][i]?null:n[e][i]},this.removeItem=function(i){void 0==i&&(i=t),delete n[e][i]},void 0==n[e]&&this.clear()),this.isAvailable=function(){return o}},window.Persistence=new Persistence_sessionStorage,navigator.userAgent.indexOf("Mobile")>0&&(window.Persistence=new Persistence_localStorage,Persistence.isAvailable()||(window.Persistence=new Persistence_sessionStorage)),Persistence.isAvailable()||(window.Persistence=new Persistence_windowKey("py")),!Persistence.isAvailable()){var i=window.location.toString().indexOf("title"),n=window.location.toString().indexOf("main",i);i>0&&n>0&&n-i<10&&(window.Persistence=new Persistence_windowKey("qt"))}}
-</script>
-
-<!--sidebar-->
-<script>
-    function playAudio() {
-        var audioDiv = document.getElementById('audio');
-        var audio = audioDiv.getElementsByTagName("*");
-        audio[0].tagName == "AUDIO" ? audio[0].play() : audio[0].click();
+// Shared sidebar helpers + DOM builders. Building the toggle rows in JS keeps
+// the template markup tiny while supporting every option in Anki.
+const SIDEBAR_JS =
+`    function showHide(type, isShow, style) {
+        style = style || "inline";
+        document.querySelectorAll(type).forEach(function (val) {
+            val.style.display = isShow ? style : "none";
+        });
     }
-
-    var btnAudio = document.getElementById("btnPlayAudio");
-    if (btnAudio) {
-        btnAudio.onclick = function () {
-            playAudio();
-        };
-    }
-
-    var frontBack = "back";
-    var switchIdList = ["text-pinyin", "text-zhuyin", "text-meaning", "text-sim", "text-trad"];
-    function initSwitchPrefs() {
-        for (var _id of switchIdList) {
-            var perId = frontBack + _id;
-            var divId = _id.replace("text-", "char_");
-            if (Persistence.getItem(perId) == "false") {
-                document.getElementById(_id).checked = false;
-                document.getElementById(divId).style.display = "none";
-            } else {
-                document.getElementById(_id).checked = true;
-                Persistence.setItem(perId, "true");
-                document.getElementById(divId).style.display = "block";
-            }
-
-            var isShow = document.getElementById(_id).checked ? true : false;
-            if (_id == "text-pinyin") {
-                showHide(".pinyin", isShow);
-            }
-            if (_id == "text-zhuyin") {
-                showHide(".zhuyin", isShow);
-            }
-            if (_id == "text-sim") {
-                showHide("#char-sim-id", isShow);
-            }
-            if (_id == "text-trad") {
-                showHide("#char-trad-id", isShow);
-                showHide(".sep", isShow);
-            }
-        }
-    }
-
-    function setPrefs(e) {
-        var perId = frontBack + e.id;
-        if (e.type == "checkbox") {
-            Persistence.setItem(perId, e.checked.toString());
-            var divId = e.id.replace("text-", "char_");
-            if (e.checked) {
-                document.getElementById(divId).style.display = "block";
-            } else {
-                document.getElementById(divId).style.display = "none";
-            }
-
-            var isShow = document.getElementById(divId).style.display == "none" ? false : true;
-            if (e.id == "text-pinyin") {
-                showHide(".pinyin", isShow);
-            }
-            if (e.id == "text-zhuyin") {
-                showHide(".zhuyin", isShow);
-            }
-            if (e.id == "text-sim") {
-                showHide("#char-sim-id", isShow);
-            }
-            if (e.id == "text-trad") {
-                showHide("#char-trad-id", isShow);
-                showHide(".sep", isShow);
-            }
-        }
-    }
-
-    function showHide(type, isShow) {
-        if (isShow) {
-            document.querySelectorAll(type).forEach(function (val) {
-                val.style.display = 'inline';
-            });
-        } else {
-            document.querySelectorAll(type).forEach(function (val) {
-                val.style.display = 'none';
-            });
-        }
-    }
-
     function openSidebar(id) {
-        var width = id == "sidebar" ? "250px" : "160px";
-        document.getElementById(id).style.width = width;
+        document.getElementById(id).style.width = id == "sidebar" ? "250px" : "160px";
     }
-
     function closeSidebar(id) {
         document.getElementById(id).style.width = "0";
     }
-
-    document.addEventListener('click', function (event) {
-        if (!document.getElementById("sidebar") || !document.getElementById("more-info-sidebar")) { return };
-
-        if (!document.getElementById("sidebar").contains(event.target)) {
-            closeSidebar("sidebar");
-        }
-
-        if (!document.getElementById("more-info-sidebar").contains(event.target)) {
-            closeSidebar("more-info-sidebar");
-        }
-
-        if (document.getElementById("btnShowMenu").contains(event.target)) {
-            openSidebar("sidebar");
-        }
-
-        if (document.getElementById("btnMoreOptions").contains(event.target)) {
-            openSidebar("more-info-sidebar");
-        }
-    });
-
-    if (Persistence.isAvailable()) {
-        if (window.ankiPlatform == "desktop" || isInWebView()) {
-            initSwitchPrefs();
-        } else {
-            window.addEventListener("load", initSwitchPrefs, false);
-        }
-    }
-
     function isInWebView() {
         var UA = navigator.userAgent;
-        if (/iPhone|iPod|iPad/.test(UA)) {
-            if (/(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(UA)) {
-                return true;
-            }
-        }
-        if (window.location.href.includes("ankiuser.net")) {
-            return true;
-        }
-        return false;
+        if (/iPhone|iPod|iPad/.test(UA) && /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(UA)) return true;
+        return window.location.href.includes("ankiuser.net");
     }
-</script>
+    function buildToggles(targetId, toggles, numbers) {
+        function fsToggle(id, label) {
+            return '<div class="fieldset-item fs-item-1"><div class="input-stack"><label for="' + id + '">' + label + '</label></div><input class="tappable" type="checkbox" id="' + id + '" name="' + id + '" onchange="setPrefs(this)"></div>';
+        }
+        function fsNumber(n) {
+            return '<div class="fieldset-item fs-item-1"><div class="input-stack"><label for="' + n[0] + '"><small>' + n[1] + '</small></label></div><input class="tappable" type="number" id="' + n[0] + '" name="' + n[0] + '" value="' + n[2] + '" min="' + n[3] + '" max="' + n[4] + '" oninput="setPrefs(this)"></div>';
+        }
+        var html = '<fieldset>';
+        toggles.forEach(function (t) {
+            // t[2] = id of the div this toggle controls; skip if not on this card.
+            if (t[2] && !document.getElementById(t[2])) return;
+            html += fsToggle(t[0], t[1]);
+        });
+        html += '</fieldset>';
+        if (numbers && numbers.length) {
+            html += '<fieldset>';
+            numbers.forEach(function (n) { html += fsNumber(n); });
+            html += '</fieldset>';
+        }
+        document.getElementById(targetId).insertAdjacentHTML('beforeend', html);
+    }
+    document.addEventListener('click', function (event) {
+        var sb = document.getElementById("sidebar"), mb = document.getElementById("more-info-sidebar");
+        if (!sb || !mb) return;
+        if (!sb.contains(event.target)) closeSidebar("sidebar");
+        if (!mb.contains(event.target)) closeSidebar("more-info-sidebar");
+        var menu = document.getElementById("btnShowMenu"), more = document.getElementById("btnMoreOptions");
+        if (menu && menu.contains(event.target)) openSidebar("sidebar");
+        if (more && more.contains(event.target)) openSidebar("more-info-sidebar");
+    });`;
 
-<div id="sidebar" class="sidebar">
+// Sidebar shell: brand header + a target section for JS-built toggles + footer.
+const sidebarShell = (togglesId: string) =>
+`<div id="sidebar" class="sidebar">
     <section>
         <fieldset style="border:none;">
             <div class="fieldset-item tappable">
@@ -236,56 +108,7 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
             </div>
         </fieldset>
     </section>
-
-    <section>
-        <fieldset>
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="text-pinyin">
-                        Pinyin
-                    </label>
-                </div>
-                <input class="tappable" type="checkbox" id="text-pinyin" name="text-pinyin" onchange=setPrefs(this)>
-            </div>
-
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="text-zhuyin">
-                        Zhuyin
-                    </label>
-                </div>
-                <input class="tappable" type="checkbox" id="text-zhuyin" name="text-zhuyin" onchange=setPrefs(this)>
-            </div>
-
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="text-meaning">
-                        Meaning
-                    </label>
-                </div>
-                <input class="tappable" type="checkbox" id="text-meaning" name="text-meaning" onchange=setPrefs(this)>
-            </div>
-
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="text-sim">
-                        Simplified
-                    </label>
-                </div>
-                <input class="tappable" type="checkbox" id="text-sim" name="text-sim" onchange=setPrefs(this)>
-            </div>
-
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="text-trad">
-                        Traditional
-                    </label>
-                </div>
-                <input class="tappable" type="checkbox" id="text-trad" name="text-trad" onchange=setPrefs(this)>
-            </div>
-        </fieldset>
-    </section>
-
+    <section id="${togglesId}"></section>
     <section>
         <fieldset>
             <a href="https://github.com/krmanik/Anki-xiehanzi">
@@ -295,797 +118,220 @@ if(void 0===window.Persistence){var e="github.com/SimonLammer/anki-persistence/"
             </a>
         </fieldset>
     </section>
-</div>
+</div>`;
 
-<div id="more-info-sidebar" class="more-info-sidebar">
-    <a class="fieldset-item tappable">
-        <div class="more-side-brand">
-            <div class="brand-title">写汉字</div>
-            <div class="brand-sub-title">xiě hànzì</div>
-        </div>
-        <div onclick="closeSidebar('more-info-sidebar')" class="close-button close2">✖</div>
-    </a>
-    <a class="fieldset-item tappable" id="plecoMobile" href="plecoapi://x-callback-url/df?hw={{Simplified}}">
-        <img src="_pleco.png"></img>
-        <small>Pleco</small>
-    </a>
-    <a class="fieldset-item tappable" href="http://dict.youdao.com/search?q={{Simplified}}">
-        <img src="_youdao.png"></img>
-        <small>Youdao</small>
-    </a>
-    <a class="fieldset-item tappable" href="https://hanzicraft.com/character/{{Simplified}}">
-        <img src="_hanzicraft.png"></img>
-        <small>HanziCraft</small>
-    </a>
-    <a class="fieldset-item tappable" href="https://characterpop.com/characters/{{Simplified}}">
-        <img src="_characterpop.svg"></img>
-        <small>CharacterPop</small>
-    </a>
-    <a class="fieldset-item tappable" href="http://rtega.be/chmn/index.php?c={{Simplified}}">
-        <img src="_rtega.png"></img>
-        <small>Rtega</small>
-    </a>
-    <a class="fieldset-item tappable" href="https://tatoeba.org/en/sentences/search?from=cmn&query={{Simplified}}&to=">
-        <img src="_tatoeba.png"></img>
-        <small>Tatoeba</small>
-    </a>
-</div>
-<!-----sidebar------>
+// Dictionary definitions card: a toolbar (title + collapse arrow) over a
+// collapsible body. Single source of truth — used by every template and by
+// deck.ts (CONSTANTS.MEANING_CARD) so the markup never drifts.
+const MEANING_CARD =
+`<div id="char_meaning" class="meaning-card">
+    <div class="meaning-bar" onclick="toggleMeaning(this)">
+        <span class="meaning-title">Definitions</span>
+        <span class="meaning-arrow">&#9662;</span>
+    </div>
+    <div class="meaning-content">{{Definitions}}</div>
+</div>`;
+
+// Runtime card helpers shared by all templates: tone-color the big hanzi and the
+// pinyin, and drive the collapsible dictionary card (state persisted).
+const CARD_JS =
+`    function toneOfSyllable(s) {
+        var d = s.normalize('NFD');
+        if (d.indexOf('̄') >= 0) return 1;
+        if (d.indexOf('́') >= 0) return 2;
+        if (d.indexOf('̌') >= 0) return 3;
+        if (d.indexOf('̀') >= 0) return 4;
+        return 5;
+    }
+    function colorPinyinEl(el) {
+        if (!el || el.getAttribute('data-colored')) return;
+        var parts = el.textContent.split(/(\\s+|,)/);
+        var html = '';
+        for (var i = 0; i < parts.length; i++) {
+            var p = parts[i];
+            if (p === '' || p === ',' || /^\\s+$/.test(p)) html += p;
+            else html += '<span class="tone' + toneOfSyllable(p) + '">' + p + '</span>';
+        }
+        el.innerHTML = html;
+        el.setAttribute('data-colored', '1');
+    }
+    function colorPinyin() {
+        colorPinyinEl(document.getElementById('char_pinyin'));
+        document.querySelectorAll('.pinyin').forEach(colorPinyinEl);
+    }
+    function colorChars() {
+        var s = document.getElementById('char-sim-id'), d = document.getElementById('char_sim');
+        if (s && d && s.textContent.trim()) d.innerHTML = s.innerHTML;
+        var st = document.getElementById('char-trad-id'), dt = document.getElementById('char_trad');
+        if (st && dt && st.textContent.trim()) dt.innerHTML = '〔' + st.innerHTML + '〕';
+    }
+    function toggleMeaning(bar) {
+        var c = bar.parentElement.querySelector('.meaning-content');
+        var willCollapse = c.style.display !== 'none';
+        c.style.display = willCollapse ? 'none' : '';
+        bar.classList.toggle('collapsed', willCollapse);
+        if (window.Persistence && Persistence.isAvailable()) Persistence.setItem('meaning-collapsed', willCollapse.toString());
+    }
+    function initMeaning() {
+        var card = document.getElementById('char_meaning');
+        if (!card) return;
+        var c = card.querySelector('.meaning-content');
+        if (!c || !c.textContent.trim()) { card.style.display = 'none'; return; }
+        var st = Persistence.getItem('meaning-collapsed');
+        var collapsed = st != null ? st == 'true' : !!window.MEANING_COLLAPSE_DEFAULT;
+        c.style.display = collapsed ? 'none' : '';
+        card.querySelector('.meaning-bar').classList.toggle('collapsed', collapsed);
+    }`;
+
+const DECK_HTML_FRONT =
+`
+${PERSISTENCE}
+<script>
+    var switchIdList = ["text-pinyin", "text-zhuyin", "text-meaning", "text-sim", "text-trad"];
+    function initSwitchPrefs() {
+        for (var _id of switchIdList) {
+            var el = document.getElementById(_id.replace("text-", "char_"));
+            if (el && Persistence.getItem("back" + _id) == "false") {
+                el.style.display = "none";
+            }
+        }
+    }
+    function isInWebView() {
+        var UA = navigator.userAgent;
+        if (/iPhone|iPod|iPad/.test(UA) && /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(UA)) return true;
+        return window.location.href.includes("ankiuser.net");
+    }
+
+${CARD_JS}
+
+    function initFront() { initSwitchPrefs(); colorChars(); colorPinyin(); initMeaning(); }
+    if (Persistence.isAvailable()) {
+        if (window.ankiPlatform == "desktop" || isInWebView()) {
+            initFront();
+        } else {
+            window.addEventListener("load", initFront, false);
+        }
+    }
+</script>
 `;
 
-const DECK_CSS =
-`:root {
-  --tone-1: #f44336;
-  --tone-2: #ff9800;
-  --tone-3: #4caf50;
-  --tone-4: #2196f3;
-  --tone-5: #607d8b;
-  --brand-bg1: rgb(255, 117, 195);
-  --brand-bg2: rgb(157, 119, 255);
-  --brand-bg-gradient: linear-gradient(
-    to bottom,
-    var(--brand-bg2),
-    var(--brand-bg2)
-  );
-  --thumb-highlight-color: rgba(255, 255, 254, 0.2);
-  --space-xxs: 0.25rem;
-  --space-xs: 0.5rem;
-  --space-sm: 1rem;
-  --space-md: 1.5rem;
-  --space-lg: 2rem;
-  --space-xl: 3rem;
-  --space-xxl: 6rem;
-  --isLTR: 1;
-  --isRTL: -1;
-}
-
-.card {
-  --title-color: grey;
-  --time-left-color: teal;
-  --hanzi-grid: #fafafa;
-  --stroke: #555;
-  --outline: #ddd;
-  --drawing: #333;
-  --pinyin-color: #ef6c00;
-  --simplified-color: #6495ed;
-  --traditional-color: #00796b;
-  --meaning-color: #607d8b;
-  --icon-button-background: #63759d;
-  --icon-button-background-focus: #7d92c2;
-  --sidebar-color: white;
-  --sidebar-background-color: #52575d;
-  --header-color: #455a64;
-  --surface1: rgb(226, 226, 226);
-  --surface2: rgb(255, 255, 254);
-  --surface3: rgb(249, 249, 249);
-  --surface4: rgb(212, 212, 212);
-  --text1: rgb(48, 48, 48);
-  --text2: rgb(94, 94, 94);
-  --brand: rgb(47, 167, 214);
-  --thumb-highlight-color: rgba(0, 0, 0, 0.2);
-  font-size: 20px;
-  text-align: center;
-  color: black;
-  background-color: white;
-}
-
-.card.night_mode {
-  --header-color: white;
-  --title-color: #00bcd4;
-  --time-left-color: #fff;
-  --hanzi-grid: #262626;
-  --stroke: #ffffff;
-  --outline: #5b5b5b;
-  --drawing: #fff;
-  --pinyin-color: #27b46e;
-  --simplified-color: #6495ed;
-  --traditional-color: #fba910;
-  --meaning-color: #00bfa5;
-  --icon-button-background: #63759d;
-  --icon-button-background-focus: #7d92c2;
-  --sidebar-color: white;
-  --sidebar-background-color: #52575d;
-  --surface1: rgb(27, 27, 27);
-  --surface2: rgb(37, 37, 37);
-  --surface3: rgb(48, 48, 48);
-  --surface4: rgb(59, 59, 59);
-  --text1: rgb(240, 240, 240);
-  --text2: rgb(184, 184, 184);
-  --brand: rgb(118, 161, 184);
-  color: white;
-  background-color: #1f1f1f;
-}
-
-/* Simplified and Traditional Kai Ti Fonts */
-/*
-@font-face {
-    font-family: 'AR PL KaitiM Big5';
-    src: url('_ZenKai-Medium.ttf') format('ttf'),
-        url('_ZenKai-Medium.woff2') format('woff2'),
-        url('_ZenKai-Medium.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'AR PL KaitiM GB';
-    src: url('_GBZenKai-Medium.ttf') format('ttf'),
-        url('_GBZenKai-Medium.woff2') format('woff2'),
-        url('_GBZenKai-Medium.woff') format('woff');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-}
-*/
-
-.char-card {
-  font-size: 3em;
-}
-
-/* Windows */
-.win .char-card {
-  font-family: "AR PL KaitiM GB", "AR PL KaitiM Big5";
-}
-/* macOS */
-.mac .char-card {
-  font-family: "AR PL KaitiM GB", "AR PL KaitiM Big5";
-}
-/* Linux desktops */
-.linux:not(.android) .char-card {
-  font-family: "AR PL KaitiM GB", "AR PL KaitiM Big5";
-}
-
-/* Material Icon Font */
-
-@font-face {
-  font-family: "Material Icons";
-  font-style: normal;
-  font-weight: 300;
-  src: url(MaterialIcons-Regular.eot);
-  /* For IE6-8 */
-  src: local("Material Icons"), local("MaterialIcons-Regular"),
-    url(_MaterialIcons-Regular.woff2) format("woff2"),
-    url(_MaterialIcons-Regular.woff) format("woff"),
-    url(_MaterialIcons-Regular.ttf) format("truetype"),
-    url(https://fonts.gstatic.com/s/materialicons/v141/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
-}
-
-.material-icons {
-  font-family: "Material Icons";
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  /* Preferred icon size */
-  display: inline-block;
-  line-height: 1;
-  text-transform: none;
-  letter-spacing: normal;
-  word-wrap: normal;
-  white-space: nowrap;
-  direction: ltr;
-  /* Support for all WebKit browsers. */
-  -webkit-font-smoothing: antialiased;
-  /* Support for Safari and Chrome. */
-  text-rendering: optimizeLegibility;
-  /* Support for Firefox. */
-  -moz-osx-font-smoothing: grayscale;
-  /* Support for IE. */
-  font-feature-settings: "liga";
-}
-
-/* grid color for character */
-
-.grid-color {
-  margin: 6px;
-  background-color: var(--hanzi-grid);
-  padding: 2px;
-  -webkit-box-shadow: 0px 0px 10px -5px rgba(0, 0, 0, 0.5);
-  -moz-box-shadow: 0px 0px 10px -5px rgba(0, 0, 0, 0.5);
-  box-shadow: 0px 0px 10px -5px rgba(0, 0, 0, 0.5);
-}
-
-.stroke-color {
-  color: var(--stroke);
-}
-
-.outline-color {
-  color: var(--outline);
-}
-
-.drawing-color {
-  color: var(--drawing);
-}
-
-/* bottom button */
-
-.modal-footer1 {
-  padding-top: 15px;
-  text-align: center;
-}
-
-.modal-footer1 a {
-  display: inline-block;
-  margin: 0 8px;
-  float: none;
-}
-
-.text-color1 {
-  font-size: 16px;
-  color: var(--pinyin-color);
-}
-
-.text-color2 {
-  color: var(--traditional-color);
-}
-
-.text-color3 {
-  color: var(--meaning-color);
-}
-
-.text-color4 {
-  font-size: 30px;
-  font-weight: bold;
-  color: var(--simplified-color);
-}
-
-/*https://codepen.io/colewaldrip/pen/gpEaWb*/
-
-/* Material Icon Button */
-
-.icon {
-  margin: 3px;
-  position: relative;
-  display: inline-block;
-  color: white;
-  background-color: var(--icon-button-background);
-  width: 2rem;
-  height: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-  transition: all 0.3s ease;
-}
-
-.icon .material-icons {
-  font-size: 1rem;
-  position: absolute;
-  left: 0.5rem;
-  top: 0.5rem;
-  transition: all 0.3s ease;
-}
-
-.icon:hover,
-.icon:focus {
-  background-color: var(--icon-button-background-focus);
-}
-
-.sidebar {
-  height: 100%;
-  width: 0;
-  position: fixed;
-  z-index: 1;
-  top: 0;
-  left: 0;
-  background-color: var(--surface1);
-  overflow-x: hidden;
-  transition: 0.5s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.more-info-sidebar {
-  height: 100%;
-  width: 0;
-  position: fixed;
-  z-index: 1;
-  top: 0;
-  right: 0;
-  background-color: var(--surface1);
-  overflow-x: hidden;
-  transition: 0.5s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.more-info-sidebar a {
-  display: flex;
-  margin-bottom: 6px;
-  padding: 2px;
-  margin: 3px;
-  border-radius: 3px;
-  text-decoration: none;
-  color: var(--text1);
-}
-
-.more-info-sidebar img {
-  width: 28px;
-  margin-right: 6px;
-}
-
-/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
-
-@media screen and (max-height: 450px) {
-  .sidebar {
-    padding-top: 15px;
-  }
-
-  .sidebar a {
-    font-size: 16px;
-  }
-}
-
-.more-info-btn {
-  text-align: center;
-}
-
-img {
-  border-radius: 10%;
-}
-
-.practice-ch {
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-  transition: all 0.3s ease;
-  padding: 3px;
-}
-
-.meaning {
-  text-align: left;
-}
-
-.tone1 {
-  color: #f44336;
-}
-
-.tone2 {
-  color: #fbc02d;
-}
-
-.tone3 {
-  color: #4caf50;
-}
-
-.tone4 {
-  color: #03a9f4;
-}
-
-.tone5 {
-  color: #858585;
-}
-
-.meaning-card {
-  text-align: left;
-  padding: 10px;
-}
-
-.meaning {
-  display: block;
-}
-
-.char {
-  font-size: 30px;
-}
-
-.pinyin {
-  font-size: 16px;
-}
-
-.zhuyin {
-  font-size: 16px;
-}
-
-.py {
-  font-size: 14px;
-  color: gray;
-}
-
-.zy {
-  font-size: 14px;
-  color: gray;
-}
-
-.header {
-  color: var(--header-color);
-}
-
-.question-sub-text {
-  color: #f44336;
-  font-weight: bold;
-}
-
-.char-tone1 {
-  color: var(--tone-1);
-}
-
-.char-tone2 {
-  color: var(--tone-2);
-}
-
-.char-tone3 {
-  color: var(--tone-3);
-}
-
-.char-tone4 {
-  color: var(--tone-4);
-}
-
-.char-sim-1 {
-  margin: 2px;
-  font-size: 30px;
-}
-
-.char-trad-1 {
-  margin: 2px;
-  font-size: 30px;
-}
-
-.char-pin-1 {
-  margin: 2px;
-  line-height: 32px;
-}
-
-.char-zhy-1 {
-  margin: 2px;
-  line-height: 32px;
-}
-
-small {
-  line-height: 1.5;
-}
-
-[dir="rtl"]:root {
-  --isLTR: -1;
-  --isRTL: 1;
-}
-
-h1,
-h2,
-h3 {
-  margin: 0;
-  font-weight: 500;
-}
-
-main {
-  display: grid;
-  gap: var(--space-xl);
-  align-content: center;
-  justify-content: center;
-  place-content: center;
-  padding: var(--space-sm);
-}
-
-@media (min-width: 540px) {
-  main {
-    padding: var(--space-lg);
-  }
-}
-
-@media (min-width: 800px) {
-  main {
-    padding: var(--space-xl);
-  }
-}
-
-form {
-  max-width: 89vw;
-  display: grid;
-  gap: var(--space-xl) var(--space-xxl);
-  --repeat: auto-fit;
-  align-items: flex-start;
-}
-
-section {
-  display: grid;
-  gap: var(--space-md);
-  margin: 6px;
-}
-
-header {
-  display: grid;
-  gap: var(--space-xxs);
-}
-
-fieldset {
-  border: 1px solid var(--surface4);
-  background: var(--surface4);
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 1px;
-  border-radius: var(--space-sm);
-  overflow: hidden;
-  transition: box-shadow 0.3s ease;
-}
-
-fieldset[focus-within] {
-  box-shadow: 0 5px 20px -10px hsla(0, 0%, 0%, 0.5);
-}
-
-fieldset:focus-within {
-  box-shadow: 0 5px 20px -10px hsla(0, 0%, 0%, 0.5);
-}
-
-fieldset a {
-  text-decoration: none;
-  color: var(--text1);
-}
-
-select {
-  outline: none;
-  border: none;
-  border-radius: 12px;
-  width: 34px;
-  padding-left: 6px;
-  color: white;
-  background: linear-gradient(to right, transparent 40px, var(--surface1) 0),
-    var(--brand-bg-gradient) fixed;
-  transition: background 0.5s ease;
-}
-
-select > option {
-  border: none;
-  border-radius: 20px;
-  outline: none;
-  background: var(--surface3);
-  font-size: 22px;
-  color: var(--text1);
-}
-
-input[type="checkbox"] {
-  width: 40px;
-  height: 20px;
-  margin: 0;
-  outline-offset: 5px;
-  accent-color: var(--brand);
-  position: relative;
-  transform-style: preserve-3d;
-  cursor: pointer;
-  -webkit-appearance: none;
-  background: var(--surface1);
-  border-radius: 20px;
-  transition: 0.5s;
-  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-  outline: none;
-}
-
-input:checked[type="checkbox"] {
-  background: linear-gradient(to right, transparent 40px, var(--surface1) 0),
-    var(--brand-bg-gradient) fixed;
-  -webkit-transition: background 0.5s ease;
-  transition: background 0.5s ease;
-}
-
-input[type="checkbox"]:before {
-  content: "";
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  border-radius: 20px;
-  top: 0;
-  left: 0;
-  background: white;
-  transform: scale(1.1);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  transition: 0.5s;
-}
-
-input:checked[type="checkbox"]:before {
-  left: 20px;
-}
-
-input[type="number"] {
-  width: 40px;
-  height: 20px;
-  margin: 0;
-  padding: 4px;
-  position: relative;
-  cursor: text;
-  -webkit-appearance: none;
-  transition: 0.5s;
-  border: 1px solid var(--surface1);
-  background: var(--surface3);
-  border-radius: var(--space-sm);
-  text-align: end;
-  outline: none;
-  color: var(--text1);
-  place-self: center;
-}
-
-.fieldset-item {
-  background: var(--surface3);
-  transition: background 0.2s ease;
-  display: grid;
-  gap: var(--space-md);
-  padding-top: var(--space-sm);
-  padding-bottom: var(--space-sm);
-  padding-left: var(--space-md);
-  padding-right: var(--space-md);
-  text-align: left;
-}
-
-.fs-item-1 {
-  grid-template-columns: 1fr var(--space-xl);
-}
-
-.fs-item-2 {
-  grid-template-columns: 56px 1fr;
-}
-
-.fs-item-3 {
-  grid-template-columns: 1fr 1fr;
-}
-
-.fs-item-front-back {
-  padding: unset;
-  text-align: center;
-  gap: unset;
-  cursor: pointer;
-}
-
-.front-back {
-  padding: var(--space-xs);
-}
-
-.btn-active {
-  color: white;
-  background: var(--brand-bg2);
-}
-
-.fieldset-item[focus-within] {
-  background: var(--surface2);
-}
-
-.fieldset-item:focus-within {
-  background: var(--surface2);
-}
-
-.fieldset-item[focus-within] svg {
-  fill: #fff;
-}
-
-.fieldset-item:focus-within svg {
-  fill: #fff;
-}
-
-.fieldset-item[focus-within] picture {
-  -webkit-clip-path: circle(50%);
-  clip-path: circle(50%);
-  background: var(--brand-bg-gradient) fixed;
-}
-
-.fieldset-item:focus-within picture {
-  -webkit-clip-path: circle(50%);
-  clip-path: circle(50%);
-  background: var(--brand-bg-gradient) fixed;
-}
-
-.fieldset-item > :is(.input-stack, label) {
-  display: grid;
-  gap: var(--space-xs);
-}
-
-.fieldset-item > .input-stack > label {
-  display: contents;
-}
-
-.fieldset-item svg {
-  fill: var(--text2);
-  height: var(--space-md);
-}
-
-.fieldset-item > input[type="checkbox"] {
-  align-self: center;
-  justify-self: center;
-  place-self: center;
-}
-
-hr {
-  border: 0;
-  height: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-#character-target-div {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-#character-target-div > div {
-  display: none;
-}
-
-#character-target-div > :first-child {
-  display: block;
-}
-
-#onfinish-character-target-div::-webkit-scrollbar {
-  height: 0px;
-  width: 0px;
-}
-
-.close-button {
-  position: absolute;
-  right: 16px;
-  width: 30px;
-  height: 30px;
-  background: red;
-  border-radius: 24px;
-  align-self: center;
-  color: white;
-  line-height: 1.5;
-}
-
-.close2 {
-  font-size: 16px;
-  text-align: center;
-  line-height: 1.8;
-}
-
-.brand-title {
-  text-align: left;
-  font-weight: bold;
-  font-size: 18px;
-}
-
-.brand-sub-title {
-  text-align: left;
-  font-size: 12px;
-}
-
-.more-side-brand {
-  padding: 8px;
-}
+const DECK_HTML_BACK =
+`<div class="modal-footer1">
+    <a class="btn" id="btnShowMenu" onclick="openSidebar('sidebar')">
+        <div class="icon"><i class="material-icons">menu</i></div>
+    </a>
+    <a class="btn" id='btnPlayAudio'>
+        <div class="icon">
+            <i class="material-icons">play_arrow</i>
+        </div>
+    </a>
+    <a class="btn" id='btnMoreOptions' onclick="openSidebar('more-info-sidebar')">
+        <div class="icon"><i class="material-icons">more_vert</i></div>
+    </a>
+</div>
+<div id='audio' style='display:none'>{{Audio}}</div>
+
+<hr>
+
+<!--FIELDS-->
+
+${PERSISTENCE}
+
+<!--sidebar-->
+${sidebarShell('sidebar-toggles')}
+${MORE_INFO_SIDEBAR}
+<!-----sidebar------>
+
+<script>
+    var frontBack = "back";
+    var switchIdList = ["text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin"];
+    var colorIds = ["text-color-hanzi", "text-color-pinyin"];
+    var defaultOff = [];
+    function colorClassOf(id) { return id == "text-color-hanzi" ? "no-hanzi-color" : "no-pinyin-color"; }
+
+${SIDEBAR_JS}
+
+    buildToggles("sidebar-toggles", [
+        ["text-pinyin", "Pinyin"], ["text-zhuyin", "Zhuyin"], ["text-sim", "Simplified"],
+        ["text-trad", "Traditional"], ["text-pos", "Part of speech", "char_pos"],
+        ["text-simple", "Simple meaning", "char_simple"], ["text-meaning", "Meaning", "char_meaning"],
+        ["text-color-hanzi", "Color hanzi"], ["text-color-pinyin", "Color pinyin"]
+    ]);
+
+    function applyField(id, isShow) {
+        if (id == "text-pinyin") showHide(".pinyin", isShow);
+        if (id == "text-zhuyin") showHide(".zhuyin", isShow);
+        if (id == "text-sim") showHide("#char-sim-id", isShow);
+        if (id == "text-trad") { showHide("#char-trad-id", isShow); showHide(".sep", isShow); }
+        if (id == "text-color-hanzi") document.body.classList.toggle("no-hanzi-color", !isShow);
+        if (id == "text-color-pinyin") document.body.classList.toggle("no-pinyin-color", !isShow);
+    }
+
+${CARD_JS}
+
+    function initSwitchPrefs() {
+        for (var _id of switchIdList) {
+            var cb = document.getElementById(_id);
+            if (!cb) continue;
+            var dv = document.getElementById(_id.replace("text-", "char_"));
+            var stored = Persistence.getItem(frontBack + _id);
+            var on;
+            if (stored != null) on = stored != "false";
+            else if (colorIds.indexOf(_id) != -1) on = !document.body.classList.contains(colorClassOf(_id));
+            else on = defaultOff.indexOf(_id) == -1;
+            cb.checked = on;
+            if (on) Persistence.setItem(frontBack + _id, "true");
+            if (dv) dv.style.display = on ? "block" : "none";
+            applyField(_id, on);
+        }
+    }
+
+    function setPrefs(e) {
+        if (e.type != "checkbox") return;
+        Persistence.setItem(frontBack + e.id, e.checked.toString());
+        var dv = document.getElementById(e.id.replace("text-", "char_"));
+        if (dv) dv.style.display = e.checked ? "block" : "none";
+        applyField(e.id, e.checked);
+    }
+
+    function playAudio() {
+        var audio = document.getElementById('audio').getElementsByTagName("*");
+        if (audio[0]) audio[0].tagName == "AUDIO" ? audio[0].play() : audio[0].click();
+    }
+    var btnAudio = document.getElementById("btnPlayAudio");
+    if (btnAudio) btnAudio.onclick = playAudio;
+
+    function initBack() { initSwitchPrefs(); colorChars(); colorPinyin(); initMeaning(); }
+    if (Persistence.isAvailable()) {
+        if (window.ankiPlatform == "desktop" || isInWebView()) {
+            initBack();
+        } else {
+            window.addEventListener("load", initBack, false);
+        }
+    }
+</script>
 `;
 
 const DECK_HTML_WITH_HANZI_WRITER =
-    `
+`
 <script>
-    var url_hanzi = "https://cdn.jsdelivr.net/npm/hanzi-writer-data@latest/";
-
-    // change color
+    // tone-colored stroke helper; theme-aware default color
     var stroke_color = "#555";
     var outline_color = "#DDD";
     var drawing_color = "#333";
-
     if (document.body.classList.contains("night_mode")) {
         stroke_color = "#ffffff";
         outline_color = "#5B5B5B";
         drawing_color = "#fff";
     }
-
     function getToneColor(char) {
-        stroke_color = "#555";
-        if (document.body.classList.contains("night_mode")) {
-            stroke_color = "#ffffff";
-        }
+        var def = document.body.classList.contains("night_mode") ? "#ffffff" : "#555";
         switch (char) {
             case "char-tone1": return "#f44336";
             case "char-tone2": return "#ff9800";
             case "char-tone3": return "#4caf50";
             case "char-tone4": return "#2196f3";
-            case "char-tone0": return stroke_color;
-            case "char-tone5": return stroke_color;
+            default: return def;
         }
     }
 </script>
@@ -1107,9 +353,7 @@ const DECK_HTML_WITH_HANZI_WRITER =
         <div class="icon"><i class="material-icons">play_arrow</i></div>
     </a>
     <a class="btn" id='btnRevealChar'>
-        <div class="icon">
-            <i class="material-icons">gesture</i>
-        </div>
+        <div class="icon"><i class="material-icons">gesture</i></div>
     </a>
     <a class="btn" id='btnReloadQuiz'>
         <div class="icon"><i class="material-icons">replay</i></div>
@@ -1124,11 +368,9 @@ const DECK_HTML_WITH_HANZI_WRITER =
 
 <hr>
 
-<div id="char_meaning" class="meaning-card">{{Definitions}}</div>
-
+${MEANING_CARD}
 
 <!--sidebar-->
-
 <div id="sidebar" class="sidebar">
     <section>
         <fieldset style="border:none;">
@@ -1154,112 +396,15 @@ const DECK_HTML_WITH_HANZI_WRITER =
     <section>
         <fieldset>
             <div class="fieldset-item fs-item-1 practice">
-                <div class="input-stack">
-                    <label for="practice-select">Practice</label>
-                </div>
-                <select name="practice" id="practice-select" onchange=setPrefs(this)>
+                <div class="input-stack"><label for="practice-select">Practice</label></div>
+                <select name="practice" id="practice-select" onchange="setPrefs(this)">
                     <option>简</option>
                     <option>繁</option>
                 </select>
             </div>
         </fieldset>
     </section>
-    <section>
-        <fieldset>
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="text-pinyin">
-                        Pinyin
-                    </label>
-                </div>
-                <input class="tappable" type="checkbox" id="text-pinyin" name="text-pinyin" onchange=setPrefs(this)>
-            </div>
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="text-zhuyin">
-                        Zhuyin
-                    </label>
-                </div>
-                <input class="tappable" type="checkbox" id="text-zhuyin" name="text-zhuyin" onchange=setPrefs(this)>
-            </div>
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="text-meaning">
-                        Meaning
-                    </label>
-                </div>
-                <input class="tappable" type="checkbox" id="text-meaning" name="text-meaning" onchange=setPrefs(this)>
-            </div>
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="text-sim">
-                        Simplified
-                    </label>
-                </div>
-                <input class="tappable" type="checkbox" id="text-sim" name="text-sim" onchange=setPrefs(this)>
-            </div>
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="text-trad">
-                        Traditional
-                    </label>
-                </div>
-                <input class="tappable" type="checkbox" id="text-trad" name="text-trad" onchange=setPrefs(this)>
-            </div>
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="text-grid">
-                        Grid
-                    </label>
-                </div>
-                <input class="tappable" type="checkbox" id="text-grid" name="text-grid" onchange=setPrefs(this)>
-            </div>
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="text-outline">
-                        Outline
-                    </label>
-                </div>
-                <input class="tappable" type="checkbox" id="text-outline" name="text-outline" onchange=setPrefs(this)>
-            </div>
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="text-stroke-color">
-                        Stroke tone color
-                    </label>
-                </div>
-                <input class="tappable" type="checkbox" id="text-stroke-color" name="text-stroke-color"
-                    onchange=setPrefs(this)>
-            </div>
-        </fieldset>
-    </section>
-    <section>
-        <fieldset>
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="draw-size" id="text-draw-size" aria-hidden="true"><small>Grid size</small></label>
-                </div>
-                <input class="tappable" name="draw-size" id="draw-size" aria-labelledby="draw-size" type="number"
-                    value="250" min="100" max="1000" oninput=setPrefs(this)>
-            </div>
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="stroke-size" id="text-stroke-size" aria-hidden="true"><small>Stroke
-                            width</small></label>
-                </div>
-                <input class="tappable" name="stroke-size" id="stroke-size" aria-labelledby="stroke-size" type="number"
-                    value="6" min="2" max="50" oninput=setPrefs(this)>
-            </div>
-            <div class="fieldset-item fs-item-1">
-                <div class="input-stack">
-                    <label for="hint-miss" id="text-hint-miss" aria-hidden="true"><small>Hint after
-                            misses</small></label>
-                </div>
-                <input class="tappable" name="hint-miss" id="hint-miss" aria-labelledby="hint-miss" type="number"
-                    value="3" min="1" max="10" oninput=setPrefs(this)>
-            </div>
-        </fieldset>
-    </section>
+    <section id="sidebar-toggles"></section>
     <section>
         <fieldset>
             <a href="https://github.com/krmanik/Anki-xiehanzi">
@@ -1270,275 +415,148 @@ const DECK_HTML_WITH_HANZI_WRITER =
         </fieldset>
     </section>
 </div>
-<div id="more-info-sidebar" class="more-info-sidebar">
-    <a class="fieldset-item tappable">
-        <div class="more-side-brand">
-            <div class="brand-title">写汉字</div>
-            <div class="brand-sub-title">xiě hànzì</div>
-        </div>
-        <div onclick="closeSidebar('more-info-sidebar')" class="close-button close2">✖</div>
-    </a>
-    <a class="fieldset-item tappable" id="plecoMobile" href="plecoapi://x-callback-url/df?hw={{Simplified}}">
-        <img src="_pleco.png"></img>
-        <small>Pleco</small>
-    </a>
-    <a class="fieldset-item tappable" href="http://dict.youdao.com/search?q={{Simplified}}">
-        <img src="_youdao.png"></img>
-        <small>Youdao</small>
-    </a>
-    <a class="fieldset-item tappable" href="https://hanzicraft.com/character/{{Simplified}}">
-        <img src="_hanzicraft.png"></img>
-        <small>HanziCraft</small>
-    </a>
-    <a class="fieldset-item tappable" href="https://characterpop.com/characters/{{Simplified}}">
-        <img src="_characterpop.svg"></img>
-        <small>CharacterPop</small>
-    </a>
-    <a class="fieldset-item tappable" href="http://rtega.be/chmn/index.php?c={{Simplified}}">
-        <img src="_rtega.png"></img>
-        <small>Rtega</small>
-    </a>
-    <a class="fieldset-item tappable" href="https://tatoeba.org/en/sentences/search?from=cmn&query={{Simplified}}&to=">
-        <img src="_tatoeba.png"></img>
-        <small>Tatoeba</small>
-    </a>
-</div>
+${MORE_INFO_SIDEBAR}
 <!-----sidebar------>
 
-<script>
-    // v1.0.0 - https://github.com/SimonLammer/anki-persistence/blob/eeb2e1a9e37c941dd63e1fe6c2a257f043c40e0d/script.js
-    if (void 0 === window.Persistence) { var e = "github.com/SimonLammer/anki-persistence/", t = "_default"; if (window.Persistence_localStorage = function () { var i = !1; try { null !== window.localStorage && "object" == typeof window.localStorage && (i = !0, this.clear = function () { for (var t = 0; t < localStorage.length; t++) { var i = localStorage.key(t); 0 == i.indexOf(e) && (localStorage.removeItem(i), t--) } }, this.setItem = function (i, n) { void 0 == n && (n = i, i = t), localStorage.setItem(e + i, JSON.stringify(n)) }, this.getItem = function (i) { return void 0 == i && (i = t), JSON.parse(localStorage.getItem(e + i)) }, this.removeItem = function (i) { void 0 == i && (i = t), localStorage.removeItem(e + i) }) } catch (n) { } this.isAvailable = function () { return i } }, window.Persistence_sessionStorage = function () { var i = !1; try { "object" == typeof window.sessionStorage && (i = !0, this.clear = function () { for (var t = 0; t < sessionStorage.length; t++) { var i = sessionStorage.key(t); 0 == i.indexOf(e) && (sessionStorage.removeItem(i), t--) } }, this.setItem = function (i, n) { void 0 == n && (n = i, i = t), sessionStorage.setItem(e + i, JSON.stringify(n)) }, this.getItem = function (i) { return void 0 == i && (i = t), JSON.parse(sessionStorage.getItem(e + i)) }, this.removeItem = function (i) { void 0 == i && (i = t), sessionStorage.removeItem(e + i) }) } catch (n) { } this.isAvailable = function () { return i } }, window.Persistence_windowKey = function (i) { var n = window[i], o = !1; "object" == typeof n && (o = !0, this.clear = function () { n[e] = {} }, this.setItem = function (i, o) { void 0 == o && (o = i, i = t), n[e][i] = o }, this.getItem = function (i) { return void 0 == i && (i = t), void 0 == n[e][i] ? null : n[e][i] }, this.removeItem = function (i) { void 0 == i && (i = t), delete n[e][i] }, void 0 == n[e] && this.clear()), this.isAvailable = function () { return o } }, window.Persistence = new Persistence_sessionStorage, navigator.userAgent.indexOf("Mobile") > 0 && (window.Persistence = new Persistence_localStorage, Persistence.isAvailable() || (window.Persistence = new Persistence_sessionStorage)), Persistence.isAvailable() || (window.Persistence = new Persistence_windowKey("py")), !Persistence.isAvailable()) { var i = window.location.toString().indexOf("title"), n = window.location.toString().indexOf("main", i); i > 0 && n > 0 && n - i < 10 && (window.Persistence = new Persistence_windowKey("qt")) } }
-</script>
+${PERSISTENCE}
 
 <script>
     var charClass = document.getElementById("char-sim-id").children;
+    var switchIdList = ["text-grid", "text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin", "text-stroke-color", "text-outline"];
+    var colorIds = ["text-color-hanzi", "text-color-pinyin"];
+    function colorClassOf(id) { return id == "text-color-hanzi" ? "no-hanzi-color" : "no-pinyin-color"; }
 
-    var switchIdList = ["text-grid", "text-pinyin", "text-zhuyin", "text-meaning", "text-sim", "text-trad", "text-stroke-color", "text-outline"];
+${SIDEBAR_JS}
+
+${CARD_JS}
+
+    buildToggles("sidebar-toggles", [
+        ["text-pinyin", "Pinyin"], ["text-zhuyin", "Zhuyin"], ["text-sim", "Simplified"],
+        ["text-trad", "Traditional"], ["text-pos", "Part of speech", "char_pos"],
+        ["text-simple", "Simple meaning", "char_simple"], ["text-meaning", "Meaning", "char_meaning"],
+        ["text-color-hanzi", "Color hanzi"], ["text-color-pinyin", "Color pinyin"],
+        ["text-grid", "Grid"], ["text-outline", "Outline"], ["text-stroke-color", "Stroke tone color"]
+    ], [
+        ["draw-size", "Grid size", 250, 100, 1000],
+        ["stroke-size", "Stroke width", 6, 2, 50],
+        ["hint-miss", "Hint after misses", 3, 1, 10]
+    ]);
 
     var frontBack = "front";
     function setActive(side) {
-        if (side == "text-front") {
-            frontBack = "front";
-            document.getElementById("text-front").classList.add("btn-active")
-            document.getElementById("text-back").classList.remove("btn-active")
-        }
-        if (side == "text-back") {
-            frontBack = "back";
-            document.getElementById("text-front").classList.remove("btn-active")
-            document.getElementById("text-back").classList.add("btn-active")
-        }
+        frontBack = side == "text-back" ? "back" : "front";
+        document.getElementById("text-front").classList.toggle("btn-active", frontBack == "front");
+        document.getElementById("text-back").classList.toggle("btn-active", frontBack == "back");
         initSwitchPrefs();
     }
-
-    if (!document.getElementById("back")) {
-        setActive("text-front");
-    } else {
-        setActive("text-back");
-    }
+    setActive(document.getElementById("back") ? "text-back" : "text-front");
 
     function initPractice() {
-        var _selectPracticeId = frontBack + "practice-select";
-        var selectPracticeElem = document.getElementById("practice-select");
-        var selectPracticeStore = Persistence.getItem(_selectPracticeId);
+        var _id = frontBack + "practice-select";
+        var store = Persistence.getItem(_id);
+        var idx = store == undefined ? 0 : store;
+        document.getElementById("practice-select").selectedIndex = idx;
+        Persistence.setItem(_id, idx);
+    }
 
-        if (selectPracticeStore == undefined) {
-            selectPracticeElem.selectedIndex = 0;
-            Persistence.setItem(_selectPracticeId, 0);
-        } else {
-            selectPracticeElem.selectedIndex = selectPracticeStore;
-            Persistence.setItem(_selectPracticeId, selectPracticeStore);
-        }
+    function applyField(id, isShow) {
+        if (id == "text-pinyin") showHide(".pinyin", isShow);
+        if (id == "text-zhuyin") showHide(".zhuyin", isShow);
+        if (id == "text-sim") showHide("#char-sim-id", isShow);
+        if (id == "text-trad") { showHide("#char-trad-id", isShow); showHide(".sep", isShow); }
+        if (id == "text-color-hanzi") document.body.classList.toggle("no-hanzi-color", !isShow);
+        if (id == "text-color-pinyin") document.body.classList.toggle("no-pinyin-color", !isShow);
     }
 
     function initSwitchPrefs() {
+        var drawIds = ["text-grid", "text-stroke-color", "text-outline"];
         for (var _id of switchIdList) {
-            var perId = frontBack + _id;
-            var divId = _id.replace("text-", "char_");
-            var drawIds = ["text-grid", "text-stroke-color", "text-outline"];
-            if (Persistence.getItem(perId) == "false") {
-                document.getElementById(_id).checked = false;
-                if (!drawIds.includes(_id)) {
-                    document.getElementById(divId).style.display = "none";
-                }
-            } else {
-                document.getElementById(_id).checked = true;
-                Persistence.setItem(perId, "true");
-                if (!drawIds.includes(_id)) {
-                    document.getElementById(divId).style.display = "block";
-                }
+            var cb = document.getElementById(_id);
+            if (!cb) continue;
+            var dv = document.getElementById(_id.replace("text-", "char_"));
+            var stored = Persistence.getItem(frontBack + _id);
+            var on = colorIds.indexOf(_id) != -1 && stored == null
+                ? !document.body.classList.contains(colorClassOf(_id))
+                : stored != "false";
+            cb.checked = on;
+            if (on) Persistence.setItem(frontBack + _id, "true");
+            if (!drawIds.includes(_id) && dv) {
+                dv.style.display = on ? "block" : "none";
             }
-
-            var isShowField = document.getElementById(_id).checked ? true : false;
-            if (_id == "text-pinyin") {
-                showHide(".pinyin", isShowField);
-            }
-            if (_id == "text-zhuyin") {
-                showHide(".zhuyin", isShowField);
-            }
-            if (_id == "text-sim") {
-                showHide("#char-sim-id", isShowField);
-            }
-            if (_id == "text-trad") {
-                showHide("#char-trad-id", isShowField);
-                showHide(".sep", isShowField);
-            }
+            applyField(_id, on);
         }
-
         showTraditionalChar();
     }
 
     function showTraditionalChar() {
         var tradChar = document.getElementById("char_trad");
         var simChar = document.getElementById("char_sim");
-        var tradPer = Persistence
         if (tradChar.innerHTML != simChar.innerHTML) {
-            if (Persistence.getItem(frontBack + "text-trad") == "true") {
-                tradChar.style.display = "block";
-            }
-        } else {
-            if (Persistence.getItem(frontBack + "text-sim") == "true") {
-                tradChar.style.display = "none";
-            }
+            if (Persistence.getItem(frontBack + "text-trad") == "true") tradChar.style.display = "block";
+        } else if (Persistence.getItem(frontBack + "text-sim") == "true") {
+            tradChar.style.display = "none";
         }
     }
 
     function initDrawPrefs() {
-        var drawPrefsList = ["draw-size", "stroke-size", "hint-miss"];
-        for (var _id of drawPrefsList) {
+        var defaults = { "draw-size": 400, "stroke-size": 64, "hint-miss": 5 };
+        for (var _id in defaults) {
             var perId = frontBack + _id;
-            var elem = document.getElementById(_id);
             var store = Persistence.getItem(perId);
             if (store) {
-                elem.value = store;
+                document.getElementById(_id).value = store;
             } else {
-                var value = _id == "draw-size" ? 400 : _id == "stroke-size" ? 64 : 5; 2
-                
-                elem.value = value;
-                Persistence.setItem(perId, value);
+                document.getElementById(_id).value = defaults[_id];
+                Persistence.setItem(perId, defaults[_id]);
             }
         }
-
         var perIndex = Persistence.getItem(frontBack + "practice-select");
-        if (perIndex) {
-            characters = document.getElementById('char_trad').innerHTML;
-            document.getElementById("practice-select").selectedIndex = 1;
-        } else {
-            characters = document.getElementById('char_sim').innerHTML;
-            document.getElementById("practice-select").selectedIndex = 0;
-        }
+        document.getElementById("practice-select").selectedIndex = perIndex ? 1 : 0;
+        characters = document.getElementById(perIndex ? 'char_trad' : 'char_sim').innerHTML;
     }
 
     function setPrefs(e) {
         var perId = frontBack + e.id;
         if (e.id == "practice-select") {
             Persistence.setItem(perId, e.selectedIndex);
-            characters = document.getElementById("practice-select").selectedIndex == 0
-                ? document.getElementById('char_sim').innerHTML
-                : document.getElementById('char_trad').innerHTML;
+            characters = document.getElementById(e.selectedIndex == 0 ? 'char_sim' : 'char_trad').innerHTML;
             doPractice();
         }
-
         if (e.type == "checkbox") {
             Persistence.setItem(perId, e.checked.toString());
-            var divId = e.id.replace("text-", "char_");
-            if (e.id == "text-stroke-color" || e.id == "text-outline") {
-                return;
-            }
-
-            if (e.checked) {
-                document.getElementById(divId).style.display = "block";
-            } else {
-                document.getElementById(divId).style.display = "none";
-            }
-
-            var isShowField = document.getElementById(divId).style.display == "none" ? false : true;
-            if (e.id == "text-pinyin") {
-                showHide(".pinyin", isShowField);
-            }
-            if (e.id == "text-zhuyin") {
-                showHide(".zhuyin", isShowField);
-            }
-            if (e.id == "text-sim") {
-                showHide("#char-sim-id", isShowField);
-            }
-            if (e.id == "text-trad") {
-                showHide("#char-trad-id", isShowField);
-                showHide(".sep", isShowField);
-            }
+            if (e.id == "text-stroke-color" || e.id == "text-outline") return;
+            var dv = document.getElementById(e.id.replace("text-", "char_"));
+            if (dv) dv.style.display = e.checked ? "block" : "none";
+            applyField(e.id, e.checked);
         }
-
         if (e.type == "number") {
             Persistence.setItem(perId, e.value);
-            var elem = document.getElementById(e.id);
-            elem.value = e.value;
         }
     }
 
-    function showHide(type, isShow, style = "inline") {
-        if (isShow) {
-            document.querySelectorAll(type).forEach(function (val) {
-                val.style.display = style;
-            });
-        } else {
-            document.querySelectorAll(type).forEach(function (val) {
-                val.style.display = 'none';
-            });
-        }
-    }
-
-    function openSidebar(id) {
-        var width = id == "sidebar" ? "250px" : "160px";
-        document.getElementById(id).style.width = width;
-    }
-
-    function closeSidebar(id) {
-        document.getElementById(id).style.width = "0";
-    }
-
-    document.addEventListener('click', function (event) {
-        if (!document.getElementById("sidebar") || !document.getElementById("more-info-sidebar")) { return };
-        if (!document.getElementById("sidebar").contains(event.target)) {
-            closeSidebar("sidebar");
-        }
-        if (!document.getElementById("more-info-sidebar").contains(event.target)) {
-            closeSidebar("more-info-sidebar");
-        }
-        if (document.getElementById("btnShowMenu").contains(event.target)) {
-            openSidebar("sidebar");
-        }
-        if (document.getElementById("btnMoreOptions").contains(event.target)) {
-            openSidebar("more-info-sidebar");
-        }
-    });
-
+    // Writer reads char_sim/char_trad text, so only color pinyin here (not the
+    // big hanzi); drive the collapsible dictionary card too.
+    function initWriterCard() { colorPinyin(); initMeaning(); }
     if (Persistence.isAvailable()) {
         if (window.ankiPlatform == "desktop" || isInWebView()) {
             initPractice();
             initSwitchPrefs();
             initDrawPrefs();
+            initWriterCard();
         } else {
             window.addEventListener("load", initPractice, false);
             window.addEventListener("load", initSwitchPrefs, false);
             window.addEventListener("load", initDrawPrefs, false);
+            window.addEventListener("load", initWriterCard, false);
         }
-    }
-    // audio in Anki Web on different systems
-
-    function isInWebView() {
-        var UA = navigator.userAgent;
-        if (/iPhone|iPod|iPad/.test(UA)) {
-            if (/(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(UA)) {
-                return true;
-            }
-        }
-        if (window.location.href.includes("ankiuser.net")) {
-            return true;
-        }
-        return false;
     }
 </script>
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+<script src="_hanzi-writer.min.js"></script>
 <script>
+    // Offline stroke data: load the bundled subset, serve one character on demand.
+    var HANZI_DATA = {};
+    function hwCharDataLoader(char) { return HANZI_DATA[char]; }
+
     var charHW = document.getElementById("draw-size").value;
     var charHeight = charHW;
     var charWidth = charHW;
@@ -1553,17 +571,12 @@ const DECK_HTML_WITH_HANZI_WRITER =
     }
 
     function playAudio() {
-        var audioDiv = document.getElementById('audio');
-        var audio = audioDiv.getElementsByTagName("*");
-        audio[0].tagName == "AUDIO" ? audio[0].play() : audio[0].click();
+        var audio = document.getElementById('audio').getElementsByTagName("*");
+        if (audio[0]) audio[0].tagName == "AUDIO" ? audio[0].play() : audio[0].click();
     }
 
     var btnAudio = document.getElementById("btnPlayAudio");
-    if (btnAudio) {
-        btnAudio.onclick = function () {
-            playAudio();
-        };
-    }
+    if (btnAudio) btnAudio.onclick = playAudio;
 
     var grid_data = \`<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' class='grid-color'  id='grid-background-target'><g id="char_grid"><line x1='0' y1='0' x2='100%' y2='100%' stroke='var(--surface1)' /><line x1='100%' y1='0' x2='0' y2='100%' stroke='var(--surface1)' /><line x1='50%' y1='0' x2='50%' y2='100%' stroke='var(--surface1)' /><line x1='0' y1='50%' x2='100%' y2='50%' stroke='var(--surface1)' /></g></svg>\`;
 
@@ -1595,12 +608,13 @@ const DECK_HTML_WITH_HANZI_WRITER =
             span.style.display = style;
             drawGrid.appendChild(span);
             setStrokeColor(i);
-            var writer = HanziWriter.create("onfinish-grid-background-target" + i, hanzi, {
+            HanziWriter.create("onfinish-grid-background-target" + i, hanzi, {
+                charDataLoader: hwCharDataLoader,
                 width: size,
                 height: size,
                 padding: 5,
                 strokeColor: stroke_color
-            })
+            });
         }
     }
 
@@ -1638,6 +652,7 @@ const DECK_HTML_WITH_HANZI_WRITER =
             setStrokeColor(i);
             var hanzi = characters[i];
             var writer = HanziWriter.create('grid-background-target' + i, hanzi, {
+                charDataLoader: hwCharDataLoader,
                 onLoadCharDataSuccess: function (data) {
                     document.getElementById("ch_load_status").style.color = "#4caf50";
                 },
@@ -1797,13 +812,698 @@ const DECK_HTML_WITH_HANZI_WRITER =
     }
 
     if (Persistence.isAvailable()) {
-        doPractice();
+        fetch("_hanzi-writer-data.json")
+            .then(function (r) { return r.json(); })
+            .then(function (d) { HANZI_DATA = d; })
+            .catch(function () { /* offline data missing; loader returns undefined */ })
+            .finally(function () { doPractice(); });
     }
 </script>
-`
+`;
+
+const DECK_CSS =
+`:root {
+  --tone-1: #f44336;
+  --tone-2: #ff9800;
+  --tone-3: #4caf50;
+  --tone-4: #2196f3;
+  --tone-5: #607d8b;
+  --brand-bg1: rgb(255, 117, 195);
+  --brand-bg2: rgb(157, 119, 255);
+  --brand-bg-gradient: linear-gradient(
+    to bottom,
+    var(--brand-bg2),
+    var(--brand-bg2)
+  );
+  --thumb-highlight-color: rgba(255, 255, 254, 0.2);
+  --space-xxs: 0.25rem;
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  --space-xxl: 6rem;
+  --isLTR: 1;
+  --isRTL: -1;
+}
+
+.card {
+  --title-color: grey;
+  --time-left-color: teal;
+  --hanzi-grid: #fafafa;
+  --stroke: #555;
+  --outline: #ddd;
+  --drawing: #333;
+  --pinyin-color: #ef6c00;
+  --simplified-color: #6495ed;
+  --traditional-color: #00796b;
+  --meaning-color: #607d8b;
+  --icon-button-background: #63759d;
+  --icon-button-background-focus: #7d92c2;
+  --sidebar-color: white;
+  --sidebar-background-color: #52575d;
+  --header-color: #455a64;
+  --surface1: rgb(226, 226, 226);
+  --surface2: rgb(255, 255, 254);
+  --surface3: rgb(249, 249, 249);
+  --surface4: rgb(212, 212, 212);
+  --text1: rgb(48, 48, 48);
+  --text2: rgb(94, 94, 94);
+  --brand: rgb(47, 167, 214);
+  --thumb-highlight-color: rgba(0, 0, 0, 0.2);
+  font-size: 20px;
+  text-align: center;
+  color: black;
+  background-color: white;
+}
+
+.card.night_mode {
+  --header-color: white;
+  --title-color: #00bcd4;
+  --time-left-color: #fff;
+  --hanzi-grid: #262626;
+  --stroke: #ffffff;
+  --outline: #5b5b5b;
+  --drawing: #fff;
+  --pinyin-color: #27b46e;
+  --simplified-color: #6495ed;
+  --traditional-color: #fba910;
+  --meaning-color: #00bfa5;
+  --icon-button-background: #63759d;
+  --icon-button-background-focus: #7d92c2;
+  --sidebar-color: white;
+  --sidebar-background-color: #52575d;
+  --surface1: rgb(27, 27, 27);
+  --surface2: rgb(37, 37, 37);
+  --surface3: rgb(48, 48, 48);
+  --surface4: rgb(59, 59, 59);
+  --text1: rgb(240, 240, 240);
+  --text2: rgb(184, 184, 184);
+  --brand: rgb(118, 161, 184);
+  color: white;
+  background-color: #1f1f1f;
+}
+
+.char-card {
+  font-size: 3em;
+}
+
+/* Kai Ti fonts (bundle the .woff2/.ttf as media to enable) */
+.win .char-card,
+.mac .char-card,
+.linux:not(.android) .char-card {
+  font-family: "AR PL KaitiM GB", "AR PL KaitiM Big5";
+}
+
+/* Material Icon Font (bundled offline) */
+@font-face {
+  font-family: "Material Icons";
+  font-style: normal;
+  font-weight: 300;
+  src: local("Material Icons"), local("MaterialIcons-Regular"),
+    url(_MaterialIcons-Regular.woff2) format("woff2");
+}
+
+.material-icons {
+  font-family: "Material Icons";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  /* Preferred icon size */
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  /* Support for all WebKit browsers. */
+  -webkit-font-smoothing: antialiased;
+  /* Support for Safari and Chrome. */
+  text-rendering: optimizeLegibility;
+  /* Support for Firefox. */
+  -moz-osx-font-smoothing: grayscale;
+  /* Support for IE. */
+  font-feature-settings: "liga";
+}
+
+/* grid color for character */
+
+.grid-color {
+  margin: 6px;
+  background-color: var(--hanzi-grid);
+  padding: 2px;
+  box-shadow: 0px 0px 10px -5px rgba(0, 0, 0, 0.5);
+}
+
+.stroke-color {
+  color: var(--stroke);
+}
+
+.outline-color {
+  color: var(--outline);
+}
+
+.drawing-color {
+  color: var(--drawing);
+}
+
+/* bottom button */
+
+.modal-footer1 {
+  padding-top: 15px;
+  text-align: center;
+}
+
+.modal-footer1 a {
+  display: inline-block;
+  margin: 0 8px;
+  float: none;
+}
+
+.text-color1 {
+  font-size: 16px;
+  color: var(--pinyin-color);
+}
+
+.text-color2 {
+  color: var(--traditional-color);
+}
+
+.text-color3 {
+  color: var(--meaning-color);
+}
+
+.text-color4 {
+  font-size: 30px;
+  font-weight: bold;
+  color: var(--simplified-color);
+}
+
+/* Material Icon Button */
+
+.icon {
+  margin: 3px;
+  position: relative;
+  display: inline-block;
+  color: white;
+  background-color: var(--icon-button-background);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  transition: all 0.3s ease;
+}
+
+.icon .material-icons {
+  font-size: 1rem;
+  position: absolute;
+  left: 0.5rem;
+  top: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.icon:hover,
+.icon:focus {
+  background-color: var(--icon-button-background-focus);
+}
+
+.sidebar {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: var(--surface1);
+  overflow-x: hidden;
+  transition: 0.5s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.more-info-sidebar {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  background-color: var(--surface1);
+  overflow-x: hidden;
+  transition: 0.5s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.more-info-sidebar a {
+  display: flex;
+  margin: 3px;
+  padding: 2px;
+  border-radius: 3px;
+  text-decoration: none;
+  color: var(--text1);
+}
+
+.more-info-sidebar img {
+  width: 28px;
+  margin-right: 6px;
+}
+
+/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
+
+@media screen and (max-height: 450px) {
+  .sidebar {
+    padding-top: 15px;
+  }
+
+  .sidebar a {
+    font-size: 16px;
+  }
+}
+
+.more-info-btn {
+  text-align: center;
+}
+
+img {
+  border-radius: 10%;
+}
+
+.practice-ch {
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  transition: all 0.3s ease;
+  padding: 3px;
+}
+
+.meaning {
+  text-align: left;
+  display: block;
+}
+
+.tone1 {
+  color: #f44336;
+}
+
+.tone2 {
+  color: #fbc02d;
+}
+
+.tone3 {
+  color: #4caf50;
+}
+
+.tone4 {
+  color: #03a9f4;
+}
+
+.tone5 {
+  color: #858585;
+}
+
+.meaning-card {
+  text-align: left;
+  padding: 10px;
+}
+
+.char {
+  font-size: 30px;
+}
+
+.pinyin {
+  font-size: 16px;
+}
+
+/* Pinyin is tone-colored per syllable at runtime (.tone1..5 spans). The sidebar
+   "Color hanzi" / "Color pinyin" toggles add these classes to body. */
+.no-hanzi-color .char-tone1,
+.no-hanzi-color .char-tone2,
+.no-hanzi-color .char-tone3,
+.no-hanzi-color .char-tone4,
+.no-hanzi-color .char-tone5 {
+  color: inherit !important;
+}
+
+.no-pinyin-color .pinyin,
+.no-pinyin-color #char_pinyin,
+.no-pinyin-color .pinyin span,
+.no-pinyin-color #char_pinyin span {
+  color: inherit !important;
+}
+
+.zhuyin {
+  font-size: 16px;
+}
+
+.py {
+  font-size: 14px;
+  color: gray;
+}
+
+.zy {
+  font-size: 14px;
+  color: gray;
+}
+
+.header {
+  color: var(--header-color);
+}
+
+.question-sub-text {
+  color: #f44336;
+  font-weight: bold;
+}
+
+.char-tone1 {
+  color: var(--tone-1);
+}
+
+.char-tone2 {
+  color: var(--tone-2);
+}
+
+.char-tone3 {
+  color: var(--tone-3);
+}
+
+.char-tone4 {
+  color: var(--tone-4);
+}
+
+.char-sim-1 {
+  margin: 2px;
+  font-size: 30px;
+}
+
+.char-trad-1 {
+  margin: 2px;
+  font-size: 30px;
+}
+
+.char-pin-1 {
+  margin: 2px;
+  line-height: 32px;
+}
+
+.char-zhy-1 {
+  margin: 2px;
+  line-height: 32px;
+}
+
+small {
+  line-height: 1.5;
+}
+
+[dir="rtl"]:root {
+  --isLTR: -1;
+  --isRTL: 1;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 500;
+}
+
+main {
+  display: grid;
+  gap: var(--space-xl);
+  align-content: center;
+  justify-content: center;
+  place-content: center;
+  padding: var(--space-sm);
+}
+
+@media (min-width: 540px) {
+  main {
+    padding: var(--space-lg);
+  }
+}
+
+@media (min-width: 800px) {
+  main {
+    padding: var(--space-xl);
+  }
+}
+
+form {
+  max-width: 89vw;
+  display: grid;
+  gap: var(--space-xl) var(--space-xxl);
+  --repeat: auto-fit;
+  align-items: flex-start;
+}
+
+section {
+  display: grid;
+  gap: var(--space-md);
+  margin: 6px;
+}
+
+header {
+  display: grid;
+  gap: var(--space-xxs);
+}
+
+fieldset {
+  border: 1px solid var(--surface4);
+  background: var(--surface4);
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1px;
+  border-radius: var(--space-sm);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+fieldset:focus-within {
+  box-shadow: 0 5px 20px -10px hsla(0, 0%, 0%, 0.5);
+}
+
+fieldset a {
+  text-decoration: none;
+  color: var(--text1);
+}
+
+select {
+  outline: none;
+  border: none;
+  border-radius: 12px;
+  width: 34px;
+  padding-left: 6px;
+  color: white;
+  background: linear-gradient(to right, transparent 40px, var(--surface1) 0),
+    var(--brand-bg-gradient) fixed;
+  transition: background 0.5s ease;
+}
+
+select > option {
+  border: none;
+  border-radius: 20px;
+  outline: none;
+  background: var(--surface3);
+  font-size: 22px;
+  color: var(--text1);
+}
+
+input[type="checkbox"] {
+  width: 40px;
+  height: 20px;
+  margin: 0;
+  outline-offset: 5px;
+  accent-color: var(--brand);
+  position: relative;
+  transform-style: preserve-3d;
+  cursor: pointer;
+  -webkit-appearance: none;
+  background: var(--surface1);
+  border-radius: 20px;
+  transition: 0.5s;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  outline: none;
+}
+
+input:checked[type="checkbox"] {
+  background: linear-gradient(to right, transparent 40px, var(--surface1) 0),
+    var(--brand-bg-gradient) fixed;
+  transition: background 0.5s ease;
+}
+
+input[type="checkbox"]:before {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 20px;
+  top: 0;
+  left: 0;
+  background: white;
+  transform: scale(1.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: 0.5s;
+}
+
+input:checked[type="checkbox"]:before {
+  left: 20px;
+}
+
+input[type="number"] {
+  width: 40px;
+  height: 20px;
+  margin: 0;
+  padding: 4px;
+  position: relative;
+  cursor: text;
+  -webkit-appearance: none;
+  transition: 0.5s;
+  border: 1px solid var(--surface1);
+  background: var(--surface3);
+  border-radius: var(--space-sm);
+  text-align: end;
+  outline: none;
+  color: var(--text1);
+  place-self: center;
+}
+
+.fieldset-item {
+  background: var(--surface3);
+  transition: background 0.2s ease;
+  display: grid;
+  gap: var(--space-md);
+  padding-top: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+  text-align: left;
+}
+
+.fs-item-1 {
+  grid-template-columns: 1fr var(--space-xl);
+}
+
+.fs-item-2 {
+  grid-template-columns: 56px 1fr;
+}
+
+.fs-item-3 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.fs-item-front-back {
+  padding: unset;
+  text-align: center;
+  gap: unset;
+  cursor: pointer;
+}
+
+.front-back {
+  padding: var(--space-xs);
+}
+
+.btn-active {
+  color: white;
+  background: var(--brand-bg2);
+}
+
+.fieldset-item:focus-within {
+  background: var(--surface2);
+}
+
+.fieldset-item:focus-within svg {
+  fill: #fff;
+}
+
+.fieldset-item:focus-within picture {
+  -webkit-clip-path: circle(50%);
+  clip-path: circle(50%);
+  background: var(--brand-bg-gradient) fixed;
+}
+
+.fieldset-item > :is(.input-stack, label) {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.fieldset-item > .input-stack > label {
+  display: contents;
+}
+
+.fieldset-item svg {
+  fill: var(--text2);
+  height: var(--space-md);
+}
+
+.fieldset-item > input[type="checkbox"] {
+  align-self: center;
+  justify-self: center;
+  place-self: center;
+}
+
+hr {
+  border: 0;
+  height: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+#character-target-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+#character-target-div > div {
+  display: none;
+}
+
+#character-target-div > :first-child {
+  display: block;
+}
+
+#onfinish-character-target-div::-webkit-scrollbar {
+  height: 0px;
+  width: 0px;
+}
+
+.close-button {
+  position: absolute;
+  right: 16px;
+  width: 30px;
+  height: 30px;
+  background: red;
+  border-radius: 24px;
+  align-self: center;
+  color: white;
+  line-height: 1.5;
+}
+
+.close2 {
+  font-size: 16px;
+  text-align: center;
+  line-height: 1.8;
+}
+
+.brand-title {
+  text-align: left;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.brand-sub-title {
+  text-align: left;
+  font-size: 12px;
+}
+
+.more-side-brand {
+  padding: 8px;
+}
+`;
 
 export default {
     FIELDS,
+    MEANING_CARD,
     DECK_HTML_FRONT,
     DECK_HTML_BACK,
     DECK_HTML_WITH_HANZI_WRITER,

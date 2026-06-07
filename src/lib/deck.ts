@@ -324,6 +324,53 @@ async function buildHanziDataSubset(_words: Word[]): Promise<string> {
 	return res.text();
 }
 
+// Formats a raw CEDICT definition string for card display:
+//   - Extracts CL: classifier lists → rendered as measure-word chips
+//   - Splits semicolon-separated senses → numbered when multiple
+function formatDefinition(raw: string): string {
+	const classifiers: Array<{ chars: string; pin: string }> = [];
+
+	const cleaned = raw
+		.replace(/\bCL:([^;)]+)/g, (_match, list) => {
+			for (const item of list.split(',')) {
+				const t = item.trim();
+				if (!t) continue;
+				const pinMatch = t.match(/\[([^\]]+)\]/);
+				classifiers.push({
+					chars: t.replace(/\[[^\]]+\]/, '').trim(),
+					pin: pinMatch ? pinMatch[1] : ''
+				});
+			}
+			return '';
+		})
+		.replace(/\(\s*\)/g, '')
+		.replace(/;\s*;/g, ';')
+		.replace(/^[;\s,]+|[;\s,]+$/g, '')
+		.trim();
+
+	const defs = cleaned.split(/\s*;\s*/).filter(Boolean);
+	let html =
+		defs.length <= 1
+			? (defs[0] ?? '')
+			: defs.map((d, i) => `<span class="def-num">${i + 1}.</span> ${d}`).join('<br>');
+
+	if (classifiers.length > 0) {
+		const chips = classifiers
+			.map(({ chars, pin }) => {
+				const parts = chars.split('|');
+				const display =
+					parts.length > 1
+						? `${parts[0]}<span class="cl-simp">/${parts[1]}</span>`
+						: parts[0];
+				return `<span class="cl-chip">${display}<span class="cl-pin">${pin}</span></span>`;
+			})
+			.join('');
+		html += `<div class="cl-row"><span class="cl-label">measure word</span>${chips}</div>`;
+	}
+
+	return html;
+}
+
 // Display-field markup, shared by front and back so both honor the user's order.
 const FIELD_DIV: Record<string, string> = {
 	Simplified: `<div id="char_sim" class="char-card">{{Simplified}}</div>`,
@@ -624,13 +671,12 @@ for (var _hide of hideList) {
     <div class="char">
         <span id="char-sim-id">${simp}</span>
         <span class="sep">〔</span>
-            <span id="char-trad-id">${trad}</span>
+        <span id="char-trad-id">${trad}</span>
         <span class="sep">〕</span>
-        </span>
     </div>
     <div class="pinyin">${pin[i]}</div>
     <div class="zhuyin">${zhu[i]}</div>
-    <div class="meaning">${def[i]}</div>
+    <div class="meaning">${formatDefinition(def[i] ?? '')}</div>
 </div>`;
 					definition.push(html);
 				}

@@ -295,7 +295,9 @@ ${CARD_JS}
     }
 
     function playAudio() {
-        var audio = document.getElementById('audio').getElementsByTagName("*");
+        var audioEl = document.getElementById('audio');
+        if (!audioEl) return;
+        var audio = audioEl.getElementsByTagName("*");
         if (audio[0]) audio[0].tagName == "AUDIO" ? audio[0].play() : audio[0].click();
     }
     var btnAudio = document.getElementById("btnPlayAudio");
@@ -571,7 +573,9 @@ ${CARD_JS}
     }
 
     function playAudio() {
-        var audio = document.getElementById('audio').getElementsByTagName("*");
+        var audioEl = document.getElementById('audio');
+        if (!audioEl) return;
+        var audio = audioEl.getElementsByTagName("*");
         if (audio[0]) audio[0].tagName == "AUDIO" ? audio[0].play() : audio[0].click();
     }
 
@@ -600,6 +604,8 @@ ${CARD_JS}
         }
 
         for (i = 0; i < characters.length; i++) {
+            var _code = characters.charCodeAt(i);
+            if (!((_code >= 0x4E00 && _code <= 0x9FFF) || (_code >= 0x3400 && _code <= 0x4DBF) || (_code >= 0xF900 && _code <= 0xFAFF))) continue;
             var hanzi = characters[i];
             var span = document.createElement('span');
             span.innerHTML = grid_data;
@@ -644,6 +650,8 @@ ${CARD_JS}
         drawGrid.innerHTML = "";
 
         for (i = 0; i < characters.length; i++) {
+            var _code = characters.charCodeAt(i);
+            if (!((_code >= 0x4E00 && _code <= 0x9FFF) || (_code >= 0x3400 && _code <= 0x4DBF) || (_code >= 0xF900 && _code <= 0xFAFF))) continue;
             var div = document.createElement('div');
             div.id = "div" + i;
             div.innerHTML = grid_data;
@@ -1498,6 +1506,51 @@ hr {
 
 .more-side-brand {
   padding: 8px;
+}
+
+.def-num {
+  font-size: 0.7em;
+  font-weight: 700;
+  color: var(--text2, #888);
+  vertical-align: middle;
+}
+
+.cl-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 0.82em;
+}
+
+.cl-label {
+  font-weight: 700;
+  color: var(--text2, #888);
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--surface3, #eee);
+  font-size: 0.75em;
+}
+
+.cl-chip {
+  display: inline-flex;
+  align-items: baseline;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--surface4, #ddd);
+  background: var(--surface2, #f5f5f5);
+}
+
+.cl-simp {
+  color: var(--text2, #999);
+  font-size: 0.85em;
+}
+
+.cl-pin {
+  font-size: 0.75em;
+  color: var(--text2, #999);
+  margin-left: 3px;
 }
 `;
 

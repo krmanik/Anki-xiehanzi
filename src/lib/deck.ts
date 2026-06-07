@@ -27,9 +27,36 @@ import {
 	posDisplay,
 	type Reading
 } from './dict/cedict';
+import {
+	buildNoteTemplates,
+	formatDefinition,
+	CARD_STYLE_LS_KEY,
+	CARD_TABS_LS_KEY,
+	DEFAULT_TEMPLATE,
+	elementOrder,
+	DEFAULT_BODY_ORDER,
+	type TabContent,
+	type TemplateOpts,
+	type CardElementId,
+	type CardElementStyles,
+	type ElementStyle
+} from './deckTemplate';
+
+// Re-export the template types/helpers so existing `$lib/deck` imports keep working.
+export {
+	CARD_STYLE_LS_KEY,
+	CARD_TABS_LS_KEY,
+	DEFAULT_TEMPLATE,
+	elementOrder,
+	DEFAULT_BODY_ORDER,
+	type TabContent,
+	type TemplateOpts,
+	type CardElementId,
+	type CardElementStyles,
+	type ElementStyle
+};
 
 const host = base;
-const FIELDS = CONSTANTS.FIELDS;
 
 export interface Word {
 	Simplified: string;
@@ -47,10 +74,6 @@ export interface Word {
 	level: string | null;
 	rank: number | null;
 	readings: Reading[];
-}
-
-export interface TabContent {
-	[card: string]: { front: string[]; back: string[]; additional: string[] };
 }
 
 // ---------------------------------------------------------------------------
@@ -270,213 +293,11 @@ export function cutParagraph(text: string): string[] {
 // Deck generation
 // ---------------------------------------------------------------------------
 
-export const CARD_STYLE_LS_KEY = 'xiehanzi-card-style';
-
-// Per-element style overrides. All fields optional — unset means "use default".
-export interface ElementStyle {
-	visible?: boolean;
-	fontSize?: string;        // e.g. '2.5em', '18px'
-	fontFamily?: string;      // 'default' | 'kaiti' | 'songti'
-	fontWeight?: string;      // 'normal' | '600' | 'bold'
-	color?: string;           // hex color
-	textAlign?: 'left' | 'center' | 'right';
-	marginTop?: string;       // e.g. '0', '8px'
-	marginBottom?: string;
-	backgroundColor?: string;
-	padding?: string;
-	borderRadius?: string;
-	letterSpacing?: string;
-	lineHeight?: string;
-	borderColor?: string;     // hr border color
-	borderWidth?: string;     // hr thickness e.g. '1px', '2px'
-}
-
-// Identifies each customizable region of the card.
-export type CardElementId =
-	| 'card'           // whole card container (background, alignment)
-	| 'simplified'     // main hanzi 大
-	| 'traditional'    // 〔traditional〕
-	| 'pinyin'         // Pīnyīn romanization
-	| 'zhuyin'         // ㄅㄆㄇㄈ phonetics
-	| 'partOfSpeech'   // noun/verb chips
-	| 'simpleMeaning'  // short English gloss
-	| 'definitions'    // full dictionary entry block
-	| 'audio'          // audio play button
-	| 'hr'             // horizontal rule separators
-	| 'controlButtons'; // sidebar-toggle footer buttons
-
-export type CardElementStyles = Partial<Record<CardElementId, ElementStyle>>;
-
-export interface TemplateOpts {
-	mono: boolean;
-	colorHanzi: boolean;
-	colorPinyin: boolean;
-	font: string;             // global hanzi font: 'default' | 'kaiti' | 'songti'
-	collapseDict: boolean;
-	elementStyles: CardElementStyles; // per-element visual overrides
-}
-
-export const DEFAULT_TEMPLATE: TemplateOpts = {
-	mono: false,
-	colorHanzi: true,
-	colorPinyin: true,
-	font: 'default',
-	collapseDict: false,
-	elementStyles: {}
-};
-
-// CSS selectors used when generating Anki export overrides.
-const ELEMENT_SELECTORS: Record<CardElementId, string> = {
-	card:           '.card:not(.night_mode)',
-	simplified:     '#char_sim',
-	traditional:    '#char_trad',
-	pinyin:         '#char_pinyin',
-	zhuyin:         '#char_zhuyin',
-	partOfSpeech:   '#char_pos',
-	simpleMeaning:  '#char_simple',
-	definitions:    '#char_meaning',
-	audio:          '#btnPlayAudio',
-	hr:             '.card hr',
-	controlButtons: '.modal-footer1'
-};
-
-function elementStyleToCSS(style: ElementStyle, fontStacks: Record<string, string>): string {
-	const r: string[] = [];
-	if (style.visible === false)   r.push('display:none !important');
-	if (style.fontSize)            r.push(`font-size:${style.fontSize} !important`);
-	if (style.fontFamily && style.fontFamily !== 'default') {
-		const stack = fontStacks[style.fontFamily] ?? style.fontFamily;
-		r.push(`font-family:${stack} !important`);
-	}
-	if (style.fontWeight)          r.push(`font-weight:${style.fontWeight} !important`);
-	if (style.color)               r.push(`color:${style.color} !important`);
-	if (style.textAlign)           r.push(`text-align:${style.textAlign} !important`);
-	if (style.marginTop)           r.push(`margin-top:${style.marginTop} !important`);
-	if (style.marginBottom)        r.push(`margin-bottom:${style.marginBottom} !important`);
-	if (style.backgroundColor)     r.push(`background-color:${style.backgroundColor} !important`);
-	if (style.padding)             r.push(`padding:${style.padding} !important`);
-	if (style.borderRadius)        r.push(`border-radius:${style.borderRadius} !important`);
-	if (style.letterSpacing)       r.push(`letter-spacing:${style.letterSpacing} !important`);
-	if (style.lineHeight)          r.push(`line-height:${style.lineHeight} !important`);
-	if (style.borderColor)         r.push(`border-color:${style.borderColor} !important`);
-	if (style.borderWidth)         r.push(`border-width:${style.borderWidth} !important`);
-	return r.join(';');
-}
-
-const FONT_STACKS: Record<string, string> = {
-	default: '',
-	kaiti: '"Kaiti SC", "STKaiti", "KaiTi", "楷体", serif',
-	songti: '"Songti SC", "STSong", "SimSun", "宋体", serif'
-};
-
-/** Build CSS appended to DECK_CSS. */
-function buildCssOverride(t: TemplateOpts): string {
-	// Base styles for the simple-meaning card and collapsible dictionary.
-	let css =
-		'\n/* template customization */\n' +
-		':root{--card-w:90%;}\n' +
-		'.simple-card{font-weight:600;padding:10px;margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;border:1px solid var(--surface4);border-radius:8px;}\n' +
-		'.simple-card:empty{display:none;border:0;}\n' +
-		'.meaning-card{margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;border:1px solid var(--surface4);border-radius:8px;padding:0;overflow:hidden;text-align:left;}\n' +
-		'.meaning-bar{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:6px 10px;font-size:0.8em;font-weight:600;color:var(--text2);background:var(--surface3);-webkit-user-select:none;user-select:none;}\n' +
-		'.meaning-arrow{transition:transform 0.2s ease;display:inline-block;}\n' +
-		'.meaning-bar.collapsed .meaning-arrow{transform:rotate(-90deg);}\n' +
-		'.meaning-content{padding:10px;}\n' +
-		'.pos-row{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:6px 0;}\n' +
-		'.pos-row:empty{display:none;}\n' +
-		'.pos-chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid #ccc;color:#666;}\n' +
-		'.pos-chip.pos-dominant{background:#111;color:#fff;border-color:#111;}\n';
-
-	// Global hanzi font — applied first; per-element elementStyles can override.
-	const globalStack = FONT_STACKS[t.font];
-	if (globalStack) {
-		css += `.char-card,.char,#char-sim-id,#char-trad-id{font-family:${globalStack} !important;}\n`;
-	}
-
-	// Per-element style overrides — mirrors exactly what CardPreview shows.
-	for (const [id, style] of Object.entries(t.elementStyles ?? {})) {
-		const selector = ELEMENT_SELECTORS[id as CardElementId];
-		if (!selector || !style) continue;
-		const rules = elementStyleToCSS(style, FONT_STACKS);
-		if (rules) css += `${selector}{${rules};}\n`;
-	}
-
-	return css;
-}
-
 async function buildHanziDataSubset(_words: Word[]): Promise<string> {
 	const res = await fetch(`${host}/data/hanzi-writer-data.json`);
 	return res.text();
 }
 
-// Formats a raw CEDICT definition string for card display:
-//   - Extracts CL: classifier lists → rendered as measure-word chips
-//   - Splits semicolon-separated senses → numbered when multiple
-function formatDefinition(raw: string): string {
-	const classifiers: Array<{ chars: string; pin: string }> = [];
-
-	const cleaned = raw
-		.replace(/\bCL:([^;)]+)/g, (_match, list) => {
-			for (const item of list.split(',')) {
-				const t = item.trim();
-				if (!t) continue;
-				const pinMatch = t.match(/\[([^\]]+)\]/);
-				classifiers.push({
-					chars: t.replace(/\[[^\]]+\]/, '').trim(),
-					pin: pinMatch ? pinMatch[1] : ''
-				});
-			}
-			return '';
-		})
-		.replace(/\(\s*\)/g, '')
-		.replace(/;\s*;/g, ';')
-		.replace(/^[;\s,]+|[;\s,]+$/g, '')
-		.trim();
-
-	const defs = cleaned.split(/\s*;\s*/).filter(Boolean);
-	let html =
-		defs.length <= 1
-			? (defs[0] ?? '')
-			: defs.map((d, i) => `<span class="def-num">${i + 1}.</span> ${d}`).join('<br>');
-
-	if (classifiers.length > 0) {
-		const chips = classifiers
-			.map(({ chars, pin }) => {
-				const parts = chars.split('|');
-				const display =
-					parts.length > 1
-						? `${parts[0]}<span class="cl-simp">/${parts[1]}</span>`
-						: parts[0];
-				return `<span class="cl-chip">${display}<span class="cl-pin">${pin}</span></span>`;
-			})
-			.join('');
-		html += `<div class="cl-row"><span class="cl-label">measure word</span>${chips}</div>`;
-	}
-
-	return html;
-}
-
-// Display-field markup, shared by front and back so both honor the user's order.
-const FIELD_DIV: Record<string, string> = {
-	Simplified: `<div id="char_sim" class="char-card">{{Simplified}}</div>`,
-	Traditional: `<div id="char_trad" class="char-card">{{Traditional}}</div>`,
-	Pinyin: `<div id="char_pinyin">{{Pinyin}}</div>`,
-	Zhuyin: `<div id="char_zhuyin">{{Zhuyin}}</div>`,
-	PartOfSpeech: `<div id="char_pos" class="pos-row">{{PartOfSpeech}}</div>`,
-	SimpleMeaning: `<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>`,
-	Definitions: CONSTANTS.MEANING_CARD
-};
-
-// Toggle id (sidebar checkbox) for each display field, used to seed default-off.
-const FIELD_TOGGLE: Record<string, string> = {
-	Simplified: 'text-sim',
-	Traditional: 'text-trad',
-	Pinyin: 'text-pinyin',
-	Zhuyin: 'text-zhuyin',
-	PartOfSpeech: 'text-pos',
-	SimpleMeaning: 'text-simple',
-	Definitions: 'text-meaning'
-};
 
 export interface GenerateDeckOptions {
 	words: Word[];
@@ -497,195 +318,18 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 
 	onProgress(0);
 
-	// Seed runtime defaults from the export options. Runs before each template's
-	// init (prepended) so it sets the initial body classes + collapse default; the
-	// user can override later via the sidebar / toolbar (stored in Persistence).
-	const noHanziColor = template.mono || !template.colorHanzi;
-	const noPinyinColor = template.mono || !template.colorPinyin;
-	const colorDefaultScript =
-		`<script>(function(){var b=document.body;${noHanziColor ? 'b.classList.add("no-hanzi-color");' : ''}${
-			noPinyinColor ? 'b.classList.add("no-pinyin-color");' : ''
-		}window.MEANING_COLLAPSE_DEFAULT=${template.collapseDict ? 'true' : 'false'};})();</script>\n`;
-
-	const flds: { name: string }[] = [];
-	const req: any[] = [];
-	const tmpls: { name: string; qfmt: string; afmt: string }[] = [];
-
-	// Filter out Audio field if includeAudio is false
-	const filteredFields = includeAudio ? fields : fields.filter((f) => f !== FIELDS.AUDIO);
-
-	filteredFields.forEach((f) => {
-		flds.push({ name: f });
+	const { flds, req, tmpls, css: modelCss, usesWriter } = buildNoteTemplates({
+		fields,
+		tabContent,
+		includeAudio,
+		template
 	});
-
-	let usesWriter = false;
-	let ri = 0;
-	for (const card in tabContent) {
-		req.push([ri, 'any', [ri]]);
-		ri++;
-
-		const frontSel = tabContent[card]['front'];
-
-		let hideSimp = true;
-		let hideTrad = true;
-		let hidePin = true;
-		let hideZhu = true;
-		let hideDef = true;
-
-		for (const front of frontSel) {
-			if (front.includes('Simplified')) hideSimp = false;
-			if (front.includes('Traditional')) hideTrad = false;
-			if (front.includes('Pinyin')) hidePin = false;
-			if (front.includes('Zhuyin')) hideZhu = false;
-			if (front.includes('Definitions') && !front.includes('SimpleMeaning')) hideDef = false;
-		}
-
-		// Build the front in the user's field order (Definitions included in place).
-		const addToFront: string[] = [];
-		for (const f of fields) {
-			if (!frontSel.includes(`front${f}`)) continue;
-			if (FIELD_DIV[f]) addToFront.push(FIELD_DIV[f]);
-		}
-
-		// When Definitions is shown, hide the dictionary's internal sim/pinyin/etc
-		// for fields the user did not also select on the front.
-		const hides: string[] = [];
-		if (!hideDef) {
-			if (hideSimp) hides.push('char_sim');
-			if (hideTrad) hides.push('char_trad');
-			if (hidePin) hides.push('char_pinyin');
-			if (hideZhu) hides.push('char_zhuyin');
-		}
-
-		let hideScript = `
-<script>
-var hideList = ['${hides.join("', '")}'];
-
-function showHide(type, isShow, style = "inline") {
-    if (isShow) {
-        document.querySelectorAll(type).forEach(function (val) {
-            val.style.display = style;
-        });
-    } else {
-        document.querySelectorAll(type).forEach(function (val) {
-            val.style.display = 'none';
-        });
-    }
-}
-
-for (var _hide of hideList) {
-    var el = document.getElementById(_hide);
-    if (el) {
-        el.style.display = "none";
-    }
-
-    if (_hide == "char_pinyin") {
-        showHide(".pinyin", false);
-    }
-    if (_hide == "char_zhuyin") {
-        showHide(".zhuyin", false);
-    }
-    if (_hide == "char_sim") {
-        showHide("#char-sim-id", false);
-    }
-    if (_hide == "char_trad") {
-        showHide("#char-trad-id", false);
-        showHide(".sep", false);
-    }
-}
-</script>`;
-
-		hideScript = hideDef ? '' : hideScript;
-
-		let QFMT = addToFront.join('\n') + hideScript + CONSTANTS.DECK_HTML_FRONT;
-
-		// Create dynamic back template based on includeAudio setting
-		let AFMT = CONSTANTS.DECK_HTML_BACK;
-		if (!includeAudio) {
-			// Remove audio div and play button if audio is not included
-			AFMT = AFMT.replace(`<div id='audio' style='display:none'>{{Audio}}</div>`, '');
-			AFMT = AFMT.replace(
-				`    <a class="btn" id='btnPlayAudio'>
-        <div class="icon">
-            <i class="material-icons">play_arrow</i>
-        </div>
-    </a>`,
-				''
-			);
-		}
-
-		const backSel = tabContent[card]['back'];
-
-		// Build the back's display fields in the user's field order; every field is
-		// present so the sidebar can toggle it, but fields not selected for the back
-		// start hidden (seeded into defaultOff, below).
-		const backFieldsHtml = fields
-			.filter((f) => FIELD_DIV[f])
-			.map((f) => FIELD_DIV[f])
-			.join('\n');
-		AFMT = AFMT.replace('<!--FIELDS-->', backFieldsHtml);
-
-		const defaultOff = fields
-			.filter((f) => FIELD_DIV[f] && !backSel.includes(`back${f}`))
-			.map((f) => FIELD_TOGGLE[f]);
-		AFMT = AFMT.replace('var defaultOff = [];', `var defaultOff = ${JSON.stringify(defaultOff)};`);
-
-		// Writing component: independent front and back placement.
-		const writingFront = tabContent[card]['front'].includes('frontwritingComponent');
-		const writingBack = tabContent[card]['back'].includes('backwritingComponent');
-		if (writingFront || writingBack) {
-			usesWriter = true;
-			let writerTpl = CONSTANTS.DECK_HTML_WITH_HANZI_WRITER;
-			if (!includeAudio) {
-				writerTpl = writerTpl.replace(`<div id='audio' style='display:none'>{{Audio}}</div>`, '');
-				writerTpl = writerTpl.replace(
-					`    <a class="btn" id='btnPlayAudio'>
-        <div class="icon"><i class="material-icons">play_arrow</i></div>
-    </a>`,
-					''
-				);
-			}
-			// Simple meaning sits below the writer controls and above the dictionary.
-			if (flds.some((x) => x.name === 'SimpleMeaning')) {
-				writerTpl = writerTpl.replace(
-					CONSTANTS.MEANING_CARD,
-					`<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>\n${CONSTANTS.MEANING_CARD}`
-				);
-			}
-			if (writingFront) QFMT = writerTpl;
-			if (writingBack) AFMT = writingFront ? `<div id="back">{{FrontSide}}</div>` : writerTpl;
-		}
-
-		// When Simplified and Traditional are identical, hide the redundant
-		// traditional display so the card shows a single hanzi (runtime check, in
-		// the Anki template, since it depends on each note's content).
-		const dedupeScript = `
-<script>
-(function () {
-    var s = document.getElementById('char_sim');
-    var t = document.getElementById('char_trad');
-    if (s && t) {
-        var a = s.textContent.trim();
-        var b = t.textContent.replace(/[〔〕\\s]/g, '');
-        if (a && a === b) { t.style.display = 'none'; }
-    }
-})();
-</script>`;
-		QFMT = colorDefaultScript + QFMT + dedupeScript;
-		AFMT = colorDefaultScript + AFMT + dedupeScript;
-
-		tmpls.push({
-			name: card,
-			qfmt: QFMT,
-			afmt: AFMT
-		});
-	}
 
 	const m = new Model({
 		name: includeAudio ? 'Basic - (Anki-xiehanzi)' : 'Basic - (Anki-xiehanzi) - No Audio',
 		id: includeAudio ? '1969669503' : '1969669504',
 		flds: flds,
-		css: CONSTANTS.DECK_CSS + buildCssOverride(template),
+		css: CONSTANTS.DECK_CSS + modelCss,
 		req: req,
 		tmpls: tmpls
 	});

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { colorizeHanzi } from '$lib/tone';
-	import type { CardElementId, CardElementStyles, ElementStyle } from '$lib/deck';
+	import { elementOrder, type CardElementId, type CardElementStyles, type ElementStyle } from '$lib/deckTemplate';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import Menu from '@lucide/svelte/icons/menu';
 	import PenLine from '@lucide/svelte/icons/pen-line';
@@ -19,6 +19,7 @@
 	let {
 		label,
 		items,
+		side = 'front',
 		colorize = true,
 		font = 'default',
 		collapseDict = false,
@@ -28,6 +29,7 @@
 	}: {
 		label: string;
 		items: string[];
+		side?: 'front' | 'back';
 		colorize?: boolean;
 		font?: string;
 		collapseDict?: boolean;
@@ -47,10 +49,28 @@
 	const hasWriting = $derived(items.includes(WRITING));
 	const globalFont = $derived(fontStacks[font] || '');
 
+	// Control buttons + separator are answer-side chrome; they also appear on the
+	// writing card's front (the quiz toolbar). Mirrors the exported templates.
+	const showChrome = $derived(side === 'back' || hasWriting);
+
+	// One merged control group. When the writing component is present it shows the
+	// full writer toolbar (menu, audio, reveal, replay, next, more); otherwise the
+	// basic set (menu, audio, more) — never two separate rows.
+	const controlIcons = $derived(
+		hasWriting
+			? [Menu, Volume2, PenLine, RotateCcw, ChevronRight, EllipsisVertical]
+			: [Menu, Volume2, EllipsisVertical]
+	);
+
 	function hanziFont(id: 'simplified' | 'traditional'): string {
 		const ov = elementStyles[id]?.fontFamily;
 		if (ov && ov !== 'default') return fontStacks[ov] ?? ov;
 		return globalFont;
+	}
+
+	// Flex `order` for a body block — drives the move up/down positioning.
+	function ord(id: CardElementId): number {
+		return elementOrder(elementStyles, id);
 	}
 
 	function elStyle(id: CardElementId): string {
@@ -141,35 +161,38 @@
 
 	<div class="flex min-h-[150px] flex-col items-center gap-2 p-4">
 
-		{#if interactive}
+		{#if showChrome && (!isHidden('controlButtons') || interactive)}
 			<div
 				class="flex w-full items-center justify-center gap-1.5 rounded py-1 {selClass('controlButtons')} {isHidden('controlButtons') ? 'opacity-30' : ''}"
-				style={elStyle('controlButtons')}
+				style="order:{ord('controlButtons')};{elStyle('controlButtons')}"
 				role="button"
 				tabindex="0"
 				onclick={(e) => select('controlButtons', e)}
 				onkeydown={onkey('controlButtons')}
 			>
-				{#each [Menu, Volume2, EllipsisVertical] as Icon (Icon)}
+				{#each controlIcons as Icon, i (i)}
 					<span class="flex h-6 w-6 items-center justify-center rounded bg-[#5b6a9e] text-white"><Icon size={13} /></span>
 				{/each}
-				{#if selectedElement === 'controlButtons'}<span class={SEL_BADGE}>Controls</span>{/if}
+				{#if interactive && selectedElement === 'controlButtons'}<span class={SEL_BADGE}>Controls</span>{/if}
 			</div>
+		{/if}
 
+		{#if showChrome && (!isHidden('hr') || interactive)}
 			<div
 				class="w-full rounded py-0.5 {selClass('hr')} {isHidden('hr') ? 'opacity-30' : ''}"
+				style="order:{ord('hr')}"
 				role="button"
 				tabindex="0"
 				onclick={(e) => select('hr', e)}
 				onkeydown={onkey('hr')}
 			>
 				<hr class="border-neutral-200" style={elStyle('hr')} />
-				{#if selectedElement === 'hr'}<div class="mt-0.5 text-center font-mono text-[9px] text-blue-500">separator</div>{/if}
+				{#if interactive && selectedElement === 'hr'}<div class="mt-0.5 text-center font-mono text-[9px] text-blue-500">separator</div>{/if}
 			</div>
 		{/if}
 
 		{#if items.length === 0 && !interactive}
-			<span class="text-sm text-neutral-300">Nothing selected</span>
+			<span class="text-sm text-neutral-300" style="order:999">Nothing selected</span>
 		{/if}
 
 		{#each items as item (item)}
@@ -177,7 +200,7 @@
 			{#if item === 'Simplified' && (!isHidden('simplified') || interactive)}
 				<div
 					class="font-semibold leading-none {selClass('simplified')} {isHidden('simplified') ? 'opacity-30' : ''}"
-					style="font-size:{elementStyles.simplified?.fontSize ?? '2.5em'};font-family:{hanziFont('simplified') || 'inherit'};{elStyle('simplified')}"
+					style="order:{ord('simplified')};font-size:{elementStyles.simplified?.fontSize ?? '2.5em'};font-family:{hanziFont('simplified') || 'inherit'};{elStyle('simplified')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('simplified', e)}
@@ -190,7 +213,7 @@
 			{:else if item === 'Traditional' && (!isHidden('traditional') || interactive)}
 				<div
 					class="leading-none text-neutral-700 {selClass('traditional')} {isHidden('traditional') ? 'opacity-30' : ''}"
-					style="font-size:{elementStyles.traditional?.fontSize ?? '1.5em'};font-family:{hanziFont('traditional') || 'inherit'};{elStyle('traditional')}"
+					style="order:{ord('traditional')};font-size:{elementStyles.traditional?.fontSize ?? '1.5em'};font-family:{hanziFont('traditional') || 'inherit'};{elStyle('traditional')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('traditional', e)}
@@ -201,20 +224,14 @@
 				</div>
 
 			{:else if item === WRITING}
-				<div bind:this={writerEl} class="h-24 w-24"></div>
-				<div class="mt-1 flex items-center justify-center gap-1.5 text-white">
-					{#each [Menu, PenLine, RotateCcw, ChevronRight, EllipsisVertical] as Icon (Icon)}
-						<span class="flex h-6 w-6 items-center justify-center rounded bg-[#5b6a9e]"><Icon size={13} /></span>
-					{/each}
+				<div style="order:{ord('simplified')}" class="flex flex-col items-center">
+					<div bind:this={writerEl} class="h-24 w-24"></div>
 				</div>
-				{#if !isHidden('hr')}
-					<hr class="my-1 w-full border-neutral-200" style={elStyle('hr')} />
-				{/if}
 
 			{:else if item === 'Pinyin' && (!isHidden('pinyin') || interactive)}
 				<div
 					class="text-lg text-neutral-600 {selClass('pinyin')} {isHidden('pinyin') ? 'opacity-30' : ''}"
-					style={elStyle('pinyin')}
+					style="order:{ord('pinyin')};{elStyle('pinyin')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('pinyin', e)}
@@ -227,7 +244,7 @@
 			{:else if item === 'Zhuyin' && (!isHidden('zhuyin') || interactive)}
 				<div
 					class="text-base text-neutral-500 {selClass('zhuyin')} {isHidden('zhuyin') ? 'opacity-30' : ''}"
-					style={elStyle('zhuyin')}
+					style="order:{ord('zhuyin')};{elStyle('zhuyin')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('zhuyin', e)}
@@ -240,7 +257,7 @@
 			{:else if item === 'PartOfSpeech' && (!isHidden('partOfSpeech') || interactive)}
 				<div
 					class="flex flex-wrap justify-center gap-1 {selClass('partOfSpeech')} {isHidden('partOfSpeech') ? 'opacity-30' : ''}"
-					style={elStyle('partOfSpeech')}
+					style="order:{ord('partOfSpeech')};{elStyle('partOfSpeech')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('partOfSpeech', e)}
@@ -253,7 +270,7 @@
 			{:else if item === 'SimpleMeaning' && (!isHidden('simpleMeaning') || interactive)}
 				<div
 					class="text-[15px] font-semibold text-neutral-800 {selClass('simpleMeaning')} {isHidden('simpleMeaning') ? 'opacity-30' : ''}"
-					style={elStyle('simpleMeaning')}
+					style="order:{ord('simpleMeaning')};{elStyle('simpleMeaning')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('simpleMeaning', e)}
@@ -266,7 +283,7 @@
 			{:else if item === 'Definitions' && (!isHidden('definitions') || interactive)}
 				<div
 					class="{selClass('definitions')} {isHidden('definitions') ? 'opacity-30' : ''}"
-					style={elStyle('definitions')}
+					style="order:{ord('definitions')};{elStyle('definitions')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('definitions', e)}
@@ -286,7 +303,7 @@
 			{:else if item === 'Audio' && (!isHidden('audio') || interactive)}
 				<div
 					class="mt-1 inline-flex items-center gap-1 text-neutral-400 {selClass('audio')} {isHidden('audio') ? 'opacity-30' : ''}"
-					style={elStyle('audio')}
+					style="order:{ord('audio')};{elStyle('audio')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('audio', e)}
@@ -300,7 +317,7 @@
 		{/each}
 
 		{#if interactive && items.length === 0}
-			<p class="text-xs text-neutral-300">No fields — add fields from the table.</p>
+			<p class="text-xs text-neutral-300" style="order:999">No fields — add fields from the table.</p>
 		{/if}
 	</div>
 </div>

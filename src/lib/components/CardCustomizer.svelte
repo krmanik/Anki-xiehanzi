@@ -2,10 +2,12 @@
 	import {
 		CARD_STYLE_LS_KEY,
 		DEFAULT_TEMPLATE,
+		elementOrder,
 		type CardElementId,
+		type CardElementStyles,
 		type ElementStyle,
 		type TemplateOpts
-	} from '$lib/deck';
+	} from '$lib/deckTemplate';
 	import CardPreview from './CardPreview.svelte';
 	import Monitor from '@lucide/svelte/icons/monitor';
 	import Smartphone from '@lucide/svelte/icons/smartphone';
@@ -16,21 +18,29 @@
 	import AlignRight from '@lucide/svelte/icons/align-right';
 	import Eye from '@lucide/svelte/icons/eye';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
+	import ChevronUp from '@lucide/svelte/icons/chevron-up';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 
 	let {
 		template = $bindable<TemplateOpts>(),
+		elementStyles = $bindable<CardElementStyles>(),
 		frontItems,
 		backItems,
+		cardName = '',
 		onclose
 	}: {
 		template: TemplateOpts;
+		elementStyles: CardElementStyles;
 		frontItems: string[];
 		backItems: string[];
+		cardName?: string;
 		onclose?: () => void;
 	} = $props();
 
-	// Work on a local copy; Cancel discards, Save commits.
-	let local = $state<TemplateOpts>(JSON.parse(JSON.stringify(template)));
+	// Work on local copies; Cancel discards, Save commits. `localT` holds the
+	// deck-wide tone/font options, `localES` the per-card-type element styles.
+	let localT = $state<TemplateOpts>(JSON.parse(JSON.stringify(template)));
+	let localES = $state<CardElementStyles>(JSON.parse(JSON.stringify(elementStyles ?? {})));
 	let mobilePreview = $state(false);
 	let selectedElement = $state<CardElementId | null>(null);
 
@@ -74,50 +84,74 @@
 
 	const BG_PRESETS = ['#ffffff', '#fdf6e3', '#1e1e2e', '#f0f4f8', '#fff8f0'];
 
+	// Field name (as used in items) → CardElementId, for position neighbours.
+	const FIELD_TO_EL: Record<string, CardElementId> = {
+		Simplified: 'simplified',
+		Traditional: 'traditional',
+		Pinyin: 'pinyin',
+		Zhuyin: 'zhuyin',
+		PartOfSpeech: 'partOfSpeech',
+		SimpleMeaning: 'simpleMeaning',
+		Definitions: 'definitions',
+		Audio: 'audio'
+	};
+
 	// ── Per-element helpers ───────────────────────────────────────────────────
 
 	function getStyle(): ElementStyle {
 		if (!selectedElement) return {};
-		return local.elementStyles[selectedElement] ?? {};
+		return localES[selectedElement] ?? {};
 	}
 
 	function setStyle(patch: Partial<ElementStyle>) {
 		if (!selectedElement) return;
-		local = {
-			...local,
-			elementStyles: {
-				...local.elementStyles,
-				[selectedElement]: { ...(local.elementStyles[selectedElement] ?? {}), ...patch }
-			}
-		};
+		setStyleFor(selectedElement, patch);
 	}
 
 	function clearStyle(key: keyof ElementStyle) {
 		if (!selectedElement) return;
-		const current = { ...(local.elementStyles[selectedElement] ?? {}) };
+		const current = { ...(localES[selectedElement] ?? {}) };
 		delete current[key];
-		local = {
-			...local,
-			elementStyles: { ...local.elementStyles, [selectedElement]: current }
-		};
+		localES = { ...localES, [selectedElement]: current };
 	}
 
 	function isHidden(id: CardElementId): boolean {
-		return local.elementStyles[id]?.visible === false;
+		return localES[id]?.visible === false;
 	}
 
 	function toggleVisible(id: CardElementId) {
-		const current = local.elementStyles[id]?.visible;
+		const current = localES[id]?.visible;
 		setStyleFor(id, { visible: current === false ? true : false });
 	}
 
 	function setStyleFor(id: CardElementId, patch: Partial<ElementStyle>) {
-		local = {
-			...local,
-			elementStyles: {
-				...local.elementStyles,
-				[id]: { ...(local.elementStyles[id] ?? {}), ...patch }
-			}
+		localES = {
+			...localES,
+			[id]: { ...(localES[id] ?? {}), ...patch }
+		};
+	}
+
+	// Move the selected chrome element (hr / controls) up or down past a neighbour
+	// by swapping their flex `order`. Neighbours come from the answer side, where
+	// the controls + separator live.
+	function moveElement(id: CardElementId, dir: -1 | 1) {
+		const blocks: CardElementId[] = [
+			'controlButtons',
+			'hr',
+			...backItems.map((f) => FIELD_TO_EL[f]).filter(Boolean)
+		];
+		const uniq = [...new Set(blocks)];
+		const sorted = uniq.sort((a, b) => elementOrder(localES, a) - elementOrder(localES, b));
+		const i = sorted.indexOf(id);
+		const j = i + dir;
+		if (i < 0 || j < 0 || j >= sorted.length) return;
+		const other = sorted[j];
+		const oi = elementOrder(localES, id);
+		const oj = elementOrder(localES, other);
+		localES = {
+			...localES,
+			[id]: { ...(localES[id] ?? {}), order: oj },
+			[other]: { ...(localES[other] ?? {}), order: oi }
 		};
 	}
 
@@ -139,7 +173,8 @@
 
 	const selKind = $derived(selectedElement ? EL_KIND[selectedElement] : null);
 	const selStyle = $derived(getStyle());
-	const colorize = $derived(!local.mono && local.colorHanzi);
+	const colorize = $derived(!localT.mono && localT.colorHanzi);
+	const canMove = $derived(selectedElement === 'hr' || selectedElement === 'controlButtons');
 
 	// ── Segmented button helper ───────────────────────────────────────────────
 
@@ -153,13 +188,20 @@
 	// ── Save / Cancel / Reset ─────────────────────────────────────────────────
 
 	function save() {
-		template = JSON.parse(JSON.stringify(local));
-		try { localStorage.setItem(CARD_STYLE_LS_KEY, JSON.stringify(template)); } catch (_) {}
+		template = JSON.parse(JSON.stringify(localT));
+		elementStyles = JSON.parse(JSON.stringify(localES));
+		try {
+			localStorage.setItem(CARD_STYLE_LS_KEY, JSON.stringify(template));
+		} catch (_) {}
 		onclose?.();
 	}
 
 	function cancel() { onclose?.(); }
-	function reset() { local = { ...DEFAULT_TEMPLATE, elementStyles: {} }; selectedElement = null; }
+	function reset() {
+		localT = { ...DEFAULT_TEMPLATE, elementStyles: {} };
+		localES = {};
+		selectedElement = null;
+	}
 	function handleOverlay(e: MouseEvent) { if (e.target === e.currentTarget) cancel(); }
 </script>
 
@@ -177,8 +219,8 @@
 		<!-- Header -->
 		<div class="flex shrink-0 items-center justify-between border-b border-neutral-200 px-5 py-3">
 			<div>
-				<h2 class="text-base font-semibold text-neutral-900">Card Customiser</h2>
-				<p class="text-xs text-neutral-400">Click any element in the preview to customise it. Mirrors exactly in the Anki export.</p>
+				<h2 class="text-base font-semibold text-neutral-900">Card Customiser{cardName ? ` — ${cardName}` : ''}</h2>
+				<p class="text-xs text-neutral-400">Per card type. Click any element in the preview to customise it. Mirrors exactly in the Anki export.</p>
 			</div>
 			<div class="flex items-center gap-2">
 				<div class="inline-flex overflow-hidden rounded-lg border border-neutral-200">
@@ -203,16 +245,16 @@
 
 				<!-- Global tone settings -->
 				<div class="border-b border-neutral-100 p-3">
-					<p class="mb-2 font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">Global</p>
+					<p class="mb-2 font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">Global (whole deck)</p>
 					<div class="mb-2 inline-flex w-full overflow-hidden rounded-lg border border-neutral-200">
-						<button class={segClass(!local.mono)} onclick={() => (local = { ...local, mono: false })}>Tone colors</button>
-						<button class={segClass(local.mono)} onclick={() => (local = { ...local, mono: true })}>Black &amp; white</button>
+						<button class={segClass(!localT.mono)} onclick={() => (localT = { ...localT, mono: false })}>Tone colors</button>
+						<button class={segClass(localT.mono)} onclick={() => (localT = { ...localT, mono: true })}>Black &amp; white</button>
 					</div>
-					<label class="mb-1 flex items-center gap-2 text-xs {local.mono ? 'opacity-40' : ''}">
-						<input type="checkbox" class="h-3.5 w-3.5 accent-neutral-900" bind:checked={local.colorHanzi} disabled={local.mono} /> Color hanzi
+					<label class="mb-1 flex items-center gap-2 text-xs {localT.mono ? 'opacity-40' : ''}">
+						<input type="checkbox" class="h-3.5 w-3.5 accent-neutral-900" bind:checked={localT.colorHanzi} disabled={localT.mono} /> Color hanzi
 					</label>
-					<label class="flex items-center gap-2 text-xs {local.mono ? 'opacity-40' : ''}">
-						<input type="checkbox" class="h-3.5 w-3.5 accent-neutral-900" bind:checked={local.colorPinyin} disabled={local.mono} /> Color pinyin
+					<label class="flex items-center gap-2 text-xs {localT.mono ? 'opacity-40' : ''}">
+						<input type="checkbox" class="h-3.5 w-3.5 accent-neutral-900" bind:checked={localT.colorPinyin} disabled={localT.mono} /> Color pinyin
 					</label>
 				</div>
 
@@ -259,6 +301,20 @@
 								{/if}
 							</div>
 
+							<!-- Position (hr / control buttons) -->
+							{#if canMove}
+								<div>
+									<p class="mb-1 text-xs font-medium">Position</p>
+									<div class="inline-flex w-full overflow-hidden rounded-lg border border-neutral-200">
+										<button class="flex flex-1 items-center justify-center gap-1 py-1.5 text-xs text-neutral-600 transition hover:bg-neutral-50"
+											onclick={() => moveElement(selectedElement!, -1)}><ChevronUp size={14} /> Up</button>
+										<button class="flex flex-1 items-center justify-center gap-1 py-1.5 text-xs text-neutral-600 transition hover:bg-neutral-50 border-l border-neutral-200"
+											onclick={() => moveElement(selectedElement!, 1)}><ChevronDown size={14} /> Down</button>
+									</div>
+									<p class="mt-1 text-[10px] text-neutral-400">Moves the element up or down on the answer side.</p>
+								</div>
+							{/if}
+
 							<!-- ── Card properties ── -->
 							{#if selKind === 'card'}
 								<div>
@@ -271,7 +327,7 @@
 											{#each BG_PRESETS as p (p)}
 												<button onclick={() => setStyle({ backgroundColor: p })}
 													class="h-6 w-6 rounded border-2 transition {selStyle.backgroundColor === p ? 'border-neutral-900' : 'border-neutral-200'}"
-													style:background={p} title={p}></button>
+													style:background={p} title={p} aria-label={p}></button>
 											{/each}
 										</div>
 									</div>
@@ -389,7 +445,7 @@
 								</div>
 								{#if selectedElement === 'definitions'}
 									<label class="flex items-center gap-2 text-xs">
-										<input type="checkbox" class="h-3.5 w-3.5 accent-neutral-900" bind:checked={local.collapseDict} /> Collapse dictionary
+										<input type="checkbox" class="h-3.5 w-3.5 accent-neutral-900" bind:checked={localT.collapseDict} /> Collapse dictionary
 									</label>
 								{/if}
 
@@ -487,21 +543,23 @@
 				<div class="space-y-3 transition-all duration-300 {mobilePreview ? 'w-[375px]' : 'w-full max-w-lg'}">
 					<CardPreview
 						label="Front"
+						side="front"
 						items={frontItems}
 						colorize={colorize}
-						font={local.font}
-						collapseDict={local.collapseDict}
-						elementStyles={local.elementStyles}
+						font={localT.font}
+						collapseDict={localT.collapseDict}
+						elementStyles={localES}
 						interactive={true}
 						bind:selectedElement
 					/>
 					<CardPreview
 						label="Back"
+						side="back"
 						items={backItems}
 						colorize={colorize}
-						font={local.font}
-						collapseDict={local.collapseDict}
-						elementStyles={local.elementStyles}
+						font={localT.font}
+						collapseDict={localT.collapseDict}
+						elementStyles={localES}
 						interactive={true}
 						bind:selectedElement
 					/>
@@ -517,7 +575,7 @@
 		<!-- Footer -->
 		<div class="flex shrink-0 items-center justify-between border-t border-neutral-200 px-5 py-3">
 			<button onclick={reset} class="flex items-center gap-1.5 text-xs text-neutral-400 hover:text-neutral-700">
-				<RotateCcw size={13} /> Reset all to defaults
+				<RotateCcw size={13} /> Reset this card to defaults
 			</button>
 			<div class="flex items-center gap-2">
 				<button onclick={cancel} class="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-50">Cancel</button>

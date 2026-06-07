@@ -20,7 +20,13 @@
 	import CardPreview from '$lib/components/CardPreview.svelte';
 	import CardCustomizer from '$lib/components/CardCustomizer.svelte';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
-	import { CARD_STYLE_LS_KEY, DEFAULT_TEMPLATE, type TemplateOpts } from '$lib/deck';
+	import {
+		CARD_STYLE_LS_KEY,
+		CARD_TABS_LS_KEY,
+		DEFAULT_TEMPLATE,
+		type CardElementStyles,
+		type TemplateOpts
+	} from '$lib/deck';
 
 	import CONSTANTS from '$lib/dict/contants';
 	import {
@@ -53,7 +59,8 @@
 		return {
 			front: [`front${FIELDS.SIMPLIFIED}`],
 			back: DISPLAY_FIELDS.map((f) => `back${f}`),
-			additional: [] as string[]
+			additional: [] as string[],
+			elementStyles: {} as CardElementStyles
 		};
 	}
 
@@ -147,6 +154,8 @@
 	const backItems = $derived(
 		order.filter((o) => tabContent[tabs[activeTab]]?.back.includes(`back${o}`))
 	);
+	// Per-card-type element styles for the active tab (drives the live previews).
+	const activeStyles = $derived(tabContent[tabs[activeTab]]?.elementStyles ?? {});
 
 	const rowsPerPageOptions = [5, 10, 25, 50, 100, 500].map((n) => ({ value: n, name: String(n) }));
 
@@ -162,6 +171,17 @@
 		}
 	});
 
+	// Persist per-card-type element styles whenever they change.
+	let stylesRestored = $state(false);
+	$effect(() => {
+		const map: Record<string, CardElementStyles> = {};
+		for (const name of tabs) map[name] = tabContent[name]?.elementStyles ?? {};
+		if (!stylesRestored) return; // don't overwrite storage before the restore pass
+		try {
+			localStorage.setItem(CARD_TABS_LS_KEY, JSON.stringify(map));
+		} catch (_) {/* ignore storage errors */}
+	});
+
 	onMount(async () => {
 		// Restore saved card style from localStorage.
 		try {
@@ -171,6 +191,32 @@
 				template = { ...DEFAULT_TEMPLATE, ...parsed };
 			}
 		} catch (_) {/* ignore parse/storage errors */}
+
+		// Restore saved per-card-type element styles, merged onto existing tabs.
+		try {
+			const savedTabs = localStorage.getItem(CARD_TABS_LS_KEY);
+			if (savedTabs) {
+				const parsed = JSON.parse(savedTabs) as Record<string, CardElementStyles>;
+				const next = { ...tabContent };
+				for (const name of Object.keys(next)) {
+					if (parsed[name]) next[name] = { ...next[name], elementStyles: parsed[name] };
+				}
+				tabContent = next;
+			}
+		} catch (_) {/* ignore parse/storage errors */}
+
+		// Migrate legacy deck-wide element styles onto the first card type so older
+		// customisations aren't lost now that styling is per card type.
+		if (template.elementStyles && Object.keys(template.elementStyles).length) {
+			const first = tabs[0];
+			if (first && tabContent[first] && Object.keys(tabContent[first].elementStyles).length === 0) {
+				tabContent = {
+					...tabContent,
+					[first]: { ...tabContent[first], elementStyles: { ...template.elementStyles } }
+				};
+			}
+		}
+		stylesRestored = true;
 
 		loadDict();
 		initJieba();
@@ -427,7 +473,12 @@
 								? 'border-b-2 border-neutral-900 font-semibold'
 								: 'text-neutral-500'}"
 						>
-							<span onclick={() => (activeTab = index)} role="button" tabindex="0">{tab}</span>
+							<span
+								onclick={() => (activeTab = index)}
+								onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (activeTab = index)}
+								role="button"
+								tabindex="0">{tab}</span
+							>
 							{#if tabs.length > 1}
 								<button onclick={() => handleCloseTab(index)} aria-label="close tab">
 									<CircleX size={15} />
@@ -435,7 +486,9 @@
 							{/if}
 						</li>
 					{/each}
-					<li class="cursor-pointer px-3 py-2 text-lg text-neutral-500" onclick={handleAddTab}>+</li>
+					<li class="text-lg text-neutral-500">
+						<button class="cursor-pointer px-3 py-2" onclick={handleAddTab} aria-label="add card type">+</button>
+					</li>
 				</ul>
 
 				{#if tabContent[tabs[activeTab]]}
@@ -503,19 +556,21 @@
 						<div class="space-y-3">
 							<CardPreview
 								label="Front"
+								side="front"
 								items={frontItems}
 								colorize={!template.mono && template.colorHanzi}
 								font={template.font}
 								collapseDict={template.collapseDict}
-								elementStyles={template.elementStyles}
+								elementStyles={activeStyles}
 							/>
 							<CardPreview
 								label="Back"
+								side="back"
 								items={backItems}
 								colorize={!template.mono && template.colorHanzi}
 								font={template.font}
 								collapseDict={template.collapseDict}
-								elementStyles={template.elementStyles}
+								elementStyles={activeStyles}
 							/>
 						</div>
 					</div>
@@ -609,7 +664,7 @@
 							colorize={!template.mono && template.colorHanzi}
 							onToggle={() => toggleRow(word)}
 							onDelete={() => deleteWord(word)}
-							onPlay={() => playWordAudio(word.Simplified, hskWordsDict)}
+							onPlay={() => void playWordAudio(word.Simplified, hskWordsDict)}
 						/>
 					{/each}
 				</div>
@@ -645,11 +700,13 @@
 		</div>
 	{/if}
 
-	{#if showCustomizer}
+	{#if showCustomizer && tabContent[tabs[activeTab]]}
 		<CardCustomizer
 			bind:template
+			bind:elementStyles={tabContent[tabs[activeTab]].elementStyles}
 			frontItems={frontItems}
 			backItems={backItems}
+			cardName={tabs[activeTab]}
 			onclose={() => (showCustomizer = false)}
 		/>
 	{/if}

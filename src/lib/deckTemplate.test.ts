@@ -1,0 +1,324 @@
+import { describe, it, expect } from 'vitest';
+import {
+	buildNoteTemplates,
+	buildGlobalCss,
+	buildCardCss,
+	elementOrder,
+	formatDefinition,
+	DEFAULT_TEMPLATE,
+	DEFAULT_BODY_ORDER,
+	type TabContent,
+	type TemplateOpts,
+	type CardElementStyles
+} from './deckTemplate';
+
+// All display fields (matches the create page's default `fields`, minus the
+// writing component which never appears in the apkg field list).
+const FIELDS = [
+	'Simplified',
+	'Traditional',
+	'Pinyin',
+	'Zhuyin',
+	'PartOfSpeech',
+	'SimpleMeaning',
+	'Definitions'
+];
+
+function makeCard(
+	front: string[],
+	back: string[],
+	elementStyles: CardElementStyles = {}
+): TabContent[string] {
+	return { front, back, additional: [], elementStyles };
+}
+
+function tpl(over: Partial<TemplateOpts> = {}): TemplateOpts {
+	return { ...DEFAULT_TEMPLATE, elementStyles: {}, ...over };
+}
+
+const onlySimplifiedFront = ['frontSimplified'];
+const allBack = FIELDS.map((f) => `back${f}`);
+
+// ───────────────────────────── formatDefinition ─────────────────────────────
+
+describe('formatDefinition', () => {
+	it('returns a single sense unchanged', () => {
+		expect(formatDefinition('China; Middle Kingdom')).toContain('China');
+		expect(formatDefinition('China')).toBe('China');
+	});
+
+	it('numbers multiple senses', () => {
+		const html = formatDefinition('to go; to walk; to leave');
+		expect(html).toContain('def-num');
+		expect(html).toContain('1.');
+		expect(html).toContain('3.');
+		expect(html).toContain('<br>');
+	});
+
+	it('extracts CL classifiers into measure-word chips', () => {
+		const html = formatDefinition('book; CL:本[ben3]');
+		expect(html).toContain('cl-chip');
+		expect(html).toContain('measure word');
+		expect(html).toContain('本');
+		expect(html).toContain('ben3');
+		// the CL fragment is removed from the sense text
+		expect(html).not.toContain('CL:');
+	});
+});
+
+// ───────────────────────────── elementOrder ─────────────────────────────────
+
+describe('elementOrder', () => {
+	it('uses the canonical index*10 by default', () => {
+		expect(elementOrder({}, 'controlButtons')).toBe(0);
+		expect(elementOrder({}, 'hr')).toBe(10);
+		expect(elementOrder({}, 'simplified')).toBe(20);
+		expect(DEFAULT_BODY_ORDER[0]).toBe('controlButtons');
+	});
+
+	it('honours an explicit order override', () => {
+		expect(elementOrder({ hr: { order: 999 } }, 'hr')).toBe(999);
+		expect(elementOrder({ controlButtons: { order: 5 } }, 'controlButtons')).toBe(5);
+	});
+});
+
+// ───────────────────────────── buildGlobalCss ───────────────────────────────
+
+describe('buildGlobalCss', () => {
+	it('declares the flex card-body container', () => {
+		expect(buildGlobalCss(tpl())).toContain('.card-body{display:flex;flex-direction:column');
+	});
+
+	it('adds a global hanzi font stack only for non-default fonts', () => {
+		expect(buildGlobalCss(tpl({ font: 'kaiti' }))).toContain('Kaiti SC');
+		expect(buildGlobalCss(tpl({ font: 'default' }))).not.toContain('font-family:"');
+	});
+});
+
+// ───────────────────────────── buildCardCss ─────────────────────────────────
+
+describe('buildCardCss', () => {
+	it('scopes every rule to the .ctN wrapper', () => {
+		const css = buildCardCss({ simplified: { color: '#ff0000' } }, 'ct0');
+		expect(css).toContain('.ct0 #char_sim{color:#ff0000 !important;}');
+	});
+
+	it('applies card background to the wrapper itself (no descendant selector)', () => {
+		const css = buildCardCss({ card: { backgroundColor: '#000000' } }, 'ct1');
+		expect(css).toContain('.ct1{background-color:#000000 !important;}');
+	});
+
+	it('emits display:none for hidden elements', () => {
+		const css = buildCardCss({ audio: { visible: false } }, 'ct0');
+		expect(css).toContain('.ct0 #btnPlayAudio{display:none !important;}');
+	});
+
+	it('styles the hr separator (color + thickness)', () => {
+		const css = buildCardCss({ hr: { borderColor: '#123456', borderWidth: '4px' } }, 'ct0');
+		expect(css).toContain('.ct0 hr{');
+		expect(css).toContain('border-color:#123456 !important');
+		expect(css).toContain('border-width:4px !important');
+	});
+
+	it('emits flex order for control buttons and hr (default + override)', () => {
+		const css = buildCardCss({}, 'ct0');
+		expect(css).toContain('.ct0 .modal-footer1{order:0;}');
+		expect(css).toContain('.ct0 hr{order:10;}');
+
+		const moved = buildCardCss({ controlButtons: { order: 95 }, hr: { order: 96 } }, 'ct0');
+		expect(moved).toContain('.ct0 .modal-footer1{order:95;}');
+		expect(moved).toContain('.ct0 hr{order:96;}');
+	});
+});
+
+// ───────────────────────────── buildNoteTemplates ───────────────────────────
+
+describe('buildNoteTemplates — fields', () => {
+	it('drops the Audio field when audio is disabled and keeps it when enabled', () => {
+		const tabContent: TabContent = { 'Card 1': makeCard(onlySimplifiedFront, allBack) };
+		const noAudio = buildNoteTemplates({
+			fields: [...FIELDS, 'Audio'],
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(noAudio.flds.map((f) => f.name)).not.toContain('Audio');
+
+		const withAudio = buildNoteTemplates({
+			fields: [...FIELDS, 'Audio'],
+			tabContent,
+			includeAudio: true,
+			template: tpl()
+		});
+		expect(withAudio.flds.map((f) => f.name)).toContain('Audio');
+	});
+});
+
+describe('buildNoteTemplates — per card type', () => {
+	it('produces one template per card and scopes each with its own .ctN wrapper', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(onlySimplifiedFront, allBack, { simplified: { color: '#aa0000' } }),
+			'Card 2': makeCard(['frontPinyin'], allBack, { pinyin: { color: '#00aa00' } })
+		};
+		const { tmpls, css } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(tmpls).toHaveLength(2);
+		expect(tmpls[0].name).toBe('Card 1');
+		expect(tmpls[1].name).toBe('Card 2');
+		// each card body carries a distinct wrapper class
+		expect(tmpls[0].qfmt).toContain('class="ct0 card-body"');
+		expect(tmpls[1].qfmt).toContain('class="ct1 card-body"');
+		// per-card styles are scoped independently
+		expect(css).toContain('.ct0 #char_sim{color:#aa0000 !important;}');
+		expect(css).toContain('.ct1 #char_pinyin{color:#00aa00 !important;}');
+	});
+
+	it('wraps the back body in a ct card-body and closes it after the fields', () => {
+		const tabContent: TabContent = { 'Card 1': makeCard(onlySimplifiedFront, allBack) };
+		const { tmpls } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(tmpls[0].afmt).toContain('<div class="ct0 card-body"><div class="modal-footer1">');
+	});
+});
+
+describe('buildNoteTemplates — colorized hanzi source fix', () => {
+	it('injects a hidden Definitions colour source when the front shows hanzi but not Definitions', () => {
+		const tabContent: TabContent = { 'Card 1': makeCard(['frontSimplified'], allBack) };
+		const { tmpls } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(tmpls[0].qfmt).toContain('char-color-src');
+		expect(tmpls[0].qfmt).toContain('{{Definitions}}');
+	});
+
+	it('does NOT inject the colour source when Definitions is already on the front', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(['frontSimplified', 'frontDefinitions'], allBack)
+		};
+		const { tmpls } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(tmpls[0].qfmt).not.toContain('char-color-src');
+	});
+
+	it('does NOT inject the colour source when the front has no hanzi', () => {
+		const tabContent: TabContent = { 'Card 1': makeCard(['frontPinyin'], allBack) };
+		const { tmpls } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(tmpls[0].qfmt).not.toContain('char-color-src');
+	});
+});
+
+describe('buildNoteTemplates — colour defaults', () => {
+	it('seeds no-hanzi-color / no-pinyin-color body classes from the template', () => {
+		const tabContent: TabContent = { 'Card 1': makeCard(onlySimplifiedFront, allBack) };
+		const mono = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl({ mono: true })
+		});
+		expect(mono.tmpls[0].qfmt).toContain('no-hanzi-color');
+		expect(mono.tmpls[0].qfmt).toContain('no-pinyin-color');
+
+		const colored = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl({ mono: false, colorHanzi: true, colorPinyin: true })
+		});
+		expect(colored.tmpls[0].qfmt).not.toContain('no-hanzi-color');
+	});
+
+	it('sets the collapse-dictionary default flag', () => {
+		const tabContent: TabContent = { 'Card 1': makeCard(onlySimplifiedFront, allBack) };
+		const collapsed = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl({ collapseDict: true })
+		});
+		expect(collapsed.tmpls[0].qfmt).toContain('MEANING_COLLAPSE_DEFAULT=true');
+	});
+});
+
+describe('buildNoteTemplates — writing component', () => {
+	it('uses the Hanzi Writer template on the front when selected and reports usesWriter', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(['frontwritingComponent'], allBack)
+		};
+		const { tmpls, usesWriter } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(usesWriter).toBe(true);
+		expect(tmpls[0].qfmt).toContain('character-target-div');
+		expect(tmpls[0].qfmt).toContain('class="ct0"');
+	});
+
+	it('does not use the writer when no card selects it', () => {
+		const tabContent: TabContent = { 'Card 1': makeCard(onlySimplifiedFront, allBack) };
+		const { usesWriter } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(usesWriter).toBe(false);
+	});
+});
+
+describe('buildNoteTemplates — back field visibility', () => {
+	it('seeds defaultOff for fields not selected on the back', () => {
+		// Back shows only Simplified → all other toggles start off.
+		const tabContent: TabContent = {
+			'Card 1': makeCard(onlySimplifiedFront, ['backSimplified'])
+		};
+		const { tmpls } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(tmpls[0].afmt).toContain('var defaultOff = ["text-trad","text-pinyin","text-zhuyin","text-pos","text-simple","text-meaning"]');
+	});
+});
+
+describe('buildNoteTemplates — position move mirrored in CSS', () => {
+	it('emits the moved control/hr order into the per-card CSS', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(onlySimplifiedFront, allBack, {
+				controlButtons: { order: 95 },
+				hr: { order: 96 }
+			})
+		};
+		const { css } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(css).toContain('.ct0 .modal-footer1{order:95;}');
+		expect(css).toContain('.ct0 hr{order:96;}');
+	});
+});

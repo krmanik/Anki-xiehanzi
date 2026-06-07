@@ -94,6 +94,22 @@ describe('CardPreview — colorize', () => {
 	});
 });
 
+describe('CardPreview — alignment (position within card window)', () => {
+	it('maps left/right alignment to align-self flex-start/flex-end', () => {
+		const right = render(CardPreview, {
+			props: {
+				label: 'Front',
+				side: 'front',
+				items: ['Pinyin'],
+				elementStyles: { pinyin: { textAlign: 'right' } }
+			}
+		});
+		const el = right.container.querySelector('[style*="align-self"]') as HTMLElement;
+		expect(el.style.alignSelf).toBe('flex-end');
+		expect(el.style.textAlign).toBe('right');
+	});
+});
+
 describe('CardPreview — flex order (move up/down mirror)', () => {
 	it('applies default order to chrome (controls 0, hr 10)', () => {
 		const { container } = render(CardPreview, {

@@ -16,6 +16,10 @@ function baseProps(over: Record<string, unknown> = {}) {
 		elementStyles: {},
 		frontItems: ['Simplified'],
 		backItems: ['Simplified', 'Definitions'],
+		order: ['Simplified', 'Pinyin', 'Definitions'],
+		front: ['frontSimplified'],
+		back: ['backSimplified', 'backDefinitions'],
+		fieldLabels: { Simplified: 'Simplified', Pinyin: 'Pinyin', Definitions: 'Dictionary Definitions' },
 		cardName: 'Card 1',
 		onclose: vi.fn(),
 		...over
@@ -75,6 +79,38 @@ describe('CardCustomizer — visibility toggle', () => {
 		await user.click(screen.getByText('Visible')); // toggles to Hidden
 		expect(container.innerHTML).toContain('opacity-30');
 		expect(screen.getByText('Hidden')).toBeInTheDocument();
+	});
+});
+
+describe('CardCustomizer — fields shown inline', () => {
+	it('shows front/back field toggles and flips them without closing', async () => {
+		const user = userEvent.setup();
+		render(CardCustomizer, { props: baseProps() });
+
+		// Pinyin is not on the front yet.
+		const pinyinFront = screen.getByLabelText('Pinyin front') as HTMLInputElement;
+		expect(pinyinFront.checked).toBe(false);
+		await user.click(pinyinFront);
+		expect((screen.getByLabelText('Pinyin front') as HTMLInputElement).checked).toBe(true);
+	});
+
+	it('collapses and expands the fields block', async () => {
+		const user = userEvent.setup();
+		render(CardCustomizer, { props: baseProps() });
+		expect(screen.getByLabelText('Pinyin front')).toBeInTheDocument();
+		await user.click(screen.getByText('Fields — front / back'));
+		expect(screen.queryByLabelText('Pinyin front')).toBeNull();
+		await user.click(screen.getByText('Fields — front / back'));
+		expect(screen.getByLabelText('Pinyin front')).toBeInTheDocument();
+	});
+});
+
+describe('CardCustomizer — alignment available for every element', () => {
+	it('shows the in-card alignment control for a normal field', async () => {
+		const user = userEvent.setup();
+		render(CardCustomizer, { props: baseProps() });
+		await user.click(screen.getByText('Pinyin', { selector: 'button' }));
+		expect(screen.getByText('Alignment (in card)')).toBeInTheDocument();
 	});
 });
 

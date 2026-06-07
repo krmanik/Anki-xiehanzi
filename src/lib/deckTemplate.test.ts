@@ -11,6 +11,7 @@ import {
 	type TemplateOpts,
 	type CardElementStyles
 } from './deckTemplate';
+import CONSTANTS from './dict/contants';
 
 // All display fields (matches the create page's default `fields`, minus the
 // writing component which never appears in the apkg field list).
@@ -120,6 +121,16 @@ describe('buildCardCss', () => {
 		expect(css).toContain('border-width:4px !important');
 	});
 
+	it('maps alignment to align-self (position in card window) + text-align', () => {
+		const css = buildCardCss({ pinyin: { textAlign: 'left' } }, 'ct0');
+		expect(css).toContain('.ct0 #char_pinyin{');
+		expect(css).toContain('align-self:flex-start !important');
+		expect(css).toContain('text-align:left !important');
+
+		const right = buildCardCss({ simpleMeaning: { textAlign: 'right' } }, 'ct0');
+		expect(right).toContain('align-self:flex-end !important');
+	});
+
 	it('emits flex order for control buttons and hr (default + override)', () => {
 		const css = buildCardCss({}, 'ct0');
 		expect(css).toContain('.ct0 .modal-footer1{order:0;}');
@@ -132,6 +143,24 @@ describe('buildCardCss', () => {
 });
 
 // ───────────────────────────── buildNoteTemplates ───────────────────────────
+
+describe('deck CSS — separator + measure word', () => {
+	it('renders the hr with a visible (theme) border, not white-on-white', () => {
+		expect(CONSTANTS.DECK_CSS).toContain('border-bottom: 1px solid var(--surface4)');
+		expect(CONSTANTS.DECK_CSS).not.toContain('border-bottom: 1px solid rgba(255, 255, 255, 0.3)');
+	});
+
+	it('gives the measure-word row pill chips and no divider line', () => {
+		expect(CONSTANTS.DECK_CSS).toContain('.cl-row');
+		expect(CONSTANTS.DECK_CSS).not.toContain('border-top: 1px dashed');
+		expect(CONSTANTS.DECK_CSS).toContain('.cl-chip');
+		expect(CONSTANTS.DECK_CSS).toContain('border-radius: 999px');
+	});
+
+	it('spaces the part-of-speech chips apart', () => {
+		expect(buildGlobalCss(tpl())).toContain('.pos-row{display:flex;flex-wrap:wrap;gap:8px');
+	});
+});
 
 describe('buildNoteTemplates — fields', () => {
 	it('drops the Audio field when audio is disabled and keeps it when enabled', () => {

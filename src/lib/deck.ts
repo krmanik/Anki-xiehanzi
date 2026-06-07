@@ -270,12 +270,50 @@ export function cutParagraph(text: string): string[] {
 // Deck generation
 // ---------------------------------------------------------------------------
 
+export const CARD_STYLE_LS_KEY = 'xiehanzi-card-style';
+
+// Per-element style overrides. All fields optional — unset means "use default".
+export interface ElementStyle {
+	visible?: boolean;
+	fontSize?: string;        // e.g. '2.5em', '18px'
+	fontFamily?: string;      // 'default' | 'kaiti' | 'songti'
+	fontWeight?: string;      // 'normal' | '600' | 'bold'
+	color?: string;           // hex color
+	textAlign?: 'left' | 'center' | 'right';
+	marginTop?: string;       // e.g. '0', '8px'
+	marginBottom?: string;
+	backgroundColor?: string;
+	padding?: string;
+	borderRadius?: string;
+	letterSpacing?: string;
+	lineHeight?: string;
+	borderColor?: string;     // hr border color
+	borderWidth?: string;     // hr thickness e.g. '1px', '2px'
+}
+
+// Identifies each customizable region of the card.
+export type CardElementId =
+	| 'card'           // whole card container (background, alignment)
+	| 'simplified'     // main hanzi 大
+	| 'traditional'    // 〔traditional〕
+	| 'pinyin'         // Pīnyīn romanization
+	| 'zhuyin'         // ㄅㄆㄇㄈ phonetics
+	| 'partOfSpeech'   // noun/verb chips
+	| 'simpleMeaning'  // short English gloss
+	| 'definitions'    // full dictionary entry block
+	| 'audio'          // audio play button
+	| 'hr'             // horizontal rule separators
+	| 'controlButtons'; // sidebar-toggle footer buttons
+
+export type CardElementStyles = Partial<Record<CardElementId, ElementStyle>>;
+
 export interface TemplateOpts {
 	mono: boolean;
 	colorHanzi: boolean;
 	colorPinyin: boolean;
-	font: string; // 'default' | 'kaiti' | 'songti'
-	collapseDict: boolean; // show dictionary definitions inside a collapsed <details>
+	font: string;             // global hanzi font: 'default' | 'kaiti' | 'songti'
+	collapseDict: boolean;
+	elementStyles: CardElementStyles; // per-element visual overrides
 }
 
 export const DEFAULT_TEMPLATE: TemplateOpts = {
@@ -283,8 +321,47 @@ export const DEFAULT_TEMPLATE: TemplateOpts = {
 	colorHanzi: true,
 	colorPinyin: true,
 	font: 'default',
-	collapseDict: false
+	collapseDict: false,
+	elementStyles: {}
 };
+
+// CSS selectors used when generating Anki export overrides.
+const ELEMENT_SELECTORS: Record<CardElementId, string> = {
+	card:           '.card:not(.night_mode)',
+	simplified:     '#char_sim',
+	traditional:    '#char_trad',
+	pinyin:         '#char_pinyin',
+	zhuyin:         '#char_zhuyin',
+	partOfSpeech:   '#char_pos',
+	simpleMeaning:  '#char_simple',
+	definitions:    '#char_meaning',
+	audio:          '#btnPlayAudio',
+	hr:             '.card hr',
+	controlButtons: '.modal-footer1'
+};
+
+function elementStyleToCSS(style: ElementStyle, fontStacks: Record<string, string>): string {
+	const r: string[] = [];
+	if (style.visible === false)   r.push('display:none !important');
+	if (style.fontSize)            r.push(`font-size:${style.fontSize} !important`);
+	if (style.fontFamily && style.fontFamily !== 'default') {
+		const stack = fontStacks[style.fontFamily] ?? style.fontFamily;
+		r.push(`font-family:${stack} !important`);
+	}
+	if (style.fontWeight)          r.push(`font-weight:${style.fontWeight} !important`);
+	if (style.color)               r.push(`color:${style.color} !important`);
+	if (style.textAlign)           r.push(`text-align:${style.textAlign} !important`);
+	if (style.marginTop)           r.push(`margin-top:${style.marginTop} !important`);
+	if (style.marginBottom)        r.push(`margin-bottom:${style.marginBottom} !important`);
+	if (style.backgroundColor)     r.push(`background-color:${style.backgroundColor} !important`);
+	if (style.padding)             r.push(`padding:${style.padding} !important`);
+	if (style.borderRadius)        r.push(`border-radius:${style.borderRadius} !important`);
+	if (style.letterSpacing)       r.push(`letter-spacing:${style.letterSpacing} !important`);
+	if (style.lineHeight)          r.push(`line-height:${style.lineHeight} !important`);
+	if (style.borderColor)         r.push(`border-color:${style.borderColor} !important`);
+	if (style.borderWidth)         r.push(`border-width:${style.borderWidth} !important`);
+	return r.join(';');
+}
 
 const FONT_STACKS: Record<string, string> = {
 	default: '',
@@ -297,7 +374,6 @@ function buildCssOverride(t: TemplateOpts): string {
 	// Base styles for the simple-meaning card and collapsible dictionary.
 	let css =
 		'\n/* template customization */\n' +
-		// Simple meaning + dictionary share one width (--card-w) and border style.
 		':root{--card-w:90%;}\n' +
 		'.simple-card{font-weight:600;padding:10px;margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;border:1px solid var(--surface4);border-radius:8px;}\n' +
 		'.simple-card:empty{display:none;border:0;}\n' +
@@ -310,12 +386,21 @@ function buildCssOverride(t: TemplateOpts): string {
 		'.pos-row:empty{display:none;}\n' +
 		'.pos-chip{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid #ccc;color:#666;}\n' +
 		'.pos-chip.pos-dominant{background:#111;color:#fff;border-color:#111;}\n';
-	// Tone colors are toggled at runtime via the sidebar (body.no-*-color classes);
-	// the export options only seed the initial state — see colorDefaultScript.
-	const stack = FONT_STACKS[t.font];
-	if (stack) {
-		css += `.char-card,.char,#char-sim-id,#char-trad-id{font-family:${stack} !important;}\n`;
+
+	// Global hanzi font — applied first; per-element elementStyles can override.
+	const globalStack = FONT_STACKS[t.font];
+	if (globalStack) {
+		css += `.char-card,.char,#char-sim-id,#char-trad-id{font-family:${globalStack} !important;}\n`;
 	}
+
+	// Per-element style overrides — mirrors exactly what CardPreview shows.
+	for (const [id, style] of Object.entries(t.elementStyles ?? {})) {
+		const selector = ELEMENT_SELECTORS[id as CardElementId];
+		if (!selector || !style) continue;
+		const rules = elementStyleToCSS(style, FONT_STACKS);
+		if (rules) css += `${selector}{${rules};}\n`;
+	}
+
 	return css;
 }
 

@@ -18,6 +18,9 @@
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import WordCard from '$lib/components/WordCard.svelte';
 	import CardPreview from '$lib/components/CardPreview.svelte';
+	import CardCustomizer from '$lib/components/CardCustomizer.svelte';
+	import Settings2 from '@lucide/svelte/icons/settings-2';
+	import { CARD_STYLE_LS_KEY, DEFAULT_TEMPLATE, type TemplateOpts } from '$lib/deck';
 
 	import CONSTANTS from '$lib/dict/contants';
 	import {
@@ -73,14 +76,9 @@
 	]);
 	let fields = $derived(order.filter((o) => o !== WRITING));
 	let includeAudio = $state(false);
-	let template = $state({
-		mono: false,
-		colorHanzi: true,
-		colorPinyin: true,
-		font: 'default',
-		collapseDict: false
-	});
+	let template = $state<TemplateOpts>({ ...DEFAULT_TEMPLATE });
 	let page = $state(1);
+	let showCustomizer = $state(false);
 	let wordValue = $state('');
 	let selectType = $state('Word');
 	let texAreaValue = $state('');
@@ -165,6 +163,15 @@
 	});
 
 	onMount(async () => {
+		// Restore saved card style from localStorage.
+		try {
+			const saved = localStorage.getItem(CARD_STYLE_LS_KEY);
+			if (saved) {
+				const parsed = JSON.parse(saved) as Partial<typeof DEFAULT_TEMPLATE>;
+				template = { ...DEFAULT_TEMPLATE, ...parsed };
+			}
+		} catch (_) {/* ignore parse/storage errors */}
+
 		loadDict();
 		initJieba();
 		db = await setupSql();
@@ -342,7 +349,16 @@
 				{/if}
 			</div>
 
-			<h2 class="mt-6 text-xl font-semibold">Card Template</h2>
+			<div class="mt-6 flex items-center gap-3">
+				<h2 class="text-xl font-semibold">Card Template</h2>
+				<button
+					onclick={() => (showCustomizer = true)}
+					class="ml-auto flex items-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-1.5 text-sm text-neutral-600 transition hover:border-neutral-900 hover:text-neutral-900"
+				>
+					<Settings2 size={14} />
+					Advanced customisation
+				</button>
+			</div>
 			<div class="flex flex-wrap items-center gap-x-6 gap-y-3">
 				<div class="inline-flex overflow-hidden rounded-lg border border-neutral-300">
 					<button
@@ -491,6 +507,7 @@
 								colorize={!template.mono && template.colorHanzi}
 								font={template.font}
 								collapseDict={template.collapseDict}
+								elementStyles={template.elementStyles}
 							/>
 							<CardPreview
 								label="Back"
@@ -498,6 +515,7 @@
 								colorize={!template.mono && template.colorHanzi}
 								font={template.font}
 								collapseDict={template.collapseDict}
+								elementStyles={template.elementStyles}
 							/>
 						</div>
 					</div>
@@ -625,6 +643,15 @@
 				</div>
 			</div>
 		</div>
+	{/if}
+
+	{#if showCustomizer}
+		<CardCustomizer
+			bind:template
+			frontItems={frontItems}
+			backItems={backItems}
+			onclose={() => (showCustomizer = false)}
+		/>
 	{/if}
 
 	<nav class="mt-10 flex items-center justify-between gap-4 border-t border-neutral-200 pt-6">

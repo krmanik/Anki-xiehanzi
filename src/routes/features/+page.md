@@ -6,7 +6,7 @@ title: Features
 	import { base } from '$app/paths';
 </script>
 
-# Features
+# What the decks include
 
 ### Multiple note types
 

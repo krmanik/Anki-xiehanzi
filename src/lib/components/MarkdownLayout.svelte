@@ -6,7 +6,13 @@
 	{#if title}<title>{title} — Anki xiehanzi</title>{/if}
 </svelte:head>
 
-<article class="prose-doc mx-auto max-w-3xl px-5 py-12">
+{#if title}
+	<div class="mx-auto max-w-3xl px-5 pt-12">
+		<p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">{title}</p>
+	</div>
+{/if}
+
+<article class="prose-doc mx-auto max-w-3xl px-5 {title ? 'pt-3' : 'pt-12'} pb-12">
 	{@render children()}
 </article>
 

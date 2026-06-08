@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { colorizeHanzi } from '$lib/tone';
-	import { elementOrder, type CardElementId, type CardElementStyles, type ElementStyle } from '$lib/deckTemplate';
+	import { colorizeHanzi, toneOfPinyin } from '$lib/tone';
+	import { elementOrder, DEFAULT_EXAMPLE_OPTIONS, type CardElementId, type CardElementStyles, type ElementStyle, type ExampleOptions } from '$lib/deckTemplate';
 	import { hskLevelLabel, frequencyBand } from '$lib/dict/meta';
-	import type { TonePalette, ToneKey } from '$lib/tonePresets';
-	import type { Word } from '$lib/deck';
+	import { STANDARD_TONES, type TonePalette, type ToneKey } from '$lib/tonePresets';
+	import type { Word, ExampleSentence } from '$lib/deck';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import Menu from '@lucide/svelte/icons/menu';
 	import PenLine from '@lucide/svelte/icons/pen-line';
@@ -29,6 +29,8 @@
 		elementStyles = {} as CardElementStyles,
 		toneColors = null,
 		word = null,
+		exampleSentences = null,
+		exampleOptions = null,
 		interactive = false,
 		selectedElement = $bindable<CardElementId | null>(null)
 	}: {
@@ -42,6 +44,9 @@
 		toneColors?: TonePalette | null;
 		/** When set, the preview renders this real word instead of the example. */
 		word?: Word | null;
+		/** Real example sentences for the previewed word (else a sample is shown). */
+		exampleSentences?: ExampleSentence[] | null;
+		exampleOptions?: ExampleOptions | null;
 		interactive?: boolean;
 		selectedElement?: CardElementId | null;
 	} = $props();
@@ -49,6 +54,40 @@
 	// Inline tone color for a preview hanzi span (honours the chosen palette).
 	function toneStyle(tone: number): string {
 		return colorize && toneColors ? `color:${toneColors[String(tone) as ToneKey]}` : '';
+	}
+
+	// Palette color for a tone (1-5), for inline-colored example sentences.
+	function paletteColor(tone: number): string {
+		return (toneColors ?? STANDARD_TONES)[String(tone) as ToneKey];
+	}
+	const CJK_RE = /[㐀-䶿一-鿿豈-﫿]/;
+	// Inline-colored hanzi HTML for a sentence (best-effort syllable→char align).
+	function exHanziHtml(sentence: string, py: string): string {
+		const on = colorize && (exOpts?.colorizeHanzi ?? true);
+		const sylls = (py ?? '').split(/\s+/).filter((s) => /[a-zü]/i.test(s.normalize('NFD').replace(/[̀-ͯ]/g, '')));
+		let si = 0;
+		let html = '';
+		for (const ch of sentence ?? '') {
+			if (CJK_RE.test(ch)) {
+				const t = si < sylls.length ? toneOfPinyin(sylls[si]) : 5;
+				si++;
+				html += on ? `<span style="color:${paletteColor(t)}">${ch}</span>` : ch;
+			} else html += ch;
+		}
+		return html;
+	}
+	// Inline-colored pinyin HTML for a sentence.
+	function exPinyinHtml(py: string): string {
+		const on = colorize && (exOpts?.colorizePinyin ?? true);
+		return (py ?? '')
+			.split(/(\s+|,)/)
+			.map((p) => {
+				if (p === '' || p === ',' || /^\s+$/.test(p)) return p;
+				const hasLetter = /[a-zü]/i.test(p.normalize('NFD').replace(/[̀-ͯ]/g, ''));
+				if (!hasLetter) return p;
+				return on ? `<span style="color:${paletteColor(toneOfPinyin(p))}">${p}</span>` : p;
+			})
+			.join('');
 	}
 
 	const ex = {
@@ -94,6 +133,24 @@
 				}
 			: ex
 	);
+
+	// Example sentences: real ones when provided, else a sample (designer mode).
+	const sampleExamples: ExampleSentence[] = [
+		{
+			simplified: '中国是一个大国。',
+			traditional: '中國是一個大國。',
+			pinyin: 'zhōng guó shì yī gè dà guó 。',
+			translation: 'China is a big country.'
+		}
+	];
+	const exList = $derived(
+		exampleSentences && exampleSentences.length
+			? exampleSentences
+			: word
+				? []
+				: sampleExamples
+	);
+	const exOpts = $derived(exampleOptions ?? DEFAULT_EXAMPLE_OPTIONS);
 
 	const simp = $derived(colorizeHanzi(src.Simplified, src.syllable));
 	const trad = $derived(colorizeHanzi(src.Traditional, src.syllable));
@@ -426,8 +483,13 @@
 					onclick={(e) => select('examples', e)}
 					onkeydown={onkey('examples')}
 				>
-					{#each src.examples as s (s)}
-						<div class="border-b border-neutral-100 py-1 text-sm text-neutral-700 last:border-0">{s}</div>
+					{#each exList as s (s.simplified)}
+						<div class="border-b border-neutral-100 py-1.5 last:border-0">
+							{#if exOpts.showTraditional}<div class="text-sm text-neutral-800">{@html exHanziHtml(s.traditional, s.pinyin)}</div>{/if}
+							{#if exOpts.showSimplified}<div class="text-sm text-neutral-800">{@html exHanziHtml(s.simplified, s.pinyin)}</div>{/if}
+							{#if exOpts.showPinyin}<div class="text-xs text-neutral-500">{@html exPinyinHtml(s.pinyin)}</div>{/if}
+							{#if exOpts.showTranslation}<div class="text-xs text-neutral-500">{s.translation}</div>{/if}
+						</div>
 					{/each}
 					{#if interactive && selectedElement === 'examples'}<span class={SEL_BADGE}>Examples</span>{/if}
 				</div>

@@ -7,6 +7,7 @@
 
 import { unzip } from 'unzipit';
 import initSqlJs from 'sql.js';
+import Chinese from 'chinese-s2t';
 import { base } from '$app/paths';
 import pinzhu from './pinyinzhuyin';
 import { rankSentences } from './sentences';
@@ -291,11 +292,31 @@ export async function wordsByLevel(levels: string[]): Promise<string[]> {
 
 export interface Sentence {
 	sentence: string;
+	pinyin: string;
+	translation: string;
+	nChars: number;
 	difficulty: number;
 }
 
-/** Example sentences containing the word, easiest first. Loads sentences db on demand. */
-export async function getSentences(word: string, limit = 5): Promise<Sentence[]> {
+export interface ExampleSentence {
+	simplified: string;
+	traditional: string;
+	pinyin: string;
+	translation: string;
+}
+
+export interface SentenceQueryOptions {
+	limit?: number;
+	minChars?: number;
+	maxChars?: number;
+}
+
+/**
+ * Example sentences containing the word, easiest first, optionally length-bounded
+ * by n_chars. Loads the sentences db on demand.
+ */
+export async function getSentences(word: string, opts: SentenceQueryOptions = {}): Promise<Sentence[]> {
+	const { limit = 5, minChars, maxChars } = opts;
 	if (!sentencesDb) {
 		try {
 			await loadSentences();
@@ -305,21 +326,48 @@ export async function getSentences(word: string, limit = 5): Promise<Sentence[]>
 		}
 	}
 	const w = word.trim();
+	const where = ['sentence LIKE ?'];
+	const params: any[] = [`%${w}%`];
+	if (minChars != null) {
+		where.push('n_chars >= ?');
+		params.push(minChars);
+	}
+	if (maxChars != null) {
+		where.push('n_chars <= ?');
+		params.push(maxChars);
+	}
+	params.push(limit);
 	const rows = queryAll(
 		sentencesDb,
-		`SELECT sentence, difficulty FROM sentences WHERE sentence LIKE ? ORDER BY difficulty ASC LIMIT ?`,
-		[`%${w}%`, limit]
+		`SELECT sentence, pinyin, translation, n_chars, difficulty
+		 FROM sentences WHERE ${where.join(' AND ')} ORDER BY difficulty ASC LIMIT ?`,
+		params
 	);
-	return rows.map((r) => ({ sentence: r.sentence, difficulty: r.difficulty }));
+	return rows.map((r) => ({
+		sentence: r.sentence,
+		pinyin: r.pinyin ?? '',
+		translation: r.translation ?? '',
+		nChars: r.n_chars ?? 0,
+		difficulty: r.difficulty
+	}));
 }
 
 /**
- * Smart example sentences for a word: pulls a candidate pool from the sentences
- * db then ranks by difficulty + length (see rankSentences). Returns plain
- * sentence strings, easiest/shortest first.
+ * Smart example sentences for a word: pulls a length-bounded candidate pool then
+ * ranks by difficulty + length (see rankSentences). Traditional is derived from
+ * simplified via chinese-s2t (the db only stores simplified).
  */
-export async function getSmartSentences(word: string, limit = 3): Promise<string[]> {
+export async function getSmartSentences(
+	word: string,
+	opts: SentenceQueryOptions = {}
+): Promise<ExampleSentence[]> {
+	const limit = opts.limit ?? 3;
 	// Over-fetch a pool so the re-ranking has something to choose from.
-	const pool = await getSentences(word, Math.max(limit * 4, 12));
-	return rankSentences(pool, limit);
+	const pool = await getSentences(word, { ...opts, limit: Math.max(limit * 4, 12) });
+	return rankSentences(pool, limit).map((r) => ({
+		simplified: r.sentence,
+		traditional: Chinese.s2t(r.sentence),
+		pinyin: r.pinyin,
+		translation: r.translation
+	}));
 }

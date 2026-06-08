@@ -10,7 +10,7 @@ describe('rankSentences', () => {
 			],
 			2
 		);
-		expect(ranked).toEqual(['短句', '我很喜欢你']);
+		expect(ranked.map((r) => r.sentence)).toEqual(['短句', '我很喜欢你']);
 	});
 
 	it('lets a clearly easier sentence outrank a slightly shorter, harder one', () => {
@@ -21,17 +21,22 @@ describe('rankSentences', () => {
 			],
 			2
 		);
-		// diff 8 + 3/8 = 8.375 vs diff 1 + 4/8 = 1.5 → easier wins.
-		expect(ranked[0]).toBe('我很爱你');
+		expect(ranked[0].sentence).toBe('我很爱你');
 	});
 
-	it('limits the number of results', () => {
+	it('preserves extra columns on each row', () => {
+		const ranked = rankSentences(
+			[{ sentence: '短句', difficulty: 1, pinyin: 'duǎn jù', translation: 'short' }],
+			1
+		);
+		expect(ranked[0]).toMatchObject({ pinyin: 'duǎn jù', translation: 'short' });
+	});
+
+	it('limits results and de-duplicates / drops blanks', () => {
 		const rows = Array.from({ length: 10 }, (_, i) => ({ sentence: `句子${i}`, difficulty: i }));
 		expect(rankSentences(rows, 3)).toHaveLength(3);
-	});
 
-	it('de-duplicates and drops blanks', () => {
-		const ranked = rankSentences(
+		const dedup = rankSentences(
 			[
 				{ sentence: '重复', difficulty: 1 },
 				{ sentence: '重复', difficulty: 1 },
@@ -39,6 +44,6 @@ describe('rankSentences', () => {
 			],
 			5
 		);
-		expect(ranked).toEqual(['重复']);
+		expect(dedup.map((r) => r.sentence)).toEqual(['重复']);
 	});
 });

@@ -43,8 +43,10 @@
 		playWordAudio,
 		setupSql,
 		wordsByLevel,
+		getSmartSentences,
 		type TabContent,
-		type Word
+		type Word,
+		type ExampleSentence
 	} from '$lib/deck';
 
 	const FIELDS = CONSTANTS.FIELDS;
@@ -222,6 +224,36 @@
 	const activeStyles = $derived(tabContent[tabs[activeTab]]?.elementStyles ?? {});
 	// Resolved tone palette (preset or custom) for the live previews.
 	const palette = $derived(resolvePalette(template.tonePreset, template.toneColors));
+
+	// Example-sentence options + UI show only when a card type uses the field.
+	const examplesUsed = $derived(
+		tabs.some((t) => {
+			const c = tabContent[t];
+			return !!c && (c.front.includes('frontExamples') || c.back.includes('backExamples'));
+		})
+	);
+
+	// Fetch real sentences for the live preview word (中国) when the field is used,
+	// re-fetching when the length/count options change.
+	let previewExamples = $state<ExampleSentence[]>([]);
+	$effect(() => {
+		const o = template.exampleOptions;
+		const used = examplesUsed;
+		const args = { limit: o.count, minChars: o.minChars, maxChars: o.maxChars };
+		if (!used) {
+			previewExamples = [];
+			return;
+		}
+		let cancelled = false;
+		getSmartSentences('中国', args)
+			.then((r) => {
+				if (!cancelled) previewExamples = r;
+			})
+			.catch(() => {});
+		return () => {
+			cancelled = true;
+		};
+	});
 
 	const rowsPerPageOptions = [5, 10, 25, 50, 100, 500].map((n) => ({ value: n, name: String(n) }));
 
@@ -642,6 +674,41 @@
 					{/if}
 				</div>
 			{/if}
+
+			{#if examplesUsed}
+				<div class="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+					<p class="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Example sentences</p>
+					<div class="flex flex-wrap items-end gap-4">
+						<label class="flex flex-col gap-1 text-xs text-neutral-600">
+							How many
+							<input type="number" min="1" max="10" bind:value={template.exampleOptions.count}
+								class="w-20 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm" />
+						</label>
+						<label class="flex flex-col gap-1 text-xs text-neutral-600">
+							Min length (chars)
+							<input type="number" min="1" max="50" bind:value={template.exampleOptions.minChars}
+								class="w-24 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm" />
+						</label>
+						<label class="flex flex-col gap-1 text-xs text-neutral-600">
+							Max length (chars)
+							<input type="number" min="1" max="80" bind:value={template.exampleOptions.maxChars}
+								class="w-24 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm" />
+						</label>
+					</div>
+					<div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+						<span class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">Show</span>
+						<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.showSimplified} /> Simplified</label>
+						<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.showTraditional} /> Traditional</label>
+						<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.showPinyin} /> Pinyin</label>
+						<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.showTranslation} /> Translation</label>
+					</div>
+					<div class="mt-2 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm {template.mono ? 'opacity-40' : ''}">
+						<span class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">Color</span>
+						<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.colorizeHanzi} disabled={template.mono} /> Hanzi</label>
+						<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.colorizePinyin} disabled={template.mono} /> Pinyin</label>
+					</div>
+				</div>
+			{/if}
 			{/if}
 
 			<div class="mt-6 flex items-center gap-3">
@@ -750,6 +817,7 @@
 											<input
 												type="checkbox"
 												class="h-4 w-4 accent-neutral-900"
+												aria-label={`${fieldLabels[item] ?? item} front`}
 												checked={tabContent[tabs[activeTab]].front.includes(`front${item}`)}
 												onchange={() => handleCheckboxChange(`front${item}`, 'front')}
 											/>
@@ -758,6 +826,7 @@
 											<input
 												type="checkbox"
 												class="h-4 w-4 accent-neutral-900"
+												aria-label={`${fieldLabels[item] ?? item} back`}
 												checked={tabContent[tabs[activeTab]].back.includes(`back${item}`)}
 												onchange={() => handleCheckboxChange(`back${item}`, 'back')}
 											/>
@@ -778,6 +847,8 @@
 								collapseDict={template.collapseDict}
 								elementStyles={activeStyles}
 								toneColors={palette}
+								exampleSentences={previewExamples}
+								exampleOptions={template.exampleOptions}
 							/>
 							<CardPreview
 								label="Back"
@@ -788,6 +859,8 @@
 								collapseDict={template.collapseDict}
 								elementStyles={activeStyles}
 								toneColors={palette}
+								exampleSentences={previewExamples}
+								exampleOptions={template.exampleOptions}
 							/>
 						</div>
 					</div>

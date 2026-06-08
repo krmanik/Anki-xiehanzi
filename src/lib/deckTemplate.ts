@@ -71,6 +71,32 @@ export type CardElementId =
 
 export type CardElementStyles = Partial<Record<CardElementId, ElementStyle>>;
 
+// Deck-wide example-sentence options (length filter, count, which parts show,
+// and whether to tone-color them). Drives both the export and the exporter UI.
+export interface ExampleOptions {
+	count: number;
+	minChars: number;
+	maxChars: number;
+	showSimplified: boolean;
+	showTraditional: boolean;
+	showPinyin: boolean;
+	showTranslation: boolean;
+	colorizeHanzi: boolean;
+	colorizePinyin: boolean;
+}
+
+export const DEFAULT_EXAMPLE_OPTIONS: ExampleOptions = {
+	count: 3,
+	minChars: 5,
+	maxChars: 20,
+	showSimplified: true,
+	showTraditional: false,
+	showPinyin: true,
+	showTranslation: true,
+	colorizeHanzi: true,
+	colorizePinyin: true
+};
+
 export interface TemplateOpts {
 	mono: boolean;
 	colorHanzi: boolean;
@@ -79,6 +105,7 @@ export interface TemplateOpts {
 	collapseDict: boolean;
 	tonePreset: string; // 'standard' | 'pleco' | 'blueprint' | 'mdbg' | 'custom'
 	toneColors: TonePalette; // used when tonePreset === 'custom'
+	exampleOptions: ExampleOptions;
 	elementStyles: CardElementStyles; // default per-element overrides for new cards
 }
 
@@ -90,6 +117,7 @@ export const DEFAULT_TEMPLATE: TemplateOpts = {
 	collapseDict: false,
 	tonePreset: 'standard',
 	toneColors: { ...STANDARD_TONES },
+	exampleOptions: { ...DEFAULT_EXAMPLE_OPTIONS },
 	elementStyles: {}
 };
 
@@ -218,8 +246,13 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		// Example sentences
 		'.examples-row{margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;text-align:left;}\n' +
 		'.examples-row:empty{display:none;}\n' +
-		'.example-item{font-size:0.85em;line-height:1.5;padding:4px 0;border-bottom:1px solid var(--surface4);}\n' +
-		'.example-item:last-child{border-bottom:0;}\n';
+		'.example-item{font-size:0.85em;line-height:1.5;padding:6px 0;border-bottom:1px solid var(--surface4);}\n' +
+		'.example-item:last-child{border-bottom:0;}\n' +
+		'.example-trad,.example-sim{font-size:1em;}\n' +
+		'.example-pinyin{font-size:0.85em;color:var(--text2);}\n' +
+		'.example-translation{font-size:0.85em;color:var(--text2);}\n' +
+		// "Color pinyin" toggle also neutralises example-sentence pinyin.
+		'.no-pinyin-color .example-pinyin span{color:inherit !important;}\n';
 
 	const globalStack = FONT_STACKS[t.font];
 	if (globalStack) {

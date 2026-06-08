@@ -29,9 +29,11 @@ import {
 	wordsByLevel,
 	getSmartSentences,
 	type Reading,
-	type CharInfo
+	type CharInfo,
+	type ExampleSentence
 } from './dict/cedict';
 import { frequencyBand, hskLevelLabel } from './dict/meta';
+import { colorizeSentenceHanzi, colorizePinyinString } from './tone';
 import {
 	buildNoteTemplates,
 	formatDefinition,
@@ -287,7 +289,8 @@ export async function lookupWord(word: string): Promise<Word> {
 	};
 }
 
-export { wordsByLevel };
+export { wordsByLevel, getSmartSentences };
+export type { ExampleSentence };
 
 export function filterChineseWords(array: string[]): string[] {
 	const chineseRegex = /[一-龥]/;
@@ -323,7 +326,7 @@ export interface GenerateDeckOptions {
 	onProgress?: (value: number) => void;
 	// Smart example-sentence fetcher (injectable for tests). Defaults to the
 	// hsk_sentences.db lookup, loaded lazily only when the Examples field is used.
-	getExamples?: (word: string) => Promise<string[]>;
+	getExamples?: (word: string) => Promise<ExampleSentence[]>;
 }
 
 export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
@@ -354,9 +357,17 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 
 	// Smart example sentences are only fetched when the Examples field is used
 	// (the sentences db is a separate ~5MB download), keyed by Simplified word.
-	const examplesMap = new Map<string, string[]>();
+	const exOpts = template.exampleOptions ?? DEFAULT_TEMPLATE.exampleOptions;
+	const examplesMap = new Map<string, ExampleSentence[]>();
 	if (fields.includes('Examples')) {
-		const fetchExamples = opts.getExamples ?? ((w: string) => getSmartSentences(w, 3));
+		const fetchExamples =
+			opts.getExamples ??
+			((w: string) =>
+				getSmartSentences(w, {
+					limit: exOpts.count,
+					minChars: exOpts.minChars,
+					maxChars: exOpts.maxChars
+				}));
 		for (const word of words) {
 			try {
 				examplesMap.set(word.Simplified, await fetchExamples(word.Simplified));
@@ -472,7 +483,27 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 			}
 			if (JSON.stringify(obj) === JSON.stringify({ name: 'Examples' })) {
 				const ex = examplesMap.get(word.Simplified) ?? [];
-				const html = ex.map((s) => `<div class="example-item">${s}</div>`).join('');
+				// Pre-colorize at export so sentences are viewable anywhere: hanzi via
+				// best-effort syllable→char alignment, pinyin by syllable. The "color
+				// hanzi/pinyin" sidebar toggles still neutralise them at review time.
+				const hanzi = (s: string, py: string) =>
+					exOpts.colorizeHanzi ? colorizeSentenceHanzi(s, py) : s;
+				const pinyin = (py: string) =>
+					exOpts.colorizePinyin ? colorizePinyinString(py) : py;
+				const html = ex
+					.map((s) => {
+						const parts: string[] = [];
+						if (exOpts.showTraditional)
+							parts.push(`<div class="example-trad">${hanzi(s.traditional, s.pinyin)}</div>`);
+						if (exOpts.showSimplified)
+							parts.push(`<div class="example-sim">${hanzi(s.simplified, s.pinyin)}</div>`);
+						if (exOpts.showPinyin)
+							parts.push(`<div class="example-pinyin">${pinyin(s.pinyin)}</div>`);
+						if (exOpts.showTranslation)
+							parts.push(`<div class="example-translation">${s.translation}</div>`);
+						return `<div class="example-item">${parts.join('')}</div>`;
+					})
+					.join('');
 				note.push(html);
 			}
 			if (JSON.stringify(obj) === JSON.stringify({ name: 'Audio' })) {

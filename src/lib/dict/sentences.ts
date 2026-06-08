@@ -12,12 +12,13 @@ export interface RankableSentence {
 
 /**
  * Rank by a composite score (lower = better): difficulty plus a mild length
- * penalty, so easy, concise sentences win. Returns up to `limit` sentence
- * strings, de-duplicated.
+ * penalty, so easy, concise sentences win. Returns up to `limit` rows,
+ * de-duplicated by sentence text. Generic so callers keep their extra columns
+ * (pinyin, translation, …).
  */
-export function rankSentences(rows: RankableSentence[], limit = 3): string[] {
+export function rankSentences<T extends RankableSentence>(rows: T[], limit = 3): T[] {
 	const seen = new Set<string>();
-	const scored = rows
+	return rows
 		.filter((r) => {
 			const s = (r.sentence ?? '').trim();
 			if (!s || seen.has(s)) return false;
@@ -25,12 +26,12 @@ export function rankSentences(rows: RankableSentence[], limit = 3): string[] {
 			return true;
 		})
 		.map((r) => ({
-			sentence: r.sentence.trim(),
+			row: r,
 			// Length measured in characters; /8 keeps it a gentle tiebreaker next to
 			// difficulty rather than dominating it.
-			score: (r.difficulty ?? 0) + [...r.sentence.trim()].length / 8
+			score: (r.difficulty ?? 0) + [...(r.sentence ?? '').trim()].length / 8
 		}))
-		.sort((a, b) => a.score - b.score);
-
-	return scored.slice(0, limit).map((s) => s.sentence);
+		.sort((a, b) => a.score - b.score)
+		.slice(0, limit)
+		.map((s) => s.row);
 }

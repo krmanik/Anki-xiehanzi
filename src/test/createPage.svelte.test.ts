@@ -25,7 +25,8 @@ vi.mock('$lib/deck', async () => {
 		playWordAudio: vi.fn(async () => true),
 		setupSql: vi.fn(async () => ({})),
 		cutParagraph: vi.fn(() => []),
-		wordsByLevel: vi.fn(async () => ['爱', '吧'])
+		wordsByLevel: vi.fn(async () => ['爱', '吧']),
+		getSmartSentences: vi.fn(async () => [])
 	};
 });
 
@@ -70,6 +71,20 @@ describe('Create page — appearance accordion', () => {
 		// Clicking the header collapses them away.
 		await user.click(screen.getByText('Customize appearance'));
 		expect(screen.queryByText('Collapse dictionary definitions')).toBeNull();
+	});
+});
+
+describe('Create page — example sentence options', () => {
+	it('shows example options only when the Examples field is selected', async () => {
+		const user = userEvent.setup();
+		render(Page);
+		// Not shown by default.
+		expect(screen.queryByText('Example sentences')).toBeNull();
+		// Tick Example Sentences on the back → contextual options appear.
+		await user.click(screen.getByLabelText('Example Sentences back'));
+		expect(screen.getByText('Example sentences')).toBeInTheDocument();
+		expect(screen.getByText('Min length (chars)')).toBeInTheDocument();
+		expect(screen.getByText('Max length (chars)')).toBeInTheDocument();
 	});
 });
 

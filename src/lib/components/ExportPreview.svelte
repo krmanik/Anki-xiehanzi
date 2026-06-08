@@ -2,7 +2,7 @@
 	import CardPreview from './CardPreview.svelte';
 	import { computeDeckStats } from '$lib/deckStats';
 	import type { TabContent, TemplateOpts } from '$lib/deckTemplate';
-	import type { Word } from '$lib/deck';
+	import { getSmartSentences, type Word, type ExampleSentence } from '$lib/deck';
 	import type { TonePalette } from '$lib/tonePresets';
 	import X from '@lucide/svelte/icons/x';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
@@ -41,6 +41,34 @@
 	const currentWord = $derived<Word | null>(words[safeIndex] ?? null);
 	function prevWord() { if (safeIndex > 0) wordIndex = safeIndex - 1; }
 	function nextWord() { if (safeIndex < words.length - 1) wordIndex = safeIndex + 1; }
+
+	// Does any card type show the Examples field?
+	const examplesUsed = $derived(
+		tabs.some((t) => {
+			const c = tabContent[t];
+			return !!c && (c.front.includes('frontExamples') || c.back.includes('backExamples'));
+		})
+	);
+
+	// Real example sentences for the current word (re-fetched as you page / tweak).
+	let previewExamples = $state<ExampleSentence[]>([]);
+	$effect(() => {
+		const w = currentWord?.Simplified;
+		const o = template.exampleOptions;
+		if (!examplesUsed || !w) {
+			previewExamples = [];
+			return;
+		}
+		let cancelled = false;
+		getSmartSentences(w, { limit: o.count, minChars: o.minChars, maxChars: o.maxChars })
+			.then((r) => {
+				if (!cancelled) previewExamples = r;
+			})
+			.catch(() => {});
+		return () => {
+			cancelled = true;
+		};
+	});
 
 	function frontItems(tab: string): string[] {
 		const c = tabContent[tab];
@@ -153,6 +181,8 @@
 								elementStyles={tabContent[tab]?.elementStyles ?? {}}
 								toneColors={palette}
 							word={currentWord}
+							exampleSentences={previewExamples}
+							exampleOptions={template.exampleOptions}
 							/>
 							<CardPreview
 								label="Back"
@@ -164,6 +194,8 @@
 								elementStyles={tabContent[tab]?.elementStyles ?? {}}
 								toneColors={palette}
 							word={currentWord}
+							exampleSentences={previewExamples}
+							exampleOptions={template.exampleOptions}
 							/>
 						</div>
 					</div>

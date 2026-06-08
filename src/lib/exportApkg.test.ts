@@ -191,7 +191,9 @@ describe('generateDeck — real .apkg round-trip', () => {
 			template: undefined,
 			onProgress: () => {},
 			// Inject so the test doesn't touch hsk_sentences.db / the network.
-			getExamples: async () => ['这是中国。', '我爱中国。']
+			getExamples: async () => [
+				{ simplified: '这是中国。', traditional: '這是中國。', pinyin: 'zhè shì zhōng guó 。', translation: 'This is China.' }
+			]
 		});
 
 		const start = Date.now();
@@ -205,7 +207,12 @@ describe('generateDeck — real .apkg round-trip', () => {
 		const cdb = new SQL.Database(anki2);
 		const flds = cdb.exec('SELECT flds FROM notes')[0].values[0][0] as string;
 		expect(flds).toContain('example-item');
-		expect(flds).toContain('这是中国。');
+		expect(flds).toContain('example-sim');
+		expect(flds).toContain('example-translation');
+		expect(flds).toContain('This is China.');
+		// Pre-colorized at export: hanzi via char-tone spans, pinyin via tone spans.
+		expect(flds).toContain('<span class="char-tone4">这</span>');
+		expect(flds).toContain('<span class="tone1">zhōng</span>');
 
 		cdb.close();
 		db.close();

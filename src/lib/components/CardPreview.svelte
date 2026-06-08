@@ -41,7 +41,16 @@
 	const ex = {
 		Simplified: '中国', Traditional: '中國', syllable: 'Zhong1 guo2',
 		pinyin: 'Zhōng guó', zhuyin: 'ㄓㄨㄥ ㄍㄨㄛˊ', simple: 'China',
-		definition: 'China; Middle Kingdom'
+		definition: 'China; Middle Kingdom',
+		breakdown: [
+			{ character: '中', pinyin: 'zhōng', definition: 'middle' },
+			{ character: '国', pinyin: 'guó', definition: 'country' }
+		],
+		radical: [
+			{ character: '中', radical: '丨' },
+			{ character: '国', radical: '囗' }
+		],
+		hsk: 'HSK 1', frequency: 'Top 500'
 	};
 
 	const simp = $derived(colorizeHanzi(ex.Simplified, ex.syllable));
@@ -302,6 +311,68 @@
 						<div class="text-sm text-neutral-700">{ex.definition}</div>
 					{/if}
 					{#if interactive && selectedElement === 'definitions'}<div class="mt-0.5 text-center font-mono text-[9px] text-blue-500">Definitions</div>{/if}
+				</div>
+
+			{:else if item === 'Breakdown' && (!isHidden('breakdown') || interactive)}
+				<div
+					class="flex flex-wrap justify-center gap-2 {selClass('breakdown')} {isHidden('breakdown') ? 'opacity-30' : ''}"
+					style="order:{ord('breakdown')};{elStyle('breakdown')}"
+					role="button"
+					tabindex="0"
+					onclick={(e) => select('breakdown', e)}
+					onkeydown={onkey('breakdown')}
+				>
+					{#each ex.breakdown as b (b.character)}
+						<div class="flex flex-col items-center rounded-lg border border-neutral-200 px-2.5 py-1.5">
+							<span class="text-lg leading-none">{b.character}</span>
+							<span class="text-[10px] text-neutral-500">{b.pinyin}</span>
+							<span class="text-[10px] text-neutral-500">{b.definition}</span>
+						</div>
+					{/each}
+					{#if interactive && selectedElement === 'breakdown'}<span class={SEL_BADGE}>Breakdown</span>{/if}
+				</div>
+
+			{:else if item === 'Radical' && (!isHidden('radical') || interactive)}
+				<div
+					class="flex flex-wrap justify-center gap-1.5 {selClass('radical')} {isHidden('radical') ? 'opacity-30' : ''}"
+					style="order:{ord('radical')};{elStyle('radical')}"
+					role="button"
+					tabindex="0"
+					onclick={(e) => select('radical', e)}
+					onkeydown={onkey('radical')}
+				>
+					{#each ex.radical as r (r.character)}
+						<span class="inline-flex items-center gap-1 rounded-full border border-neutral-200 px-2 py-0.5 text-xs text-neutral-500">
+							<span class="font-semibold text-neutral-800">{r.character}</span>{r.radical}
+						</span>
+					{/each}
+					{#if interactive && selectedElement === 'radical'}<span class={SEL_BADGE}>Radical</span>{/if}
+				</div>
+
+			{:else if item === 'HskLevel' && (!isHidden('hskLevel') || interactive)}
+				<div
+					class="{selClass('hskLevel')} {isHidden('hskLevel') ? 'opacity-30' : ''}"
+					style="order:{ord('hskLevel')};{elStyle('hskLevel')}"
+					role="button"
+					tabindex="0"
+					onclick={(e) => select('hskLevel', e)}
+					onkeydown={onkey('hskLevel')}
+				>
+					<span class="inline-block rounded-full border border-neutral-200 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-500">{ex.hsk}</span>
+					{#if interactive && selectedElement === 'hskLevel'}<span class={SEL_BADGE}>HSK Level</span>{/if}
+				</div>
+
+			{:else if item === 'Frequency' && (!isHidden('frequency') || interactive)}
+				<div
+					class="{selClass('frequency')} {isHidden('frequency') ? 'opacity-30' : ''}"
+					style="order:{ord('frequency')};{elStyle('frequency')}"
+					role="button"
+					tabindex="0"
+					onclick={(e) => select('frequency', e)}
+					onkeydown={onkey('frequency')}
+				>
+					<span class="inline-block rounded-full border border-neutral-200 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-500">{ex.frequency}</span>
+					{#if interactive && selectedElement === 'frequency'}<span class={SEL_BADGE}>Frequency</span>{/if}
 				</div>
 
 			{:else if item === 'Audio' && (!isHidden('audio') || interactive)}

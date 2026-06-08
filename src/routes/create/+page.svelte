@@ -79,6 +79,10 @@
 		FIELDS.PART_OF_SPEECH,
 		FIELDS.SIMPLE_MEANING,
 		FIELDS.DEFINITIONS,
+		FIELDS.BREAKDOWN,
+		FIELDS.RADICAL,
+		FIELDS.HSK_LEVEL,
+		FIELDS.FREQUENCY,
 		FIELDS.AUDIO,
 		WRITING
 	]);
@@ -133,6 +137,10 @@
 			{ id: FIELDS.PART_OF_SPEECH, label: 'Part of Speech' },
 			{ id: FIELDS.SIMPLE_MEANING, label: 'Simple Meaning' },
 			{ id: FIELDS.DEFINITIONS, label: 'Dictionary Definitions' },
+			{ id: FIELDS.BREAKDOWN, label: 'Character Breakdown' },
+			{ id: FIELDS.RADICAL, label: 'Radical' },
+			{ id: FIELDS.HSK_LEVEL, label: 'HSK Level' },
+			{ id: FIELDS.FREQUENCY, label: 'Frequency' },
 			{ id: FIELDS.AUDIO, label: 'Audio' }
 		].map((f) => [f.id, f.label])
 	);

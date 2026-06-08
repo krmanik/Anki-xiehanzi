@@ -75,6 +75,10 @@
 		{ id: 'partOfSpeech',   label: 'Part of speech' },
 		{ id: 'simpleMeaning',  label: 'Simple meaning' },
 		{ id: 'definitions',    label: 'Definitions' },
+		{ id: 'breakdown',      label: 'Char breakdown' },
+		{ id: 'radical',        label: 'Radical' },
+		{ id: 'hskLevel',       label: 'HSK level' },
+		{ id: 'frequency',      label: 'Frequency' },
 		{ id: 'audio',          label: 'Audio button' },
 		{ id: 'hr',             label: 'Separator line' },
 		{ id: 'controlButtons', label: 'Control buttons' }
@@ -113,6 +117,10 @@
 		PartOfSpeech: 'partOfSpeech',
 		SimpleMeaning: 'simpleMeaning',
 		Definitions: 'definitions',
+		Breakdown: 'breakdown',
+		Radical: 'radical',
+		HskLevel: 'hskLevel',
+		Frequency: 'frequency',
 		Audio: 'audio'
 	};
 
@@ -186,6 +194,10 @@
 		partOfSpeech:   'chips',
 		simpleMeaning:  'text',
 		definitions:    'text',
+		breakdown:      'text',
+		radical:        'chips',
+		hskLevel:       'text',
+		frequency:      'text',
 		audio:          'button',
 		hr:             'hr',
 		controlButtons: 'button'

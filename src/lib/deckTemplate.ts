@@ -59,6 +59,10 @@ export type CardElementId =
 	| 'partOfSpeech' // noun/verb chips
 	| 'simpleMeaning' // short English gloss
 	| 'definitions' // full dictionary entry block
+	| 'breakdown' // per-character breakdown (中→middle, 国→country)
+	| 'radical' // radical chips (国→囗)
+	| 'hskLevel' // HSK level badge
+	| 'frequency' // frequency-band badge (Top 500)
 	| 'audio' // audio play button
 	| 'hr' // horizontal rule separators
 	| 'controlButtons'; // sidebar-toggle footer buttons
@@ -97,6 +101,10 @@ const SCOPED_SELECTORS: Record<CardElementId, string> = {
 	partOfSpeech: '#char_pos',
 	simpleMeaning: '#char_simple',
 	definitions: '#char_meaning',
+	breakdown: '#char_breakdown',
+	radical: '#char_radical',
+	hskLevel: '#char_hsk',
+	frequency: '#char_freq',
 	audio: '#btnPlayAudio',
 	hr: 'hr',
 	controlButtons: '.modal-footer1'
@@ -115,6 +123,10 @@ export const DEFAULT_BODY_ORDER: CardElementId[] = [
 	'partOfSpeech',
 	'simpleMeaning',
 	'definitions',
+	'breakdown',
+	'radical',
+	'hskLevel',
+	'frequency',
 	'audio'
 ];
 
@@ -179,7 +191,22 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		'.pos-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0;}\n' +
 		'.pos-row:empty{display:none;}\n' +
 		'.pos-chip{font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid #ccc;color:#666;}\n' +
-		'.pos-chip.pos-dominant{background:#111;color:#fff;border-color:#111;}\n';
+		'.pos-chip.pos-dominant{background:#111;color:#fff;border-color:#111;}\n' +
+		// Metadata badges (HSK level / frequency band)
+		'.meta-badge{display:inline-block;font-size:0.66em;font-weight:600;letter-spacing:0.02em;padding:3px 10px;margin:4px auto;border-radius:999px;border:1px solid var(--surface4);color:var(--text2);}\n' +
+		'.meta-badge:empty{display:none;border:0;padding:0;margin:0;}\n' +
+		// Character breakdown (一 char per row: char · pinyin · gloss)
+		'.breakdown-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;}\n' +
+		'.breakdown-row:empty{display:none;}\n' +
+		'.bd-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:1px solid var(--surface4);border-radius:8px;min-width:48px;}\n' +
+		'.bd-char{font-size:1.4em;line-height:1;}\n' +
+		'.bd-py{font-size:0.7em;color:var(--text2);}\n' +
+		'.bd-def{font-size:0.68em;color:var(--text2);text-align:center;}\n' +
+		// Radical chips (国 → 囗)
+		'.radical-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px auto;}\n' +
+		'.radical-row:empty{display:none;}\n' +
+		'.radical-chip{display:inline-flex;align-items:center;gap:5px;font-size:0.8em;padding:3px 10px;border-radius:999px;border:1px solid var(--surface4);color:var(--text2);}\n' +
+		'.radical-chip .radical-char{font-weight:600;color:var(--text1);}\n';
 
 	const globalStack = FONT_STACKS[t.font];
 	if (globalStack) {
@@ -268,7 +295,11 @@ export const FIELD_DIV: Record<string, string> = {
 	Zhuyin: `<div id="char_zhuyin">{{Zhuyin}}</div>`,
 	PartOfSpeech: `<div id="char_pos" class="pos-row">{{PartOfSpeech}}</div>`,
 	SimpleMeaning: `<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>`,
-	Definitions: CONSTANTS.MEANING_CARD
+	Definitions: CONSTANTS.MEANING_CARD,
+	Breakdown: `<div id="char_breakdown" class="breakdown-row">{{Breakdown}}</div>`,
+	Radical: `<div id="char_radical" class="radical-row">{{Radical}}</div>`,
+	HskLevel: `<div id="char_hsk" class="meta-badge meta-hsk">{{HskLevel}}</div>`,
+	Frequency: `<div id="char_freq" class="meta-badge meta-freq">{{Frequency}}</div>`
 };
 
 // Toggle id (sidebar checkbox) for each display field, used to seed default-off.
@@ -279,7 +310,11 @@ export const FIELD_TOGGLE: Record<string, string> = {
 	Zhuyin: 'text-zhuyin',
 	PartOfSpeech: 'text-pos',
 	SimpleMeaning: 'text-simple',
-	Definitions: 'text-meaning'
+	Definitions: 'text-meaning',
+	Breakdown: 'text-breakdown',
+	Radical: 'text-radical',
+	HskLevel: 'text-hsk',
+	Frequency: 'text-freq'
 };
 
 // ---------------------------------------------------------------------------

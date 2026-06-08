@@ -25,8 +25,11 @@ import {
 	loadHskMeanings,
 	simpleMeaningOf,
 	posDisplay,
-	type Reading
+	characterBreakdown,
+	type Reading,
+	type CharInfo
 } from './dict/cedict';
+import { frequencyBand, hskLevelLabel } from './dict/meta';
 import {
 	buildNoteTemplates,
 	formatDefinition,
@@ -74,6 +77,7 @@ export interface Word {
 	level: string | null;
 	rank: number | null;
 	readings: Reading[];
+	breakdown: CharInfo[];
 }
 
 // ---------------------------------------------------------------------------
@@ -233,6 +237,7 @@ export async function lookupWord(word: string): Promise<Word> {
 	if (!entry) {
 		// Fallback: word not in cedict.db
 		const fetched = await fetchMeaningGoogleTranslate(word.trim());
+		const breakdown = await characterBreakdown(fetched.Simplified);
 		const readings: Reading[] = fetched.Syllable.map((syl, i) => ({
 			syllable: syl,
 			pinyin: fetched.Pinyin[i],
@@ -254,11 +259,13 @@ export async function lookupWord(word: string): Promise<Word> {
 			classifiers: [],
 			level: null,
 			rank: null,
-			readings
+			readings,
+			breakdown
 		};
 	}
 
 	const readings = entry.readings;
+	const breakdown = await characterBreakdown(entry.simplified);
 	return {
 		Simplified: entry.simplified,
 		Traditional: entry.traditional,
@@ -273,7 +280,8 @@ export async function lookupWord(word: string): Promise<Word> {
 		classifiers: entry.classifiers,
 		level: entry.level,
 		rank: entry.rank,
-		readings
+		readings,
+		breakdown
 	};
 }
 
@@ -411,6 +419,35 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 				}
 
 				note.push(definition.join('\n'));
+			}
+			if (JSON.stringify(obj) === JSON.stringify({ name: 'Breakdown' })) {
+				// Single-char words break down to themselves — no added value; leave
+				// blank so :empty hides the row.
+				const bd = word.breakdown.length > 1 ? word.breakdown : [];
+				const html = bd
+					.map(
+						(c) =>
+							`<div class="bd-item"><span class="bd-char">${c.character}</span><span class="bd-py">${c.pinyin}</span><span class="bd-def">${c.definition}</span></div>`
+					)
+					.join('');
+				note.push(html);
+			}
+			if (JSON.stringify(obj) === JSON.stringify({ name: 'Radical' })) {
+				const seen = new Set<string>();
+				const chips = word.breakdown
+					.filter((c) => c.radical && !seen.has(c.character) && seen.add(c.character))
+					.map(
+						(c) =>
+							`<span class="radical-chip"><span class="radical-char">${c.character}</span><span class="radical-rad">${c.radical}</span></span>`
+					)
+					.join('');
+				note.push(chips);
+			}
+			if (JSON.stringify(obj) === JSON.stringify({ name: 'HskLevel' })) {
+				note.push(hskLevelLabel(word.level) || '');
+			}
+			if (JSON.stringify(obj) === JSON.stringify({ name: 'Frequency' })) {
+				note.push(frequencyBand(word.rank) || '');
 			}
 			if (JSON.stringify(obj) === JSON.stringify({ name: 'Audio' })) {
 				note.push(`[sound:cmn-${Simplified}.mp3]`);

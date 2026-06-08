@@ -333,6 +333,55 @@ describe('buildNoteTemplates — back field visibility', () => {
 	});
 });
 
+describe('buildNoteTemplates — breakdown / radical / HSK / frequency fields', () => {
+	const META = ['Breakdown', 'Radical', 'HskLevel', 'Frequency'];
+
+	it('emits the new field divs on the back when included', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(onlySimplifiedFront, META.map((f) => `back${f}`))
+		};
+		const { tmpls } = buildNoteTemplates({
+			fields: [...FIELDS, ...META],
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		const afmt = tmpls[0].afmt;
+		expect(afmt).toContain('id="char_breakdown"');
+		expect(afmt).toContain('id="char_radical"');
+		expect(afmt).toContain('id="char_hsk"');
+		expect(afmt).toContain('id="char_freq"');
+		expect(afmt).toContain('{{Breakdown}}');
+		expect(afmt).toContain('{{HskLevel}}');
+	});
+
+	it('places a new field on the front when selected there', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(['frontSimplified', 'frontHskLevel'], onlySimplifiedFront)
+		};
+		const { tmpls } = buildNoteTemplates({
+			fields: [...FIELDS, ...META],
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(tmpls[0].qfmt).toContain('id="char_hsk"');
+	});
+
+	it('ships CSS for the badges, breakdown and radical chips', () => {
+		const css = buildGlobalCss(tpl());
+		expect(css).toContain('.meta-badge');
+		expect(css).toContain('.breakdown-row');
+		expect(css).toContain('.bd-char');
+		expect(css).toContain('.radical-chip');
+	});
+
+	it('orders the new blocks after definitions in the body order', () => {
+		expect(elementOrder({}, 'definitions')).toBeLessThan(elementOrder({}, 'breakdown'));
+		expect(elementOrder({}, 'breakdown')).toBeLessThan(elementOrder({}, 'audio'));
+	});
+});
+
 describe('buildNoteTemplates — position move mirrored in CSS', () => {
 	it('emits the moved control/hr order into the per-card CSS', () => {
 		const tabContent: TabContent = {

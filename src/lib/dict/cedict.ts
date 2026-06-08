@@ -220,6 +220,50 @@ export async function lookup(word: string): Promise<CedictEntry | null> {
 	};
 }
 
+export interface CharInfo {
+	character: string;
+	pinyin: string; // tone-marked, e.g. "zhōng"
+	definition: string; // short gloss (first sense)
+	radical: string; // e.g. "囗"
+	decomposition: string; // ideographic description, e.g. "⿴囗玉"
+}
+
+/** Trim a character's CEDICT definition to a short gloss for breakdown chips. */
+function shortCharDef(raw: string): string {
+	if (!raw) return '';
+	// definitions are "; "/"," separated sense lists — keep the first sense only.
+	return raw.split(/[;,]/)[0].trim();
+}
+
+/** Look up per-character info (pinyin, gloss, radical, decomposition). */
+export async function lookupCharacters(chars: string[]): Promise<CharInfo[]> {
+	if (!cedictDb) await loadCedict();
+	const out: CharInfo[] = [];
+	for (const ch of chars) {
+		const row = queryOne(
+			cedictDb,
+			`SELECT character, definition, pinyin, decomposition, radical FROM character WHERE character = ? LIMIT 1`,
+			[ch]
+		);
+		if (!row) continue;
+		const pinyinArr = safeJSON<string[]>(row.pinyin, []);
+		out.push({
+			character: row.character,
+			pinyin: pinyinArr.join(' '),
+			definition: shortCharDef(row.definition || ''),
+			radical: safeJSON<string>(row.radical, '') || (row.radical ?? ''),
+			decomposition: row.decomposition || ''
+		});
+	}
+	return out;
+}
+
+/** Per-character breakdown of a word (CJK characters only, in order). */
+export async function characterBreakdown(word: string): Promise<CharInfo[]> {
+	const chars = [...word.trim()].filter((c) => /[㐀-鿿豈-﫿]/.test(c));
+	return lookupCharacters(chars);
+}
+
 export interface Sentence {
 	sentence: string;
 	difficulty: number;

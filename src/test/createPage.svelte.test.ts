@@ -26,7 +26,8 @@ vi.mock('$lib/deck', async () => {
 		setupSql: vi.fn(async () => ({})),
 		cutParagraph: vi.fn(() => []),
 		wordsByLevel: vi.fn(async () => ['爱', '吧']),
-		getSmartSentences: vi.fn(async () => [])
+		getSmartSentences: vi.fn(async () => []),
+		renderCardHtml: vi.fn(() => '<!DOCTYPE html><html><body class="card"></body></html>')
 	};
 });
 

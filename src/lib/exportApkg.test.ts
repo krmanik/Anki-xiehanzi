@@ -19,8 +19,8 @@ vi.mock('@kingdanx/edge-tts-browser', () => ({
 }));
 vi.mock('jieba-wasm', () => ({ default: async () => {}, cut: () => [] }));
 
-import { generateDeck, commonReadingIndex, displayReadings, type Word } from './deck';
-import type { TabContent } from './deckTemplate';
+import { generateDeck, commonReadingIndex, displayReadings, buildNoteFields, renderCardHtml, type Word } from './deck';
+import { DEFAULT_TEMPLATE, type TabContent } from './deckTemplate';
 import type { Reading } from './dict/cedict';
 
 function word(): Word {
@@ -77,6 +77,50 @@ describe('most-common reading', () => {
 		expect(common.Zhuyin).toBe('ㄉㄧˊ');
 		expect(common.Syllable).toBe('di2');
 		expect(common.Definitions).toContain('genuine');
+	});
+});
+
+describe('exact-match preview', () => {
+	const fields = ['Simplified', 'Traditional', 'Pinyin', 'Zhuyin', 'PartOfSpeech', 'SimpleMeaning', 'Definitions'];
+
+	it('buildNoteFields returns per-field HTML matching the export', () => {
+		const f = buildNoteFields(word(), DEFAULT_TEMPLATE, []);
+		expect(f.Simplified).toBe('中国');
+		expect(f.Traditional).toBe('〔中國〕');
+		expect(f.Definitions).toContain('meaning-container');
+		expect(f.Audio).toBe('[sound:cmn-中国.mp3]');
+	});
+
+	it('renderCardHtml inlines the real template, CSS and field values', () => {
+		const tabContent: TabContent = {
+			'Card 1': { front: ['frontSimplified'], back: ['backSimplified', 'backDefinitions'], additional: [], elementStyles: {} }
+		};
+		const html = renderCardHtml({
+			side: 'back',
+			tab: 'Card 1',
+			word: word(),
+			fields,
+			tabContent,
+			template: DEFAULT_TEMPLATE,
+			includeAudio: false,
+			examples: []
+		});
+		expect(html).toContain('<!DOCTYPE html>');
+		expect(html).toContain('class="card"');
+		// real card CSS + the per-card model CSS are inlined
+		expect(html).toContain('.meaning-card');
+		// field placeholders substituted, none left over
+		expect(html).toContain('中国');
+		expect(html).not.toContain('{{');
+		// Persistence shim so the template's init code runs in the iframe
+		expect(html).toContain('window.Persistence');
+		// Bundled media point at served static files (no broken root-relative _media)
+		expect(html).toContain('url(/img/_MaterialIcons-Regular.woff2)');
+		expect(html).toContain('src="/img/_pleco.png"');
+		expect(html).not.toContain('url(_MaterialIcons-Regular.woff2)');
+		expect(html).not.toContain('src="_');
+		// Offline loaders the preview can't use are stripped
+		expect(html).not.toContain('_anki-persistence.js');
 	});
 });
 

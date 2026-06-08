@@ -36,6 +36,7 @@ import { frequencyBand, hskLevelLabel } from './dict/meta';
 import { colorizeSentenceHanzi, colorizePinyinString } from './tone';
 import {
 	buildNoteTemplates,
+	fieldUsedByAnyCard,
 	formatDefinition,
 	CARD_STYLE_LS_KEY,
 	CARD_TABS_LS_KEY,
@@ -337,6 +338,183 @@ export async function lookupWord(word: string): Promise<Word> {
 export { wordsByLevel, getSmartSentences };
 export type { ExampleSentence };
 
+// ---------------------------------------------------------------------------
+// Per-note field HTML (shared by the .apkg export and the exact-match preview)
+// ---------------------------------------------------------------------------
+
+/**
+ * Build the HTML value of every display field for one word, exactly as the
+ * exporter writes it into the note. Single source of truth so the preview can
+ * substitute the same values into the real card template (no drift).
+ */
+export function buildNoteFields(
+	word: Word,
+	template: TemplateOpts,
+	examples: ExampleSentence[]
+): Record<string, string> {
+	const Simplified = word.Simplified;
+	const Traditional = word.Traditional;
+	const Pinyin = word.Pinyin;
+	const Zhuyin = word.Zhuyin;
+	const Definitions = word.Definitions;
+	// "Most common pinyin only" affects ONLY the standalone Pinyin/Zhuyin fields.
+	const top = displayReadings(word, template.commonPinyinOnly);
+	const exOpts = template.exampleOptions ?? DEFAULT_TEMPLATE.exampleOptions;
+
+	const posChips = word.pos
+		.map((c) => {
+			const dom = c === word.dominantPos ? ' pos-dominant' : '';
+			return `<span class="pos-chip${dom}">${posDisplay(c)}</span>`;
+		})
+		.join('');
+
+	// Dedupe: blank the simple meaning when it matches the dictionary text.
+	const norm = (s: string) => s.toLowerCase().replace(/[\s;,│/]+/g, ' ').trim();
+	const dupSimple =
+		norm(word.SimpleMeaning) === norm(Definitions) ||
+		norm(word.SimpleMeaning) === norm(word.commonMeaning);
+	const simpleMeaning = dupSimple ? '' : word.SimpleMeaning || '';
+
+	// Definitions: one meaning-container per reading (always every reading).
+	const pin = Pinyin.split(', ');
+	const zhu = Zhuyin.split(', ');
+	const def = Definitions.split(' │ ');
+	const syllableSp = word.Syllable.split(', ');
+	const definition: string[] = [];
+	for (let i = 0; i < pin.length; i++) {
+		const sp = (syllableSp[i] ?? '').split(' ');
+		let simp = '';
+		let trad = '';
+		const simpSp = Simplified.split('');
+		const tradSp = Traditional.split('');
+		sp.forEach((k, j) => {
+			simp += `<span class="char-tone${k[k.length - 1]}">${simpSp[j]}</span>`;
+			trad += `<span class="char-tone${k[k.length - 1]}">${tradSp[j]}</span>`;
+		});
+		definition.push(`<div class="meaning-container">
+    <div class="char">
+        <span id="char-sim-id">${simp}</span>
+        <span class="sep">〔</span>
+        <span id="char-trad-id">${trad}</span>
+        <span class="sep">〕</span>
+    </div>
+    <div class="pinyin">${pin[i]}</div>
+    <div class="zhuyin">${zhu[i]}</div>
+    <div class="meaning">${formatDefinition(def[i] ?? '')}</div>
+</div>`);
+	}
+
+	// Breakdown: single-char words break down to themselves — leave blank.
+	const bd = word.breakdown.length > 1 ? word.breakdown : [];
+	const breakdownHtml = bd
+		.map(
+			(c) =>
+				`<div class="bd-item"><span class="bd-char">${c.character}</span><span class="bd-py">${c.pinyin}</span><span class="bd-def">${c.definition}</span></div>`
+		)
+		.join('');
+
+	const seen = new Set<string>();
+	const radicalHtml = word.breakdown
+		.filter((c) => c.radical && !seen.has(c.character) && seen.add(c.character))
+		.map(
+			(c) =>
+				`<span class="radical-chip"><span class="radical-char">${c.character}</span><span class="radical-rad">${c.radical}</span></span>`
+		)
+		.join('');
+
+	const examplesHtml = examples
+		.map((s) => {
+			const parts: string[] = [];
+			if (exOpts.showTraditional)
+				parts.push(`<div class="example-trad">${colorizeSentenceHanzi(s.traditional, s.pinyin)}</div>`);
+			if (exOpts.showSimplified)
+				parts.push(`<div class="example-sim">${colorizeSentenceHanzi(s.simplified, s.pinyin)}</div>`);
+			if (exOpts.showPinyin)
+				parts.push(`<div class="example-pinyin">${colorizePinyinString(s.pinyin)}</div>`);
+			if (exOpts.showTranslation)
+				parts.push(`<div class="example-translation">${s.translation}</div>`);
+			return `<div class="example-item">${parts.join('')}</div>`;
+		})
+		.join('');
+
+	return {
+		Simplified,
+		Traditional: `〔${Traditional}〕`,
+		Pinyin: top.Pinyin,
+		Zhuyin: top.Zhuyin,
+		PartOfSpeech: posChips,
+		SimpleMeaning: simpleMeaning,
+		Definitions: definition.join('\n'),
+		Breakdown: breakdownHtml,
+		Radical: radicalHtml,
+		HskLevel: hskLevelLabel(word.level) || '',
+		Frequency: frequencyBand(word.rank) || '',
+		Examples: examplesHtml,
+		Audio: `[sound:cmn-${Simplified}.mp3]`
+	};
+}
+
+// Minimal Persistence shim so the real card template's init code runs in the
+// preview iframe (no bundled _anki-persistence.js there). getItem returns null,
+// so every toggle uses its seeded default.
+const PREVIEW_PERSISTENCE_SHIM =
+	`<script>window.Persistence={isAvailable:function(){return true;},getItem:function(){return null;},setItem:function(){},removeItem:function(){},clear:function(){}};window.ankiPlatform="desktop";</script>`;
+
+/** Substitute {{Field}} placeholders (and leftover ones → '') from a value map. */
+function fillTemplate(tpl: string, fields: Record<string, string>): string {
+	let out = tpl;
+	for (const [k, v] of Object.entries(fields)) {
+		out = out.split(`{{${k}}}`).join(v);
+	}
+	return out.replace(/\{\{[^}]+\}\}/g, '');
+}
+
+/**
+ * Render one side of a real card (front/back) to a standalone HTML document for
+ * an exact-match preview iframe. Reuses the same template + CSS + field values
+ * the .apkg export uses, so what you see is what Anki shows.
+ */
+export function renderCardHtml(opts: {
+	side: 'front' | 'back';
+	tab: string;
+	word: Word;
+	fields: string[];
+	tabContent: TabContent;
+	template: TemplateOpts;
+	includeAudio: boolean;
+	examples: ExampleSentence[];
+}): string {
+	const { side, tab, word, fields, tabContent, template, includeAudio, examples } = opts;
+	const { tmpls, css } = buildNoteTemplates({ fields, tabContent, includeAudio, template });
+	const idx = Object.keys(tabContent).indexOf(tab);
+	const tmpl = tmpls[idx] ?? tmpls[0];
+	if (!tmpl) return '';
+
+	const fmap = buildNoteFields(word, template, examples);
+	const front = fillTemplate(tmpl.qfmt, fmap);
+	let body =
+		side === 'front'
+			? front
+			: fillTemplate(tmpl.afmt, { ...fmap, FrontSide: front });
+
+	// Point bundled `_media` (icons font, sidebar images) at the served static
+	// files, and drop the offline loaders the preview doesn't need (persistence is
+	// shimmed; the writer engine/stroke data + audio won't run in the iframe).
+	const asset = `${base}/img/`;
+	body = body
+		.replace(/<script src="_anki-persistence\.js"><\/script>/g, '')
+		.replace(/<script src="_hanzi-writer\.min\.js"><\/script>/g, '')
+		.replace(/src="_/g, `src="${asset}_`);
+
+	const styles = (CONSTANTS.DECK_CSS + css).replace(
+		'url(_MaterialIcons-Regular.woff2)',
+		`url(${asset}_MaterialIcons-Regular.woff2)`
+	);
+	return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<style>html,body{margin:0;}${styles}</style></head>
+<body class="card">${PREVIEW_PERSISTENCE_SHIM}${body}</body></html>`;
+}
+
 export function filterChineseWords(array: string[]): string[] {
 	const chineseRegex = /[一-龥]/;
 	return array.filter((word) => chineseRegex.test(word));
@@ -404,7 +582,7 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 	// (the sentences db is a separate ~5MB download), keyed by Simplified word.
 	const exOpts = template.exampleOptions ?? DEFAULT_TEMPLATE.exampleOptions;
 	const examplesMap = new Map<string, ExampleSentence[]>();
-	if (fields.includes('Examples')) {
+	if (fields.includes('Examples') && fieldUsedByAnyCard(tabContent, 'Examples')) {
 		const fetchExamples =
 			opts.getExamples ??
 			((w: string) =>
@@ -423,143 +601,8 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 	}
 
 	words.forEach((word) => {
-		const Simplified = word.Simplified;
-		const Traditional = word.Traditional;
-		const Pinyin = word.Pinyin;
-		const Zhuyin = word.Zhuyin;
-		const Definitions = word.Definitions;
-		// "Most common pinyin only" affects ONLY the standalone Pinyin/Zhuyin fields
-		// (the top reading line). The Definitions block always keeps every reading.
-		const top = displayReadings(word, template.commonPinyinOnly);
-
-		const note: string[] = [];
-
-		flds.some(function (obj) {
-			if (JSON.stringify(obj) === JSON.stringify({ name: 'Simplified' })) {
-				note.push(Simplified);
-			}
-			if (JSON.stringify(obj) === JSON.stringify({ name: 'Traditional' })) {
-				note.push(`〔${Traditional}〕`);
-			}
-			if (JSON.stringify(obj) === JSON.stringify({ name: 'Pinyin' })) {
-				note.push(top.Pinyin);
-			}
-			if (JSON.stringify(obj) === JSON.stringify({ name: 'Zhuyin' })) {
-				note.push(top.Zhuyin);
-			}
-			if (JSON.stringify(obj) === JSON.stringify({ name: 'PartOfSpeech' })) {
-				const chips = word.pos
-					.map((c) => {
-						const dom = c === word.dominantPos ? ' pos-dominant' : '';
-						return `<span class="pos-chip${dom}">${posDisplay(c)}</span>`;
-					})
-					.join('');
-				note.push(chips);
-			}
-			if (JSON.stringify(obj) === JSON.stringify({ name: 'SimpleMeaning' })) {
-				// Dedupe: if the simple meaning matches the dictionary text, leave it
-				// blank (the .simple-card:empty rule hides it) so only one is shown.
-				const norm = (s: string) => s.toLowerCase().replace(/[\s;,│/]+/g, ' ').trim();
-				const dup = norm(word.SimpleMeaning) === norm(Definitions) || norm(word.SimpleMeaning) === norm(word.commonMeaning);
-				note.push(dup ? '' : word.SimpleMeaning || '');
-			}
-			if (JSON.stringify(obj) === JSON.stringify({ name: 'Definitions' })) {
-				const pin = Pinyin.split(', ');
-				const zhu = Zhuyin.split(', ');
-				const def = Definitions.split(' │ ');
-				const definition: string[] = [];
-
-				const syllable = word.Syllable;
-				const syllableSp = syllable.split(', ');
-
-				for (let i = 0; i < pin.length; i++) {
-					const sp = syllableSp[i].split(' ');
-					let simp = '';
-					let trad = '';
-					const simpSp = Simplified.split('');
-					const tradSp = Traditional.split('');
-
-					sp.forEach((k, j) => {
-						simp += `<span class="char-tone${k[k.length - 1]}">${simpSp[j]}</span>`;
-						trad += `<span class="char-tone${k[k.length - 1]}">${tradSp[j]}</span>`;
-					});
-
-					const html = `<div class="meaning-container">
-    <div class="char">
-        <span id="char-sim-id">${simp}</span>
-        <span class="sep">〔</span>
-        <span id="char-trad-id">${trad}</span>
-        <span class="sep">〕</span>
-    </div>
-    <div class="pinyin">${pin[i]}</div>
-    <div class="zhuyin">${zhu[i]}</div>
-    <div class="meaning">${formatDefinition(def[i] ?? '')}</div>
-</div>`;
-					definition.push(html);
-				}
-
-				note.push(definition.join('\n'));
-			}
-			if (JSON.stringify(obj) === JSON.stringify({ name: 'Breakdown' })) {
-				// Single-char words break down to themselves — no added value; leave
-				// blank so :empty hides the row.
-				const bd = word.breakdown.length > 1 ? word.breakdown : [];
-				const html = bd
-					.map(
-						(c) =>
-							`<div class="bd-item"><span class="bd-char">${c.character}</span><span class="bd-py">${c.pinyin}</span><span class="bd-def">${c.definition}</span></div>`
-					)
-					.join('');
-				note.push(html);
-			}
-			if (JSON.stringify(obj) === JSON.stringify({ name: 'Radical' })) {
-				const seen = new Set<string>();
-				const chips = word.breakdown
-					.filter((c) => c.radical && !seen.has(c.character) && seen.add(c.character))
-					.map(
-						(c) =>
-							`<span class="radical-chip"><span class="radical-char">${c.character}</span><span class="radical-rad">${c.radical}</span></span>`
-					)
-					.join('');
-				note.push(chips);
-			}
-			if (JSON.stringify(obj) === JSON.stringify({ name: 'HskLevel' })) {
-				note.push(hskLevelLabel(word.level) || '');
-			}
-			if (JSON.stringify(obj) === JSON.stringify({ name: 'Frequency' })) {
-				note.push(frequencyBand(word.rank) || '');
-			}
-			if (JSON.stringify(obj) === JSON.stringify({ name: 'Examples' })) {
-				const ex = examplesMap.get(word.Simplified) ?? [];
-				// Always wrap example hanzi/pinyin in `ex-tone*` spans (best-effort
-				// syllable→char alignment for hanzi, by-syllable for pinyin). Colour is
-				// driven by body classes (seeded from the example options' default and
-				// toggled live by the "Example sentences" sidebar section), so the
-				// reviewer can turn example hanzi / pinyin colour on or off independently.
-				const hanzi = (s: string, py: string) => colorizeSentenceHanzi(s, py);
-				const pinyin = (py: string) => colorizePinyinString(py);
-				const html = ex
-					.map((s) => {
-						const parts: string[] = [];
-						if (exOpts.showTraditional)
-							parts.push(`<div class="example-trad">${hanzi(s.traditional, s.pinyin)}</div>`);
-						if (exOpts.showSimplified)
-							parts.push(`<div class="example-sim">${hanzi(s.simplified, s.pinyin)}</div>`);
-						if (exOpts.showPinyin)
-							parts.push(`<div class="example-pinyin">${pinyin(s.pinyin)}</div>`);
-						if (exOpts.showTranslation)
-							parts.push(`<div class="example-translation">${s.translation}</div>`);
-						return `<div class="example-item">${parts.join('')}</div>`;
-					})
-					.join('');
-				note.push(html);
-			}
-			if (JSON.stringify(obj) === JSON.stringify({ name: 'Audio' })) {
-				note.push(`[sound:cmn-${Simplified}.mp3]`);
-			}
-			return false;
-		});
-
+		const fmap = buildNoteFields(word, template, examplesMap.get(word.Simplified) ?? []);
+		const note = flds.map((f) => fmap[f.name] ?? '');
 		d.addNote(m.note(note));
 	});
 

@@ -378,10 +378,12 @@ describe('buildNoteTemplates — writing component', () => {
 });
 
 describe('buildNoteTemplates — back field visibility', () => {
-	it('seeds defaultOff for fields not selected on the back', () => {
-		// Back shows only Simplified → all other toggles start off.
+	it('seeds defaultOff for fields used elsewhere but not on this card back', () => {
+		// Card 1 back shows only Simplified; Card 2 uses pinyin + definitions. Those
+		// two are "used" so they ship (hideable) but start off on Card 1.
 		const tabContent: TabContent = {
-			'Card 1': makeCard(onlySimplifiedFront, ['backSimplified'])
+			'Card 1': makeCard(onlySimplifiedFront, ['backSimplified']),
+			'Card 2': makeCard(onlySimplifiedFront, ['backSimplified', 'backPinyin', 'backDefinitions'])
 		};
 		const { tmpls } = buildNoteTemplates({
 			fields: FIELDS,
@@ -389,7 +391,26 @@ describe('buildNoteTemplates — back field visibility', () => {
 			includeAudio: false,
 			template: tpl()
 		});
-		expect(tmpls[0].afmt).toContain('var defaultOff = ["text-trad","text-pinyin","text-zhuyin","text-pos","text-simple","text-meaning"]');
+		expect(tmpls[0].afmt).toContain('var defaultOff = ["text-pinyin","text-meaning"]');
+	});
+
+	it('drops fields that no card uses (e.g. unselected examples) from note + template', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(onlySimplifiedFront, ['backSimplified', 'backDefinitions'])
+		};
+		const { flds, tmpls } = buildNoteTemplates({
+			fields: [...FIELDS, 'Examples'],
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		const names = flds.map((f) => f.name);
+		expect(names).not.toContain('Examples'); // unselected → not shipped
+		expect(names).not.toContain('Traditional'); // unused → not shipped
+		// No examples field markup → the sidebar section is gated out at runtime too.
+		expect(tmpls[0].afmt).not.toContain('examples-card');
+		expect(names).toContain('Simplified');
+		expect(names).toContain('Definitions');
 	});
 });
 

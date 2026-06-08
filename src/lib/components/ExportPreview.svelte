@@ -1,8 +1,7 @@
 <script lang="ts">
-	import CardPreview from './CardPreview.svelte';
 	import { computeDeckStats } from '$lib/deckStats';
 	import type { TabContent, TemplateOpts } from '$lib/deckTemplate';
-	import { getSmartSentences, type Word, type ExampleSentence } from '$lib/deck';
+	import { getSmartSentences, renderCardHtml, type Word, type ExampleSentence } from '$lib/deck';
 	import type { TonePalette } from '$lib/tonePresets';
 	import X from '@lucide/svelte/icons/x';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
@@ -13,7 +12,7 @@
 		tabs,
 		tabContent,
 		template,
-		order,
+		fields,
 		includeAudio = false,
 		palette = null,
 		isGenerating = false,
@@ -24,7 +23,7 @@
 		tabs: string[];
 		tabContent: TabContent;
 		template: TemplateOpts;
-		order: string[];
+		fields: string[];
 		includeAudio?: boolean;
 		palette?: TonePalette | null;
 		isGenerating?: boolean;
@@ -33,7 +32,24 @@
 	} = $props();
 
 	const stats = $derived(computeDeckStats(words));
-	const colorize = $derived(!template.mono && template.colorHanzi);
+
+	const SIDES = ['front', 'back'] as const;
+
+	// Render one card side to a full HTML doc using the REAL compiled template +
+	// CSS + field values — exactly what the .apkg ships — for a pixel-exact preview.
+	function doc(side: 'front' | 'back', tab: string): string {
+		if (!currentWord) return '';
+		return renderCardHtml({
+			side,
+			tab,
+			word: currentWord,
+			fields,
+			tabContent,
+			template,
+			includeAudio,
+			examples: previewExamples
+		});
+	}
 
 	// Page through the actual words; the previews render the current one.
 	let wordIndex = $state(0);
@@ -69,15 +85,6 @@
 			cancelled = true;
 		};
 	});
-
-	function frontItems(tab: string): string[] {
-		const c = tabContent[tab];
-		return c ? order.filter((o) => c.front.includes(`front${o}`)) : [];
-	}
-	function backItems(tab: string): string[] {
-		const c = tabContent[tab];
-		return c ? order.filter((o) => c.back.includes(`back${o}`)) : [];
-	}
 
 	function handleOverlay(e: MouseEvent) {
 		if (e.target === e.currentTarget) onclose?.();
@@ -171,34 +178,21 @@
 					<div>
 						<p class="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">{tab}</p>
 						<div class="grid gap-3 sm:grid-cols-2">
-							<CardPreview
-								label="Front"
-								side="front"
-								items={frontItems(tab)}
-								{colorize}
-								font={template.font}
-								collapseDict={template.collapseDict}
-							commonPinyinOnly={template.commonPinyinOnly}
-								elementStyles={tabContent[tab]?.elementStyles ?? {}}
-								toneColors={palette}
-							word={currentWord}
-							exampleSentences={previewExamples}
-							exampleOptions={template.exampleOptions}
-							/>
-							<CardPreview
-								label="Back"
-								side="back"
-								items={backItems(tab)}
-								{colorize}
-								font={template.font}
-								collapseDict={template.collapseDict}
-							commonPinyinOnly={template.commonPinyinOnly}
-								elementStyles={tabContent[tab]?.elementStyles ?? {}}
-								toneColors={palette}
-							word={currentWord}
-							exampleSentences={previewExamples}
-							exampleOptions={template.exampleOptions}
-							/>
+							{#each SIDES as side (side)}
+								<div class="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+									<div class="border-b border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">{side}</div>
+									{#if currentWord}
+										<iframe
+											title="{tab} {side}"
+											sandbox="allow-scripts allow-same-origin"
+											class="block h-[460px] w-full border-0 bg-white"
+											srcdoc={doc(side, tab)}
+										></iframe>
+									{:else}
+										<div class="flex h-[460px] items-center justify-center text-sm text-neutral-300">No words</div>
+									{/if}
+								</div>
+							{/each}
 						</div>
 					</div>
 				{/each}

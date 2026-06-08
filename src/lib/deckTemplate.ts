@@ -176,6 +176,13 @@ export const DEFAULT_BODY_ORDER: CardElementId[] = [
 	'audio'
 ];
 
+/** True when any card type shows `field` on its front or back. */
+export function fieldUsedByAnyCard(tabContent: TabContent, field: string): boolean {
+	return Object.values(tabContent).some(
+		(c) => c.front.includes(`front${field}`) || c.back.includes(`back${field}`)
+	);
+}
+
 /** Effective flex `order` for a body block: explicit override or canonical default. */
 export function elementOrder(es: CardElementStyles, id: CardElementId): number {
 	const ov = es[id]?.order;
@@ -409,7 +416,15 @@ export function buildNoteTemplates(opts: {
 	includeAudio: boolean;
 	template: TemplateOpts;
 }): BuildTemplatesResult {
-	const { fields, tabContent, includeAudio, template } = opts;
+	const { tabContent, includeAudio, template } = opts;
+
+	// Only ship fields that some card actually uses (front or back). Audio is the
+	// play button gated by includeAudio, never a front/back selection — keep it.
+	// This keeps unselected fields (e.g. example sentences + their fetched data and
+	// sidebar section) out of the deck entirely instead of shipping them hidden.
+	const fields = opts.fields.filter(
+		(f) => f === FIELDS.AUDIO || fieldUsedByAnyCard(tabContent, f)
+	);
 
 	// Seed runtime defaults (body classes + collapse default) before each template.
 	const noHanziColor = template.mono || !template.colorHanzi;

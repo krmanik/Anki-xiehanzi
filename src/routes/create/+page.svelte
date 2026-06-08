@@ -1065,7 +1065,7 @@
 			{tabs}
 			{tabContent}
 			{template}
-			{order}
+			{fields}
 			{includeAudio}
 			{palette}
 			{isGenerating}

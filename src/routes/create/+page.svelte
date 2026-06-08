@@ -952,14 +952,11 @@
 	{#if showCustomizer && tabContent[tabs[activeTab]]}
 		<CardCustomizer
 			bind:template
-			bind:elementStyles={tabContent[tabs[activeTab]].elementStyles}
-			bind:front={tabContent[tabs[activeTab]].front}
-			bind:back={tabContent[tabs[activeTab]].back}
+			bind:tabContent
+			{tabs}
+			bind:activeTab
 			{order}
 			{fieldLabels}
-			frontItems={frontItems}
-			backItems={backItems}
-			cardName={tabs[activeTab]}
 			onclose={() => (showCustomizer = false)}
 		/>
 	{/if}

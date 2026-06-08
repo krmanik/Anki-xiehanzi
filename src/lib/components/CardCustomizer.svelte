@@ -1,13 +1,14 @@
 <script lang="ts">
 	import {
 		CARD_STYLE_LS_KEY,
-		DEFAULT_TEMPLATE,
 		elementOrder,
 		type CardElementId,
 		type CardElementStyles,
 		type ElementStyle,
+		type TabContent,
 		type TemplateOpts
 	} from '$lib/deckTemplate';
+	import { TONE_PRESETS, TONE_KEYS, resolvePalette } from '$lib/tonePresets';
 	import CardPreview from './CardPreview.svelte';
 	import Monitor from '@lucide/svelte/icons/monitor';
 	import Smartphone from '@lucide/svelte/icons/smartphone';
@@ -23,46 +24,57 @@
 
 	let {
 		template = $bindable<TemplateOpts>(),
-		elementStyles = $bindable<CardElementStyles>(),
-		frontItems,
-		backItems,
+		tabContent = $bindable<TabContent>({}),
+		tabs = [],
+		activeTab = $bindable<number>(0),
 		order = [],
-		front = $bindable<string[]>([]),
-		back = $bindable<string[]>([]),
 		fieldLabels = {},
-		cardName = '',
 		onclose
 	}: {
 		template: TemplateOpts;
-		elementStyles: CardElementStyles;
-		frontItems: string[];
-		backItems: string[];
+		tabContent: TabContent;
+		tabs?: string[];
+		activeTab?: number;
 		order?: string[];
-		front?: string[];
-		back?: string[];
 		fieldLabels?: Record<string, string>;
-		cardName?: string;
 		onclose?: () => void;
 	} = $props();
 
-	// Toggle a field on the front/back directly from the customiser, so the user
-	// can change which fields show without closing the dialog.
-	function toggleField(item: string, side: 'front' | 'back') {
-		const id = `${side}${item}`;
-		if (side === 'front') {
-			front = front.includes(id) ? front.filter((f) => f !== id) : [...front, id];
-		} else {
-			back = back.includes(id) ? back.filter((f) => f !== id) : [...back, id];
-		}
-	}
+	// Edits are applied live to `template` + `tabContent` (so the page stays in
+	// sync and the per-card-type tab switcher works). A snapshot taken on open
+	// lets Cancel revert everything.
+	const snapshot = JSON.parse(JSON.stringify({ template, tabContent }));
 
-	// Work on local copies; Cancel discards, Save commits. `localT` holds the
-	// deck-wide tone/font options, `localES` the per-card-type element styles.
-	let localT = $state<TemplateOpts>(JSON.parse(JSON.stringify(template)));
-	let localES = $state<CardElementStyles>(JSON.parse(JSON.stringify(elementStyles ?? {})));
+	const current = $derived(tabs[activeTab] ?? '');
+	const card = $derived(tabContent[current]);
+	const front = $derived(card?.front ?? []);
+	const back = $derived(card?.back ?? []);
+	// Active card's element styles drive every property panel + the previews.
+	const localES = $derived<CardElementStyles>(card?.elementStyles ?? {});
+	// Backwards-compatible alias used throughout the tone/global section.
+	const localT = $derived(template);
+
+	const frontItems = $derived(order.filter((o) => front.includes(`front${o}`)));
+	const backItems = $derived(order.filter((o) => back.includes(`back${o}`)));
+	const previewPalette = $derived(resolvePalette(template.tonePreset, template.toneColors));
+
 	let mobilePreview = $state(false);
 	let selectedElement = $state<CardElementId | null>(null);
 	let fieldsCollapsed = $state(false);
+
+	// Mutate the active card's content immutably so bindings propagate.
+	function patchCard(patch: Partial<TabContent[string]>) {
+		if (!card) return;
+		tabContent = { ...tabContent, [current]: { ...card, ...patch } };
+	}
+
+	// Toggle a field on the front/back directly from the designer.
+	function toggleField(item: string, side: 'front' | 'back') {
+		if (!card) return;
+		const id = `${side}${item}`;
+		const list = card[side];
+		patchCard({ [side]: list.includes(id) ? list.filter((f) => f !== id) : [...list, id] } as any);
+	}
 
 	// ── Element metadata ─────────────────────────────────────────────────────
 
@@ -138,9 +150,9 @@
 
 	function clearStyle(key: keyof ElementStyle) {
 		if (!selectedElement) return;
-		const current = { ...(localES[selectedElement] ?? {}) };
-		delete current[key];
-		localES = { ...localES, [selectedElement]: current };
+		const next = { ...(localES[selectedElement] ?? {}) };
+		delete next[key];
+		patchCard({ elementStyles: { ...localES, [selectedElement]: next } });
 	}
 
 	function isHidden(id: CardElementId): boolean {
@@ -153,10 +165,7 @@
 	}
 
 	function setStyleFor(id: CardElementId, patch: Partial<ElementStyle>) {
-		localES = {
-			...localES,
-			[id]: { ...(localES[id] ?? {}), ...patch }
-		};
+		patchCard({ elementStyles: { ...localES, [id]: { ...(localES[id] ?? {}), ...patch } } });
 	}
 
 	// Move the selected chrome element (hr / controls) up or down past a neighbour
@@ -176,11 +185,13 @@
 		const other = sorted[j];
 		const oi = elementOrder(localES, id);
 		const oj = elementOrder(localES, other);
-		localES = {
-			...localES,
-			[id]: { ...(localES[id] ?? {}), order: oj },
-			[other]: { ...(localES[other] ?? {}), order: oi }
-		};
+		patchCard({
+			elementStyles: {
+				...localES,
+				[id]: { ...(localES[id] ?? {}), order: oj },
+				[other]: { ...(localES[other] ?? {}), order: oi }
+			}
+		});
 	}
 
 	// Determine which property group to show for the selected element.
@@ -220,19 +231,31 @@
 	// ── Save / Cancel / Reset ─────────────────────────────────────────────────
 
 	function save() {
-		template = JSON.parse(JSON.stringify(localT));
-		elementStyles = JSON.parse(JSON.stringify(localES));
 		try {
 			localStorage.setItem(CARD_STYLE_LS_KEY, JSON.stringify(template));
-		} catch (_) {}
+		} catch (_) {/* ignore storage errors */}
 		onclose?.();
 	}
 
-	function cancel() { onclose?.(); }
+	// Revert every live edit (template + all card types) to the open-time snapshot.
+	function cancel() {
+		template = JSON.parse(JSON.stringify(snapshot.template));
+		tabContent = JSON.parse(JSON.stringify(snapshot.tabContent));
+		onclose?.();
+	}
+
+	// Reset only the active card type's element styles.
 	function reset() {
-		localT = { ...DEFAULT_TEMPLATE, elementStyles: {} };
-		localES = {};
+		patchCard({ elementStyles: {} });
 		selectedElement = null;
+	}
+
+	// Mutate the deck-wide template immutably (tone palette / font / colours).
+	function patchTemplate(patch: Partial<TemplateOpts>) {
+		template = { ...template, ...patch };
+	}
+	function setToneColor(k: (typeof TONE_KEYS)[number], value: string) {
+		template = { ...template, toneColors: { ...template.toneColors, [k]: value } };
 	}
 	function handleOverlay(e: MouseEvent) { if (e.target === e.currentTarget) cancel(); }
 </script>
@@ -251,7 +274,7 @@
 		<!-- Header -->
 		<div class="flex shrink-0 items-center justify-between border-b border-neutral-200 px-5 py-3">
 			<div>
-				<h2 class="text-base font-semibold text-neutral-900">Card Customiser{cardName ? ` — ${cardName}` : ''}</h2>
+				<h2 class="text-base font-semibold text-neutral-900">Advanced Card Designer{current ? ` — ${current}` : ''}</h2>
 				<p class="text-xs text-neutral-400">Per card type. Click any element in the preview to customise it. Mirrors exactly in the Anki export.</p>
 			</div>
 			<div class="flex items-center gap-2">
@@ -269,6 +292,21 @@
 			</div>
 		</div>
 
+		<!-- Card-type switcher (only when there is more than one) -->
+		{#if tabs.length > 1}
+			<div class="flex shrink-0 items-center gap-1 overflow-x-auto border-b border-neutral-200 bg-neutral-50 px-4 py-2">
+				<span class="mr-1 font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">Card type</span>
+				{#each tabs as t, i (t)}
+					<button
+						class="rounded-md px-3 py-1 text-xs transition {activeTab === i
+							? 'bg-neutral-900 text-white'
+							: 'text-neutral-600 hover:bg-neutral-200'}"
+						onclick={() => { activeTab = i; selectedElement = null; }}
+					>{t}</button>
+				{/each}
+			</div>
+		{/if}
+
 		<!-- Body -->
 		<div class="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
 
@@ -279,15 +317,40 @@
 				<div class="border-b border-neutral-100 p-3">
 					<p class="mb-2 font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">Global (whole deck)</p>
 					<div class="mb-2 inline-flex w-full overflow-hidden rounded-lg border border-neutral-200">
-						<button class={segClass(!localT.mono)} onclick={() => (localT = { ...localT, mono: false })}>Tone colors</button>
-						<button class={segClass(localT.mono)} onclick={() => (localT = { ...localT, mono: true })}>Black &amp; white</button>
+						<button class={segClass(!localT.mono)} onclick={() => patchTemplate({ mono: false })}>Tone colors</button>
+						<button class={segClass(localT.mono)} onclick={() => patchTemplate({ mono: true })}>Black &amp; white</button>
 					</div>
 					<label class="mb-1 flex items-center gap-2 text-xs {localT.mono ? 'opacity-40' : ''}">
-						<input type="checkbox" class="h-3.5 w-3.5 accent-neutral-900" bind:checked={localT.colorHanzi} disabled={localT.mono} /> Color hanzi
+						<input type="checkbox" class="h-3.5 w-3.5 accent-neutral-900" checked={localT.colorHanzi} onchange={(e) => patchTemplate({ colorHanzi: (e.target as HTMLInputElement).checked })} disabled={localT.mono} /> Color hanzi
 					</label>
-					<label class="flex items-center gap-2 text-xs {localT.mono ? 'opacity-40' : ''}">
-						<input type="checkbox" class="h-3.5 w-3.5 accent-neutral-900" bind:checked={localT.colorPinyin} disabled={localT.mono} /> Color pinyin
+					<label class="mb-2 flex items-center gap-2 text-xs {localT.mono ? 'opacity-40' : ''}">
+						<input type="checkbox" class="h-3.5 w-3.5 accent-neutral-900" checked={localT.colorPinyin} onchange={(e) => patchTemplate({ colorPinyin: (e.target as HTMLInputElement).checked })} disabled={localT.mono} /> Color pinyin
 					</label>
+
+					<!-- Tone palette -->
+					<div class="{localT.mono ? 'opacity-40' : ''}">
+						<p class="mb-1 text-[11px] font-medium text-neutral-600">Tone palette</p>
+						<select
+							value={localT.tonePreset}
+							disabled={localT.mono}
+							onchange={(e) => patchTemplate({ tonePreset: (e.target as HTMLSelectElement).value })}
+							class="mb-1.5 w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-xs"
+						>
+							{#each TONE_PRESETS as p (p.id)}<option value={p.id}>{p.label}</option>{/each}
+							<option value="custom">Custom…</option>
+						</select>
+						<div class="flex items-center gap-1">
+							{#each TONE_KEYS as k (k)}
+								{#if localT.tonePreset === 'custom'}
+									<input type="color" value={localT.toneColors[k]} disabled={localT.mono}
+										oninput={(e) => setToneColor(k, (e.target as HTMLInputElement).value)}
+										class="h-6 w-6 cursor-pointer rounded border border-neutral-200 p-0.5" title={`Tone ${k}`} />
+								{:else}
+									<span class="inline-flex h-5 w-5 items-center justify-center rounded text-[9px] font-semibold text-white" style="background-color:{previewPalette[k]}" title={`Tone ${k}`}>{k}</span>
+								{/if}
+							{/each}
+						</div>
+					</div>
 				</div>
 
 				<!-- Element list -->
@@ -407,12 +470,12 @@
 									</div>
 								</div>
 								<div>
-									<p class="mb-1 text-xs font-medium">Text alignment</p>
-									<div class="inline-flex w-full overflow-hidden rounded-lg border border-neutral-200">
-										{#each [{ v: 'left', I: AlignLeft }, { v: 'center', I: AlignCenter }, { v: 'right', I: AlignRight }] as o (o.v)}
-											<button class="flex flex-1 items-center justify-center py-1.5 transition {selStyle.textAlign === o.v ? 'bg-neutral-900 text-white' : 'text-neutral-400 hover:bg-neutral-50'}"
-												onclick={() => setStyle({ textAlign: o.v as 'left'|'center'|'right' })}><o.I size={14} /></button>
-										{/each}
+									<p class="mb-1 text-xs font-medium">Text color (whole card)</p>
+									<div class="flex items-center gap-2">
+										<input type="color" value={selStyle.color ?? '#000000'}
+											oninput={(e) => setStyle({ color: (e.target as HTMLInputElement).value })}
+											class="h-8 w-9 cursor-pointer rounded border border-neutral-200 p-0.5" />
+										<button onclick={() => clearStyle('color')} class="text-[10px] text-neutral-400 hover:text-neutral-700">Reset</button>
 									</div>
 								</div>
 								<div>
@@ -627,6 +690,7 @@
 						font={localT.font}
 						collapseDict={localT.collapseDict}
 						elementStyles={localES}
+						toneColors={previewPalette}
 						interactive={true}
 						bind:selectedElement
 					/>
@@ -638,6 +702,7 @@
 						font={localT.font}
 						collapseDict={localT.collapseDict}
 						elementStyles={localES}
+						toneColors={previewPalette}
 						interactive={true}
 						bind:selectedElement
 					/>

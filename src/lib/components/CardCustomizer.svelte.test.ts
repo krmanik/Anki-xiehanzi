@@ -13,14 +13,18 @@ const ICON = '[class*="bg-[#5b6a9e]"]';
 function baseProps(over: Record<string, unknown> = {}) {
 	return {
 		template: JSON.parse(JSON.stringify(DEFAULT_TEMPLATE)),
-		elementStyles: {},
-		frontItems: ['Simplified'],
-		backItems: ['Simplified', 'Definitions'],
+		tabs: ['Card 1'],
+		activeTab: 0,
+		tabContent: {
+			'Card 1': {
+				front: ['frontSimplified'],
+				back: ['backSimplified', 'backDefinitions'],
+				additional: [],
+				elementStyles: {}
+			}
+		},
 		order: ['Simplified', 'Pinyin', 'Definitions'],
-		front: ['frontSimplified'],
-		back: ['backSimplified', 'backDefinitions'],
 		fieldLabels: { Simplified: 'Simplified', Pinyin: 'Pinyin', Definitions: 'Dictionary Definitions' },
-		cardName: 'Card 1',
 		onclose: vi.fn(),
 		...over
 	};
@@ -111,6 +115,40 @@ describe('CardCustomizer — alignment available for every element', () => {
 		render(CardCustomizer, { props: baseProps() });
 		await user.click(screen.getByText('Pinyin', { selector: 'button' }));
 		expect(screen.getByText('Alignment (in card)')).toBeInTheDocument();
+	});
+});
+
+describe('CardCustomizer — card-type switcher', () => {
+	it('shows a tab per card type when there is more than one and switches between them', async () => {
+		const user = userEvent.setup();
+		const props = baseProps({
+			tabs: ['Card 1', 'Card 2'],
+			tabContent: {
+				'Card 1': { front: ['frontSimplified'], back: ['backSimplified'], additional: [], elementStyles: {} },
+				'Card 2': { front: ['frontPinyin'], back: ['backDefinitions'], additional: [], elementStyles: {} }
+			}
+		});
+		render(CardCustomizer, { props });
+
+		// Header reflects the active card; both card-type tabs are present.
+		expect(screen.getByRole('heading', { name: /Advanced Card Designer — Card 1/ })).toBeInTheDocument();
+		await user.click(screen.getByRole('button', { name: 'Card 2' }));
+		expect(screen.getByRole('heading', { name: /Advanced Card Designer — Card 2/ })).toBeInTheDocument();
+	});
+
+	it('hides the switcher when there is a single card type', () => {
+		render(CardCustomizer, { props: baseProps() });
+		expect(screen.queryByText('Card type')).toBeNull();
+	});
+});
+
+describe('CardCustomizer — card text alignment removed', () => {
+	it('the card element no longer exposes a text-alignment control', async () => {
+		const user = userEvent.setup();
+		render(CardCustomizer, { props: baseProps() });
+		await user.click(screen.getByText('Card background'));
+		expect(screen.queryByText('Text alignment')).toBeNull();
+		expect(screen.getByText('Text color (whole card)')).toBeInTheDocument();
 	});
 });
 

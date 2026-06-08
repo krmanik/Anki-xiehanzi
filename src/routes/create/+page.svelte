@@ -28,6 +28,7 @@
 		type CardElementStyles,
 		type TemplateOpts
 	} from '$lib/deck';
+	import { CONTROL_BUTTONS_TOKEN, SEPARATOR_TOKEN } from '$lib/deckTemplate';
 
 	import CONSTANTS from '$lib/dict/contants';
 	import { CARD_PRESETS, presetToCard, presetNeedsAudio, type CardPreset } from '$lib/cardPresets';
@@ -61,11 +62,17 @@
 		FIELDS.DEFINITIONS
 	];
 
-	// Defaults for a new card type: Simplified on front, all display fields on back.
+	// Defaults for a new card type: Simplified on front, all display fields on back;
+	// control bar + separator shown on both sides by default.
 	function newCard() {
 		return {
-			front: [`front${FIELDS.SIMPLIFIED}`],
-			back: DISPLAY_FIELDS.map((f) => `back${f}`),
+			front: [`front${FIELDS.SIMPLIFIED}`, `front${CONTROL_BUTTONS_TOKEN}`, `front${SEPARATOR_TOKEN}`],
+			back: [
+				...DISPLAY_FIELDS.map((f) => `back${f}`),
+				`back${CONTROL_BUTTONS_TOKEN}`,
+				`back${SEPARATOR_TOKEN}`,
+				`back${FIELDS.AUDIO}`
+			],
 			additional: [] as string[],
 			elementStyles: {} as CardElementStyles
 		};
@@ -84,6 +91,8 @@
 		FIELDS.ZHUYIN,
 		FIELDS.PART_OF_SPEECH,
 		FIELDS.SIMPLE_MEANING,
+		CONTROL_BUTTONS_TOKEN,
+		SEPARATOR_TOKEN,
 		FIELDS.DEFINITIONS,
 		FIELDS.BREAKDOWN,
 		FIELDS.RADICAL,
@@ -93,7 +102,9 @@
 		FIELDS.AUDIO,
 		WRITING
 	]);
-	let fields = $derived(order.filter((o) => o !== WRITING));
+	// Layout tokens are positioning-only; note fields exclude the writing component
+	// and the chrome tokens (control buttons / separator).
+	let fields = $derived(order.filter((o) => o !== WRITING && o !== CONTROL_BUTTONS_TOKEN && o !== SEPARATOR_TOKEN));
 	let includeAudio = $state(false);
 	let template = $state<TemplateOpts>({ ...DEFAULT_TEMPLATE });
 	let page = $state(1);
@@ -177,6 +188,8 @@
 	const fieldLabels: Record<string, string> = Object.fromEntries(
 		[
 			{ id: WRITING, label: 'Writing Component' },
+			{ id: CONTROL_BUTTONS_TOKEN, label: 'Control buttons' },
+			{ id: SEPARATOR_TOKEN, label: 'Separator line' },
 			{ id: FIELDS.SIMPLIFIED, label: 'Simplified' },
 			{ id: FIELDS.TRADITIONAL, label: 'Traditional' },
 			{ id: FIELDS.PINYIN, label: 'Pinyin' },
@@ -515,6 +528,7 @@
 				deckName,
 				includeAudio,
 				fields,
+				order,
 				tabContent,
 				hskWordsDict,
 				db: exportDb,
@@ -790,53 +804,53 @@
 							</div>
 							<ul class="divide-y divide-neutral-200 rounded-lg border border-neutral-200">
 								{#each order as item, index (item)}
-									<li
-										draggable="true"
-										ondragstart={() => (dragIndex = index)}
-										ondragover={(e) => e.preventDefault()}
-										ondrop={() => onFieldDrop(index)}
-										class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 py-2 {item ===
-										WRITING
-											? 'bg-neutral-50'
-											: 'bg-white'} {dragIndex === index ? 'opacity-50' : ''}"
-									>
-										<span class="flex items-center gap-2">
-											<GripVertical size={15} class="cursor-grab text-neutral-300" />
-											<span class="text-sm">{fieldLabels[item] ?? item}</span>
-											<span class="ml-auto flex flex-col">
-												<button
-													class="text-neutral-400 hover:text-neutral-900 disabled:opacity-20"
-													disabled={index === 0}
-													onclick={() => moveField(index, -1)}
-													aria-label="move up"><ChevronUp size={13} /></button
-												>
-												<button
-													class="text-neutral-400 hover:text-neutral-900 disabled:opacity-20"
-													disabled={index === order.length - 1}
-													onclick={() => moveField(index, 1)}
-													aria-label="move down"><ChevronDown size={13} /></button
-												>
+									{@const isChrome = item === CONTROL_BUTTONS_TOKEN || item === SEPARATOR_TOKEN}
+										<li
+											draggable="true"
+											ondragstart={() => (dragIndex = index)}
+											ondragover={(e) => e.preventDefault()}
+											ondrop={() => onFieldDrop(index)}
+											class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 py-2 {item === WRITING || isChrome
+												? 'bg-neutral-50'
+												: 'bg-white'} {dragIndex === index ? 'opacity-50' : ''}"
+										>
+											<span class="flex items-center gap-2">
+												<GripVertical size={15} class="cursor-grab text-neutral-300" />
+												<span class="text-sm">{fieldLabels[item] ?? item}</span>
+												<span class="ml-auto flex flex-col">
+													<button
+														class="text-neutral-400 hover:text-neutral-900 disabled:opacity-20"
+														disabled={index === 0}
+														onclick={() => moveField(index, -1)}
+														aria-label="move up"><ChevronUp size={13} /></button
+													>
+													<button
+														class="text-neutral-400 hover:text-neutral-900 disabled:opacity-20"
+														disabled={index === order.length - 1}
+														onclick={() => moveField(index, 1)}
+														aria-label="move down"><ChevronDown size={13} /></button
+													>
+												</span>
 											</span>
-										</span>
-										<span class="text-center">
-											<input
-												type="checkbox"
-												class="h-4 w-4 accent-neutral-900"
-												aria-label={`${fieldLabels[item] ?? item} front`}
-												checked={tabContent[tabs[activeTab]].front.includes(`front${item}`)}
-												onchange={() => handleCheckboxChange(`front${item}`, 'front')}
-											/>
-										</span>
-										<span class="text-center">
-											<input
-												type="checkbox"
-												class="h-4 w-4 accent-neutral-900"
-												aria-label={`${fieldLabels[item] ?? item} back`}
-												checked={tabContent[tabs[activeTab]].back.includes(`back${item}`)}
-												onchange={() => handleCheckboxChange(`back${item}`, 'back')}
-											/>
-										</span>
-									</li>
+											<span class="text-center">
+												<input
+													type="checkbox"
+													class="h-4 w-4 accent-neutral-900"
+													aria-label={`${fieldLabels[item] ?? item} front`}
+													checked={tabContent[tabs[activeTab]].front.includes(`front${item}`)}
+													onchange={() => handleCheckboxChange(`front${item}`, 'front')}
+												/>
+											</span>
+											<span class="text-center">
+												<input
+													type="checkbox"
+													class="h-4 w-4 accent-neutral-900"
+													aria-label={`${fieldLabels[item] ?? item} back`}
+													checked={tabContent[tabs[activeTab]].back.includes(`back${item}`)}
+													onchange={() => handleCheckboxChange(`back${item}`, 'back')}
+												/>
+											</span>
+										</li>
 								{/each}
 							</ul>
 						</div>
@@ -853,6 +867,7 @@
 								commonPinyinOnly={template.commonPinyinOnly}
 								elementStyles={activeStyles}
 								groups={activeGroups}
+								{order}
 								toneColors={palette}
 								exampleSentences={previewExamples}
 								exampleOptions={template.exampleOptions}
@@ -867,6 +882,7 @@
 								commonPinyinOnly={template.commonPinyinOnly}
 								elementStyles={activeStyles}
 								groups={activeGroups}
+								{order}
 								toneColors={palette}
 								exampleSentences={previewExamples}
 								exampleOptions={template.exampleOptions}
@@ -1056,7 +1072,7 @@
 			bind:tabContent
 			{tabs}
 			bind:activeTab
-			{order}
+			bind:order
 			{fieldLabels}
 			onclose={() => (showCustomizer = false)}
 		/>
@@ -1069,6 +1085,7 @@
 			{tabContent}
 			{template}
 			{fields}
+			{order}
 			{includeAudio}
 			{palette}
 			{isGenerating}

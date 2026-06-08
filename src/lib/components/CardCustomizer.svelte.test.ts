@@ -18,12 +18,12 @@ function baseProps(over: Record<string, unknown> = {}) {
 		tabContent: {
 			'Card 1': {
 				front: ['frontSimplified'],
-				back: ['backSimplified', 'backDefinitions'],
+				back: ['backSimplified', 'backDefinitions', 'backControlButtons', 'backSeparator'],
 				additional: [],
 				elementStyles: {}
 			}
 		},
-		order: ['Simplified', 'Pinyin', 'Definitions'],
+		order: ['Simplified', 'Pinyin', 'Definitions', 'ControlButtons', 'Separator'],
 		fieldLabels: { Simplified: 'Simplified', Pinyin: 'Pinyin', Definitions: 'Dictionary Definitions' },
 		onclose: vi.fn(),
 		...over

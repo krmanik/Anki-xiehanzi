@@ -23,12 +23,19 @@ describe('CardPreview — chrome (control buttons + separator)', () => {
 		expect(container.querySelector('hr')).toBeNull();
 	});
 
-	it('back side shows the basic merged control group (3 icons) and a separator', () => {
+	it('shows the basic merged control group (3 icons w/ audio) + separator when selected', () => {
 		const { container } = render(CardPreview, {
-			props: { label: 'Back', side: 'back', items: ['Simplified', 'Definitions'] }
+			props: { label: 'Back', side: 'back', items: ['Simplified', 'Definitions', 'ControlButtons', 'Separator', 'Audio'] }
 		});
 		expect(controlIcons(container)).toBe(3);
 		expect(container.querySelector('hr')).not.toBeNull();
+	});
+
+	it('drops the play icon from the bar when Audio is not selected (2 icons)', () => {
+		const { container } = render(CardPreview, {
+			props: { label: 'Back', side: 'back', items: ['Simplified', 'ControlButtons'] }
+		});
+		expect(controlIcons(container)).toBe(2);
 	});
 
 	it('merges into ONE control group with the full writer toolbar (6 icons) when writing is present', () => {
@@ -113,7 +120,7 @@ describe('CardPreview — alignment (position within card window)', () => {
 describe('CardPreview — flex order (move up/down mirror)', () => {
 	it('applies default order to chrome (controls 0, hr 10)', () => {
 		const { container } = render(CardPreview, {
-			props: { label: 'Back', side: 'back', items: ['Simplified'] }
+			props: { label: 'Back', side: 'back', items: ['ControlButtons', 'Separator', 'Simplified'] }
 		});
 		const hrBlock = container.querySelector('hr')!.parentElement as HTMLElement;
 		expect(hrBlock.style.order).toBe('10');
@@ -126,7 +133,7 @@ describe('CardPreview — flex order (move up/down mirror)', () => {
 			props: {
 				label: 'Back',
 				side: 'back',
-				items: ['Simplified'],
+				items: ['ControlButtons', 'Separator', 'Simplified'],
 				elementStyles: { controlButtons: { order: 95 } }
 			}
 		});

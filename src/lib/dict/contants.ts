@@ -245,7 +245,9 @@ ${CARD_JS}
 </script>
 `;
 
-const DECK_HTML_BACK =
+// Control bar + audio data div — placed into the card body via the assembler so
+// they can be positioned (flex order) and toggled per side like any field.
+const CONTROL_BAR =
 `<div class="modal-footer1">
     <a class="btn" id="btnShowMenu" onclick="openSidebar('sidebar')">
         <div class="icon"><i class="material-icons">menu</i></div>
@@ -258,22 +260,23 @@ const DECK_HTML_BACK =
     <a class="btn" id='btnMoreOptions' onclick="openSidebar('more-info-sidebar')">
         <div class="icon"><i class="material-icons">more_vert</i></div>
     </a>
-</div>
-<div id='audio' style='display:none'>{{Audio}}</div>
+</div>`;
 
-<hr>
+const AUDIO_DIV = `<div id='audio' style='display:none'>{{Audio}}</div>`;
 
-<!--FIELDS-->
-
-${PERSISTENCE}
-
-<!--sidebar-->
+// Sidebar markup, shared by the front and back so the control bar is functional
+// on either side.
+const SIDEBAR_BLOCK =
+`<!--sidebar-->
 ${sidebarShell('sidebar-toggles')}
 ${MORE_INFO_SIDEBAR}
-<!-----sidebar------>
+<!-----sidebar------>`;
 
-<script>
-    var frontBack = "back";
+// Full sidebar behaviour script (toggles, colour, audio, init), parametrised by
+// the persistence side so the same chrome works on the front and the back.
+const sideScript = (frontBack: 'front' | 'back') =>
+`<script>
+    var frontBack = "${frontBack}";
     var switchIdList = ["text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-breakdown", "text-radical", "text-hsk", "text-freq", "text-examples", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin", "text-ex-color-hanzi", "text-ex-color-pinyin"];
     var colorIds = ["text-color-hanzi", "text-color-pinyin", "text-ex-color-hanzi", "text-ex-color-pinyin"];
     var defaultOff = [];
@@ -351,16 +354,24 @@ ${CARD_JS}
     var btnAudio = document.getElementById("btnPlayAudio");
     if (btnAudio) btnAudio.onclick = playAudio;
 
-    function initBack() { initSwitchPrefs(); colorChars(); colorPinyin(); initMeaning(); }
+    function initSide() { initSwitchPrefs(); colorChars(); colorPinyin(); initMeaning(); }
     if (Persistence.isAvailable()) {
         if (window.ankiPlatform == "desktop" || isInWebView()) {
-            initBack();
+            initSide();
         } else {
-            window.addEventListener("load", initBack, false);
+            window.addEventListener("load", initSide, false);
         }
     }
 </script>
 `;
+
+// Back template: assembler injects control bar / audio / hr / fields into the
+// card body before this trailing sidebar + script.
+const DECK_HTML_BACK = `<!--FIELDS-->\n\n${PERSISTENCE}\n\n${SIDEBAR_BLOCK}\n\n${sideScript('back')}`;
+
+// Front-with-chrome trailing block: same sidebar + functional script (front side)
+// appended after the assembled body, so the control bar works on the front too.
+const DECK_HTML_FRONT_CHROME = `${PERSISTENCE}\n\n${SIDEBAR_BLOCK}\n\n${sideScript('front')}`;
 
 const DECK_HTML_WITH_HANZI_WRITER =
 `
@@ -1619,7 +1630,10 @@ export default {
     FIELDS,
     MEANING_CARD,
     EXAMPLES_CARD,
+    CONTROL_BAR,
+    AUDIO_DIV,
     DECK_HTML_FRONT,
+    DECK_HTML_FRONT_CHROME,
     DECK_HTML_BACK,
     DECK_HTML_WITH_HANZI_WRITER,
     DECK_CSS

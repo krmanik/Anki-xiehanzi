@@ -13,6 +13,7 @@
 		tabContent,
 		template,
 		fields,
+		order = [],
 		includeAudio = false,
 		palette = null,
 		isGenerating = false,
@@ -24,6 +25,7 @@
 		tabContent: TabContent;
 		template: TemplateOpts;
 		fields: string[];
+		order?: string[];
 		includeAudio?: boolean;
 		palette?: TonePalette | null;
 		isGenerating?: boolean;
@@ -44,6 +46,7 @@
 			tab,
 			word: currentWord,
 			fields,
+			order,
 			tabContent,
 			template,
 			includeAudio,

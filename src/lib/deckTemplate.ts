@@ -460,6 +460,24 @@ export const FIELD_TO_ELEMENT: Record<string, CardElementId> = {
 	Examples: 'examples'
 };
 
+// Layout tokens (used in the reorderable field list) → body element id. Includes
+// the chrome (control buttons + separator) so they can be reordered like fields.
+export const CONTROL_BUTTONS_TOKEN = 'ControlButtons';
+export const SEPARATOR_TOKEN = 'Separator';
+export const LAYOUT_TO_ELEMENT: Record<string, CardElementId> = {
+	[CONTROL_BUTTONS_TOKEN]: 'controlButtons',
+	[SEPARATOR_TOKEN]: 'hr',
+	...FIELD_TO_ELEMENT
+};
+
+/** Body element order from a layout token list, ensuring chrome is always present. */
+export function bodyOrderFromLayout(order: string[]): CardElementId[] {
+	const out = order.map((o) => LAYOUT_TO_ELEMENT[o]).filter(Boolean) as CardElementId[];
+	if (!out.includes('hr')) out.unshift('hr');
+	if (!out.includes('controlButtons')) out.unshift('controlButtons');
+	return out;
+}
+
 /** Effective flex order of a group: the smallest order among its members. */
 export function groupOrder(
 	es: CardElementStyles,
@@ -536,6 +554,8 @@ export function buildNoteTemplates(opts: {
 	tabContent: TabContent;
 	includeAudio: boolean;
 	template: TemplateOpts;
+	/** Full layout order (incl. ControlButtons/Separator tokens) for flex order. */
+	order?: string[];
 }): BuildTemplatesResult {
 	const { tabContent, includeAudio, template } = opts;
 
@@ -547,13 +567,10 @@ export function buildNoteTemplates(opts: {
 		(f) => f === FIELDS.AUDIO || fieldUsedByAnyCard(tabContent, f)
 	);
 
-	// Flex order follows the user's field sequence (chrome first, then fields).
-	const bodyOrder: CardElementId[] = [
-		'controlButtons',
-		'hr',
-		...opts.fields.map((f) => FIELD_TO_ELEMENT[f]).filter(Boolean),
-		'audio'
-	];
+	// Flex order follows the user's layout sequence (chrome + fields, reorderable).
+	const bodyOrder: CardElementId[] = opts.order
+		? bodyOrderFromLayout(opts.order)
+		: ['controlButtons', 'hr', ...opts.fields.map((f) => FIELD_TO_ELEMENT[f]).filter(Boolean)];
 
 	// Seed runtime defaults (body classes + collapse default) before each template.
 	const noHanziColor = template.mono || !template.colorHanzi;
@@ -678,42 +695,51 @@ for (var _hide of hideList) {
 				? `<div class="char-color-src" style="display:none">{{Definitions}}</div>\n`
 				: '';
 
-		const frontBody = `<div class="${ct} card-body">\n${addToFront}\n${colorSource}</div>`;
-		let QFMT = frontBody + hideScript + CONSTANTS.DECK_HTML_FRONT;
+		const backSel = tabContent[card]['back'];
 
-		// Create dynamic back template based on includeAudio setting
-		let AFMT = CONSTANTS.DECK_HTML_BACK;
-		if (!includeAudio) {
-			// Remove audio div and play button if audio is not included
-			AFMT = AFMT.replace(`<div id='audio' style='display:none'>{{Audio}}</div>`, '');
-			AFMT = AFMT.replace(
-				`    <a class="btn" id='btnPlayAudio'>
+		// The control bar (with its play button) + audio data div. Drop the play
+		// button + audio data when audio is disabled.
+		const playBtn = `    <a class="btn" id='btnPlayAudio'>
         <div class="icon">
             <i class="material-icons">play_arrow</i>
         </div>
-    </a>`,
-				''
-			);
-		}
+    </a>`;
+		// The control bar's play button is added/removed per side by the Audio field
+		// selection (audio must be enabled deck-wide for the media to exist). The
+		// hidden audio data div rides along with the play button so the bar can play it.
+		const barFor = (withAudio: boolean) =>
+			withAudio ? CONSTANTS.CONTROL_BAR : CONSTANTS.CONTROL_BAR.replace(playBtn, '');
+		const audioFor = (withAudio: boolean) => (withAudio ? CONSTANTS.AUDIO_DIV + '\n' : '');
 
-		// Wrap the visible back body (controls → audio → hr → fields) in a flex
-		// card-body so per-card `order` can reposition the hr / control buttons.
-		AFMT = AFMT.replace(
-			'<div class="modal-footer1">',
-			`<div class="${ct} card-body"><div class="modal-footer1">`
-		);
+		// Control bar + separator are injected into the card body on whichever side
+		// they're selected, positioned by flex order. The control bar is functional
+		// on both sides (front gets the same sidebar + handlers as the back).
+		const frontControls = frontSel.includes('frontControlButtons');
+		const frontSep = frontSel.includes('frontSeparator');
+		const frontAudio = includeAudio && frontSel.includes('frontAudio');
+		const frontChrome =
+			(frontControls ? barFor(frontAudio) + '\n' + audioFor(frontAudio) : '') +
+			(frontSep ? '<hr>\n' : '');
 
-		const backSel = tabContent[card]['back'];
+		const frontBody = `<div class="${ct} card-body">\n${addToFront}\n${frontChrome}${colorSource}</div>`;
+		let QFMT =
+			frontBody + hideScript + (frontControls ? CONSTANTS.DECK_HTML_FRONT_CHROME : CONSTANTS.DECK_HTML_FRONT);
 
-		// Build the back's display fields in the user's field order; every used field
-		// is present so the sidebar can toggle it, but fields not selected for the
-		// back start hidden (seeded into defaultOff, below). Grouped members are
-		// wrapped into their container. Close the card-body wrapper.
+		// Build the back's display fields in the user's field order; grouped members
+		// are wrapped into their container. The control bar / separator are injected
+		// only when selected on the back.
 		const backOrder = fields.filter((f) => FIELD_DIV[f]);
 		const backHtml: Record<string, string> = {};
 		for (const f of backOrder) backHtml[f] = FIELD_DIV[f];
 		const backFieldsHtml = wrapGroups(backOrder, backHtml, groups);
-		AFMT = AFMT.replace('<!--FIELDS-->', backFieldsHtml + '\n</div>');
+		const backControls = backSel.includes('backControlButtons');
+		const backSep = backSel.includes('backSeparator');
+		const backAudio = includeAudio && backSel.includes('backAudio');
+		const backChrome =
+			(backControls ? barFor(backAudio) + '\n' + audioFor(backAudio) : '') +
+			(backSep ? '<hr>\n' : '');
+		const backBody = `<div class="${ct} card-body">\n${backChrome}${backFieldsHtml}\n</div>`;
+		let AFMT = CONSTANTS.DECK_HTML_BACK.replace('<!--FIELDS-->', backBody);
 
 		const defaultOff = fields
 			.filter((f) => FIELD_DIV[f] && !backSel.includes(`back${f}`))

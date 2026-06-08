@@ -30,7 +30,7 @@
 		tabContent = $bindable<TabContent>({}),
 		tabs = [],
 		activeTab = $bindable<number>(0),
-		order = [],
+		order = $bindable<string[]>([]),
 		fieldLabels = {},
 		onclose
 	}: {
@@ -137,6 +137,15 @@
 		tabContent = { ...tabContent, [current]: { ...card, ...patch } };
 	}
 
+	// Reorder a layout item up/down (controls/separator/fields are all reorderable).
+	function moveField(index: number, dir: -1 | 1) {
+		const j = index + dir;
+		if (j < 0 || j >= order.length) return;
+		const next = [...order];
+		[next[index], next[j]] = [next[j], next[index]];
+		order = next;
+	}
+
 	// Toggle a field on the front/back directly from the designer.
 	function toggleField(item: string, side: 'front' | 'back') {
 		if (!card) return;
@@ -165,7 +174,6 @@
 		{ id: 'exampleTraditional', label: '· Ex. traditional' },
 		{ id: 'examplePinyin',      label: '· Ex. pinyin' },
 		{ id: 'exampleTranslation', label: '· Ex. translation' },
-		{ id: 'audio',          label: 'Audio button' },
 		{ id: 'hr',             label: 'Separator line' },
 		{ id: 'controlButtons', label: 'Control buttons' }
 	];
@@ -578,22 +586,28 @@
 								</div>
 								{#each order as item, i (item)}
 									<div class="grid grid-cols-[1fr_2rem_2rem] items-center gap-1 px-2 py-1.5 text-xs {i > 0 ? 'border-t border-neutral-50' : ''}">
-										<span class="truncate text-neutral-600">{fieldLabels[item] ?? item}</span>
-										<input
-											type="checkbox"
-											class="mx-auto h-3.5 w-3.5 accent-neutral-900"
-											checked={front.includes(`front${item}`)}
-											onchange={() => toggleField(item, 'front')}
-											aria-label={`${fieldLabels[item] ?? item} front`}
-										/>
-										<input
-											type="checkbox"
-											class="mx-auto h-3.5 w-3.5 accent-neutral-900"
-											checked={back.includes(`back${item}`)}
-											onchange={() => toggleField(item, 'back')}
-											aria-label={`${fieldLabels[item] ?? item} back`}
-										/>
-									</div>
+											<span class="flex items-center gap-1">
+												<span class="truncate text-neutral-600">{fieldLabels[item] ?? item}</span>
+												<span class="ml-auto flex flex-col">
+													<button class="text-neutral-300 hover:text-neutral-900 disabled:opacity-20" disabled={i === 0} onclick={() => moveField(i, -1)} aria-label="move up"><ChevronUp size={11} /></button>
+													<button class="text-neutral-300 hover:text-neutral-900 disabled:opacity-20" disabled={i === order.length - 1} onclick={() => moveField(i, 1)} aria-label="move down"><ChevronDown size={11} /></button>
+												</span>
+											</span>
+											<input
+												type="checkbox"
+												class="mx-auto h-3.5 w-3.5 accent-neutral-900"
+												checked={front.includes(`front${item}`)}
+												onchange={() => toggleField(item, 'front')}
+												aria-label={`${fieldLabels[item] ?? item} front`}
+											/>
+											<input
+												type="checkbox"
+												class="mx-auto h-3.5 w-3.5 accent-neutral-900"
+												checked={back.includes(`back${item}`)}
+												onchange={() => toggleField(item, 'back')}
+												aria-label={`${fieldLabels[item] ?? item} back`}
+											/>
+										</div>
 								{/each}
 							</div>
 						{/if}
@@ -879,6 +893,7 @@
 						commonPinyinOnly={localT.commonPinyinOnly}
 						elementStyles={localES}
 						groups={cardGroups}
+						{order}
 						toneColors={previewPalette}
 						interactive={true}
 						bind:selectedElement
@@ -894,6 +909,7 @@
 						commonPinyinOnly={localT.commonPinyinOnly}
 						elementStyles={localES}
 						groups={cardGroups}
+						{order}
 						toneColors={previewPalette}
 						interactive={true}
 						bind:selectedElement

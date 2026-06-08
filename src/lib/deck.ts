@@ -479,13 +479,14 @@ export function renderCardHtml(opts: {
 	tab: string;
 	word: Word;
 	fields: string[];
+	order?: string[];
 	tabContent: TabContent;
 	template: TemplateOpts;
 	includeAudio: boolean;
 	examples: ExampleSentence[];
 }): string {
-	const { side, tab, word, fields, tabContent, template, includeAudio, examples } = opts;
-	const { tmpls, css } = buildNoteTemplates({ fields, tabContent, includeAudio, template });
+	const { side, tab, word, fields, order, tabContent, template, includeAudio, examples } = opts;
+	const { tmpls, css } = buildNoteTemplates({ fields, order, tabContent, includeAudio, template });
 	const idx = Object.keys(tabContent).indexOf(tab);
 	const tmpl = tmpls[idx] ?? tmpls[0];
 	if (!tmpl) return '';
@@ -542,6 +543,8 @@ export interface GenerateDeckOptions {
 	deckName: string;
 	includeAudio: boolean;
 	fields: string[];
+	/** Full layout order (incl. ControlButtons/Separator tokens) for flex order. */
+	order?: string[];
 	tabContent: TabContent;
 	hskWordsDict: Set<string>;
 	db: any;
@@ -561,6 +564,7 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 
 	const { flds, req, tmpls, css: modelCss, usesWriter } = buildNoteTemplates({
 		fields,
+		order: opts.order,
 		tabContent,
 		includeAudio,
 		template

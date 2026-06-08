@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { colorizeHanzi, toneOfPinyin } from '$lib/tone';
-	import { elementOrder, groupOrder, FIELD_TO_ELEMENT, DEFAULT_EXAMPLE_OPTIONS, type CardElementId, type CardElementStyles, type CardGroup, type ElementStyle, type ExampleOptions } from '$lib/deckTemplate';
+	import { elementOrder, groupOrder, bodyOrderFromLayout, FIELD_TO_ELEMENT, DEFAULT_EXAMPLE_OPTIONS, type CardElementId, type CardElementStyles, type CardGroup, type ElementStyle, type ExampleOptions } from '$lib/deckTemplate';
 	import { hskLevelLabel, frequencyBand } from '$lib/dict/meta';
 	import { STANDARD_TONES, type TonePalette, type ToneKey } from '$lib/tonePresets';
 	import type { Word, ExampleSentence } from '$lib/deck';
@@ -29,6 +29,7 @@
 		commonPinyinOnly = false,
 		elementStyles = {} as CardElementStyles,
 		groups = [] as CardGroup[],
+		order = [] as string[],
 		toneColors = null,
 		word = null,
 		exampleSentences = null,
@@ -46,6 +47,7 @@
 		commonPinyinOnly?: boolean;
 		elementStyles?: CardElementStyles;
 		groups?: CardGroup[];
+		order?: string[];
 		toneColors?: TonePalette | null;
 		/** When set, the preview renders this real word instead of the example. */
 		word?: Word | null;
@@ -180,17 +182,22 @@
 	const hasWriting = $derived(items.includes(WRITING));
 	const globalFont = $derived(fontStacks[font] || '');
 
-	// Control buttons + separator are answer-side chrome; they also appear on the
-	// writing card's front (the quiz toolbar). Mirrors the exported templates.
-	const showChrome = $derived(side === 'back' || hasWriting);
+	// Control buttons + separator are selectable per side (tokens in `items`); the
+	// writing card always shows the quiz toolbar. Mirrors the exported templates.
+	const showControls = $derived(items.includes('ControlButtons') || hasWriting);
+	const showSep = $derived(items.includes('Separator') || hasWriting);
+
+	// The play button is part of the toolbar only when Audio is selected on this side.
+	const audioSel = $derived(items.includes('Audio'));
 
 	// One merged control group. When the writing component is present it shows the
-	// full writer toolbar (menu, audio, reveal, replay, next, more); otherwise the
-	// basic set (menu, audio, more) — never two separate rows.
+	// full writer toolbar; otherwise the basic set (menu, [audio], more).
 	const controlIcons = $derived(
 		hasWriting
 			? [Menu, Volume2, PenLine, RotateCcw, ChevronRight, EllipsisVertical]
-			: [Menu, Volume2, EllipsisVertical]
+			: audioSel
+				? [Menu, Volume2, EllipsisVertical]
+				: [Menu, EllipsisVertical]
 	);
 
 	function hanziFont(id: 'simplified' | 'traditional'): string {
@@ -199,13 +206,13 @@
 		return globalFont;
 	}
 
-	// Flex order follows the field sequence (items) so the table reorder takes effect.
-	const bodyOrder = $derived<CardElementId[]>([
-		'controlButtons',
-		'hr',
-		...items.map((i) => FIELD_TO_ELEMENT[i]).filter(Boolean) as CardElementId[],
-		'audio'
-	]);
+	// Flex order follows the layout sequence (so table/chrome reorder takes effect).
+	// Falls back to the shown items when no explicit layout order is supplied.
+	const bodyOrder = $derived<CardElementId[]>(
+		order.length
+			? bodyOrderFromLayout(order)
+			: ['controlButtons', 'hr', ...(items.map((i) => FIELD_TO_ELEMENT[i]).filter(Boolean) as CardElementId[])]
+	);
 
 	// Flex `order` for a body block — drives reorder + the move up/down positioning.
 	function ord(id: CardElementId): number {
@@ -364,7 +371,7 @@
 
 	<div class="flex min-h-[150px] flex-col items-center gap-2 p-4">
 
-		{#if showChrome && (!isHidden('controlButtons') || interactive)}
+		{#if showControls && (!isHidden('controlButtons') || interactive)}
 			<div
 				class="flex w-full items-center justify-center gap-1.5 rounded py-1 {selClass('controlButtons')} {isHidden('controlButtons') ? 'opacity-30' : ''}"
 				style="order:{ord('controlButtons')};{elStyle('controlButtons')}"
@@ -380,7 +387,7 @@
 			</div>
 		{/if}
 
-		{#if showChrome && (!isHidden('hr') || interactive)}
+		{#if showSep && (!isHidden('hr') || interactive)}
 			<div
 				class="w-full rounded py-0.5 {selClass('hr')} {isHidden('hr') ? 'opacity-30' : ''}"
 				style="order:{ord('hr')}"
@@ -602,19 +609,6 @@
 						</div>
 					{/each}
 					{#if interactive && selectedElement === 'examples'}<span class={SEL_BADGE}>Examples</span>{/if}
-				</div>
-
-			{:else if item === 'Audio' && (!isHidden('audio') || interactive)}
-				<div
-					class="mt-1 inline-flex items-center gap-1 text-neutral-400 {selClass('audio')} {isHidden('audio') ? 'opacity-30' : ''}"
-					style="order:{ord('audio')};{elStyle('audio')}"
-					role="button"
-					tabindex="0"
-					onclick={(e) => select('audio', e)}
-					onkeydown={onkey('audio')}
-				>
-					<Volume2 size={16} /><span class="text-xs">audio</span>
-					{#if interactive && selectedElement === 'audio'}<span class={SEL_BADGE}>Audio</span>{/if}
 				</div>
 			{/if}
 

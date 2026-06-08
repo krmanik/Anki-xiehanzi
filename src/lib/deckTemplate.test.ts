@@ -230,15 +230,17 @@ describe('buildNoteTemplates — per card type', () => {
 		expect(css).toContain('.ct1 #char_pinyin{color:#00aa00 !important;}');
 	});
 
-	it('wraps the back body in a ct card-body and closes it after the fields', () => {
-		const tabContent: TabContent = { 'Card 1': makeCard(onlySimplifiedFront, allBack) };
+	it('wraps the back body in a ct card-body with the control bar inside', () => {
+		// Select the control buttons on the back so the bar is rendered.
+		const tabContent: TabContent = { 'Card 1': makeCard(onlySimplifiedFront, [...allBack, 'backControlButtons']) };
 		const { tmpls } = buildNoteTemplates({
 			fields: FIELDS,
 			tabContent,
 			includeAudio: false,
 			template: tpl()
 		});
-		expect(tmpls[0].afmt).toContain('<div class="ct0 card-body"><div class="modal-footer1">');
+		expect(tmpls[0].afmt).toContain('<div class="ct0 card-body">');
+		expect(tmpls[0].afmt).toContain('class="modal-footer1"');
 	});
 });
 
@@ -364,6 +366,42 @@ describe('buildNoteTemplates — field reorder', () => {
 		const pin = Number(css.match(/\.ct0 #char_pinyin\{order:(\d+);?\}/)![1]);
 		const sim = Number(css.match(/\.ct0 #char_sim\{order:(\d+);?\}/)![1]);
 		expect(pin).toBeLessThan(sim);
+	});
+
+	it('reorders chrome (control buttons / separator) via the layout order', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(['frontSimplified'], ['backSimplified'])
+		};
+		// Simplified above the separator, separator above the control buttons.
+		const order = ['Simplified', 'Separator', 'ControlButtons'];
+		const { css } = buildNoteTemplates({
+			fields: ['Simplified'],
+			order,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		const sim = Number(css.match(/\.ct0 #char_sim\{order:(\d+);?\}/)![1]);
+		const hr = Number(css.match(/\.ct0 hr\{order:(\d+);?\}/)![1]);
+		const ctrl = Number(css.match(/\.ct0 \.modal-footer1\{order:(\d+);?\}/)![1]);
+		expect(sim).toBeLessThan(hr);
+		expect(hr).toBeLessThan(ctrl);
+	});
+});
+
+describe('buildNoteTemplates — per-side audio', () => {
+	it('adds the toolbar play button only on sides that select Audio', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(['frontControlButtons'], ['backControlButtons', 'backAudio'])
+		};
+		const { tmpls } = buildNoteTemplates({
+			fields: [...FIELDS, 'Audio'],
+			tabContent,
+			includeAudio: true,
+			template: tpl()
+		});
+		expect(tmpls[0].qfmt).not.toContain('play_arrow'); // front: bar, no audio button
+		expect(tmpls[0].afmt).toContain('play_arrow'); // back: audio button present
 	});
 });
 

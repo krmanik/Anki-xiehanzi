@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, within } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 
 // Mock the heavy deck runtime (genanki/sql.js/jieba/edge-tts/network). The page
@@ -122,6 +122,30 @@ describe('Create page — advanced customiser', () => {
 	});
 });
 
+describe('Create page — export preview', () => {
+	it('shows deck stats and card previews before generating', async () => {
+		const user = userEvent.setup();
+		render(Page);
+		await user.click(screen.getByText('Input Chinese Characters'));
+		await user.type(screen.getByPlaceholderText('Type a word, e.g. 中国'), '中国');
+		await user.click(screen.getByText('Add'));
+		await user.click(screen.getByText('Preview & Generate'));
+
+		const dialog = screen.getByRole('dialog', { name: 'Export preview' });
+		expect(dialog).toBeInTheDocument();
+		// Stats panel: one word, HSK + frequency sections.
+		expect(within(dialog).getByText('HSK level')).toBeInTheDocument();
+		expect(within(dialog).getByText('Frequency')).toBeInTheDocument();
+		// Word pager renders the actual word and its position.
+		expect(within(dialog).getByText('word 1 / 1')).toBeInTheDocument();
+		expect(within(dialog).getByLabelText('next word')).toBeDisabled();
+		// Back out without generating.
+		await user.click(within(dialog).getByRole('button', { name: 'Back' }));
+		expect(screen.queryByRole('dialog', { name: 'Export preview' })).toBeNull();
+		expect(deck.generateDeck).not.toHaveBeenCalled();
+	});
+});
+
 describe('Create page — HSK level source', () => {
 	it('adds all words for the selected HSK levels', async () => {
 		const user = userEvent.setup();
@@ -146,13 +170,16 @@ describe('Create page — navigation + generate', () => {
 		await user.click(screen.getByText('Input Chinese Characters'));
 		expect(screen.getByRole('heading', { name: 'Enter Chinese Characters' })).toBeInTheDocument();
 
-		// Generate is disabled until at least one word is added.
-		const genBtn = screen.getByText('Generate Deck') as HTMLButtonElement;
+		// Preview & Generate is disabled until at least one word is added.
+		const genBtn = screen.getByText('Preview & Generate') as HTMLButtonElement;
 		expect(genBtn).toBeDisabled();
 
 		await user.type(screen.getByPlaceholderText('Type a word, e.g. 中国'), '中国');
 		await user.click(screen.getByText('Add'));
-		await user.click(screen.getByText('Generate Deck'));
+		// Opens the export preview; generation happens from inside it.
+		await user.click(screen.getByText('Preview & Generate'));
+		expect(screen.getByRole('dialog', { name: 'Export preview' })).toBeInTheDocument();
+		await user.click(screen.getByRole('button', { name: 'Generate deck' }));
 		expect(deck.generateDeck).toHaveBeenCalled();
 		// A fresh SQLite db is created per export (avoids "table col already exists").
 		expect(deck.setupSql).toHaveBeenCalled();

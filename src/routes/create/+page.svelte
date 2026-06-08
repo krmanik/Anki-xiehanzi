@@ -19,6 +19,7 @@
 	import WordCard from '$lib/components/WordCard.svelte';
 	import CardPreview from '$lib/components/CardPreview.svelte';
 	import CardCustomizer from '$lib/components/CardCustomizer.svelte';
+	import ExportPreview from '$lib/components/ExportPreview.svelte';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
 	import {
 		CARD_STYLE_LS_KEY,
@@ -94,6 +95,7 @@
 	let template = $state<TemplateOpts>({ ...DEFAULT_TEMPLATE });
 	let page = $state(1);
 	let showCustomizer = $state(false);
+	let showPreview = $state(false);
 	let appearanceOpen = $state(true);
 	let wordValue = $state('');
 	let selectType = $state('Word');
@@ -486,6 +488,7 @@
 			});
 		} finally {
 			isGenerating = false;
+			showPreview = false;
 		}
 	}
 
@@ -907,8 +910,8 @@
 				</div>
 				<div class="flex gap-2">
 					<button class={btnSecondary} onclick={exportCSV} disabled={words.length === 0}>Export CSV</button>
-					<button class={btnPrimary} onclick={doGenerateDeck} disabled={words.length === 0 || isGenerating}>
-						{isGenerating ? 'Generating…' : 'Generate Deck'}
+					<button class={btnPrimary} onclick={() => (showPreview = true)} disabled={words.length === 0 || isGenerating}>
+						{isGenerating ? 'Generating…' : 'Preview & Generate'}
 					</button>
 				</div>
 			</div>
@@ -972,6 +975,21 @@
 			{order}
 			{fieldLabels}
 			onclose={() => (showCustomizer = false)}
+		/>
+	{/if}
+
+	{#if showPreview}
+		<ExportPreview
+			{words}
+			{tabs}
+			{tabContent}
+			{template}
+			{order}
+			{includeAudio}
+			{palette}
+			{isGenerating}
+			onGenerate={doGenerateDeck}
+			onclose={() => (showPreview = false)}
 		/>
 	{/if}
 

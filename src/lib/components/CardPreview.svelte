@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { colorizeHanzi } from '$lib/tone';
 	import { elementOrder, type CardElementId, type CardElementStyles, type ElementStyle } from '$lib/deckTemplate';
+	import { hskLevelLabel, frequencyBand } from '$lib/dict/meta';
 	import type { TonePalette, ToneKey } from '$lib/tonePresets';
+	import type { Word } from '$lib/deck';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import Menu from '@lucide/svelte/icons/menu';
 	import PenLine from '@lucide/svelte/icons/pen-line';
@@ -26,6 +28,7 @@
 		collapseDict = false,
 		elementStyles = {} as CardElementStyles,
 		toneColors = null,
+		word = null,
 		interactive = false,
 		selectedElement = $bindable<CardElementId | null>(null)
 	}: {
@@ -37,6 +40,8 @@
 		collapseDict?: boolean;
 		elementStyles?: CardElementStyles;
 		toneColors?: TonePalette | null;
+		/** When set, the preview renders this real word instead of the example. */
+		word?: Word | null;
 		interactive?: boolean;
 		selectedElement?: CardElementId | null;
 	} = $props();
@@ -61,8 +66,33 @@
 		hsk: 'HSK 1', frequency: 'Top 500'
 	};
 
-	const simp = $derived(colorizeHanzi(ex.Simplified, ex.syllable));
-	const trad = $derived(colorizeHanzi(ex.Traditional, ex.syllable));
+	// Display source: a real Word when provided, otherwise the example.
+	const src = $derived(
+		word
+			? {
+					Simplified: word.Simplified,
+					Traditional: word.Traditional || word.Simplified,
+					syllable: word.readings?.[0]?.syllable ?? word.Syllable ?? '',
+					pinyin: word.Pinyin,
+					zhuyin: word.Zhuyin,
+					simple: word.SimpleMeaning,
+					definition: word.commonMeaning || word.readings?.[0]?.definition || '',
+					breakdown: (word.breakdown ?? []).map((b) => ({
+						character: b.character,
+						pinyin: b.pinyin,
+						definition: b.definition
+					})),
+					radical: (word.breakdown ?? [])
+						.filter((b) => b.radical)
+						.map((b) => ({ character: b.character, radical: b.radical })),
+					hsk: hskLevelLabel(word.level) ?? '',
+					frequency: frequencyBand(word.rank) ?? ''
+				}
+			: ex
+	);
+
+	const simp = $derived(colorizeHanzi(src.Simplified, src.syllable));
+	const trad = $derived(colorizeHanzi(src.Traditional, src.syllable));
 	const hasWriting = $derived(items.includes(WRITING));
 	const globalFont = $derived(fontStacks[font] || '');
 
@@ -151,7 +181,7 @@
 		writerEl.innerHTML = '';
 		import('hanzi-writer').then(({ default: HanziWriter }) => {
 			if (cancelled || !writerEl) return;
-			writer = HanziWriter.create(writerEl, ex.Simplified[0], {
+			writer = HanziWriter.create(writerEl, src.Simplified[0], {
 				width: 80, height: 80, padding: 4, showOutline: true,
 				strokeColor: colorize ? '#2196f3' : '#333'
 			});
@@ -258,7 +288,7 @@
 					onclick={(e) => select('pinyin', e)}
 					onkeydown={onkey('pinyin')}
 				>
-					{ex.pinyin}
+					{src.pinyin}
 					{#if interactive && selectedElement === 'pinyin'}<span class={SEL_BADGE}>Pinyin</span>{/if}
 				</div>
 
@@ -271,7 +301,7 @@
 					onclick={(e) => select('zhuyin', e)}
 					onkeydown={onkey('zhuyin')}
 				>
-					{ex.zhuyin}
+					{src.zhuyin}
 					{#if interactive && selectedElement === 'zhuyin'}<span class={SEL_BADGE}>Zhuyin</span>{/if}
 				</div>
 
@@ -297,7 +327,7 @@
 					onclick={(e) => select('simpleMeaning', e)}
 					onkeydown={onkey('simpleMeaning')}
 				>
-					{ex.simple}
+					{src.simple}
 					{#if interactive && selectedElement === 'simpleMeaning'}<span class={SEL_BADGE}>Simple Meaning</span>{/if}
 				</div>
 
@@ -313,10 +343,10 @@
 					{#if collapseDict}
 						<details class="text-sm text-neutral-700">
 							<summary class="cursor-pointer text-xs text-neutral-400">Dictionary</summary>
-							{ex.definition}
+							{src.definition}
 						</details>
 					{:else}
-						<div class="text-sm text-neutral-700">{ex.definition}</div>
+						<div class="text-sm text-neutral-700">{src.definition}</div>
 					{/if}
 					{#if interactive && selectedElement === 'definitions'}<div class="mt-0.5 text-center font-mono text-[9px] text-blue-500">Definitions</div>{/if}
 				</div>
@@ -330,7 +360,7 @@
 					onclick={(e) => select('breakdown', e)}
 					onkeydown={onkey('breakdown')}
 				>
-					{#each ex.breakdown as b (b.character)}
+					{#each src.breakdown as b (b.character)}
 						<div class="flex flex-col items-center rounded-lg border border-neutral-200 px-2.5 py-1.5">
 							<span class="text-lg leading-none">{b.character}</span>
 							<span class="text-[10px] text-neutral-500">{b.pinyin}</span>
@@ -349,7 +379,7 @@
 					onclick={(e) => select('radical', e)}
 					onkeydown={onkey('radical')}
 				>
-					{#each ex.radical as r (r.character)}
+					{#each src.radical as r (r.character)}
 						<span class="inline-flex items-center gap-1 rounded-full border border-neutral-200 px-2 py-0.5 text-xs text-neutral-500">
 							<span class="font-semibold text-neutral-800">{r.character}</span>{r.radical}
 						</span>
@@ -366,7 +396,7 @@
 					onclick={(e) => select('hskLevel', e)}
 					onkeydown={onkey('hskLevel')}
 				>
-					<span class="inline-block rounded-full border border-neutral-200 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-500">{ex.hsk}</span>
+					<span class="inline-block rounded-full border border-neutral-200 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-500">{src.hsk}</span>
 					{#if interactive && selectedElement === 'hskLevel'}<span class={SEL_BADGE}>HSK Level</span>{/if}
 				</div>
 
@@ -379,7 +409,7 @@
 					onclick={(e) => select('frequency', e)}
 					onkeydown={onkey('frequency')}
 				>
-					<span class="inline-block rounded-full border border-neutral-200 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-500">{ex.frequency}</span>
+					<span class="inline-block rounded-full border border-neutral-200 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-500">{src.frequency}</span>
 					{#if interactive && selectedElement === 'frequency'}<span class={SEL_BADGE}>Frequency</span>{/if}
 				</div>
 

@@ -64,7 +64,11 @@ export type CardElementId =
 	| 'radical' // radical chips (国→囗)
 	| 'hskLevel' // HSK level badge
 	| 'frequency' // frequency-band badge (Top 500)
-	| 'examples' // smart example sentences
+	| 'examples' // smart example sentences (whole block)
+	| 'exampleSimplified' // sentence simplified line
+	| 'exampleTraditional' // sentence traditional line
+	| 'examplePinyin' // sentence pinyin line
+	| 'exampleTranslation' // sentence translation line
 	| 'audio' // audio play button
 	| 'hr' // horizontal rule separators
 	| 'controlButtons'; // sidebar-toggle footer buttons
@@ -140,6 +144,10 @@ const SCOPED_SELECTORS: Record<CardElementId, string> = {
 	hskLevel: '#char_hsk',
 	frequency: '#char_freq',
 	examples: '#char_examples',
+	exampleSimplified: '.example-sim',
+	exampleTraditional: '.example-trad',
+	examplePinyin: '.example-pinyin',
+	exampleTranslation: '.example-translation',
 	audio: '#btnPlayAudio',
 	hr: 'hr',
 	controlButtons: '.modal-footer1'

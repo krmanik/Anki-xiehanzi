@@ -485,10 +485,26 @@
 				>
 					{#each exList as s (s.simplified)}
 						<div class="border-b border-neutral-100 py-1.5 last:border-0">
-							{#if exOpts.showTraditional}<div class="text-sm text-neutral-800">{@html exHanziHtml(s.traditional, s.pinyin)}</div>{/if}
-							{#if exOpts.showSimplified}<div class="text-sm text-neutral-800">{@html exHanziHtml(s.simplified, s.pinyin)}</div>{/if}
-							{#if exOpts.showPinyin}<div class="text-xs text-neutral-500">{@html exPinyinHtml(s.pinyin)}</div>{/if}
-							{#if exOpts.showTranslation}<div class="text-xs text-neutral-500">{s.translation}</div>{/if}
+							{#if exOpts.showTraditional && (!isHidden('exampleTraditional') || interactive)}
+								<div class="text-sm text-neutral-800 {selClass('exampleTraditional')} {isHidden('exampleTraditional') ? 'opacity-30' : ''}"
+									style={elStyle('exampleTraditional')} role="button" tabindex="0"
+									onclick={(e) => select('exampleTraditional', e)} onkeydown={onkey('exampleTraditional')}>{@html exHanziHtml(s.traditional, s.pinyin)}</div>
+							{/if}
+							{#if exOpts.showSimplified && (!isHidden('exampleSimplified') || interactive)}
+								<div class="text-sm text-neutral-800 {selClass('exampleSimplified')} {isHidden('exampleSimplified') ? 'opacity-30' : ''}"
+									style={elStyle('exampleSimplified')} role="button" tabindex="0"
+									onclick={(e) => select('exampleSimplified', e)} onkeydown={onkey('exampleSimplified')}>{@html exHanziHtml(s.simplified, s.pinyin)}</div>
+							{/if}
+							{#if exOpts.showPinyin && (!isHidden('examplePinyin') || interactive)}
+								<div class="text-xs text-neutral-500 {selClass('examplePinyin')} {isHidden('examplePinyin') ? 'opacity-30' : ''}"
+									style={elStyle('examplePinyin')} role="button" tabindex="0"
+									onclick={(e) => select('examplePinyin', e)} onkeydown={onkey('examplePinyin')}>{@html exPinyinHtml(s.pinyin)}</div>
+							{/if}
+							{#if exOpts.showTranslation && (!isHidden('exampleTranslation') || interactive)}
+								<div class="text-xs text-neutral-500 {selClass('exampleTranslation')} {isHidden('exampleTranslation') ? 'opacity-30' : ''}"
+									style={elStyle('exampleTranslation')} role="button" tabindex="0"
+									onclick={(e) => select('exampleTranslation', e)} onkeydown={onkey('exampleTranslation')}>{s.translation}</div>
+							{/if}
 						</div>
 					{/each}
 					{#if interactive && selectedElement === 'examples'}<span class={SEL_BADGE}>Examples</span>{/if}

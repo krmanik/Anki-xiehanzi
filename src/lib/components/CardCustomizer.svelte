@@ -92,7 +92,11 @@
 		{ id: 'radical',        label: 'Radical' },
 		{ id: 'hskLevel',       label: 'HSK level' },
 		{ id: 'frequency',      label: 'Frequency' },
-		{ id: 'examples',       label: 'Examples' },
+		{ id: 'examples',       label: 'Examples (block)' },
+		{ id: 'exampleSimplified',  label: '· Ex. simplified' },
+		{ id: 'exampleTraditional', label: '· Ex. traditional' },
+		{ id: 'examplePinyin',      label: '· Ex. pinyin' },
+		{ id: 'exampleTranslation', label: '· Ex. translation' },
 		{ id: 'audio',          label: 'Audio button' },
 		{ id: 'hr',             label: 'Separator line' },
 		{ id: 'controlButtons', label: 'Control buttons' }
@@ -213,6 +217,10 @@
 		hskLevel:       'text',
 		frequency:      'text',
 		examples:       'text',
+		exampleSimplified:  'text',
+		exampleTraditional: 'text',
+		examplePinyin:      'text',
+		exampleTranslation: 'text',
 		audio:          'button',
 		hr:             'hr',
 		controlButtons: 'button'

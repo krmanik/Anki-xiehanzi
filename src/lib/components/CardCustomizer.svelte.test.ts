@@ -142,6 +142,17 @@ describe('CardCustomizer — card-type switcher', () => {
 	});
 });
 
+describe('CardCustomizer — example sentence sub-parts', () => {
+	it('exposes each sentence sub-part as its own customizable element', async () => {
+		const user = userEvent.setup();
+		render(CardCustomizer, { props: baseProps() });
+		// Sub-part chips are present and selectable, showing text properties.
+		await user.click(screen.getByText('· Ex. pinyin'));
+		expect(screen.getByText('Line height')).toBeInTheDocument();
+		expect(screen.getByText('Alignment (in card)')).toBeInTheDocument();
+	});
+});
+
 describe('CardCustomizer — card text alignment removed', () => {
 	it('the card element no longer exposes a text-alignment control', async () => {
 		const user = userEvent.setup();

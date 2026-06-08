@@ -29,6 +29,7 @@
 	} from '$lib/deck';
 
 	import CONSTANTS from '$lib/dict/contants';
+	import { CARD_PRESETS, presetToCard, presetNeedsAudio, type CardPreset } from '$lib/cardPresets';
 	import { posDisplay } from '$lib/dict/cedict';
 	import {
 		cutParagraph,
@@ -253,6 +254,47 @@
 		tabs = [...tabs, name];
 		tabContent = { ...tabContent, [name]: newCard() };
 		activeTab = tabs.length - 1;
+	}
+
+	// Unique tab name from a desired base (e.g. "Beginner", "Beginner 2").
+	function uniqueTabName(base: string) {
+		if (!tabs.includes(base)) return base;
+		let n = 2;
+		while (tabs.includes(`${base} ${n}`)) n++;
+		return `${base} ${n}`;
+	}
+
+	// One-click preset: add a ready-made card type and switch to it. The very
+	// first time (still the lone empty "Card 1") we replace it rather than append.
+	function addPreset(preset: CardPreset) {
+		const card = presetToCard(preset);
+		// Replace only the pristine, untouched default card — not a previously
+		// chosen preset that happens to share a Simplified-only front.
+		const def = newCard();
+		const sig = (c: { front: string[]; back: string[] }) =>
+			JSON.stringify([c.front, c.back]);
+		const replaceFirst =
+			tabs.length === 1 &&
+			!!tabContent[tabs[0]] &&
+			sig(tabContent[tabs[0]]) === sig(def);
+
+		if (replaceFirst) {
+			const old = tabs[0];
+			const name = uniqueTabName(preset.name);
+			tabs = [name];
+			const next = { ...tabContent };
+			delete next[old];
+			next[name] = card;
+			tabContent = next;
+			activeTab = 0;
+		} else {
+			const name = uniqueTabName(preset.name);
+			tabs = [...tabs, name];
+			tabContent = { ...tabContent, [name]: card };
+			activeTab = tabs.length - 1;
+		}
+
+		if (presetNeedsAudio(preset)) includeAudio = true;
 	}
 
 	function handleCloseTab(index: number) {
@@ -503,6 +545,26 @@
 				Each card type is one Anki template. Drag to set field order, then choose which fields show
 				on the front and back. The preview updates live.
 			</p>
+
+			<div class="mb-4 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+				<p class="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">
+					Quick start — add a ready-made card type
+				</p>
+				<div class="flex flex-wrap gap-2">
+					{#each CARD_PRESETS as preset (preset.id)}
+						<button
+							type="button"
+							onclick={() => addPreset(preset)}
+							title={preset.description}
+							class="group rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-left transition hover:border-neutral-900 hover:shadow-[3px_3px_0_0_#111]"
+						>
+							<span class="block text-sm font-semibold text-neutral-900">{preset.name}</span>
+							<span class="block max-w-[14rem] text-[11px] leading-snug text-neutral-500">{preset.description}</span>
+						</button>
+					{/each}
+				</div>
+			</div>
+
 			<div>
 				<ul class="flex flex-wrap gap-2 border-b border-neutral-200">
 					{#each tabs as tab, index (tab)}

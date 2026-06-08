@@ -60,6 +60,35 @@ describe('Create page — card type tabs', () => {
 	});
 });
 
+describe('Create page — presets', () => {
+	it('replaces the lone default card with a one-click preset and enables audio', async () => {
+		const user = userEvent.setup();
+		render(Page);
+
+		// Beginner preset includes the Audio field.
+		const audio = screen.getByLabelText('Include Audio (Text-to-Speech)') as HTMLInputElement;
+		expect(audio.checked).toBe(false);
+
+		await user.click(screen.getByRole('button', { name: /Beginner/ }));
+
+		// The empty default "Card 1" is replaced by a "Beginner" tab.
+		expect(screen.queryByText('Card 1')).toBeNull();
+		// Preset button + new tab both read "Beginner".
+		expect(screen.getAllByText('Beginner').length).toBeGreaterThanOrEqual(2);
+		expect(audio.checked).toBe(true);
+	});
+
+	it('appends a second preset as a new card type', async () => {
+		const user = userEvent.setup();
+		render(Page);
+		await user.click(screen.getByRole('button', { name: /Beginner/ }));
+		await user.click(screen.getByRole('button', { name: /Reading/ }));
+		// Two distinct card-type tabs now exist alongside the preset buttons.
+		expect(screen.getAllByText('Beginner').length).toBeGreaterThanOrEqual(2);
+		expect(screen.getAllByText('Reading').length).toBeGreaterThanOrEqual(2);
+	});
+});
+
 describe('Create page — field front/back selection', () => {
 	it('lists the writing component and many field checkboxes', () => {
 		const { container } = render(Page);

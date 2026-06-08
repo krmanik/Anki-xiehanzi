@@ -1,0 +1,1 @@
+import{Dt as e}from"./D4eZgJSC.js";var t,n=e((()=>{t=globalThis||self}));export{n,t};

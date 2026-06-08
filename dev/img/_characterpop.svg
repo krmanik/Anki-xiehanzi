@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="266px" height="234px" viewBox="0 0 266 234" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Path-2" transform="translate(11.000000, 11.000000)">
+            <path d="M123.802734,0 C120.5,0 5.17853074e-15,57.048952 0,128.894531 C0,200.740111 48.9140625,212.291162 78.390625,212.291162 L172.390625,212.291162 C195.085938,212.291162 244.304688,201.815911 244.304688,128.894531 C244.304688,55.9731519 127.105469,0 123.802734,0 Z" stroke="#36A2EB" stroke-width="21" fill-rule="evenodd"></path>
+            <path d="M126,1.7890625 C126,1.7890625 107.113515,81.5641988 54.1264302,93 C52.5525564,93 66.1927959,89.1880663 66.1927959,89.1880663" id="Path-4" stroke="#36A2EB" stroke-width="18"></path>
+            <path d="M198,2 C198,2 179.113515,81.7751363 126.12643,93.2109375 C124.552556,93.2109375 138.192796,89.3990038 138.192796,89.3990038" id="Path-4" stroke="#36A2EB" stroke-width="18" transform="translate(162.000000, 47.605469) scale(-1, 1) translate(-162.000000, -47.605469) "></path>
+        </g>
+    </g>
+</svg>

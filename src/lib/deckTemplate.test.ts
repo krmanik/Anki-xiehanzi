@@ -349,6 +349,44 @@ describe('buildNoteTemplates — colour defaults', () => {
 	});
 });
 
+describe('buildNoteTemplates — element groups', () => {
+	it('wraps grouped members in a container div and emits its layout CSS', () => {
+		const tabContent: TabContent = {
+			'Card 1': {
+				front: ['frontSimplified', 'frontPinyin'],
+				back: ['backSimplified', 'backPinyin', 'backDefinitions'],
+				additional: [],
+				elementStyles: {},
+				groups: [
+					{
+						id: 'g0',
+						members: ['simplified', 'pinyin'],
+						display: 'flex',
+						direction: 'row',
+						style: { backgroundColor: '#eef', padding: '6px', borderStyle: 'solid', borderWidth: '1px', borderColor: '#99f' }
+					}
+				]
+			}
+		};
+		const { tmpls, css } = buildNoteTemplates({
+			fields: [...FIELDS],
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		// Front wraps simplified + pinyin in one container, in field order.
+		const wrap = tmpls[0].qfmt.match(/<div class="g0">[\s\S]*?<\/div>\s*<\/div>/);
+		expect(tmpls[0].qfmt).toContain('<div class="g0">');
+		expect(tmpls[0].qfmt).toContain('id="char_sim"');
+		expect(tmpls[0].qfmt).toContain('id="char_pinyin"');
+		// Group CSS: flex row + box style + order.
+		expect(css).toContain('.ct0 .g0{display:flex;flex-direction:row');
+		expect(css).toContain('background-color:#eef !important');
+		expect(css).toContain('border-style:solid !important');
+		expect(wrap).toBeTruthy();
+	});
+});
+
 describe('buildNoteTemplates — writing component', () => {
 	it('uses the Hanzi Writer template on the front when selected and reports usesWriter', () => {
 		const tabContent: TabContent = {

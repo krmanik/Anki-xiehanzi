@@ -27,7 +27,19 @@ export interface TabContent {
 		// Per-card-type visual overrides. Each card type styles its elements
 		// independently; the export scopes them via a `.ctN` wrapper class.
 		elementStyles: CardElementStyles;
+		// Optional element groups — styleable row/column containers. Members render
+		// inside the container; the export scopes each via a `.gN` class under `.ctN`.
+		groups?: CardGroup[];
 	};
+}
+
+// A styleable container grouping several body elements into one row/column.
+export interface CardGroup {
+	id: string; // unique within the card, e.g. 'g0' → CSS class .g0
+	members: CardElementId[]; // body elements placed inside, in order
+	display: 'flex' | 'block'; // flex = members share a line/column; block = stacked
+	direction: 'row' | 'column'; // flex-direction when display is 'flex'
+	style: ElementStyle; // border / background / padding / margin / radius / shadow
 }
 
 // Per-element style overrides. All fields optional — unset means "use default".
@@ -45,8 +57,10 @@ export interface ElementStyle {
 	borderRadius?: string;
 	letterSpacing?: string;
 	lineHeight?: string;
-	borderColor?: string; // hr border color
-	borderWidth?: string; // hr thickness e.g. '1px', '2px'
+	borderColor?: string; // border / hr color
+	borderWidth?: string; // border / hr thickness e.g. '1px', '2px'
+	borderStyle?: string; // 'solid' | 'dashed' | 'dotted' — box border (group containers)
+	boxShadow?: string; // e.g. '0 2px 6px rgba(0,0,0,0.18)'
 	order?: number; // flex order — vertical position within the card body
 }
 
@@ -225,6 +239,8 @@ export function elementStyleToCSS(style: ElementStyle, fontStacks: Record<string
 	if (style.lineHeight) r.push(`line-height:${style.lineHeight} !important`);
 	if (style.borderColor) r.push(`border-color:${style.borderColor} !important`);
 	if (style.borderWidth) r.push(`border-width:${style.borderWidth} !important`);
+	if (style.borderStyle) r.push(`border-style:${style.borderStyle} !important`);
+	if (style.boxShadow) r.push(`box-shadow:${style.boxShadow} !important`);
 	return r.join(';');
 }
 
@@ -294,7 +310,7 @@ export function buildGlobalCss(t: TemplateOpts): string {
 }
 
 /** Per-card-type CSS: element style overrides + flex order, scoped to `.ctN`. */
-export function buildCardCss(es: CardElementStyles, ctClass: string): string {
+export function buildCardCss(es: CardElementStyles, ctClass: string, groups: CardGroup[] = []): string {
 	let css = '';
 	const pre = `.${ctClass}`;
 
@@ -311,6 +327,23 @@ export function buildCardCss(es: CardElementStyles, ctClass: string): string {
 	for (const id of DEFAULT_BODY_ORDER) {
 		const sel = SCOPED_SELECTORS[id];
 		css += `${pre} ${sel}{order:${elementOrder(es, id)};}\n`;
+	}
+
+	// Group containers: layout (flex row/column or block) + box style + flex order.
+	for (const g of groups) {
+		const decls: string[] = [];
+		if (g.display === 'flex') {
+			decls.push('display:flex', `flex-direction:${g.direction}`);
+			decls.push('gap:8px', 'flex-wrap:wrap');
+			decls.push(g.direction === 'row' ? 'align-items:center;justify-content:center' : 'align-items:center');
+		} else {
+			decls.push('display:block');
+		}
+		decls.push('box-sizing:border-box');
+		decls.push(`order:${groupOrder(es, g)}`);
+		const styleRules = elementStyleToCSS(g.style ?? {}, FONT_STACKS);
+		const extra = styleRules ? ';' + styleRules : '';
+		css += `${pre} .${g.id}{${decls.join(';')}${extra};}\n`;
 	}
 
 	return css;
@@ -398,6 +431,77 @@ export const FIELD_TOGGLE: Record<string, string> = {
 	Examples: 'text-examples'
 };
 
+// Field name → body element id, for resolving group membership during assembly.
+export const FIELD_TO_ELEMENT: Record<string, CardElementId> = {
+	Simplified: 'simplified',
+	Traditional: 'traditional',
+	Pinyin: 'pinyin',
+	Zhuyin: 'zhuyin',
+	PartOfSpeech: 'partOfSpeech',
+	SimpleMeaning: 'simpleMeaning',
+	Definitions: 'definitions',
+	Breakdown: 'breakdown',
+	Radical: 'radical',
+	HskLevel: 'hskLevel',
+	Frequency: 'frequency',
+	Examples: 'examples'
+};
+
+/** Effective flex order of a group: the smallest order among its members. */
+export function groupOrder(es: CardElementStyles, group: CardGroup): number {
+	const orders = group.members.map((m) => elementOrder(es, m));
+	return orders.length ? Math.min(...orders) : DEFAULT_BODY_ORDER.length * 10;
+}
+
+/**
+ * Wrap grouped members of an ordered field list into their container divs. Each
+ * field's HTML is keyed by name; grouped fields are collected into a single
+ * `<div class="gN">…</div>` emitted where the group's first present member sits.
+ */
+export function wrapGroups(
+	orderedFields: string[],
+	htmlByField: Record<string, string>,
+	groups: CardGroup[]
+): string {
+	if (!groups || groups.length === 0) {
+		return orderedFields
+			.map((f) => htmlByField[f])
+			.filter(Boolean)
+			.join('\n');
+	}
+	const groupOf = new Map<CardElementId, string>();
+	for (const g of groups) for (const m of g.members) groupOf.set(m, g.id);
+
+	// Collect each group's present member HTML in field order.
+	const children = new Map<string, string[]>();
+	for (const f of orderedFields) {
+		const html = htmlByField[f];
+		if (!html) continue;
+		const gid = groupOf.get(FIELD_TO_ELEMENT[f]);
+		if (gid) {
+			if (!children.has(gid)) children.set(gid, []);
+			children.get(gid)!.push(html);
+		}
+	}
+
+	const out: string[] = [];
+	const emitted = new Set<string>();
+	for (const f of orderedFields) {
+		const html = htmlByField[f];
+		if (!html) continue;
+		const gid = groupOf.get(FIELD_TO_ELEMENT[f]);
+		if (gid) {
+			if (!emitted.has(gid)) {
+				emitted.add(gid);
+				out.push(`<div class="${gid}">\n${children.get(gid)!.join('\n')}\n</div>`);
+			}
+		} else {
+			out.push(html);
+		}
+	}
+	return out.join('\n');
+}
+
 // ---------------------------------------------------------------------------
 // Note-template (qfmt/afmt) + CSS builder — the heart of the exporter
 // ---------------------------------------------------------------------------
@@ -472,12 +576,20 @@ export function buildNoteTemplates(opts: {
 			if (front.includes('Definitions') && !front.includes('SimpleMeaning')) hideDef = false;
 		}
 
-		// Build the front in the user's field order (Definitions included in place).
-		const addToFront: string[] = [];
+		const groups = tabContent[card].groups ?? [];
+
+		// Build the front in the user's field order (Definitions included in place),
+		// wrapping any grouped members into their container.
+		const frontOrder: string[] = [];
+		const frontHtml: Record<string, string> = {};
 		for (const f of fields) {
 			if (!frontSel.includes(`front${f}`)) continue;
-			if (FIELD_DIV[f]) addToFront.push(FIELD_DIV[f]);
+			if (FIELD_DIV[f]) {
+				frontOrder.push(f);
+				frontHtml[f] = FIELD_DIV[f];
+			}
 		}
+		const addToFront = wrapGroups(frontOrder, frontHtml, groups);
 
 		// When Definitions is shown, hide the dictionary's internal sim/pinyin/etc
 		// for fields the user did not also select on the front.
@@ -541,7 +653,7 @@ for (var _hide of hideList) {
 				? `<div class="char-color-src" style="display:none">{{Definitions}}</div>\n`
 				: '';
 
-		const frontBody = `<div class="${ct} card-body">\n${addToFront.join('\n')}\n${colorSource}</div>`;
+		const frontBody = `<div class="${ct} card-body">\n${addToFront}\n${colorSource}</div>`;
 		let QFMT = frontBody + hideScript + CONSTANTS.DECK_HTML_FRONT;
 
 		// Create dynamic back template based on includeAudio setting
@@ -568,13 +680,14 @@ for (var _hide of hideList) {
 
 		const backSel = tabContent[card]['back'];
 
-		// Build the back's display fields in the user's field order; every field is
-		// present so the sidebar can toggle it, but fields not selected for the back
-		// start hidden (seeded into defaultOff, below). Close the card-body wrapper.
-		const backFieldsHtml = fields
-			.filter((f) => FIELD_DIV[f])
-			.map((f) => FIELD_DIV[f])
-			.join('\n');
+		// Build the back's display fields in the user's field order; every used field
+		// is present so the sidebar can toggle it, but fields not selected for the
+		// back start hidden (seeded into defaultOff, below). Grouped members are
+		// wrapped into their container. Close the card-body wrapper.
+		const backOrder = fields.filter((f) => FIELD_DIV[f]);
+		const backHtml: Record<string, string> = {};
+		for (const f of backOrder) backHtml[f] = FIELD_DIV[f];
+		const backFieldsHtml = wrapGroups(backOrder, backHtml, groups);
 		AFMT = AFMT.replace('<!--FIELDS-->', backFieldsHtml + '\n</div>');
 
 		const defaultOff = fields
@@ -630,7 +743,7 @@ for (var _hide of hideList) {
 
 		tmpls.push({ name: card, qfmt: QFMT, afmt: AFMT });
 
-		cardCss += buildCardCss(tabContent[card].elementStyles ?? {}, ct);
+		cardCss += buildCardCss(tabContent[card].elementStyles ?? {}, ct, groups);
 	}
 
 	const css = buildGlobalCss(template) + cardCss;

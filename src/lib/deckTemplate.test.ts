@@ -349,6 +349,24 @@ describe('buildNoteTemplates — colour defaults', () => {
 	});
 });
 
+describe('buildNoteTemplates — field reorder', () => {
+	it('drives flex order from the field sequence, not the canonical order', () => {
+		// Pinyin before Simplified in the field list → pinyin gets the smaller order.
+		const tabContent: TabContent = {
+			'Card 1': makeCard(['frontSimplified', 'frontPinyin'], ['backSimplified', 'backPinyin'])
+		};
+		const { css } = buildNoteTemplates({
+			fields: ['Pinyin', 'Simplified'],
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		const pin = Number(css.match(/\.ct0 #char_pinyin\{order:(\d+);?\}/)![1]);
+		const sim = Number(css.match(/\.ct0 #char_sim\{order:(\d+);?\}/)![1]);
+		expect(pin).toBeLessThan(sim);
+	});
+});
+
 describe('buildNoteTemplates — element groups', () => {
 	it('wraps grouped members in a container div and emits its layout CSS', () => {
 		const tabContent: TabContent = {

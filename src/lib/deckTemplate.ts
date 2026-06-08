@@ -197,12 +197,20 @@ export function fieldUsedByAnyCard(tabContent: TabContent, field: string): boole
 	);
 }
 
-/** Effective flex `order` for a body block: explicit override or canonical default. */
-export function elementOrder(es: CardElementStyles, id: CardElementId): number {
+/**
+ * Effective flex `order` for a body block: explicit override, else the position
+ * in `bodyOrder` (the user's field sequence) × 10. Falls back to the canonical
+ * order when no sequence is supplied.
+ */
+export function elementOrder(
+	es: CardElementStyles,
+	id: CardElementId,
+	bodyOrder: CardElementId[] = DEFAULT_BODY_ORDER
+): number {
 	const ov = es[id]?.order;
 	if (ov != null) return ov;
-	const idx = DEFAULT_BODY_ORDER.indexOf(id);
-	return (idx < 0 ? DEFAULT_BODY_ORDER.length : idx) * 10;
+	const idx = bodyOrder.indexOf(id);
+	return (idx < 0 ? bodyOrder.length : idx) * 10;
 }
 
 export const FONT_STACKS: Record<string, string> = {
@@ -310,7 +318,12 @@ export function buildGlobalCss(t: TemplateOpts): string {
 }
 
 /** Per-card-type CSS: element style overrides + flex order, scoped to `.ctN`. */
-export function buildCardCss(es: CardElementStyles, ctClass: string, groups: CardGroup[] = []): string {
+export function buildCardCss(
+	es: CardElementStyles,
+	ctClass: string,
+	groups: CardGroup[] = [],
+	bodyOrder: CardElementId[] = DEFAULT_BODY_ORDER
+): string {
 	let css = '';
 	const pre = `.${ctClass}`;
 
@@ -323,10 +336,10 @@ export function buildCardCss(es: CardElementStyles, ctClass: string, groups: Car
 		css += id === 'card' ? `${pre}{${rules};}\n` : `${pre} ${sel}{${rules};}\n`;
 	}
 
-	// Flex order for every body block (so a moved element interleaves correctly).
+	// Flex order for every body block (driven by the user's field sequence).
 	for (const id of DEFAULT_BODY_ORDER) {
 		const sel = SCOPED_SELECTORS[id];
-		css += `${pre} ${sel}{order:${elementOrder(es, id)};}\n`;
+		css += `${pre} ${sel}{order:${elementOrder(es, id, bodyOrder)};}\n`;
 	}
 
 	// Group containers: layout (flex row/column or block) + box style + flex order.
@@ -340,7 +353,7 @@ export function buildCardCss(es: CardElementStyles, ctClass: string, groups: Car
 			decls.push('display:block');
 		}
 		decls.push('box-sizing:border-box');
-		decls.push(`order:${groupOrder(es, g)}`);
+		decls.push(`order:${groupOrder(es, g, bodyOrder)}`);
 		const styleRules = elementStyleToCSS(g.style ?? {}, FONT_STACKS);
 		const extra = styleRules ? ';' + styleRules : '';
 		css += `${pre} .${g.id}{${decls.join(';')}${extra};}\n`;
@@ -448,9 +461,13 @@ export const FIELD_TO_ELEMENT: Record<string, CardElementId> = {
 };
 
 /** Effective flex order of a group: the smallest order among its members. */
-export function groupOrder(es: CardElementStyles, group: CardGroup): number {
-	const orders = group.members.map((m) => elementOrder(es, m));
-	return orders.length ? Math.min(...orders) : DEFAULT_BODY_ORDER.length * 10;
+export function groupOrder(
+	es: CardElementStyles,
+	group: CardGroup,
+	bodyOrder: CardElementId[] = DEFAULT_BODY_ORDER
+): number {
+	const orders = group.members.map((m) => elementOrder(es, m, bodyOrder));
+	return orders.length ? Math.min(...orders) : bodyOrder.length * 10;
 }
 
 /**
@@ -529,6 +546,14 @@ export function buildNoteTemplates(opts: {
 	const fields = opts.fields.filter(
 		(f) => f === FIELDS.AUDIO || fieldUsedByAnyCard(tabContent, f)
 	);
+
+	// Flex order follows the user's field sequence (chrome first, then fields).
+	const bodyOrder: CardElementId[] = [
+		'controlButtons',
+		'hr',
+		...opts.fields.map((f) => FIELD_TO_ELEMENT[f]).filter(Boolean),
+		'audio'
+	];
 
 	// Seed runtime defaults (body classes + collapse default) before each template.
 	const noHanziColor = template.mono || !template.colorHanzi;
@@ -743,7 +768,7 @@ for (var _hide of hideList) {
 
 		tmpls.push({ name: card, qfmt: QFMT, afmt: AFMT });
 
-		cardCss += buildCardCss(tabContent[card].elementStyles ?? {}, ct, groups);
+		cardCss += buildCardCss(tabContent[card].elementStyles ?? {}, ct, groups, bodyOrder);
 	}
 
 	const css = buildGlobalCss(template) + cardCss;

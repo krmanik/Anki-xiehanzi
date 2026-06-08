@@ -199,9 +199,17 @@
 		return globalFont;
 	}
 
-	// Flex `order` for a body block — drives the move up/down positioning.
+	// Flex order follows the field sequence (items) so the table reorder takes effect.
+	const bodyOrder = $derived<CardElementId[]>([
+		'controlButtons',
+		'hr',
+		...items.map((i) => FIELD_TO_ELEMENT[i]).filter(Boolean) as CardElementId[],
+		'audio'
+	]);
+
+	// Flex `order` for a body block — drives reorder + the move up/down positioning.
 	function ord(id: CardElementId): number {
-		return elementOrder(elementStyles, id);
+		return elementOrder(elementStyles, id, bodyOrder);
 	}
 
 	function styleToInline(s: ElementStyle | undefined, opts: { hanzi?: boolean } = {}): string {
@@ -275,7 +283,7 @@
 	});
 
 	function groupInline(g: CardGroup): string {
-		const r = [`order:${groupOrder(elementStyles, g)}`];
+		const r = [`order:${groupOrder(elementStyles, g, bodyOrder)}`];
 		if (g.display === 'flex') {
 			r.push('display:flex', `flex-direction:${g.direction}`, 'gap:8px', 'flex-wrap:wrap');
 			r.push(g.direction === 'row' ? 'align-items:center;justify-content:center' : 'align-items:center');

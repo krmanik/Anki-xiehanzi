@@ -178,6 +178,7 @@
 								{colorize}
 								font={template.font}
 								collapseDict={template.collapseDict}
+							commonPinyinOnly={template.commonPinyinOnly}
 								elementStyles={tabContent[tab]?.elementStyles ?? {}}
 								toneColors={palette}
 							word={currentWord}
@@ -191,6 +192,7 @@
 								{colorize}
 								font={template.font}
 								collapseDict={template.collapseDict}
+							commonPinyinOnly={template.commonPinyinOnly}
 								elementStyles={tabContent[tab]?.elementStyles ?? {}}
 								toneColors={palette}
 							word={currentWord}

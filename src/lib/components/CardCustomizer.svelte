@@ -338,6 +338,9 @@
 					<label class="mb-2 flex items-center gap-2 text-xs {localT.mono ? 'opacity-40' : ''}">
 						<input type="checkbox" class="h-3.5 w-3.5 accent-neutral-900" checked={localT.colorPinyin} onchange={(e) => patchTemplate({ colorPinyin: (e.target as HTMLInputElement).checked })} disabled={localT.mono} /> Color pinyin
 					</label>
+					<label class="mb-2 flex items-center gap-2 text-xs">
+						<input type="checkbox" class="h-3.5 w-3.5 accent-neutral-900" checked={localT.commonPinyinOnly} onchange={(e) => patchTemplate({ commonPinyinOnly: (e.target as HTMLInputElement).checked })} /> Most common pinyin only
+					</label>
 
 					<!-- Tone palette -->
 					<div class="{localT.mono ? 'opacity-40' : ''}">
@@ -704,6 +707,7 @@
 						colorize={colorize}
 						font={localT.font}
 						collapseDict={localT.collapseDict}
+						commonPinyinOnly={localT.commonPinyinOnly}
 						elementStyles={localES}
 						toneColors={previewPalette}
 						interactive={true}
@@ -716,6 +720,7 @@
 						colorize={colorize}
 						font={localT.font}
 						collapseDict={localT.collapseDict}
+						commonPinyinOnly={localT.commonPinyinOnly}
 						elementStyles={localES}
 						toneColors={previewPalette}
 						interactive={true}

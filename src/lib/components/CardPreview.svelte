@@ -26,6 +26,7 @@
 		colorize = true,
 		font = 'default',
 		collapseDict = false,
+		commonPinyinOnly = false,
 		elementStyles = {} as CardElementStyles,
 		toneColors = null,
 		word = null,
@@ -40,6 +41,7 @@
 		colorize?: boolean;
 		font?: string;
 		collapseDict?: boolean;
+		commonPinyinOnly?: boolean;
 		elementStyles?: CardElementStyles;
 		toneColors?: TonePalette | null;
 		/** When set, the preview renders this real word instead of the example. */
@@ -106,16 +108,34 @@
 		examples: ['中国是一个大国。', '我想去中国旅行。']
 	};
 
-	// Display source: a real Word when provided, otherwise the example.
-	const src = $derived(
-		word
-			? {
+	// Most-common reading index (longest definition); used by commonPinyinOnly.
+	function pickReadingIdx(w: Word): number {
+		if (!w.readings || w.readings.length <= 1) return 0;
+		let best = 0;
+		let bestLen = -1;
+		w.readings.forEach((r, i) => {
+			const l = (r.definition ?? '').trim().length;
+			if (l > bestLen) { bestLen = l; best = i; }
+		});
+		return best;
+	}
+
+	// Display source: a real Word when provided, otherwise the example. When
+	// commonPinyinOnly is on, collapse a multi-reading char to its common reading.
+	const src = $derived.by(() => {
+		if (!word) return ex;
+		const r =
+			commonPinyinOnly && word.readings && word.readings.length > 1
+				? word.readings[pickReadingIdx(word)]
+				: null;
+		return {
 					Simplified: word.Simplified,
 					Traditional: word.Traditional || word.Simplified,
-					syllable: word.readings?.[0]?.syllable ?? word.Syllable ?? '',
-					pinyin: word.Pinyin,
-					zhuyin: word.Zhuyin,
+					syllable: r?.syllable ?? word.readings?.[0]?.syllable ?? word.Syllable ?? '',
+					pinyin: r?.pinyinPlain ?? word.Pinyin,
+					zhuyin: r?.zhuyin ?? word.Zhuyin,
 					simple: word.SimpleMeaning,
+					// Definitions block is never reduced by commonPinyinOnly — keep all senses.
 					definition: word.commonMeaning || word.readings?.[0]?.definition || '',
 					breakdown: (word.breakdown ?? []).map((b) => ({
 						character: b.character,
@@ -130,9 +150,8 @@
 					// Example sentences are fetched at export, not on the Word — show the
 					// sample so the layout still previews.
 					examples: ex.examples
-				}
-			: ex
-	);
+		};
+	});
 
 	// Example sentences: real ones when provided, else a sample (designer mode).
 	const sampleExamples: ExampleSentence[] = [

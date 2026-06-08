@@ -232,6 +232,51 @@ export async function fetchMeaningGoogleTranslate(word: string) {
 }
 
 /**
+ * Index of a word's "most common" reading — the one whose definition text is
+ * longest (ties resolve to the first). Used by the "show most common pinyin"
+ * option to collapse a multi-reading character down to a single reading.
+ */
+export function commonReadingIndex(readings: Reading[]): number {
+	if (!readings || readings.length <= 1) return 0;
+	let best = 0;
+	let bestLen = -1;
+	readings.forEach((r, i) => {
+		const len = (r.definition ?? '').trim().length;
+		if (len > bestLen) {
+			bestLen = len;
+			best = i;
+		}
+	});
+	return best;
+}
+
+/**
+ * Effective Pinyin / Zhuyin / Definitions / Syllable strings for display. When
+ * `commonOnly` is set and the word has multiple readings, only the most common
+ * reading is used; otherwise the full joined strings carried on the Word.
+ */
+export function displayReadings(
+	word: Word,
+	commonOnly: boolean
+): { Pinyin: string; Zhuyin: string; Definitions: string; Syllable: string } {
+	if (!commonOnly || !word.readings || word.readings.length <= 1) {
+		return {
+			Pinyin: word.Pinyin,
+			Zhuyin: word.Zhuyin,
+			Definitions: word.Definitions,
+			Syllable: word.Syllable
+		};
+	}
+	const r = word.readings[commonReadingIndex(word.readings)];
+	return {
+		Pinyin: decodeHtmlEntities(r.pinyin),
+		Zhuyin: decodeHtmlEntities(r.zhuyin),
+		Definitions: r.definition,
+		Syllable: r.syllable
+	};
+}
+
+/**
  * Look up a single word and build its Word record from cedict.db. Words not in
  * the dictionary fall back to Google Translate. Dedup is the caller's job.
  */
@@ -383,6 +428,9 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 		const Pinyin = word.Pinyin;
 		const Zhuyin = word.Zhuyin;
 		const Definitions = word.Definitions;
+		// "Most common pinyin only" affects ONLY the standalone Pinyin/Zhuyin fields
+		// (the top reading line). The Definitions block always keeps every reading.
+		const top = displayReadings(word, template.commonPinyinOnly);
 
 		const note: string[] = [];
 
@@ -394,10 +442,10 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 				note.push(`〔${Traditional}〕`);
 			}
 			if (JSON.stringify(obj) === JSON.stringify({ name: 'Pinyin' })) {
-				note.push(Pinyin);
+				note.push(top.Pinyin);
 			}
 			if (JSON.stringify(obj) === JSON.stringify({ name: 'Zhuyin' })) {
-				note.push(Zhuyin);
+				note.push(top.Zhuyin);
 			}
 			if (JSON.stringify(obj) === JSON.stringify({ name: 'PartOfSpeech' })) {
 				const chips = word.pos

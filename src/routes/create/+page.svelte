@@ -610,6 +610,9 @@
 						disabled={template.mono}
 					/> Color pinyin
 				</label>
+				<label class="flex items-center gap-2 text-sm" title="Multi-reading characters show only their most common reading (the one with the longest definition)">
+					<input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.commonPinyinOnly} /> Most common pinyin only
+				</label>
 
 				<label class="flex items-center gap-2 text-sm {template.mono ? 'opacity-40' : ''}">
 					Tone palette
@@ -846,6 +849,7 @@
 								colorize={!template.mono && template.colorHanzi}
 								font={template.font}
 								collapseDict={template.collapseDict}
+								commonPinyinOnly={template.commonPinyinOnly}
 								elementStyles={activeStyles}
 								toneColors={palette}
 								exampleSentences={previewExamples}
@@ -858,6 +862,7 @@
 								colorize={!template.mono && template.colorHanzi}
 								font={template.font}
 								collapseDict={template.collapseDict}
+								commonPinyinOnly={template.commonPinyinOnly}
 								elementStyles={activeStyles}
 								toneColors={palette}
 								exampleSentences={previewExamples}

@@ -19,8 +19,9 @@ vi.mock('@kingdanx/edge-tts-browser', () => ({
 }));
 vi.mock('jieba-wasm', () => ({ default: async () => {}, cut: () => [] }));
 
-import { generateDeck, type Word } from './deck';
+import { generateDeck, commonReadingIndex, displayReadings, type Word } from './deck';
 import type { TabContent } from './deckTemplate';
+import type { Reading } from './dict/cedict';
 
 function word(): Word {
 	return {
@@ -49,6 +50,35 @@ async function loadSql() {
 	const wasmBinary = fs.readFileSync(path.resolve('node_modules/sql.js/dist/sql-wasm.wasm'));
 	return initSqlJs({ wasmBinary });
 }
+
+describe('most-common reading', () => {
+	const readings: Reading[] = [
+		{ syllable: 'de5', pinyin: 'de', pinyinPlain: 'de', zhuyin: 'ㄉㄜ˙', definition: 'of' },
+		{
+			syllable: 'di2',
+			pinyin: 'dí',
+			pinyinPlain: 'dí',
+			zhuyin: 'ㄉㄧˊ',
+			definition: 'really and truly; genuine; certain'
+		},
+		{ syllable: 'di4', pinyin: 'dì', pinyinPlain: 'dì', zhuyin: 'ㄉㄧˋ', definition: 'aim; clear' }
+	];
+
+	it('picks the reading with the longest definition', () => {
+		expect(commonReadingIndex(readings)).toBe(1);
+		expect(commonReadingIndex([])).toBe(0);
+	});
+
+	it('displayReadings collapses to the common reading only when asked', () => {
+		const w = { ...word(), readings, Pinyin: 'de, dí, dì' } as Word;
+		expect(displayReadings(w, false).Pinyin).toBe('de, dí, dì');
+		const common = displayReadings(w, true);
+		expect(common.Pinyin).toBe('dí');
+		expect(common.Zhuyin).toBe('ㄉㄧˊ');
+		expect(common.Syllable).toBe('di2');
+		expect(common.Definitions).toContain('genuine');
+	});
+});
 
 describe('generateDeck — real .apkg round-trip', () => {
 	it('produces a zip whose embedded SQLite carries the per-card CSS, templates and fields', async () => {

@@ -107,6 +107,7 @@ export interface TemplateOpts {
 	colorPinyin: boolean;
 	font: string; // global hanzi font: 'default' | 'kaiti' | 'songti'
 	collapseDict: boolean;
+	commonPinyinOnly: boolean; // show only the most common reading (longest definition)
 	tonePreset: string; // 'standard' | 'pleco' | 'blueprint' | 'mdbg' | 'custom'
 	toneColors: TonePalette; // used when tonePreset === 'custom'
 	exampleOptions: ExampleOptions;
@@ -119,6 +120,7 @@ export const DEFAULT_TEMPLATE: TemplateOpts = {
 	colorPinyin: true,
 	font: 'default',
 	collapseDict: false,
+	commonPinyinOnly: true,
 	tonePreset: 'standard',
 	toneColors: { ...STANDARD_TONES },
 	exampleOptions: { ...DEFAULT_EXAMPLE_OPTIONS },

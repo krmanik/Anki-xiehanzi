@@ -94,6 +94,7 @@
 	let template = $state<TemplateOpts>({ ...DEFAULT_TEMPLATE });
 	let page = $state(1);
 	let showCustomizer = $state(false);
+	let appearanceOpen = $state(true);
 	let wordValue = $state('');
 	let selectType = $state('Word');
 	let texAreaValue = $state('');
@@ -528,8 +529,19 @@
 				{/if}
 			</div>
 
-			<h2 class="mt-6 text-xl font-semibold">Card Template</h2>
-			<div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+			<button
+				type="button"
+				onclick={() => (appearanceOpen = !appearanceOpen)}
+				aria-expanded={appearanceOpen}
+				class="mt-6 flex w-full items-center gap-2 border-b border-neutral-200 pb-2 text-left"
+			>
+				<ChevronDown size={18} class="text-neutral-400 transition {appearanceOpen ? '' : '-rotate-90'}" />
+				<span class="text-xl font-semibold">Customize appearance</span>
+				<span class="text-sm font-normal text-neutral-400">tone colors, font, definitions — optional</span>
+			</button>
+
+			{#if appearanceOpen}
+			<div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3">
 				<div class="inline-flex overflow-hidden rounded-lg border border-neutral-300">
 					<button
 						class="px-3 py-1.5 text-sm {!template.mono
@@ -625,6 +637,7 @@
 					{/if}
 				</div>
 			{/if}
+			{/if}
 
 			<div class="mt-6 flex items-center gap-3">
 				<h2 class="text-xl font-semibold">Create Card Types</h2>
@@ -691,6 +704,7 @@
 					<div class="grid gap-6 py-4 lg:grid-cols-[1fr_320px]">
 						<!-- field editor -->
 						<div>
+							<p class="mb-2 text-xs text-neutral-500">Tick a field to show it on the front and/or back of this card type.</p>
 							<div
 								class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 pb-1 font-mono text-[10px] uppercase tracking-wider text-neutral-400"
 							>

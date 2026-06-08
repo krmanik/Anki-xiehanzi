@@ -61,6 +61,18 @@ describe('Create page — card type tabs', () => {
 	});
 });
 
+describe('Create page — appearance accordion', () => {
+	it('groups styling controls under a "Customize appearance" accordion (open by default)', async () => {
+		const user = userEvent.setup();
+		render(Page);
+		// Open by default — styling controls are visible.
+		expect(screen.getByText('Collapse dictionary definitions')).toBeInTheDocument();
+		// Clicking the header collapses them away.
+		await user.click(screen.getByText('Customize appearance'));
+		expect(screen.queryByText('Collapse dictionary definitions')).toBeNull();
+	});
+});
+
 describe('Create page — presets', () => {
 	it('replaces the lone default card with a one-click preset and enables audio', async () => {
 		const user = userEvent.setup();

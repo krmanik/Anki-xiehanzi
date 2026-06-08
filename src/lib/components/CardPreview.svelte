@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { colorizeHanzi, toneOfPinyin } from '$lib/tone';
-	import { elementOrder, DEFAULT_EXAMPLE_OPTIONS, type CardElementId, type CardElementStyles, type ElementStyle, type ExampleOptions } from '$lib/deckTemplate';
+	import { elementOrder, groupOrder, FIELD_TO_ELEMENT, DEFAULT_EXAMPLE_OPTIONS, type CardElementId, type CardElementStyles, type CardGroup, type ElementStyle, type ExampleOptions } from '$lib/deckTemplate';
 	import { hskLevelLabel, frequencyBand } from '$lib/dict/meta';
 	import { STANDARD_TONES, type TonePalette, type ToneKey } from '$lib/tonePresets';
 	import type { Word, ExampleSentence } from '$lib/deck';
@@ -28,12 +28,14 @@
 		collapseDict = false,
 		commonPinyinOnly = false,
 		elementStyles = {} as CardElementStyles,
+		groups = [] as CardGroup[],
 		toneColors = null,
 		word = null,
 		exampleSentences = null,
 		exampleOptions = null,
 		interactive = false,
-		selectedElement = $bindable<CardElementId | null>(null)
+		selectedElement = $bindable<CardElementId | null>(null),
+		selectedGroup = $bindable<string | null>(null)
 	}: {
 		label: string;
 		items: string[];
@@ -43,6 +45,7 @@
 		collapseDict?: boolean;
 		commonPinyinOnly?: boolean;
 		elementStyles?: CardElementStyles;
+		groups?: CardGroup[];
 		toneColors?: TonePalette | null;
 		/** When set, the preview renders this real word instead of the example. */
 		word?: Word | null;
@@ -51,6 +54,7 @@
 		exampleOptions?: ExampleOptions | null;
 		interactive?: boolean;
 		selectedElement?: CardElementId | null;
+		selectedGroup?: string | null;
 	} = $props();
 
 	// Inline tone color for a preview hanzi span (honours the chosen palette).
@@ -200,12 +204,11 @@
 		return elementOrder(elementStyles, id);
 	}
 
-	function elStyle(id: CardElementId): string {
-		const s: ElementStyle | undefined = elementStyles[id];
+	function styleToInline(s: ElementStyle | undefined, opts: { hanzi?: boolean } = {}): string {
 		if (!s) return '';
 		const r: string[] = [];
 		if (s.fontSize)        r.push(`font-size:${s.fontSize}`);
-		if (id !== 'simplified' && id !== 'traditional' && s.fontFamily && s.fontFamily !== 'default')
+		if (!opts.hanzi && s.fontFamily && s.fontFamily !== 'default')
 			r.push(`font-family:${fontStacks[s.fontFamily] ?? s.fontFamily}`);
 		if (s.fontWeight)      r.push(`font-weight:${s.fontWeight}`);
 		if (s.color)           r.push(`color:${s.color}`);
@@ -223,11 +226,71 @@
 		if (s.lineHeight)      r.push(`line-height:${s.lineHeight}`);
 		if (s.borderColor)     r.push(`border-color:${s.borderColor}`);
 		if (s.borderWidth)     r.push(`border-width:${s.borderWidth}`);
+		if (s.borderStyle)     r.push(`border-style:${s.borderStyle}`);
+		if (s.boxShadow)       r.push(`box-shadow:${s.boxShadow}`);
 		return r.join(';');
+	}
+
+	function elStyle(id: CardElementId): string {
+		return styleToInline(elementStyles[id], { hanzi: id === 'simplified' || id === 'traditional' });
 	}
 
 	function isHidden(id: CardElementId): boolean {
 		return elementStyles[id]?.visible === false;
+	}
+
+	// ── Groups (designer) ────────────────────────────────────────────────────
+	// Item field name (e.g. 'Pinyin') → body element id (e.g. 'pinyin').
+	const elOf = (item: string): CardElementId | undefined => FIELD_TO_ELEMENT[item];
+
+	// Ordered render slots: standalone items + group containers (in body order).
+	const slots = $derived.by(() => {
+		const gOf = new Map<CardElementId, string>();
+		for (const g of groups) for (const m of g.members) gOf.set(m, g.id);
+		const byId = new Map(groups.map((g) => [g.id, g]));
+		const memberItems = new Map<string, string[]>();
+		for (const item of items) {
+			const el = elOf(item);
+			const gid = el ? gOf.get(el) : undefined;
+			if (gid) {
+				if (!memberItems.has(gid)) memberItems.set(gid, []);
+				memberItems.get(gid)!.push(item);
+			}
+		}
+		const out: Array<{ kind: 'single'; item: string } | { kind: 'group'; group: CardGroup; items: string[] }> = [];
+		const done = new Set<string>();
+		for (const item of items) {
+			const el = elOf(item);
+			const gid = el ? gOf.get(el) : undefined;
+			if (gid && byId.has(gid)) {
+				if (!done.has(gid)) {
+					done.add(gid);
+					out.push({ kind: 'group', group: byId.get(gid)!, items: memberItems.get(gid)! });
+				}
+			} else {
+				out.push({ kind: 'single', item });
+			}
+		}
+		return out;
+	});
+
+	function groupInline(g: CardGroup): string {
+		const r = [`order:${groupOrder(elementStyles, g)}`];
+		if (g.display === 'flex') {
+			r.push('display:flex', `flex-direction:${g.direction}`, 'gap:8px', 'flex-wrap:wrap');
+			r.push(g.direction === 'row' ? 'align-items:center;justify-content:center' : 'align-items:center');
+		} else {
+			r.push('display:block');
+		}
+		const s = styleToInline(g.style);
+		return s ? r.join(';') + ';' + s : r.join(';');
+	}
+
+	function selectGroup(id: string, e: Event) {
+		if (!interactive) return;
+		e.stopPropagation();
+		selectedGroup = id;
+		selectedElement = null;
 	}
 
 	function selClass(id: CardElementId): string {
@@ -244,6 +307,7 @@
 		if (!interactive) return;
 		e.stopPropagation();
 		selectedElement = id;
+		selectedGroup = null;
 	}
 
 	// Keyboard handler satisfying a11y requirements for click-equivalent interactions.
@@ -326,7 +390,7 @@
 			<span class="text-sm text-neutral-300" style="order:999">Nothing selected</span>
 		{/if}
 
-		{#each items as item (item)}
+		{#snippet itemBody(item: string)}
 
 			{#if item === 'Simplified' && (!isHidden('simplified') || interactive)}
 				<div
@@ -546,6 +610,26 @@
 				</div>
 			{/if}
 
+		{/snippet}
+
+		{#each slots as slot (slot.kind === 'group' ? slot.group.id : slot.item)}
+			{#if slot.kind === 'single'}
+				{@render itemBody(slot.item)}
+			{:else}
+				<div
+					class="relative box-border {interactive ? 'cursor-pointer rounded ring-2 transition-all ' + (selectedGroup === slot.group.id ? 'ring-violet-500 ring-offset-1' : 'ring-violet-200 hover:ring-violet-400 hover:ring-offset-1') : ''}"
+					style={groupInline(slot.group)}
+					role="button"
+					tabindex="0"
+					onclick={(e) => selectGroup(slot.group.id, e)}
+					onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && selectGroup(slot.group.id, e)}
+				>
+					{#each slot.items as it (it)}
+						{@render itemBody(it)}
+					{/each}
+					{#if interactive && selectedGroup === slot.group.id}<span class="absolute -top-2 left-1 rounded bg-violet-500 px-1.5 py-0.5 text-[9px] text-white">Group</span>{/if}
+				</div>
+			{/if}
 		{/each}
 
 		{#if interactive && items.length === 0}

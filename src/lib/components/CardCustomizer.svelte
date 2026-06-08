@@ -2,8 +2,10 @@
 	import {
 		CARD_STYLE_LS_KEY,
 		elementOrder,
+		FIELD_TO_ELEMENT,
 		type CardElementId,
 		type CardElementStyles,
+		type CardGroup,
 		type ElementStyle,
 		type TabContent,
 		type TemplateOpts
@@ -61,7 +63,73 @@
 
 	let mobilePreview = $state(false);
 	let selectedElement = $state<CardElementId | null>(null);
+	let selectedGroup = $state<string | null>(null);
+	let groupSel = $state<Set<CardElementId>>(new Set());
 	let fieldsCollapsed = $state(false);
+
+	// ── Element groups ────────────────────────────────────────────────────────
+	const cardGroups = $derived<CardGroup[]>(card?.groups ?? []);
+
+	function patchGroups(groups: CardGroup[]) {
+		patchCard({ groups });
+	}
+
+	// Body fields present on this card (front or back), not already grouped.
+	const groupableElements = $derived.by(() => {
+		const present = new Set<CardElementId>();
+		for (const f of [...front, ...back]) {
+			const name = f.replace(/^front/, '').replace(/^back/, '');
+			const el = FIELD_TO_ELEMENT[name];
+			if (el) present.add(el);
+		}
+		const grouped = new Set(cardGroups.flatMap((g) => g.members));
+		return ALL_ELEMENTS.filter((e) => present.has(e.id) && !grouped.has(e.id));
+	});
+
+	function toggleGroupSel(id: CardElementId) {
+		const next = new Set(groupSel);
+		next.has(id) ? next.delete(id) : next.add(id);
+		groupSel = next;
+	}
+
+	function createGroup() {
+		const members = [...groupSel];
+		if (members.length < 2) return;
+		const id = `g${Math.random().toString(36).slice(2, 7)}`;
+		patchGroups([...cardGroups, { id, members, display: 'flex', direction: 'row', style: {} }]);
+		groupSel = new Set();
+		selectedGroup = id;
+		selectedElement = null;
+	}
+
+	function ungroup(id: string) {
+		patchGroups(cardGroups.filter((g) => g.id !== id));
+		if (selectedGroup === id) selectedGroup = null;
+	}
+
+	const selGroupObj = $derived(cardGroups.find((g) => g.id === selectedGroup) ?? null);
+
+	function setGroupProp(patch: Partial<CardGroup>) {
+		if (!selectedGroup) return;
+		patchGroups(cardGroups.map((g) => (g.id === selectedGroup ? { ...g, ...patch } : g)));
+	}
+	function setGroupStyle(patch: Partial<ElementStyle>) {
+		if (!selectedGroup) return;
+		patchGroups(
+			cardGroups.map((g) => (g.id === selectedGroup ? { ...g, style: { ...g.style, ...patch } } : g))
+		);
+	}
+	function clearGroupStyle(key: keyof ElementStyle) {
+		if (!selectedGroup) return;
+		patchGroups(
+			cardGroups.map((g) => {
+				if (g.id !== selectedGroup) return g;
+				const style = { ...g.style };
+				delete style[key];
+				return { ...g, style };
+			})
+		);
+	}
 
 	// Mutate the active card's content immutably so bindings propagate.
 	function patchCard(patch: Partial<TabContent[string]>) {
@@ -256,10 +324,11 @@
 		onclose?.();
 	}
 
-	// Reset only the active card type's element styles.
+	// Reset only the active card type's element styles + groups.
 	function reset() {
-		patchCard({ elementStyles: {} });
+		patchCard({ elementStyles: {}, groups: [] });
 		selectedElement = null;
+		selectedGroup = null;
 	}
 
 	// Mutate the deck-wide template immutably (tone palette / font / colours).
@@ -380,13 +449,113 @@
 										: isHidden(el.id)
 											? 'border-neutral-200 bg-neutral-50 text-neutral-300'
 											: 'border-neutral-200 text-neutral-600 hover:border-neutral-400'}"
-								onclick={() => (selectedElement = selectedElement === el.id ? null : el.id)}
+								onclick={() => { selectedElement = selectedElement === el.id ? null : el.id; selectedGroup = null; }}
 							>
 								{el.label}
 								{#if isHidden(el.id)}<EyeOff size={9} />{/if}
 							</button>
 						{/each}
 					</div>
+				</div>
+
+				<!-- Element groups -->
+				<div class="border-b border-neutral-100 p-3">
+					<p class="mb-2 font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">Groups — row / column containers</p>
+					{#if cardGroups.length}
+						<div class="mb-2 flex flex-wrap gap-1">
+							{#each cardGroups as g (g.id)}
+								<button
+									class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] transition
+										{selectedGroup === g.id ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-neutral-200 text-neutral-600 hover:border-neutral-400'}"
+									onclick={() => { selectedGroup = selectedGroup === g.id ? null : g.id; selectedElement = null; }}
+								>{g.display === 'flex' ? (g.direction === 'row' ? 'Row' : 'Column') : 'Block'} · {g.members.length}</button>
+							{/each}
+						</div>
+					{/if}
+					{#if groupableElements.length >= 2}
+						<p class="mb-1 text-[10px] text-neutral-400">Pick 2+ elements, then group them:</p>
+						<div class="flex flex-wrap gap-1">
+							{#each groupableElements as el (el.id)}
+								<button
+									class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] transition
+										{groupSel.has(el.id) ? 'border-violet-500 bg-violet-100 text-violet-700' : 'border-neutral-200 text-neutral-500 hover:border-neutral-400'}"
+									onclick={() => toggleGroupSel(el.id)}
+								>{el.label}</button>
+							{/each}
+						</div>
+						<button
+							class="mt-2 w-full rounded-lg bg-violet-600 py-1.5 text-xs text-white transition hover:bg-violet-700 disabled:opacity-40"
+							disabled={groupSel.size < 2}
+							onclick={createGroup}
+						>Group {groupSel.size || ''} selected</button>
+					{:else if !cardGroups.length}
+						<p class="text-[10px] text-neutral-300">Add 2+ fields to a side to group them.</p>
+					{/if}
+
+					<!-- Selected group properties (layout + container style) -->
+					{#if selGroupObj}
+						{@const g = selGroupObj}
+						<div class="mt-3 space-y-3 rounded-lg border border-violet-200 bg-violet-50/40 p-2">
+							<div class="flex items-center justify-between">
+								<p class="font-mono text-[9px] uppercase tracking-[0.2em] text-violet-500">Group ({g.members.length} items)</p>
+								<button class="rounded px-2 py-0.5 text-[10px] text-red-500 transition hover:bg-red-100" onclick={() => ungroup(g.id)}>Ungroup</button>
+							</div>
+							<div>
+								<p class="mb-1 text-xs font-medium">Layout</p>
+								<div class="inline-flex w-full overflow-hidden rounded-lg border border-neutral-200 bg-white">
+									<button class={segClass(g.display === 'flex' && g.direction === 'row')} onclick={() => setGroupProp({ display: 'flex', direction: 'row' })}>Row</button>
+									<button class={segClass(g.display === 'flex' && g.direction === 'column')} onclick={() => setGroupProp({ display: 'flex', direction: 'column' })}>Column</button>
+									<button class={segClass(g.display === 'block')} onclick={() => setGroupProp({ display: 'block' })}>Block</button>
+								</div>
+							</div>
+							<div>
+								<p class="mb-1 text-xs font-medium">Background</p>
+								<div class="flex items-center gap-2">
+									<input type="color" value={g.style.backgroundColor ?? '#ffffff'}
+										oninput={(e) => setGroupStyle({ backgroundColor: (e.target as HTMLInputElement).value })}
+										class="h-8 w-9 cursor-pointer rounded border border-neutral-200 p-0.5" />
+									<button onclick={() => clearGroupStyle('backgroundColor')} class="text-[10px] text-neutral-400 hover:text-neutral-700">Reset</button>
+								</div>
+							</div>
+							<div>
+								<p class="mb-1 text-xs font-medium">Border</p>
+								<div class="inline-flex w-full overflow-hidden rounded-lg border border-neutral-200 bg-white">
+									{#each [{ l: 'None', v: 'none' }, { l: 'Solid', v: 'solid' }, { l: 'Dashed', v: 'dashed' }, { l: 'Dotted', v: 'dotted' }] as b (b.v)}
+										<button class={segClass((g.style.borderStyle ?? 'none') === b.v)}
+											onclick={() => (b.v === 'none' ? clearGroupStyle('borderStyle') : setGroupStyle({ borderStyle: b.v }))}>{b.l}</button>
+									{/each}
+								</div>
+								{#if g.style.borderStyle && g.style.borderStyle !== 'none'}
+									<div class="mt-1 grid grid-cols-2 gap-2">
+										<input type="color" value={g.style.borderColor ?? '#d4d4d4'}
+											oninput={(e) => setGroupStyle({ borderColor: (e.target as HTMLInputElement).value })}
+											class="h-8 w-full cursor-pointer rounded border border-neutral-200 p-0.5" />
+										<UnitInput value={g.style.borderWidth ?? ''} placeholder="1"
+											onchange={(v) => (v ? setGroupStyle({ borderWidth: v }) : clearGroupStyle('borderWidth'))} />
+									</div>
+								{/if}
+							</div>
+							<div>
+								<p class="mb-1 text-xs font-medium">Corner radius</p>
+								<UnitInput value={g.style.borderRadius ?? ''} placeholder="8"
+									onchange={(v) => (v ? setGroupStyle({ borderRadius: v }) : clearGroupStyle('borderRadius'))} />
+							</div>
+							<div>
+								<p class="mb-1 text-xs font-medium">Padding</p>
+								<UnitInput value={g.style.padding ?? ''} placeholder="8"
+									onchange={(v) => (v ? setGroupStyle({ padding: v }) : clearGroupStyle('padding'))} />
+							</div>
+							<div>
+								<p class="mb-1 text-xs font-medium">Spacing above / below</p>
+								<div class="grid grid-cols-2 gap-2">
+									<UnitInput value={g.style.marginTop ?? ''} placeholder="top"
+										onchange={(v) => (v ? setGroupStyle({ marginTop: v }) : clearGroupStyle('marginTop'))} />
+									<UnitInput value={g.style.marginBottom ?? ''} placeholder="bottom"
+										onchange={(v) => (v ? setGroupStyle({ marginBottom: v }) : clearGroupStyle('marginBottom'))} />
+								</div>
+							</div>
+						</div>
+					{/if}
 				</div>
 
 				<!-- Fields on front / back (so the user needn't close the dialog) -->
@@ -709,9 +878,11 @@
 						collapseDict={localT.collapseDict}
 						commonPinyinOnly={localT.commonPinyinOnly}
 						elementStyles={localES}
+						groups={cardGroups}
 						toneColors={previewPalette}
 						interactive={true}
 						bind:selectedElement
+						bind:selectedGroup
 					/>
 					<CardPreview
 						label="Back"
@@ -722,9 +893,11 @@
 						collapseDict={localT.collapseDict}
 						commonPinyinOnly={localT.commonPinyinOnly}
 						elementStyles={localES}
+						groups={cardGroups}
 						toneColors={previewPalette}
 						interactive={true}
 						bind:selectedElement
+						bind:selectedGroup
 					/>
 				</div>
 

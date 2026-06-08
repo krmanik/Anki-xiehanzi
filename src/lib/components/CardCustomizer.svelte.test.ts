@@ -42,8 +42,9 @@ describe('CardCustomizer — element selection + position controls', () => {
 		expect(screen.getByText('Up')).toBeInTheDocument();
 		expect(screen.getByText('Down')).toBeInTheDocument();
 
-		// Switch to a normal field → no position controls.
-		await user.click(screen.getByText('Simplified 大'));
+		// Switch to a normal field → no position controls. (Label also appears in the
+		// group-builder list; the element-list chip is the first match.)
+		await user.click(screen.getAllByText('Simplified 大')[0]);
 		expect(screen.queryByText('Up')).toBeNull();
 		expect(screen.queryByText('Down')).toBeNull();
 	});
@@ -79,7 +80,7 @@ describe('CardCustomizer — visibility toggle', () => {
 		const user = userEvent.setup();
 		const { container } = render(CardCustomizer, { props: baseProps() });
 
-		await user.click(screen.getByText('Simplified 大'));
+		await user.click(screen.getAllByText('Simplified 大')[0]);
 		await user.click(screen.getByText('Visible')); // toggles to Hidden
 		expect(container.innerHTML).toContain('opacity-30');
 		expect(screen.getByText('Hidden')).toBeInTheDocument();

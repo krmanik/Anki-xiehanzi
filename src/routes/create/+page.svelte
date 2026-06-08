@@ -222,6 +222,7 @@
 	);
 	// Per-card-type element styles for the active tab (drives the live previews).
 	const activeStyles = $derived(tabContent[tabs[activeTab]]?.elementStyles ?? {});
+	const activeGroups = $derived(tabContent[tabs[activeTab]]?.groups ?? []);
 	// Resolved tone palette (preset or custom) for the live previews.
 	const palette = $derived(resolvePalette(template.tonePreset, template.toneColors));
 
@@ -851,6 +852,7 @@
 								collapseDict={template.collapseDict}
 								commonPinyinOnly={template.commonPinyinOnly}
 								elementStyles={activeStyles}
+								groups={activeGroups}
 								toneColors={palette}
 								exampleSentences={previewExamples}
 								exampleOptions={template.exampleOptions}
@@ -864,6 +866,7 @@
 								collapseDict={template.collapseDict}
 								commonPinyinOnly={template.commonPinyinOnly}
 								elementStyles={activeStyles}
+								groups={activeGroups}
 								toneColors={palette}
 								exampleSentences={previewExamples}
 								exampleOptions={template.exampleOptions}

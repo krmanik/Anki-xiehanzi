@@ -264,6 +264,30 @@ export async function characterBreakdown(word: string): Promise<CharInfo[]> {
 	return lookupCharacters(chars);
 }
 
+/**
+ * All words at the given HSK level tokens (e.g. ['1','2','7+']), most-common
+ * first. A word counts for a level if any of its (comma-joined) level tokens
+ * matches. Used by the "add words by HSK level" source on the create page.
+ */
+export async function wordsByLevel(levels: string[]): Promise<string[]> {
+	if (!cedictDb) await loadCedict();
+	const out = new Set<string>();
+	for (const lvl of levels) {
+		const tok = `new-${lvl}`;
+		// Boundary-safe match: exact, leading, trailing or interior comma-joined.
+		const rows = queryAll(
+			cedictDb,
+			`SELECT wl.word AS word, c.rank AS rank
+			 FROM word_levels wl LEFT JOIN cedict c ON c.word = wl.word
+			 WHERE wl.level = ? OR wl.level LIKE ? OR wl.level LIKE ? OR wl.level LIKE ?
+			 ORDER BY CASE WHEN c.rank IS NULL THEN 1 ELSE 0 END, c.rank ASC`,
+			[tok, `${tok},%`, `%,${tok}`, `%,${tok},%`]
+		);
+		for (const r of rows) out.add(r.word);
+	}
+	return [...out];
+}
+
 export interface Sentence {
 	sentence: string;
 	difficulty: number;

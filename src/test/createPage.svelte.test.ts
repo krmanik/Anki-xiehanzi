@@ -24,7 +24,8 @@ vi.mock('$lib/deck', async () => {
 		})),
 		playWordAudio: vi.fn(async () => true),
 		setupSql: vi.fn(async () => ({})),
-		cutParagraph: vi.fn(() => [])
+		cutParagraph: vi.fn(() => []),
+		wordsByLevel: vi.fn(async () => ['爱', '吧'])
 	};
 });
 
@@ -106,6 +107,22 @@ describe('Create page — advanced customiser', () => {
 		expect(screen.getByRole('dialog', { name: 'Card Customiser' })).toBeInTheDocument();
 		await user.click(screen.getByText('Save customisation'));
 		expect(screen.queryByRole('dialog', { name: 'Card Customiser' })).toBeNull();
+	});
+});
+
+describe('Create page — HSK level source', () => {
+	it('adds all words for the selected HSK levels', async () => {
+		const user = userEvent.setup();
+		render(Page);
+		await user.click(screen.getByText('Input Chinese Characters'));
+		await user.click(screen.getByRole('button', { name: 'HSK Level' }));
+		await user.click(screen.getByRole('button', { name: 'HSK 1' }));
+		await user.click(screen.getByRole('button', { name: 'Add words' }));
+
+		expect(deck.wordsByLevel).toHaveBeenCalledWith(['1']);
+		// Both mocked words land in the list (rendered as WordCards).
+		expect(await screen.findByText('爱')).toBeInTheDocument();
+		expect(await screen.findByText('吧')).toBeInTheDocument();
 	});
 });
 

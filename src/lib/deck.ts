@@ -26,6 +26,7 @@ import {
 	simpleMeaningOf,
 	posDisplay,
 	characterBreakdown,
+	wordsByLevel,
 	type Reading,
 	type CharInfo
 } from './dict/cedict';
@@ -284,6 +285,8 @@ export async function lookupWord(word: string): Promise<Word> {
 		breakdown
 	};
 }
+
+export { wordsByLevel };
 
 export function filterChineseWords(array: string[]): string[] {
 	const chineseRegex = /[一-龥]/;

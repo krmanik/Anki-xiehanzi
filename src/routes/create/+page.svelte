@@ -40,6 +40,7 @@
 		lookupWord,
 		playWordAudio,
 		setupSql,
+		wordsByLevel,
 		type TabContent,
 		type Word
 	} from '$lib/deck';
@@ -117,8 +118,46 @@
 	const selectionTypes = [
 		{ value: 'Word', name: 'Word' },
 		{ value: 'Paragraph', name: 'Paragraph' },
-		{ value: 'File', name: 'File' }
+		{ value: 'File', name: 'File' },
+		{ value: 'HSK', name: 'HSK Level' }
 	];
+
+	// HSK-level word source: pick levels, populate the list with all their words.
+	const HSK_LEVELS = ['1', '2', '3', '4', '5', '6', '7+'];
+	let selectedLevels = $state<Set<string>>(new Set());
+	let hskProcessing = $state(false);
+	let hskProgress = $state(0);
+	let hskStatus = $state('');
+
+	function toggleLevel(lvl: string) {
+		const next = new Set(selectedLevels);
+		if (next.has(lvl)) next.delete(lvl);
+		else next.add(lvl);
+		selectedLevels = next;
+	}
+
+	async function addWordsByLevel() {
+		if (hskProcessing || selectedLevels.size === 0) return;
+		hskProcessing = true;
+		hskProgress = 0;
+		hskStatus = 'Loading word list…';
+		try {
+			const list = await wordsByLevel([...selectedLevels]);
+			const existing = new Set(words.map((w) => w.Simplified));
+			const todo = list.filter((w) => !existing.has(w));
+			const added: Word[] = [];
+			for (let i = 0; i < todo.length; i++) {
+				hskProgress = Math.round(((i + 1) / todo.length) * 100);
+				hskStatus = `Adding ${i + 1} / ${todo.length}…`;
+				added.push(await lookupWord(todo[i]));
+			}
+			words = [...words, ...added];
+			hskProgress = 100;
+			hskStatus = `Added ${added.length} words.`;
+		} finally {
+			hskProcessing = false;
+		}
+	}
 
 	// Button styles matching the site's black/neutral design system.
 	const btnPrimary =
@@ -722,6 +761,44 @@
 						<p class="mt-1 text-sm text-neutral-500">
 							{fileStatus || 'Upload a text file with one word per line.'}
 						</p>
+					{/if}
+				</div>
+			{/if}
+
+			{#if selectType === 'HSK'}
+				<div class="my-4">
+					<p class="mb-2 text-sm text-neutral-500">
+						Pick one or more HSK levels — every word at those levels is added to your deck,
+						most-common first.
+					</p>
+					<div class="mb-3 flex flex-wrap gap-2">
+						{#each HSK_LEVELS as lvl (lvl)}
+							<button
+								type="button"
+								onclick={() => toggleLevel(lvl)}
+								class="rounded-lg border px-3 py-1.5 text-sm transition {selectedLevels.has(lvl)
+									? 'border-neutral-900 bg-neutral-900 text-white'
+									: 'border-neutral-300 text-neutral-600 hover:border-neutral-900'}"
+							>
+								HSK {lvl}
+							</button>
+						{/each}
+					</div>
+					<button
+						class={btnPrimary}
+						onclick={addWordsByLevel}
+						disabled={selectedLevels.size === 0 || hskProcessing}
+					>
+						{hskProcessing ? 'Adding…' : 'Add words'}
+					</button>
+					{#if hskProcessing || hskProgress > 0}
+						<div class="mt-3">
+							<div class="mb-1 flex justify-between text-xs text-neutral-500">
+								<span>{hskStatus}</span>
+								<span>{hskProgress}%</span>
+							</div>
+							<Progressbar progress={hskProgress} />
+						</div>
 					{/if}
 				</div>
 			{/if}

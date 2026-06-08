@@ -10,6 +10,7 @@
 	} from '$lib/deckTemplate';
 	import { TONE_PRESETS, TONE_KEYS, resolvePalette } from '$lib/tonePresets';
 	import CardPreview from './CardPreview.svelte';
+	import UnitInput from './UnitInput.svelte';
 	import Monitor from '@lucide/svelte/icons/monitor';
 	import Smartphone from '@lucide/svelte/icons/smartphone';
 	import X from '@lucide/svelte/icons/x';
@@ -480,9 +481,8 @@
 								</div>
 								<div>
 									<p class="mb-1 text-xs font-medium">Padding</p>
-									<input type="text" placeholder="e.g. 16px or 1rem" value={selStyle.padding ?? ''}
-										oninput={(e) => { const v = (e.target as HTMLInputElement).value; v ? setStyle({ padding: v }) : clearStyle('padding'); }}
-										class="w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-xs" />
+									<UnitInput value={selStyle.padding ?? ''} placeholder="16"
+										onchange={(v) => (v ? setStyle({ padding: v }) : clearStyle('padding'))} />
 								</div>
 
 							<!-- ── Hanzi properties ── -->
@@ -495,9 +495,10 @@
 												onclick={() => setStyle({ fontSize: p.value })}>{p.label}</button>
 										{/each}
 									</div>
-									<input type="text" placeholder="custom e.g. 3em" value={selStyle.fontSize ?? ''}
-										oninput={(e) => { const v = (e.target as HTMLInputElement).value; v ? setStyle({ fontSize: v }) : clearStyle('fontSize'); }}
-										class="mt-1 w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-xs" />
+									<div class="mt-1">
+										<UnitInput value={selStyle.fontSize ?? ''} placeholder="custom"
+											onchange={(v) => (v ? setStyle({ fontSize: v }) : clearStyle('fontSize'))} />
+									</div>
 								</div>
 								<div>
 									<p class="mb-1 text-xs font-medium">Font</p>
@@ -543,9 +544,10 @@
 												onclick={() => setStyle({ fontSize: p.value })}>{p.label}</button>
 										{/each}
 									</div>
-									<input type="text" placeholder="custom e.g. 14px" value={selStyle.fontSize ?? ''}
-										oninput={(e) => { const v = (e.target as HTMLInputElement).value; v ? setStyle({ fontSize: v }) : clearStyle('fontSize'); }}
-										class="mt-1 w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-xs" />
+									<div class="mt-1">
+										<UnitInput value={selStyle.fontSize ?? ''} placeholder="custom"
+											onchange={(v) => (v ? setStyle({ fontSize: v }) : clearStyle('fontSize'))} />
+									</div>
 								</div>
 								<div>
 									<p class="mb-1 text-xs font-medium">Color</p>
@@ -619,9 +621,8 @@
 								</div>
 								<div>
 									<p class="mb-1 text-xs font-medium">Spacing (margin)</p>
-									<input type="text" placeholder="e.g. 8px or 0.5rem" value={selStyle.marginTop ?? ''}
-										oninput={(e) => { const v = (e.target as HTMLInputElement).value; v ? setStyle({ marginTop: v, marginBottom: v }) : (clearStyle('marginTop'), clearStyle('marginBottom')); }}
-										class="w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-xs" />
+									<UnitInput value={selStyle.marginTop ?? ''} placeholder="8"
+										onchange={(v) => (v ? setStyle({ marginTop: v, marginBottom: v }) : (clearStyle('marginTop'), clearStyle('marginBottom')))} />
 								</div>
 
 							<!-- ── Button ── -->
@@ -637,9 +638,8 @@
 								</div>
 								<div>
 									<p class="mb-1 text-xs font-medium">Size</p>
-									<input type="text" placeholder="e.g. 0.875em" value={selStyle.fontSize ?? ''}
-										oninput={(e) => { const v = (e.target as HTMLInputElement).value; v ? setStyle({ fontSize: v }) : clearStyle('fontSize'); }}
-										class="w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-xs" />
+									<UnitInput value={selStyle.fontSize ?? ''} placeholder="size"
+										onchange={(v) => (v ? setStyle({ fontSize: v }) : clearStyle('fontSize'))} />
 								</div>
 							{/if}
 
@@ -660,13 +660,17 @@
 							{#if selectedElement !== 'card'}
 								<div>
 									<p class="mb-1 text-xs font-medium">Spacing above / below</p>
-									<div class="flex gap-1">
-										<input type="text" placeholder="top" value={selStyle.marginTop ?? ''}
-											oninput={(e) => { const v = (e.target as HTMLInputElement).value; v ? setStyle({ marginTop: v }) : clearStyle('marginTop'); }}
-											class="w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-xs" />
-										<input type="text" placeholder="bottom" value={selStyle.marginBottom ?? ''}
-											oninput={(e) => { const v = (e.target as HTMLInputElement).value; v ? setStyle({ marginBottom: v }) : clearStyle('marginBottom'); }}
-											class="w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-xs" />
+									<div class="grid grid-cols-2 gap-2">
+										<div>
+											<p class="mb-0.5 text-[10px] text-neutral-400">Above</p>
+											<UnitInput value={selStyle.marginTop ?? ''} placeholder="top"
+												onchange={(v) => (v ? setStyle({ marginTop: v }) : clearStyle('marginTop'))} />
+										</div>
+										<div>
+											<p class="mb-0.5 text-[10px] text-neutral-400">Below</p>
+											<UnitInput value={selStyle.marginBottom ?? ''} placeholder="bottom"
+												onchange={(v) => (v ? setStyle({ marginBottom: v }) : clearStyle('marginBottom'))} />
+										</div>
 									</div>
 								</div>
 							{/if}

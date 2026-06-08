@@ -210,9 +210,10 @@ describe('generateDeck — real .apkg round-trip', () => {
 		expect(flds).toContain('example-sim');
 		expect(flds).toContain('example-translation');
 		expect(flds).toContain('This is China.');
-		// Pre-colorized at export: hanzi via char-tone spans, pinyin via tone spans.
-		expect(flds).toContain('<span class="char-tone4">这</span>');
-		expect(flds).toContain('<span class="tone1">zhōng</span>');
+		// Pre-colorized at export with dedicated ex-tone spans so example colours
+		// can be toggled independently of the main card via the sidebar.
+		expect(flds).toContain('<span class="ex-tone4">这</span>');
+		expect(flds).toContain('<span class="ex-tone1">zhōng</span>');
 
 		cdb.close();
 		db.close();

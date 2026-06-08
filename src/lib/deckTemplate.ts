@@ -259,8 +259,11 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		'.example-trad,.example-sim{font-size:1em;}\n' +
 		'.example-pinyin{font-size:0.85em;color:var(--text2);}\n' +
 		'.example-translation{font-size:0.85em;color:var(--text2);}\n' +
-		// "Color pinyin" toggle also neutralises example-sentence pinyin.
-		'.no-pinyin-color .example-pinyin span{color:inherit !important;}\n';
+		// Example hanzi/pinyin are tone-colored with their OWN `ex-tone*` classes so
+		// the "Example sentences" sidebar section can turn them on/off independently
+		// of the main card. `no-ex-hanzi-color` / `no-ex-pinyin-color` neutralise them.
+		'.no-ex-hanzi-color .example-sim .ex-tone1,.no-ex-hanzi-color .example-sim .ex-tone2,.no-ex-hanzi-color .example-sim .ex-tone3,.no-ex-hanzi-color .example-sim .ex-tone4,.no-ex-hanzi-color .example-sim .ex-tone5,.no-ex-hanzi-color .example-trad .ex-tone1,.no-ex-hanzi-color .example-trad .ex-tone2,.no-ex-hanzi-color .example-trad .ex-tone3,.no-ex-hanzi-color .example-trad .ex-tone4,.no-ex-hanzi-color .example-trad .ex-tone5{color:inherit !important;}\n' +
+		'.no-ex-pinyin-color .example-pinyin .ex-tone1,.no-ex-pinyin-color .example-pinyin .ex-tone2,.no-ex-pinyin-color .example-pinyin .ex-tone3,.no-ex-pinyin-color .example-pinyin .ex-tone4,.no-ex-pinyin-color .example-pinyin .ex-tone5{color:inherit !important;}\n';
 
 	const globalStack = FONT_STACKS[t.font];
 	if (globalStack) {
@@ -275,6 +278,8 @@ export function buildGlobalCss(t: TemplateOpts): string {
 	const rootVars = TONE_KEYS.map((k) => `--tone-${k}:${palette[k]};`).join('');
 	css += `:root{${rootVars}}\n`;
 	css += TONE_KEYS.map((k) => `.tone${k}{color:${palette[k]};}`).join('') + '\n';
+	// Example-sentence tone palette (independent of the main card colors).
+	css += TONE_KEYS.map((k) => `.ex-tone${k}{color:${palette[k]};}`).join('') + '\n';
 
 	return css;
 }
@@ -364,7 +369,8 @@ export const FIELD_DIV: Record<string, string> = {
 	Radical: `<div id="char_radical" class="radical-row">{{Radical}}</div>`,
 	HskLevel: `<div id="char_hsk" class="meta-badge meta-hsk">{{HskLevel}}</div>`,
 	Frequency: `<div id="char_freq" class="meta-badge meta-freq">{{Frequency}}</div>`,
-	Examples: `<div id="char_examples" class="examples-row">{{Examples}}</div>`
+	// Examples is always a collapsible card (same chrome as Definitions).
+	Examples: CONSTANTS.EXAMPLES_CARD
 };
 
 // Toggle id (sidebar checkbox) for each display field, used to seed default-off.
@@ -406,9 +412,14 @@ export function buildNoteTemplates(opts: {
 	// Seed runtime defaults (body classes + collapse default) before each template.
 	const noHanziColor = template.mono || !template.colorHanzi;
 	const noPinyinColor = template.mono || !template.colorPinyin;
+	const ex = template.exampleOptions ?? DEFAULT_EXAMPLE_OPTIONS;
+	const noExHanziColor = template.mono || !ex.colorizeHanzi;
+	const noExPinyinColor = template.mono || !ex.colorizePinyin;
 	const colorDefaultScript =
 		`<script>(function(){var b=document.body;${noHanziColor ? 'b.classList.add("no-hanzi-color");' : ''}${
 			noPinyinColor ? 'b.classList.add("no-pinyin-color");' : ''
+		}${noExHanziColor ? 'b.classList.add("no-ex-hanzi-color");' : ''}${
+			noExPinyinColor ? 'b.classList.add("no-ex-pinyin-color");' : ''
 		}window.MEANING_COLLAPSE_DEFAULT=${template.collapseDict ? 'true' : 'false'};})();</script>\n`;
 
 	const flds: { name: string }[] = [];

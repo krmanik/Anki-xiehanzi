@@ -483,6 +483,9 @@
 					onclick={(e) => select('examples', e)}
 					onkeydown={onkey('examples')}
 				>
+					<div class="flex items-center justify-between rounded-t bg-neutral-100 px-2.5 py-1 text-[11px] font-semibold text-neutral-500">
+						<span>Examples</span><span class="text-neutral-400">▾</span>
+					</div>
 					{#each exList as s (s.simplified)}
 						<div class="border-b border-neutral-100 py-1.5 last:border-0">
 							{#if exOpts.showTraditional && (!isHidden('exampleTraditional') || interactive)}

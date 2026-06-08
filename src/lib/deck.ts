@@ -483,13 +483,13 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 			}
 			if (JSON.stringify(obj) === JSON.stringify({ name: 'Examples' })) {
 				const ex = examplesMap.get(word.Simplified) ?? [];
-				// Pre-colorize at export so sentences are viewable anywhere: hanzi via
-				// best-effort syllable→char alignment, pinyin by syllable. The "color
-				// hanzi/pinyin" sidebar toggles still neutralise them at review time.
-				const hanzi = (s: string, py: string) =>
-					exOpts.colorizeHanzi ? colorizeSentenceHanzi(s, py) : s;
-				const pinyin = (py: string) =>
-					exOpts.colorizePinyin ? colorizePinyinString(py) : py;
+				// Always wrap example hanzi/pinyin in `ex-tone*` spans (best-effort
+				// syllable→char alignment for hanzi, by-syllable for pinyin). Colour is
+				// driven by body classes (seeded from the example options' default and
+				// toggled live by the "Example sentences" sidebar section), so the
+				// reviewer can turn example hanzi / pinyin colour on or off independently.
+				const hanzi = (s: string, py: string) => colorizeSentenceHanzi(s, py);
+				const pinyin = (py: string) => colorizePinyinString(py);
 				const html = ex
 					.map((s) => {
 						const parts: string[] = [];

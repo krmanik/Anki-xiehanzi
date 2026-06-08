@@ -66,26 +66,31 @@ const SIDEBAR_JS =
         if (/iPhone|iPod|iPad/.test(UA) && /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(UA)) return true;
         return window.location.href.includes("ankiuser.net");
     }
-    function buildToggles(targetId, toggles, numbers) {
+    function buildToggles(targetId, toggles, numbers, title) {
         function fsToggle(id, label) {
             return '<div class="fieldset-item fs-item-1"><div class="input-stack"><label for="' + id + '">' + label + '</label></div><input class="tappable" type="checkbox" id="' + id + '" name="' + id + '" onchange="setPrefs(this)"></div>';
         }
         function fsNumber(n) {
             return '<div class="fieldset-item fs-item-1"><div class="input-stack"><label for="' + n[0] + '"><small>' + n[1] + '</small></label></div><input class="tappable" type="number" id="' + n[0] + '" name="' + n[0] + '" value="' + n[2] + '" min="' + n[3] + '" max="' + n[4] + '" oninput="setPrefs(this)"></div>';
         }
-        var html = '<fieldset>';
+        var rows = '';
         toggles.forEach(function (t) {
             // t[2] = id of the div this toggle controls; skip if not on this card.
             if (t[2] && !document.getElementById(t[2])) return;
-            html += fsToggle(t[0], t[1]);
+            rows += fsToggle(t[0], t[1]);
         });
-        html += '</fieldset>';
+        var html = '';
+        if (rows) {
+            // Optional titled section (e.g. "Example sentences"); skipped when no rows.
+            if (title) html += '<div class="sidebar-section-title">' + title + '</div>';
+            html += '<fieldset>' + rows + '</fieldset>';
+        }
         if (numbers && numbers.length) {
             html += '<fieldset>';
             numbers.forEach(function (n) { html += fsNumber(n); });
             html += '</fieldset>';
         }
-        document.getElementById(targetId).insertAdjacentHTML('beforeend', html);
+        if (html) document.getElementById(targetId).insertAdjacentHTML('beforeend', html);
     }
     document.addEventListener('click', function (event) {
         var sb = document.getElementById("sidebar"), mb = document.getElementById("more-info-sidebar");
@@ -137,6 +142,18 @@ const MEANING_CARD =
     <div class="meaning-content">{{Definitions}}</div>
 </div>`;
 
+// Collapsible example-sentences card — same chrome as MEANING_CARD so it reuses
+// toggleMeaning/initMeaning. Used only when template.collapseExamples is on; the
+// non-collapsible variant is a plain `.examples-row` div (see deckTemplate.ts).
+const EXAMPLES_CARD =
+`<div id="char_examples" class="meaning-card examples-card">
+    <div class="meaning-bar" onclick="toggleMeaning(this)">
+        <span class="meaning-title">Examples</span>
+        <span class="meaning-arrow">&#9662;</span>
+    </div>
+    <div class="meaning-content">{{Examples}}</div>
+</div>`;
+
 // Runtime card helpers shared by all templates: tone-color the big hanzi and the
 // pinyin, and drive the collapsible dictionary card (state persisted).
 const CARD_JS =
@@ -171,21 +188,29 @@ const CARD_JS =
         if (st && dt && st.textContent.trim()) dt.innerHTML = '〔' + st.innerHTML + '〕';
     }
     function toggleMeaning(bar) {
-        var c = bar.parentElement.querySelector('.meaning-content');
+        var card = bar.parentElement;
+        var c = card.querySelector('.meaning-content');
         var willCollapse = c.style.display !== 'none';
         c.style.display = willCollapse ? 'none' : '';
         bar.classList.toggle('collapsed', willCollapse);
-        if (window.Persistence && Persistence.isAvailable()) Persistence.setItem('meaning-collapsed', willCollapse.toString());
+        var key = card.id == 'char_examples' ? 'examples-collapsed' : 'meaning-collapsed';
+        if (window.Persistence && Persistence.isAvailable()) Persistence.setItem(key, willCollapse.toString());
     }
-    function initMeaning() {
-        var card = document.getElementById('char_meaning');
+    function initMeaningCard(id, key, def) {
+        var card = document.getElementById(id);
         if (!card) return;
+        var bar = card.querySelector('.meaning-bar');
+        if (!bar) return; // not in collapsible mode — nothing to init
         var c = card.querySelector('.meaning-content');
         if (!c || !c.textContent.trim()) { card.style.display = 'none'; return; }
-        var st = Persistence.getItem('meaning-collapsed');
-        var collapsed = st != null ? st == 'true' : !!window.MEANING_COLLAPSE_DEFAULT;
+        var st = Persistence.getItem(key);
+        var collapsed = st != null ? st == 'true' : !!def;
         c.style.display = collapsed ? 'none' : '';
-        card.querySelector('.meaning-bar').classList.toggle('collapsed', collapsed);
+        bar.classList.toggle('collapsed', collapsed);
+    }
+    function initMeaning() {
+        initMeaningCard('char_meaning', 'meaning-collapsed', window.MEANING_COLLAPSE_DEFAULT);
+        initMeaningCard('char_examples', 'examples-collapsed', window.EXAMPLES_COLLAPSE_DEFAULT);
     }`;
 
 const DECK_HTML_FRONT =
@@ -249,10 +274,15 @@ ${MORE_INFO_SIDEBAR}
 
 <script>
     var frontBack = "back";
-    var switchIdList = ["text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-breakdown", "text-radical", "text-hsk", "text-freq", "text-examples", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin"];
-    var colorIds = ["text-color-hanzi", "text-color-pinyin"];
+    var switchIdList = ["text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-breakdown", "text-radical", "text-hsk", "text-freq", "text-examples", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin", "text-ex-color-hanzi", "text-ex-color-pinyin"];
+    var colorIds = ["text-color-hanzi", "text-color-pinyin", "text-ex-color-hanzi", "text-ex-color-pinyin"];
     var defaultOff = [];
-    function colorClassOf(id) { return id == "text-color-hanzi" ? "no-hanzi-color" : "no-pinyin-color"; }
+    function colorClassOf(id) {
+        if (id == "text-color-hanzi") return "no-hanzi-color";
+        if (id == "text-color-pinyin") return "no-pinyin-color";
+        if (id == "text-ex-color-hanzi") return "no-ex-hanzi-color";
+        return "no-ex-pinyin-color";
+    }
 
 ${SIDEBAR_JS}
 
@@ -262,9 +292,17 @@ ${SIDEBAR_JS}
         ["text-simple", "Simple meaning", "char_simple"], ["text-meaning", "Meaning", "char_meaning"],
         ["text-breakdown", "Breakdown", "char_breakdown"], ["text-radical", "Radical", "char_radical"],
         ["text-hsk", "HSK level", "char_hsk"], ["text-freq", "Frequency", "char_freq"],
-        ["text-examples", "Examples", "char_examples"],
         ["text-color-hanzi", "Color hanzi"], ["text-color-pinyin", "Color pinyin"]
     ]);
+
+    // Separate "Example sentences" section: show/hide examples and control their
+    // hanzi / pinyin colour independently of the main card. Only shown when the
+    // card actually has examples.
+    buildToggles("sidebar-toggles", [
+        ["text-examples", "Examples", "char_examples"],
+        ["text-ex-color-hanzi", "Color hanzi", "char_examples"],
+        ["text-ex-color-pinyin", "Color pinyin", "char_examples"]
+    ], null, "Example sentences");
 
     function applyField(id, isShow) {
         if (id == "text-pinyin") showHide(".pinyin", isShow);
@@ -273,6 +311,8 @@ ${SIDEBAR_JS}
         if (id == "text-trad") { showHide("#char-trad-id", isShow); showHide(".sep", isShow); }
         if (id == "text-color-hanzi") document.body.classList.toggle("no-hanzi-color", !isShow);
         if (id == "text-color-pinyin") document.body.classList.toggle("no-pinyin-color", !isShow);
+        if (id == "text-ex-color-hanzi") document.body.classList.toggle("no-ex-hanzi-color", !isShow);
+        if (id == "text-ex-color-pinyin") document.body.classList.toggle("no-ex-pinyin-color", !isShow);
     }
 
 ${CARD_JS}
@@ -1520,6 +1560,15 @@ hr {
   padding: 8px;
 }
 
+.sidebar-section-title {
+  padding: 10px 16px 2px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+
 .def-num {
   font-size: 0.7em;
   font-weight: 700;
@@ -1569,6 +1618,7 @@ hr {
 export default {
     FIELDS,
     MEANING_CARD,
+    EXAMPLES_CARD,
     DECK_HTML_FRONT,
     DECK_HTML_BACK,
     DECK_HTML_WITH_HANZI_WRITER,

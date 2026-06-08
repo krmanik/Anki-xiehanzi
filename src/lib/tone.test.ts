@@ -51,23 +51,23 @@ describe('colorizeSentenceHanzi', () => {
 	it('assigns syllable tones to CJK chars and passes punctuation through', () => {
 		const html = colorizeSentenceHanzi('是我的。', 'shì wǒ de 。');
 		expect(html).toBe(
-			'<span class="char-tone4">是</span>' +
-				'<span class="char-tone3">我</span>' +
-				'<span class="char-tone5">的</span>。'
+			'<span class="ex-tone4">是</span>' +
+				'<span class="ex-tone3">我</span>' +
+				'<span class="ex-tone5">的</span>。'
 		);
 	});
 
 	it('leaves trailing chars neutral when syllables run out', () => {
 		const html = colorizeSentenceHanzi('你好吗', 'nǐ hǎo');
-		expect(html).toContain('<span class="char-tone3">你</span>');
-		expect(html).toContain('<span class="char-tone3">好</span>');
-		expect(html).toContain('<span class="char-tone5">吗</span>');
+		expect(html).toContain('<span class="ex-tone3">你</span>');
+		expect(html).toContain('<span class="ex-tone3">好</span>');
+		expect(html).toContain('<span class="ex-tone5">吗</span>');
 	});
 });
 
 describe('colorizePinyinString', () => {
 	it('wraps each syllable in a tone span and keeps spacing + punctuation', () => {
 		const html = colorizePinyinString('shì wǒ de 。');
-		expect(html).toBe('<span class="tone4">shì</span> <span class="tone3">wǒ</span> <span class="tone5">de</span> 。');
+		expect(html).toBe('<span class="ex-tone4">shì</span> <span class="ex-tone3">wǒ</span> <span class="ex-tone5">de</span> 。');
 	});
 });

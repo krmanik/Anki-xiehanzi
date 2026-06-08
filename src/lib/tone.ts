@@ -47,7 +47,7 @@ export function colorizeSentenceHanzi(sentence: string, pinyin: string): string 
 		if (CJK.test(ch)) {
 			const tone = si < sylls.length ? toneOfPinyin(sylls[si]) : 5;
 			si++;
-			html += `<span class="char-tone${tone}">${ch}</span>`;
+			html += `<span class="ex-tone${tone}">${ch}</span>`;
 		} else {
 			html += ch;
 		}
@@ -57,8 +57,10 @@ export function colorizeSentenceHanzi(sentence: string, pinyin: string): string 
 
 /**
  * Tone-color a tone-marked pinyin string by syllable. Splits on whitespace /
- * commas (preserving them) and wraps each syllable in a `.toneN` span;
+ * commas (preserving them) and wraps each syllable in an `.ex-toneN` span;
  * punctuation-only tokens pass through. Mirrors the card's runtime colorPinyin.
+ * Uses a dedicated `ex-tone*` class so example colors are controlled separately
+ * from the main card hanzi/pinyin (see the "Example sentences" sidebar section).
  */
 export function colorizePinyinString(pinyin: string): string {
 	return (pinyin ?? '')
@@ -66,7 +68,7 @@ export function colorizePinyinString(pinyin: string): string {
 		.map((p) => {
 			if (p === '' || p === ',' || /^\s+$/.test(p)) return p;
 			const hasLetter = /[a-zü]/i.test(p.normalize('NFD').replace(/[̀-ͯ]/g, ''));
-			return hasLetter ? `<span class="tone${toneOfPinyin(p)}">${p}</span>` : p;
+			return hasLetter ? `<span class="ex-tone${toneOfPinyin(p)}">${p}</span>` : p;
 		})
 		.join('');
 }

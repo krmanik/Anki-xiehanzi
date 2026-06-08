@@ -101,6 +101,13 @@ describe('buildGlobalCss', () => {
 		expect(css).toContain('.tone3{color:#4caf50;}');
 	});
 
+	it('emits an independent example-sentence tone palette + neutralisers', () => {
+		const css = buildGlobalCss(tpl());
+		expect(css).toContain('.ex-tone1{color:#f44336;}');
+		expect(css).toContain('.no-ex-hanzi-color .example-sim .ex-tone1');
+		expect(css).toContain('.no-ex-pinyin-color .example-pinyin .ex-tone1');
+	});
+
 	it('emits the custom tone palette when selected', () => {
 		const css = buildGlobalCss(
 			tpl({
@@ -303,6 +310,42 @@ describe('buildNoteTemplates — colour defaults', () => {
 			template: tpl({ collapseDict: true })
 		});
 		expect(collapsed.tmpls[0].qfmt).toContain('MEANING_COLLAPSE_DEFAULT=true');
+	});
+
+	it('always renders Examples as a collapsible card (bar + toggle)', () => {
+		const fields = [...FIELDS, 'Examples'];
+		const tabContent: TabContent = {
+			'Card 1': makeCard(onlySimplifiedFront, [...allBack, 'backExamples'])
+		};
+		const { tmpls } = buildNoteTemplates({ fields, tabContent, includeAudio: false, template: tpl() });
+		expect(tmpls[0].afmt).toContain('id="char_examples"');
+		expect(tmpls[0].afmt).toContain('examples-card');
+		expect(tmpls[0].afmt).toContain('onclick="toggleMeaning(this)"');
+	});
+
+	it('adds an "Example sentences" sidebar section with separate colour toggles', () => {
+		const fields = [...FIELDS, 'Examples'];
+		const tabContent: TabContent = {
+			'Card 1': makeCard(onlySimplifiedFront, [...allBack, 'backExamples'])
+		};
+		const { tmpls } = buildNoteTemplates({ fields, tabContent, includeAudio: false, template: tpl() });
+		const afmt = tmpls[0].afmt;
+		expect(afmt).toContain('"Example sentences"');
+		expect(afmt).toContain('text-ex-color-hanzi');
+		expect(afmt).toContain('text-ex-color-pinyin');
+		expect(afmt).toContain('no-ex-hanzi-color');
+		expect(afmt).toContain('no-ex-pinyin-color');
+	});
+
+	it('seeds example colour body classes from the example options', () => {
+		const tabContent: TabContent = { 'Card 1': makeCard(onlySimplifiedFront, allBack) };
+		const off = buildNoteTemplates({
+			fields: [...FIELDS, 'Examples'],
+			tabContent,
+			includeAudio: false,
+			template: tpl({ exampleOptions: { ...DEFAULT_TEMPLATE.exampleOptions, colorizeHanzi: false } })
+		});
+		expect(off.tmpls[0].qfmt).toContain('no-ex-hanzi-color');
 	});
 });
 

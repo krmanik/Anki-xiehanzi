@@ -30,6 +30,7 @@
 
 	import CONSTANTS from '$lib/dict/contants';
 	import { CARD_PRESETS, presetToCard, presetNeedsAudio, type CardPreset } from '$lib/cardPresets';
+	import { TONE_PRESETS, TONE_KEYS, resolvePalette } from '$lib/tonePresets';
 	import { posDisplay } from '$lib/dict/cedict';
 	import {
 		cutParagraph,
@@ -214,6 +215,8 @@
 	);
 	// Per-card-type element styles for the active tab (drives the live previews).
 	const activeStyles = $derived(tabContent[tabs[activeTab]]?.elementStyles ?? {});
+	// Resolved tone palette (preset or custom) for the live previews.
+	const palette = $derived(resolvePalette(template.tonePreset, template.toneColors));
 
 	const rowsPerPageOptions = [5, 10, 25, 50, 100, 500].map((n) => ({ value: n, name: String(n) }));
 
@@ -229,8 +232,18 @@
 		}
 	});
 
-	// Persist per-card-type element styles whenever they change.
+	// Persist the deck-wide template (tone palette + custom colors, font, etc.)
+	// so choices — including a custom palette — survive a page refresh.
 	let stylesRestored = $state(false);
+	$effect(() => {
+		JSON.stringify(template); // track deep changes
+		if (!stylesRestored) return;
+		try {
+			localStorage.setItem(CARD_STYLE_LS_KEY, JSON.stringify(template));
+		} catch (_) {/* ignore storage errors */}
+	});
+
+	// Persist per-card-type element styles whenever they change.
 	$effect(() => {
 		const map: Record<string, CardElementStyles> = {};
 		for (const name of tabs) map[name] = tabContent[name]?.elementStyles ?? {};
@@ -549,6 +562,20 @@
 					/> Color pinyin
 				</label>
 
+				<label class="flex items-center gap-2 text-sm {template.mono ? 'opacity-40' : ''}">
+					Tone palette
+					<select
+						bind:value={template.tonePreset}
+						disabled={template.mono}
+						class="min-w-[10rem] rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+					>
+						{#each TONE_PRESETS as p (p.id)}
+							<option value={p.id}>{p.label}</option>
+						{/each}
+						<option value="custom">Custom…</option>
+					</select>
+				</label>
+
 				<label class="flex items-center gap-2 text-sm">
 					Hanzi font
 					<select
@@ -569,6 +596,35 @@
 					/> Collapse dictionary definitions
 				</label>
 			</div>
+
+			{#if !template.mono}
+				<div class="mt-3 flex flex-wrap items-center gap-4">
+					<div class="flex items-center gap-1.5">
+						<span class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">Tones</span>
+						{#each TONE_KEYS as k (k)}
+							<span
+								class="inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold text-white"
+								style="background-color:{palette[k]}"
+								title={`Tone ${k}`}>{k}</span
+							>
+						{/each}
+					</div>
+					{#if template.tonePreset === 'custom'}
+						<div class="flex flex-wrap items-center gap-3">
+							{#each TONE_KEYS as k (k)}
+								<label class="flex items-center gap-1 text-xs text-neutral-600">
+									Tone {k}
+									<input
+										type="color"
+										bind:value={template.toneColors[k]}
+										class="h-7 w-8 cursor-pointer rounded border border-neutral-200 p-0.5"
+									/>
+								</label>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/if}
 
 			<div class="mt-6 flex items-center gap-3">
 				<h2 class="text-xl font-semibold">Create Card Types</h2>
@@ -702,6 +758,7 @@
 								font={template.font}
 								collapseDict={template.collapseDict}
 								elementStyles={activeStyles}
+								toneColors={palette}
 							/>
 							<CardPreview
 								label="Back"
@@ -711,6 +768,7 @@
 								font={template.font}
 								collapseDict={template.collapseDict}
 								elementStyles={activeStyles}
+								toneColors={palette}
 							/>
 						</div>
 					</div>
@@ -852,6 +910,7 @@
 							{word}
 							selected={selected.has(word)}
 							colorize={!template.mono && template.colorHanzi}
+							toneColors={palette}
 							onToggle={() => toggleRow(word)}
 							onDelete={() => deleteWord(word)}
 							onPlay={() => void playWordAudio(word.Simplified, hskWordsDict)}

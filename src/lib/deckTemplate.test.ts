@@ -94,6 +94,23 @@ describe('buildGlobalCss', () => {
 		expect(buildGlobalCss(tpl({ font: 'kaiti' }))).toContain('Kaiti SC');
 		expect(buildGlobalCss(tpl({ font: 'default' }))).not.toContain('font-family:"');
 	});
+
+	it('emits the Standard tone palette by default', () => {
+		const css = buildGlobalCss(tpl());
+		expect(css).toContain('--tone-1:#f44336;');
+		expect(css).toContain('.tone3{color:#4caf50;}');
+	});
+
+	it('emits the custom tone palette when selected', () => {
+		const css = buildGlobalCss(
+			tpl({
+				tonePreset: 'custom',
+				toneColors: { '1': '#111111', '2': '#222222', '3': '#333333', '4': '#444444', '5': '#555555' }
+			})
+		);
+		expect(css).toContain('--tone-1:#111111;');
+		expect(css).toContain('.tone4{color:#444444;}');
+	});
 });
 
 // ───────────────────────────── buildCardCss ─────────────────────────────────

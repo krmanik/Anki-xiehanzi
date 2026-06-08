@@ -3,6 +3,7 @@
 	import { posDisplay } from '$lib/dict/cedict';
 	import { frequencyBand } from '$lib/dict/meta';
 	import { colorizeHanzi } from '$lib/tone';
+	import type { TonePalette, ToneKey } from '$lib/tonePresets';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
@@ -11,6 +12,7 @@
 		word,
 		selected = false,
 		colorize = true,
+		toneColors = null,
 		onToggle,
 		onDelete,
 		onPlay
@@ -18,10 +20,15 @@
 		word: Word;
 		selected?: boolean;
 		colorize?: boolean;
+		toneColors?: TonePalette | null;
 		onToggle?: () => void;
 		onDelete?: () => void;
 		onPlay?: () => void | Promise<void>;
 	} = $props();
+
+	function toneStyle(tone: number): string {
+		return colorize && toneColors ? `color:${toneColors[String(tone) as ToneKey]}` : '';
+	}
 
 	let playing = $state(false);
 	async function play() {
@@ -63,12 +70,12 @@
 		<div class="min-w-0 flex-1">
 			<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
 				<span class="text-2xl font-semibold leading-tight">
-					{#each simpChars as c}<span class={colorize ? `tone${c.tone}` : ''}>{c.ch}</span>{/each}
+					{#each simpChars as c}<span class={colorize ? `tone${c.tone}` : ''} style={toneStyle(c.tone)}>{c.ch}</span>{/each}
 				</span>
 				{#if word.Traditional && word.Traditional !== word.Simplified}
 					<span class="text-xl text-neutral-400">〔</span>
 					<span class="text-xl leading-tight">
-						{#each tradChars as c}<span class={colorize ? `tone${c.tone}` : ''}>{c.ch}</span>{/each}
+						{#each tradChars as c}<span class={colorize ? `tone${c.tone}` : ''} style={toneStyle(c.tone)}>{c.ch}</span>{/each}
 					</span>
 					<span class="text-xl text-neutral-400">〕</span>
 				{/if}

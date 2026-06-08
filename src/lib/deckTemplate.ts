@@ -8,6 +8,7 @@
  */
 
 import CONSTANTS from './dict/contants';
+import { resolvePalette, STANDARD_TONES, TONE_KEYS, type TonePalette } from './tonePresets';
 
 const FIELDS = CONSTANTS.FIELDS;
 
@@ -75,6 +76,8 @@ export interface TemplateOpts {
 	colorPinyin: boolean;
 	font: string; // global hanzi font: 'default' | 'kaiti' | 'songti'
 	collapseDict: boolean;
+	tonePreset: string; // 'standard' | 'pleco' | 'blueprint' | 'mdbg' | 'custom'
+	toneColors: TonePalette; // used when tonePreset === 'custom'
 	elementStyles: CardElementStyles; // default per-element overrides for new cards
 }
 
@@ -84,6 +87,8 @@ export const DEFAULT_TEMPLATE: TemplateOpts = {
 	colorPinyin: true,
 	font: 'default',
 	collapseDict: false,
+	tonePreset: 'standard',
+	toneColors: { ...STANDARD_TONES },
 	elementStyles: {}
 };
 
@@ -212,6 +217,16 @@ export function buildGlobalCss(t: TemplateOpts): string {
 	if (globalStack) {
 		css += `.char-card,.char,#char-sim-id,#char-trad-id{font-family:${globalStack} !important;}\n`;
 	}
+
+	// Tone palette override. Re-points the --tone-N vars (drive .char-toneN /
+	// writer strokes) and the flat .toneN pinyin classes. Lower specificity than
+	// the no-hanzi-color / no-pinyin-color "inherit" rules, so the colour toggles
+	// still win.
+	const palette = resolvePalette(t.tonePreset, t.toneColors ?? STANDARD_TONES);
+	const rootVars = TONE_KEYS.map((k) => `--tone-${k}:${palette[k]};`).join('');
+	css += `:root{${rootVars}}\n`;
+	css += TONE_KEYS.map((k) => `.tone${k}{color:${palette[k]};}`).join('') + '\n';
+
 	return css;
 }
 

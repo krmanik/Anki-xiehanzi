@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { colorizeHanzi } from '$lib/tone';
 	import { elementOrder, type CardElementId, type CardElementStyles, type ElementStyle } from '$lib/deckTemplate';
+	import type { TonePalette, ToneKey } from '$lib/tonePresets';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import Menu from '@lucide/svelte/icons/menu';
 	import PenLine from '@lucide/svelte/icons/pen-line';
@@ -24,6 +25,7 @@
 		font = 'default',
 		collapseDict = false,
 		elementStyles = {} as CardElementStyles,
+		toneColors = null,
 		interactive = false,
 		selectedElement = $bindable<CardElementId | null>(null)
 	}: {
@@ -34,9 +36,15 @@
 		font?: string;
 		collapseDict?: boolean;
 		elementStyles?: CardElementStyles;
+		toneColors?: TonePalette | null;
 		interactive?: boolean;
 		selectedElement?: CardElementId | null;
 	} = $props();
+
+	// Inline tone color for a preview hanzi span (honours the chosen palette).
+	function toneStyle(tone: number): string {
+		return colorize && toneColors ? `color:${toneColors[String(tone) as ToneKey]}` : '';
+	}
 
 	const ex = {
 		Simplified: '中国', Traditional: '中國', syllable: 'Zhong1 guo2',
@@ -219,7 +227,7 @@
 					onclick={(e) => select('simplified', e)}
 					onkeydown={onkey('simplified')}
 				>
-					{#each simp as c}<span class={colorize ? `tone${c.tone}` : ''}>{c.ch}</span>{/each}
+					{#each simp as c}<span class={colorize ? `tone${c.tone}` : ''} style={toneStyle(c.tone)}>{c.ch}</span>{/each}
 					{#if interactive && selectedElement === 'simplified'}<span class={SEL_BADGE}>Simplified</span>{/if}
 				</div>
 
@@ -232,7 +240,7 @@
 					onclick={(e) => select('traditional', e)}
 					onkeydown={onkey('traditional')}
 				>
-					<span class="text-neutral-300">〔</span>{#each trad as c}<span class={colorize ? `tone${c.tone}` : ''}>{c.ch}</span>{/each}<span class="text-neutral-300">〕</span>
+					<span class="text-neutral-300">〔</span>{#each trad as c}<span class={colorize ? `tone${c.tone}` : ''} style={toneStyle(c.tone)}>{c.ch}</span>{/each}<span class="text-neutral-300">〕</span>
 					{#if interactive && selectedElement === 'traditional'}<span class={SEL_BADGE}>Traditional</span>{/if}
 				</div>
 

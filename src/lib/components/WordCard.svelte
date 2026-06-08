@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Word } from '$lib/deck';
 	import { posDisplay } from '$lib/dict/cedict';
+	import { frequencyBand } from '$lib/dict/meta';
 	import { colorizeHanzi } from '$lib/tone';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -41,6 +42,7 @@
 		const nums = [...new Set(word.level.match(/\d+/g) ?? [])];
 		return nums.length ? `HSK ${nums.join('·')}` : '';
 	});
+	const freqLabel = $derived(frequencyBand(word.rank) ?? '');
 	const commonMeaning = $derived(word.commonMeaning || word.readings[0]?.definition || '');
 	const hasDict = $derived(word.readings.some((r) => r.definition));
 </script>
@@ -80,10 +82,13 @@
 				{/each}
 			</div>
 
-			{#if levelLabel || word.pos.length || word.classifiers.length}
+			{#if levelLabel || freqLabel || word.pos.length || word.classifiers.length}
 				<div class="mt-2 flex flex-wrap gap-1.5">
 					{#if levelLabel}
 						<span class="rounded-full bg-neutral-900 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-white">{levelLabel}</span>
+					{/if}
+					{#if freqLabel}
+						<span class="rounded-full bg-amber-100 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-700">{freqLabel}</span>
 					{/if}
 					{#each word.pos as p}
 						<span class="rounded-full border border-neutral-300 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-neutral-600">{posDisplay(p)}</span>

@@ -3,32 +3,52 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
+      - port-vite-svelte
       - main
-    # Review gh actions docs if you want to further define triggers, paths, etc
-    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
 
 jobs:
   deploy:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
         with:
-          node-version: 18
-          cache: yarn
+          ref: port-vite-svelte
 
-      - name: Install dependencies
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install SvelteKit dependencies
+        run: npm ci
+
+      - name: Build SvelteKit
+        run: npm run build
+
+      - name: Move SvelteKit build aside
+        run: mv build svelte-build
+
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          path: docusaurus-src
+          clean: false
+
+      - name: Install Docusaurus dependencies
+        working-directory: docusaurus-src
         run: yarn install --frozen-lockfile
-      - name: Build website
+
+      - name: Build Docusaurus
+        working-directory: docusaurus-src
         run: yarn build
 
-      # Popular action to deploy to GitHub Pages:
-      # Docs: https://github.com/peaceiris/actions-gh-pages#%EF%B8%8F-docusaurus
+      - name: Combine builds
+        run: |
+          mv docusaurus-src/build combined-build
+          mv svelte-build combined-build/dev
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Build output to publish to the `gh-pages` branch:
-          publish_dir: ./build
-          
+          publish_dir: ./combined-build

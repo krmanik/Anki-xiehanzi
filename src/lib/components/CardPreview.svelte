@@ -63,7 +63,8 @@
 			{ character: '中', radical: '丨' },
 			{ character: '国', radical: '囗' }
 		],
-		hsk: 'HSK 1', frequency: 'Top 500'
+		hsk: 'HSK 1', frequency: 'Top 500',
+		examples: ['中国是一个大国。', '我想去中国旅行。']
 	};
 
 	// Display source: a real Word when provided, otherwise the example.
@@ -86,7 +87,10 @@
 						.filter((b) => b.radical)
 						.map((b) => ({ character: b.character, radical: b.radical })),
 					hsk: hskLevelLabel(word.level) ?? '',
-					frequency: frequencyBand(word.rank) ?? ''
+					frequency: frequencyBand(word.rank) ?? '',
+					// Example sentences are fetched at export, not on the Word — show the
+					// sample so the layout still previews.
+					examples: ex.examples
 				}
 			: ex
 	);
@@ -411,6 +415,21 @@
 				>
 					<span class="inline-block rounded-full border border-neutral-200 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-500">{src.frequency}</span>
 					{#if interactive && selectedElement === 'frequency'}<span class={SEL_BADGE}>Frequency</span>{/if}
+				</div>
+
+			{:else if item === 'Examples' && (!isHidden('examples') || interactive)}
+				<div
+					class="w-full text-left {selClass('examples')} {isHidden('examples') ? 'opacity-30' : ''}"
+					style="order:{ord('examples')};{elStyle('examples')}"
+					role="button"
+					tabindex="0"
+					onclick={(e) => select('examples', e)}
+					onkeydown={onkey('examples')}
+				>
+					{#each src.examples as s (s)}
+						<div class="border-b border-neutral-100 py-1 text-sm text-neutral-700 last:border-0">{s}</div>
+					{/each}
+					{#if interactive && selectedElement === 'examples'}<span class={SEL_BADGE}>Examples</span>{/if}
 				</div>
 
 			{:else if item === 'Audio' && (!isHidden('audio') || interactive)}

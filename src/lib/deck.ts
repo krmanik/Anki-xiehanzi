@@ -27,6 +27,7 @@ import {
 	posDisplay,
 	characterBreakdown,
 	wordsByLevel,
+	getSmartSentences,
 	type Reading,
 	type CharInfo
 } from './dict/cedict';
@@ -320,6 +321,9 @@ export interface GenerateDeckOptions {
 	db: any;
 	template?: TemplateOpts;
 	onProgress?: (value: number) => void;
+	// Smart example-sentence fetcher (injectable for tests). Defaults to the
+	// hsk_sentences.db lookup, loaded lazily only when the Examples field is used.
+	getExamples?: (word: string) => Promise<string[]>;
 }
 
 export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
@@ -347,6 +351,20 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 
 	const deckId = Math.floor(Math.random() * (1 << 30) + (1 << 30));
 	const d = new Deck(deckId, deckName);
+
+	// Smart example sentences are only fetched when the Examples field is used
+	// (the sentences db is a separate ~5MB download), keyed by Simplified word.
+	const examplesMap = new Map<string, string[]>();
+	if (fields.includes('Examples')) {
+		const fetchExamples = opts.getExamples ?? ((w: string) => getSmartSentences(w, 3));
+		for (const word of words) {
+			try {
+				examplesMap.set(word.Simplified, await fetchExamples(word.Simplified));
+			} catch (e) {
+				examplesMap.set(word.Simplified, []);
+			}
+		}
+	}
 
 	words.forEach((word) => {
 		const Simplified = word.Simplified;
@@ -451,6 +469,11 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 			}
 			if (JSON.stringify(obj) === JSON.stringify({ name: 'Frequency' })) {
 				note.push(frequencyBand(word.rank) || '');
+			}
+			if (JSON.stringify(obj) === JSON.stringify({ name: 'Examples' })) {
+				const ex = examplesMap.get(word.Simplified) ?? [];
+				const html = ex.map((s) => `<div class="example-item">${s}</div>`).join('');
+				note.push(html);
 			}
 			if (JSON.stringify(obj) === JSON.stringify({ name: 'Audio' })) {
 				note.push(`[sound:cmn-${Simplified}.mp3]`);

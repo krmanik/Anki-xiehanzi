@@ -64,6 +64,7 @@ export type CardElementId =
 	| 'radical' // radical chips (国→囗)
 	| 'hskLevel' // HSK level badge
 	| 'frequency' // frequency-band badge (Top 500)
+	| 'examples' // smart example sentences
 	| 'audio' // audio play button
 	| 'hr' // horizontal rule separators
 	| 'controlButtons'; // sidebar-toggle footer buttons
@@ -110,6 +111,7 @@ const SCOPED_SELECTORS: Record<CardElementId, string> = {
 	radical: '#char_radical',
 	hskLevel: '#char_hsk',
 	frequency: '#char_freq',
+	examples: '#char_examples',
 	audio: '#btnPlayAudio',
 	hr: 'hr',
 	controlButtons: '.modal-footer1'
@@ -132,6 +134,7 @@ export const DEFAULT_BODY_ORDER: CardElementId[] = [
 	'radical',
 	'hskLevel',
 	'frequency',
+	'examples',
 	'audio'
 ];
 
@@ -211,7 +214,12 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		'.radical-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px auto;}\n' +
 		'.radical-row:empty{display:none;}\n' +
 		'.radical-chip{display:inline-flex;align-items:center;gap:5px;font-size:0.8em;padding:3px 10px;border-radius:999px;border:1px solid var(--surface4);color:var(--text2);}\n' +
-		'.radical-chip .radical-char{font-weight:600;color:var(--text1);}\n';
+		'.radical-chip .radical-char{font-weight:600;color:var(--text1);}\n' +
+		// Example sentences
+		'.examples-row{margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;text-align:left;}\n' +
+		'.examples-row:empty{display:none;}\n' +
+		'.example-item{font-size:0.85em;line-height:1.5;padding:4px 0;border-bottom:1px solid var(--surface4);}\n' +
+		'.example-item:last-child{border-bottom:0;}\n';
 
 	const globalStack = FONT_STACKS[t.font];
 	if (globalStack) {
@@ -314,7 +322,8 @@ export const FIELD_DIV: Record<string, string> = {
 	Breakdown: `<div id="char_breakdown" class="breakdown-row">{{Breakdown}}</div>`,
 	Radical: `<div id="char_radical" class="radical-row">{{Radical}}</div>`,
 	HskLevel: `<div id="char_hsk" class="meta-badge meta-hsk">{{HskLevel}}</div>`,
-	Frequency: `<div id="char_freq" class="meta-badge meta-freq">{{Frequency}}</div>`
+	Frequency: `<div id="char_freq" class="meta-badge meta-freq">{{Frequency}}</div>`,
+	Examples: `<div id="char_examples" class="examples-row">{{Examples}}</div>`
 };
 
 // Toggle id (sidebar checkbox) for each display field, used to seed default-off.
@@ -329,7 +338,8 @@ export const FIELD_TOGGLE: Record<string, string> = {
 	Breakdown: 'text-breakdown',
 	Radical: 'text-radical',
 	HskLevel: 'text-hsk',
-	Frequency: 'text-freq'
+	Frequency: 'text-freq',
+	Examples: 'text-examples'
 };
 
 // ---------------------------------------------------------------------------

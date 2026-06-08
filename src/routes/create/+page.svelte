@@ -87,6 +87,7 @@
 		FIELDS.RADICAL,
 		FIELDS.HSK_LEVEL,
 		FIELDS.FREQUENCY,
+		FIELDS.EXAMPLES,
 		FIELDS.AUDIO,
 		WRITING
 	]);
@@ -185,6 +186,7 @@
 			{ id: FIELDS.RADICAL, label: 'Radical' },
 			{ id: FIELDS.HSK_LEVEL, label: 'HSK Level' },
 			{ id: FIELDS.FREQUENCY, label: 'Frequency' },
+			{ id: FIELDS.EXAMPLES, label: 'Example Sentences' },
 			{ id: FIELDS.AUDIO, label: 'Audio' }
 		].map((f) => [f.id, f.label])
 	);

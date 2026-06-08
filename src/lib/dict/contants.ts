@@ -21,6 +21,7 @@ const FIELDS = {
     RADICAL: 'Radical',
     HSK_LEVEL: 'HskLevel',
     FREQUENCY: 'Frequency',
+    EXAMPLES: 'Examples',
     AUDIO: 'Audio',
 };
 
@@ -248,7 +249,7 @@ ${MORE_INFO_SIDEBAR}
 
 <script>
     var frontBack = "back";
-    var switchIdList = ["text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-breakdown", "text-radical", "text-hsk", "text-freq", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin"];
+    var switchIdList = ["text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-breakdown", "text-radical", "text-hsk", "text-freq", "text-examples", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin"];
     var colorIds = ["text-color-hanzi", "text-color-pinyin"];
     var defaultOff = [];
     function colorClassOf(id) { return id == "text-color-hanzi" ? "no-hanzi-color" : "no-pinyin-color"; }
@@ -261,6 +262,7 @@ ${SIDEBAR_JS}
         ["text-simple", "Simple meaning", "char_simple"], ["text-meaning", "Meaning", "char_meaning"],
         ["text-breakdown", "Breakdown", "char_breakdown"], ["text-radical", "Radical", "char_radical"],
         ["text-hsk", "HSK level", "char_hsk"], ["text-freq", "Frequency", "char_freq"],
+        ["text-examples", "Examples", "char_examples"],
         ["text-color-hanzi", "Color hanzi"], ["text-color-pinyin", "Color pinyin"]
     ]);
 
@@ -430,7 +432,7 @@ ${PERSISTENCE}
 
 <script>
     var charClass = document.getElementById("char-sim-id").children;
-    var switchIdList = ["text-grid", "text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-breakdown", "text-radical", "text-hsk", "text-freq", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin", "text-stroke-color", "text-outline"];
+    var switchIdList = ["text-grid", "text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-breakdown", "text-radical", "text-hsk", "text-freq", "text-examples", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin", "text-stroke-color", "text-outline"];
     var colorIds = ["text-color-hanzi", "text-color-pinyin"];
     function colorClassOf(id) { return id == "text-color-hanzi" ? "no-hanzi-color" : "no-pinyin-color"; }
 
@@ -444,6 +446,7 @@ ${CARD_JS}
         ["text-simple", "Simple meaning", "char_simple"], ["text-meaning", "Meaning", "char_meaning"],
         ["text-breakdown", "Breakdown", "char_breakdown"], ["text-radical", "Radical", "char_radical"],
         ["text-hsk", "HSK level", "char_hsk"], ["text-freq", "Frequency", "char_freq"],
+        ["text-examples", "Examples", "char_examples"],
         ["text-color-hanzi", "Color hanzi"], ["text-color-pinyin", "Color pinyin"],
         ["text-grid", "Grid"], ["text-outline", "Outline"], ["text-stroke-color", "Stroke tone color"]
     ], [

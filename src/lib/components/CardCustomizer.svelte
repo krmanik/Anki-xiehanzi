@@ -92,6 +92,7 @@
 		{ id: 'radical',        label: 'Radical' },
 		{ id: 'hskLevel',       label: 'HSK level' },
 		{ id: 'frequency',      label: 'Frequency' },
+		{ id: 'examples',       label: 'Examples' },
 		{ id: 'audio',          label: 'Audio button' },
 		{ id: 'hr',             label: 'Separator line' },
 		{ id: 'controlButtons', label: 'Control buttons' }
@@ -134,6 +135,7 @@
 		Radical: 'radical',
 		HskLevel: 'hskLevel',
 		Frequency: 'frequency',
+		Examples: 'examples',
 		Audio: 'audio'
 	};
 
@@ -210,6 +212,7 @@
 		radical:        'chips',
 		hskLevel:       'text',
 		frequency:      'text',
+		examples:       'text',
 		audio:          'button',
 		hr:             'hr',
 		controlButtons: 'button'

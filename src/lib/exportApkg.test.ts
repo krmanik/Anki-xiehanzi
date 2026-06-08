@@ -170,4 +170,44 @@ describe('generateDeck — real .apkg round-trip', () => {
 		cdb.close();
 		db.close();
 	}, 20000);
+
+	it('renders injected smart example sentences into the note', async () => {
+		const SQL = await loadSql();
+		const db = new SQL.Database();
+		h.saved = null;
+
+		const tabContent: TabContent = {
+			'Card 1': { front: ['frontSimplified'], back: ['backExamples'], additional: [], elementStyles: {} }
+		};
+
+		await generateDeck({
+			words: [word()],
+			deckName: 'examples-deck',
+			includeAudio: false,
+			fields: ['Simplified', 'Examples'],
+			tabContent,
+			hskWordsDict: new Set<string>(),
+			db,
+			template: undefined,
+			onProgress: () => {},
+			// Inject so the test doesn't touch hsk_sentences.db / the network.
+			getExamples: async () => ['这是中国。', '我爱中国。']
+		});
+
+		const start = Date.now();
+		while (!h.saved && Date.now() - start < 8000) {
+			await new Promise((r) => setTimeout(r, 25));
+		}
+		expect(h.saved).toBeTruthy();
+
+		const zip = await JSZip.loadAsync(await h.saved!.arrayBuffer());
+		const anki2 = await zip.file('collection.anki2')!.async('uint8array');
+		const cdb = new SQL.Database(anki2);
+		const flds = cdb.exec('SELECT flds FROM notes')[0].values[0][0] as string;
+		expect(flds).toContain('example-item');
+		expect(flds).toContain('这是中国。');
+
+		cdb.close();
+		db.close();
+	}, 20000);
 });

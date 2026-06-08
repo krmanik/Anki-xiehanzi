@@ -9,6 +9,7 @@ import { unzip } from 'unzipit';
 import initSqlJs from 'sql.js';
 import { base } from '$app/paths';
 import pinzhu from './pinyinzhuyin';
+import { rankSentences } from './sentences';
 
 let SQL: any = null;
 let cedictDb: any = null;
@@ -310,4 +311,15 @@ export async function getSentences(word: string, limit = 5): Promise<Sentence[]>
 		[`%${w}%`, limit]
 	);
 	return rows.map((r) => ({ sentence: r.sentence, difficulty: r.difficulty }));
+}
+
+/**
+ * Smart example sentences for a word: pulls a candidate pool from the sentences
+ * db then ranks by difficulty + length (see rankSentences). Returns plain
+ * sentence strings, easiest/shortest first.
+ */
+export async function getSmartSentences(word: string, limit = 3): Promise<string[]> {
+	// Over-fetch a pool so the re-ranking has something to choose from.
+	const pool = await getSentences(word, Math.max(limit * 4, 12));
+	return rankSentences(pool, limit);
 }

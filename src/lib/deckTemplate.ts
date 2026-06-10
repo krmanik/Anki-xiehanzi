@@ -751,28 +751,56 @@ for (var _hide of hideList) {
 		const writingBack = backSel.includes('backwritingComponent');
 		if (writingFront || writingBack) {
 			usesWriter = true;
-			let writerTpl = CONSTANTS.DECK_HTML_WITH_HANZI_WRITER;
-			if (!includeAudio) {
-				writerTpl = writerTpl.replace(`<div id='audio' style='display:none'>{{Audio}}</div>`, '');
-				writerTpl = writerTpl.replace(
-					`    <a class="btn" id='btnPlayAudio'>
+			// The writer page hardcodes sim/trad/pinyin/zhuyin + the dictionary card;
+			// every other ticked display field must be injected here or the selection
+			// is silently dropped from the export (and the export preview).
+			const WRITER_BUILTIN = new Set([
+				FIELDS.SIMPLIFIED,
+				FIELDS.TRADITIONAL,
+				FIELDS.PINYIN,
+				FIELDS.ZHUYIN,
+				FIELDS.DEFINITIONS,
+				FIELDS.AUDIO
+			]);
+			const writerFor = (sel: string[], prefix: 'front' | 'back') => {
+				let tpl = CONSTANTS.DECK_HTML_WITH_HANZI_WRITER;
+				if (!includeAudio) {
+					tpl = tpl.replace(`<div id='audio' style='display:none'>{{Audio}}</div>`, '');
+					tpl = tpl.replace(
+						`    <a class="btn" id='btnPlayAudio'>
         <div class="icon"><i class="material-icons">play_arrow</i></div>
     </a>`,
-					''
+						''
+					);
+				}
+				// Selected extras in field order, split around Definitions so their
+				// vertical position relative to the dictionary card is preserved.
+				const extras = fields.filter(
+					(f) => !WRITER_BUILTIN.has(f) && FIELD_DIV[f] && sel.includes(`${prefix}${f}`)
 				);
-			}
-			// Simple meaning sits below the writer controls and above the dictionary.
-			if (flds.some((x) => x.name === 'SimpleMeaning')) {
-				writerTpl = writerTpl.replace(
-					CONSTANTS.MEANING_CARD,
-					`<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>\n${CONSTANTS.MEANING_CARD}`
+				const defIdx = fields.indexOf(FIELDS.DEFINITIONS);
+				const above = extras.filter((f) =>
+					defIdx === -1 ? f === FIELDS.SIMPLE_MEANING : fields.indexOf(f) < defIdx
 				);
-			}
-			// Wrap so per-card element styles still scope to this template.
-			writerTpl = `<div class="${ct}">\n${writerTpl}\n</div>`;
-			if (writingFront) QFMT = writerTpl;
+				const below = extras.filter((f) => !above.includes(f));
+				if (above.length)
+					tpl = tpl.replace(
+						CONSTANTS.MEANING_CARD,
+						above.map((f) => FIELD_DIV[f]).join('\n') + '\n' + CONSTANTS.MEANING_CARD
+					);
+				if (below.length)
+					tpl = tpl.replace(
+						CONSTANTS.MEANING_CARD,
+						CONSTANTS.MEANING_CARD + '\n' + below.map((f) => FIELD_DIV[f]).join('\n')
+					);
+				// Wrap so per-card element styles still scope to this template.
+				return `<div class="${ct}">\n${tpl}\n</div>`;
+			};
+			if (writingFront) QFMT = writerFor(frontSel, 'front');
 			if (writingBack)
-				AFMT = writingFront ? `<div class="${ct}"><div id="back">{{FrontSide}}</div></div>` : writerTpl;
+				AFMT = writingFront
+					? `<div class="${ct}"><div id="back">{{FrontSide}}</div></div>`
+					: writerFor(backSel, 'back');
 		}
 
 		// When Simplified and Traditional are identical, hide the redundant

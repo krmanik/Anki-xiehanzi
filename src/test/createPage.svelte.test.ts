@@ -145,7 +145,7 @@ describe('Create page — export preview', () => {
 		await user.click(screen.getByText('Input Chinese Characters'));
 		await user.type(screen.getByPlaceholderText('Type a word, e.g. 中国'), '中国');
 		await user.click(screen.getByText('Add'));
-		await user.click(screen.getByText('Preview & Generate'));
+		await user.click(screen.getByRole('button', { name: 'Preview' }));
 
 		const dialog = screen.getByRole('dialog', { name: 'Export preview' });
 		expect(dialog).toBeInTheDocument();
@@ -186,18 +186,33 @@ describe('Create page — navigation + generate', () => {
 		await user.click(screen.getByText('Input Chinese Characters'));
 		expect(screen.getByRole('heading', { name: 'Enter Chinese Characters' })).toBeInTheDocument();
 
-		// Preview & Generate is disabled until at least one word is added.
-		const genBtn = screen.getByText('Preview & Generate') as HTMLButtonElement;
+		// Preview and Generate are disabled until at least one word is added.
+		expect(screen.getByRole('button', { name: 'Preview' })).toBeDisabled();
+		const genBtn = screen.getByRole('button', { name: 'Generate' }) as HTMLButtonElement;
 		expect(genBtn).toBeDisabled();
 
 		await user.type(screen.getByPlaceholderText('Type a word, e.g. 中国'), '中国');
 		await user.click(screen.getByText('Add'));
-		// Opens the export preview; generation happens from inside it.
-		await user.click(screen.getByText('Preview & Generate'));
+		// Generation can also run from inside the export preview.
+		await user.click(screen.getByRole('button', { name: 'Preview' }));
 		expect(screen.getByRole('dialog', { name: 'Export preview' })).toBeInTheDocument();
 		await user.click(screen.getByRole('button', { name: 'Generate deck' }));
 		expect(deck.generateDeck).toHaveBeenCalled();
 		// A fresh SQLite db is created per export (avoids "table col already exists").
+		expect(deck.setupSql).toHaveBeenCalled();
+	});
+
+	it('Generate button triggers deck generation without opening the preview', async () => {
+		const user = userEvent.setup();
+		render(Page);
+
+		await user.click(screen.getByText('Input Chinese Characters'));
+		await user.type(screen.getByPlaceholderText('Type a word, e.g. 中国'), '中国');
+		await user.click(screen.getByText('Add'));
+
+		await user.click(screen.getByRole('button', { name: 'Generate' }));
+		expect(screen.queryByRole('dialog', { name: 'Export preview' })).toBeNull();
+		expect(deck.generateDeck).toHaveBeenCalled();
 		expect(deck.setupSql).toHaveBeenCalled();
 	});
 

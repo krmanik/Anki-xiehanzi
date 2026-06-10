@@ -1010,8 +1010,11 @@
 				</div>
 				<div class="flex gap-2">
 					<button class={btnSecondary} onclick={exportCSV} disabled={words.length === 0}>Export CSV</button>
-					<button class={btnPrimary} onclick={() => (showPreview = true)} disabled={words.length === 0 || isGenerating}>
-						{isGenerating ? 'Generating…' : 'Preview & Generate'}
+					<button class={btnSecondary} onclick={() => (showPreview = true)} disabled={words.length === 0 || isGenerating}>
+						Preview
+					</button>
+					<button class={btnPrimary} onclick={doGenerateDeck} disabled={words.length === 0 || isGenerating}>
+						{isGenerating ? 'Generating…' : 'Generate'}
 					</button>
 				</div>
 			</div>

@@ -498,13 +498,19 @@ export function renderCardHtml(opts: {
 			? front
 			: fillTemplate(tmpl.afmt, { ...fmap, FrontSide: front });
 
-	// Point bundled `_media` (icons font, sidebar images) at the served static
-	// files, and drop the offline loaders the preview doesn't need (persistence is
-	// shimmed; the writer engine/stroke data + audio won't run in the iframe).
+	// Point bundled `_media` (icons font, sidebar images, writer engine + stroke
+	// data) at the served static files; persistence is shimmed, audio won't play.
+	// srcdoc iframes resolve relative URLs against the parent page, so every
+	// bundled path must be rewritten to an absolute app path or it 404s.
 	const asset = `${base}/img/`;
+	const data = `${base}/data/`;
 	body = body
 		.replace(/<script src="_anki-persistence\.js"><\/script>/g, '')
-		.replace(/<script src="_hanzi-writer\.min\.js"><\/script>/g, '')
+		.replace(
+			/<script src="_hanzi-writer\.min\.js"><\/script>/g,
+			`<script src="${data}_hanzi-writer.min.js"><\/script>`
+		)
+		.replace(/fetch\("_hanzi-writer-data\.json"\)/g, `fetch("${data}hanzi-writer-data.json")`)
 		.replace(/src="_/g, `src="${asset}_`);
 
 	const styles = (CONSTANTS.DECK_CSS + css).replace(

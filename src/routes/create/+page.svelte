@@ -33,6 +33,7 @@
 	import CONSTANTS from '$lib/dict/contants';
 	import { CARD_PRESETS, presetToCard, presetNeedsAudio, type CardPreset } from '$lib/cardPresets';
 	import { TONE_PRESETS, TONE_KEYS, resolvePalette } from '$lib/tonePresets';
+	import { CARD_THEME_GROUPS } from '$lib/cardThemes';
 	import { posDisplay } from '$lib/dict/cedict';
 	import {
 		cutParagraph,
@@ -112,6 +113,7 @@
 	let showCustomizer = $state(false);
 	let showPreview = $state(false);
 	let appearanceOpen = $state(true);
+	let mobileTab = $state<'customize' | 'preview'>('customize');
 	let wordValue = $state('');
 	let selectType = $state('Word');
 	let texAreaValue = $state('');
@@ -640,7 +642,16 @@
 	<h1 class="mb-6 mt-2 text-4xl font-extrabold tracking-tight">Create Deck</h1>
 
 	{#if page === 1}
-		<div>
+		<div class="mb-4 flex overflow-hidden rounded-lg border border-neutral-200 lg:hidden">
+			<button
+				class="flex-1 py-2 text-sm font-medium transition {mobileTab === 'customize' ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:bg-neutral-50'}"
+				onclick={() => (mobileTab = 'customize')}>Customize</button>
+			<button
+				class="flex-1 py-2 text-sm font-medium transition {mobileTab === 'preview' ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:bg-neutral-50'}"
+				onclick={() => (mobileTab = 'preview')}>Preview</button>
+		</div>
+		<div class="lg:flex lg:items-start lg:gap-8">
+		<div class="{mobileTab === 'preview' ? 'hidden lg:block' : ''} min-w-0 flex-1">
 			<h2 class="mt-6 text-xl font-semibold">Enter Deck Title</h2>
 			<Input class="w-3/5" placeholder="Text input" bind:value={deckName} />
 
@@ -676,6 +687,44 @@
 			</button>
 
 			{#if appearanceOpen}
+
+			<!-- Card theme picker -->
+			<div class="mt-4">
+				<p class="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Card theme</p>
+				<div class="flex flex-wrap gap-2">
+					<button
+						class="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition {!template.cardTheme ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-200 text-neutral-600 hover:border-neutral-400'}"
+						onclick={() => (template.cardTheme = '')}
+					>
+						<span class="flex h-5 w-5 items-center justify-center rounded-full border border-neutral-300 bg-white text-[9px] text-neutral-400">–</span>
+						None
+					</button>
+					{#each CARD_THEME_GROUPS as g (g.id)}
+						<button
+							class="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition {template.cardTheme === g.id ? 'border-neutral-900 ring-1 ring-neutral-900' : 'border-neutral-200 hover:border-neutral-400'}"
+							onclick={() => (template.cardTheme = g.id)}
+							title={g.description}
+						>
+							<span class="relative flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-neutral-200">
+								<span class="absolute inset-0 w-1/2" style="background:{g.swatch[0]}"></span>
+								<span class="absolute inset-0 left-1/2" style="background:{g.swatch[1]}"></span>
+							</span>
+							{g.label}
+						</button>
+					{/each}
+				</div>
+				{#if template.cardTheme}
+					<div class="mt-3 inline-flex overflow-hidden rounded-lg border border-neutral-300">
+						{#each (['auto', 'light', 'dark'] as const) as m}
+							<button
+								class="px-3 py-1.5 text-sm capitalize transition {template.cardThemeMode === m ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:text-neutral-900'}"
+								onclick={() => (template.cardThemeMode = m)}
+							>{m}</button>
+						{/each}
+					</div>
+				{/if}
+			</div>
+
 			<div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-3">
 				<div class="inline-flex overflow-hidden rounded-lg border border-neutral-300">
 					<button
@@ -875,7 +924,7 @@
 				</ul>
 
 				{#if tabContent[tabs[activeTab]]}
-					<div class="grid gap-6 py-4 lg:grid-cols-[1fr_320px]">
+					<div class="py-4">
 						<!-- field editor -->
 						<div>
 							<p class="mb-2 text-xs text-neutral-500">Tick a field to show it on the front and/or back of this card type.</p>
@@ -937,43 +986,50 @@
 								{/each}
 							</ul>
 						</div>
-
-						<!-- live preview -->
-						<div class="space-y-3">
-							<CardPreview
-								label="Front"
-								side="front"
-								items={frontItems}
-								colorize={!template.mono && template.colorHanzi}
-								font={template.font}
-								collapseDict={template.collapseDict}
-								commonPinyinOnly={template.commonPinyinOnly}
-								elementStyles={activeStyles}
-								groups={activeGroups}
-								{order}
-								toneColors={palette}
-								exampleSentences={previewExamples}
-								exampleOptions={template.exampleOptions}
-							/>
-							<CardPreview
-								label="Back"
-								side="back"
-								items={backItems}
-								colorize={!template.mono && template.colorHanzi}
-								font={template.font}
-								collapseDict={template.collapseDict}
-								commonPinyinOnly={template.commonPinyinOnly}
-								elementStyles={activeStyles}
-								groups={activeGroups}
-								{order}
-								toneColors={palette}
-								exampleSentences={previewExamples}
-								exampleOptions={template.exampleOptions}
-							/>
-						</div>
 					</div>
 				{/if}
 			</div>
+		</div>
+		<!-- Sticky live preview — right column on lg+, preview tab on mobile -->
+		<div class="{mobileTab === 'customize' ? 'hidden lg:block' : ''} w-full space-y-3 lg:w-[320px] lg:shrink-0 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
+			{#if tabContent[tabs[activeTab]]}
+				<p class="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Live preview — {tabs[activeTab]}</p>
+				<CardPreview
+					label="Front"
+					side="front"
+					items={frontItems}
+					colorize={!template.mono && template.colorHanzi}
+					font={template.font}
+					collapseDict={template.collapseDict}
+					commonPinyinOnly={template.commonPinyinOnly}
+					elementStyles={activeStyles}
+					groups={activeGroups}
+					{order}
+					toneColors={palette}
+					cardTheme={template.cardTheme}
+					cardThemeMode={template.cardThemeMode}
+					exampleSentences={previewExamples}
+					exampleOptions={template.exampleOptions}
+				/>
+				<CardPreview
+					label="Back"
+					side="back"
+					items={backItems}
+					colorize={!template.mono && template.colorHanzi}
+					font={template.font}
+					collapseDict={template.collapseDict}
+					commonPinyinOnly={template.commonPinyinOnly}
+					elementStyles={activeStyles}
+					groups={activeGroups}
+					{order}
+					toneColors={palette}
+					cardTheme={template.cardTheme}
+					cardThemeMode={template.cardThemeMode}
+					exampleSentences={previewExamples}
+					exampleOptions={template.exampleOptions}
+				/>
+			{/if}
+		</div>
 		</div>
 	{/if}
 

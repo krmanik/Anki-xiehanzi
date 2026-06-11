@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { colorizeHanzi, toneOfPinyin } from '$lib/tone';
 	import { elementOrder, groupOrder, bodyOrderFromLayout, withMetaCluster, META_CLUSTER_ID, FIELD_TO_ELEMENT, DEFAULT_EXAMPLE_OPTIONS, type CardElementId, type CardElementStyles, type CardGroup, type ElementStyle, type ExampleOptions } from '$lib/deckTemplate';
+	import { resolveTheme, mergeElementStyles } from '$lib/cardThemes';
 	import { hskLevelLabel, frequencyBand } from '$lib/dict/meta';
 	import { STANDARD_TONES, type TonePalette, type ToneKey } from '$lib/tonePresets';
 	import type { Word, ExampleSentence } from '$lib/deck';
@@ -31,6 +32,8 @@
 		groups = [] as CardGroup[],
 		order = [] as string[],
 		toneColors = null,
+		cardTheme = '',
+		cardThemeMode = 'auto' as 'auto' | 'light' | 'dark',
 		word = null,
 		exampleSentences = null,
 		exampleOptions = null,
@@ -49,6 +52,8 @@
 		groups?: CardGroup[];
 		order?: string[];
 		toneColors?: TonePalette | null;
+		cardTheme?: string;
+		cardThemeMode?: 'auto' | 'light' | 'dark';
 		/** When set, the preview renders this real word instead of the example. */
 		word?: Word | null;
 		/** Real example sentences for the previewed word (else a sample is shown). */
@@ -58,6 +63,30 @@
 		selectedElement?: CardElementId | null;
 		selectedGroup?: string | null;
 	} = $props();
+
+	// Detect OS dark preference for auto mode.
+	let systemDark = $state(false);
+	$effect(() => {
+		if (typeof window === 'undefined') return;
+		const mq = window.matchMedia('(prefers-color-scheme: dark)');
+		systemDark = mq.matches;
+		const handler = (e: MediaQueryListEvent) => { systemDark = e.matches; };
+		mq.addEventListener('change', handler);
+		return () => mq.removeEventListener('change', handler);
+	});
+
+	// Theme: merge theme elementStyles (base) under card-level overrides.
+	const activeTheme = $derived(cardTheme ? resolveTheme(cardTheme, cardThemeMode, systemDark) : undefined);
+	const effectiveES = $derived(
+		activeTheme ? mergeElementStyles(activeTheme.elementStyles, elementStyles) : elementStyles
+	);
+	const themeCssVars = $derived(
+		activeTheme
+			? Object.entries(activeTheme.cssVars)
+					.map(([k, v]) => `${k}:${v}`)
+					.join(';')
+			: ''
+	);
 
 	// Inline tone color for a preview hanzi span (honours the chosen palette).
 	function toneStyle(tone: number): string {
@@ -201,7 +230,7 @@
 	);
 
 	function hanziFont(id: 'simplified' | 'traditional'): string {
-		const ov = elementStyles[id]?.fontFamily;
+		const ov = effectiveES[id]?.fontFamily;
 		if (ov && ov !== 'default') return fontStacks[ov] ?? ov;
 		return globalFont;
 	}
@@ -216,7 +245,7 @@
 
 	// Flex `order` for a body block — drives reorder + the move up/down positioning.
 	function ord(id: CardElementId): number {
-		return elementOrder(elementStyles, id, bodyOrder);
+		return elementOrder(effectiveES, id, bodyOrder);
 	}
 
 	function styleToInline(s: ElementStyle | undefined, opts: { hanzi?: boolean } = {}): string {
@@ -235,6 +264,7 @@
 		if (s.marginTop)       r.push(`margin-top:${s.marginTop}`);
 		if (s.marginBottom)    r.push(`margin-bottom:${s.marginBottom}`);
 		if (s.backgroundColor) r.push(`background-color:${s.backgroundColor}`);
+		if (s.backgroundImage) r.push(`background-image:${s.backgroundImage}`);
 		if (s.padding)         r.push(`padding:${s.padding}`);
 		if (s.borderRadius)    r.push(`border-radius:${s.borderRadius}`);
 		if (s.letterSpacing)   r.push(`letter-spacing:${s.letterSpacing}`);
@@ -247,11 +277,11 @@
 	}
 
 	function elStyle(id: CardElementId): string {
-		return styleToInline(elementStyles[id], { hanzi: id === 'simplified' || id === 'traditional' });
+		return styleToInline(effectiveES[id], { hanzi: id === 'simplified' || id === 'traditional' });
 	}
 
 	function isHidden(id: CardElementId): boolean {
-		return elementStyles[id]?.visible === false;
+		return effectiveES[id]?.visible === false;
 	}
 
 	// ── Groups (designer) ────────────────────────────────────────────────────
@@ -295,7 +325,7 @@
 	});
 
 	function groupInline(g: CardGroup): string {
-		const r = [`order:${groupOrder(elementStyles, g, bodyOrder)}`];
+		const r = [`order:${groupOrder(effectiveES, g, bodyOrder)}`];
 		if (g.display === 'flex') {
 			r.push('display:flex', `flex-direction:${g.direction}`, 'gap:8px', 'flex-wrap:wrap');
 			r.push(g.direction === 'row' ? 'align-items:center;justify-content:center' : 'align-items:center');
@@ -363,13 +393,13 @@
 
 <div
 	class="relative overflow-hidden rounded-xl border border-neutral-200 transition-all {selClass('card')}"
-	style="background-color:{elementStyles.card?.backgroundColor ?? '#ffffff'};text-align:{elementStyles.card?.textAlign ?? 'center'};{elStyle('card')}"
+	style="--surface2:#ffffff;--surface3:#f5f5f5;--surface4:#e5e5e5;--text1:#262626;--text2:#737373;--accent:#3a6df0;--body-bg:#f5f5f5;--btn-radius:4px;--btn-border:none;--container-radius:8px;--chip-radius:9999px;background-color:{effectiveES.card?.backgroundColor ?? '#ffffff'};{effectiveES.card?.backgroundImage ? 'background-image:' + effectiveES.card.backgroundImage + ';' : ''}text-align:{effectiveES.card?.textAlign ?? 'center'};{elStyle('card')}{themeCssVars ? ';' + themeCssVars : ''}"
 	role="button"
 	tabindex="0"
 	onclick={(e) => select('card', e)}
 	onkeydown={onkey('card')}
 >
-	<div class="border-b border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">
+	<div class="px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] border-b" style="border-color:var(--surface4);background:var(--surface3);color:var(--text2)">
 		{label}
 		{#if interactive && selectedElement === 'card'}<span class={SEL_BADGE}>Card</span>{/if}
 	</div>
@@ -386,7 +416,8 @@
 				onkeydown={onkey('controlButtons')}
 			>
 				{#each controlIcons as Icon, i (i)}
-					<span class="flex h-6 w-6 items-center justify-center rounded bg-[#5b6a9e] text-white"><Icon size={13} /></span>
+					{@const isNext = Icon === ChevronRight}
+					<span class="flex h-6 w-6 items-center justify-center" style="border-radius:var(--btn-radius,4px);border:var(--btn-border,none);{isNext ? 'background:var(--btn-next-bg,var(--surface3));color:var(--btn-next-fg,var(--text2))' : 'background:var(--btn-bg,var(--surface3));color:var(--btn-fg,var(--text2))'}"><Icon size={13} /></span>
 				{/each}
 				{#if interactive && selectedElement === 'controlButtons'}<span class={SEL_BADGE}>Controls</span>{/if}
 			</div>
@@ -401,7 +432,7 @@
 				onclick={(e) => select('hr', e)}
 				onkeydown={onkey('hr')}
 			>
-				<hr class="w-full border-t border-neutral-300" style={elStyle('hr')} />
+				<hr class="w-full border-t" style="border-color:var(--surface4);{elStyle('hr')}" />
 				{#if interactive && selectedElement === 'hr'}<div class="mt-0.5 text-center font-mono text-[9px] text-blue-500">separator</div>{/if}
 			</div>
 		{/if}
@@ -415,7 +446,7 @@
 			{#if item === 'Simplified' && (!isHidden('simplified') || interactive)}
 				<div
 					class="font-semibold leading-none {selClass('simplified')} {isHidden('simplified') ? 'opacity-30' : ''}"
-					style="order:{ord('simplified')};font-size:{elementStyles.simplified?.fontSize ?? '2.5em'};font-family:{hanziFont('simplified') || 'inherit'};{elStyle('simplified')}"
+					style="order:{ord('simplified')};font-size:{effectiveES.simplified?.fontSize ?? '2.5em'};font-family:{hanziFont('simplified') || 'inherit'};{elStyle('simplified')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('simplified', e)}
@@ -428,13 +459,13 @@
 			{:else if item === 'Traditional' && (!isHidden('traditional') || interactive)}
 				<div
 					class="leading-none text-neutral-700 {selClass('traditional')} {isHidden('traditional') ? 'opacity-30' : ''}"
-					style="order:{ord('traditional')};font-size:{elementStyles.traditional?.fontSize ?? '1.5em'};font-family:{hanziFont('traditional') || 'inherit'};{elStyle('traditional')}"
+					style="order:{ord('traditional')};font-size:{effectiveES.traditional?.fontSize ?? '1.5em'};font-family:{hanziFont('traditional') || 'inherit'};{elStyle('traditional')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('traditional', e)}
 					onkeydown={onkey('traditional')}
 				>
-					<span class="text-neutral-300">〔</span>{#each trad as c}<span class={colorize ? `tone${c.tone}` : ''} style={toneStyle(c.tone)}>{c.ch}</span>{/each}<span class="text-neutral-300">〕</span>
+					<span style="color:var(--surface4)">〔</span>{#each trad as c}<span class={colorize ? `tone${c.tone}` : ''} style={toneStyle(c.tone)}>{c.ch}</span>{/each}<span style="color:var(--surface4)">〕</span>
 					{#if interactive && selectedElement === 'traditional'}<span class={SEL_BADGE}>Traditional</span>{/if}
 				</div>
 
@@ -478,21 +509,21 @@
 					onclick={(e) => select('partOfSpeech', e)}
 					onkeydown={onkey('partOfSpeech')}
 				>
-					<span class="rounded-full bg-neutral-900 px-2 py-0.5 text-[11px] text-white">Place Name</span>
+					<span class="px-2 py-0.5 text-[11px]" style="border-radius:var(--chip-radius,9999px);background:var(--chip-bg,var(--text1));color:var(--chip-fg,var(--surface2))">Place Name</span>
 					{#if interactive && selectedElement === 'partOfSpeech'}<span class={SEL_BADGE}>Part of Speech</span>{/if}
 				</div>
 
 			{:else if item === 'SimpleMeaning' && (!isHidden('simpleMeaning') || interactive)}
 				<div
-					class="w-full overflow-hidden rounded-lg border border-neutral-200 {selClass('simpleMeaning')} {isHidden('simpleMeaning') ? 'opacity-30' : ''}"
-					style="order:{ord('simpleMeaning')};{elStyle('simpleMeaning')}"
+					class="w-full overflow-hidden border {selClass('simpleMeaning')} {isHidden('simpleMeaning') ? 'opacity-30' : ''}"
+					style="border-radius:var(--container-radius,8px);border-color:var(--surface4);order:{ord('simpleMeaning')};{elStyle('simpleMeaning')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('simpleMeaning', e)}
 					onkeydown={onkey('simpleMeaning')}
 				>
-					<div class="bg-neutral-100 px-2.5 py-1 text-left text-[11px] font-semibold text-neutral-500">Common Meaning</div>
-					<div class="px-2.5 py-2 text-[15px] font-semibold text-neutral-800">{src.simple}</div>
+					<div class="px-2.5 py-1 text-left text-[11px] font-semibold" style="background:var(--surface3);color:var(--text2)">Common Meaning</div>
+					<div class="px-2.5 py-2 text-[15px] font-semibold" style="color:var(--text1)">{src.simple}</div>
 					{#if interactive && selectedElement === 'simpleMeaning'}<span class={SEL_BADGE}>Simple Meaning</span>{/if}
 				</div>
 
@@ -506,32 +537,32 @@
 					onkeydown={onkey('definitions')}
 				>
 					{#if collapseDict}
-						<details class="text-sm text-neutral-700">
-							<summary class="cursor-pointer text-xs text-neutral-400">Dictionary</summary>
+						<details class="text-sm" style="color:var(--text1)">
+							<summary class="cursor-pointer text-xs" style="color:var(--text2)">Dictionary</summary>
 							{src.definition}
 						</details>
 					{:else}
-						<div class="text-sm text-neutral-700">{src.definition}</div>
+						<div class="text-sm" style="color:var(--text1)">{src.definition}</div>
 					{/if}
 					{#if interactive && selectedElement === 'definitions'}<div class="mt-0.5 text-center font-mono text-[9px] text-blue-500">Definitions</div>{/if}
 				</div>
 
 			{:else if item === 'Breakdown' && (!isHidden('breakdown') || interactive)}
 				<div
-					class="w-full overflow-hidden rounded-lg border border-neutral-200 {selClass('breakdown')} {isHidden('breakdown') ? 'opacity-30' : ''}"
-					style="order:{ord('breakdown')};{elStyle('breakdown')}"
+					class="w-full overflow-hidden border {selClass('breakdown')} {isHidden('breakdown') ? 'opacity-30' : ''}"
+					style="border-radius:var(--container-radius,8px);border-color:var(--surface4);order:{ord('breakdown')};{elStyle('breakdown')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('breakdown', e)}
 					onkeydown={onkey('breakdown')}
 				>
-					<div class="bg-neutral-100 px-2.5 py-1 text-left text-[11px] font-semibold text-neutral-500">Character Breakdown</div>
+					<div class="px-2.5 py-1 text-left text-[11px] font-semibold" style="background:var(--surface3);color:var(--text2)">Character Breakdown</div>
 					<div class="flex flex-wrap justify-center gap-2 p-2.5">
 						{#each src.breakdown as b (b.character)}
-							<div class="flex min-w-[3.5rem] flex-col items-center gap-0.5 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2">
-								<span class="text-xl font-semibold leading-none">{b.character}</span>
-								<span class="text-[10px] text-neutral-500">{b.pinyin}</span>
-								<span class="text-[10px] leading-tight text-neutral-500">{b.definition}</span>
+							<div class="flex min-w-[3.5rem] flex-col items-center gap-0.5 border px-3 py-2" style="border-radius:var(--container-radius,8px);border-color:var(--surface4);background:var(--surface3)">
+								<span class="text-xl font-semibold leading-none" style="color:var(--text1)">{b.character}</span>
+								<span class="text-[10px]" style="color:var(--text2)">{b.pinyin}</span>
+								<span class="text-[10px] leading-tight" style="color:var(--text2)">{b.definition}</span>
 							</div>
 						{/each}
 					</div>
@@ -540,18 +571,18 @@
 
 			{:else if item === 'Radical' && (!isHidden('radical') || interactive)}
 				<div
-					class="w-full overflow-hidden rounded-lg border border-neutral-200 {selClass('radical')} {isHidden('radical') ? 'opacity-30' : ''}"
-					style="order:{ord('radical')};{elStyle('radical')}"
+					class="w-full overflow-hidden border {selClass('radical')} {isHidden('radical') ? 'opacity-30' : ''}"
+					style="border-radius:var(--container-radius,8px);border-color:var(--surface4);order:{ord('radical')};{elStyle('radical')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('radical', e)}
 					onkeydown={onkey('radical')}
 				>
-					<div class="bg-neutral-100 px-2.5 py-1 text-left text-[11px] font-semibold text-neutral-500">Radical</div>
+					<div class="px-2.5 py-1 text-left text-[11px] font-semibold" style="background:var(--surface3);color:var(--text2)">Radical</div>
 					<div class="flex flex-wrap justify-center gap-1.5 p-2.5">
 						{#each src.radical as r (r.character)}
-							<span class="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-0.5 text-xs text-neutral-500">
-								<span class="font-bold text-neutral-800">{r.character}</span><span class="border-l border-neutral-300 pl-1.5 text-sm">{r.radical}</span>
+							<span class="inline-flex items-center gap-1.5 border px-2.5 py-0.5 text-xs" style="border-radius:var(--chip-radius,9999px);border-color:var(--surface4);background:var(--surface3);color:var(--text2)">
+								<span class="font-bold" style="color:var(--text1)">{r.character}</span><span class="border-l pl-1.5 text-sm" style="border-color:var(--surface4)">{r.radical}</span>
 							</span>
 						{/each}
 					</div>
@@ -567,7 +598,7 @@
 					onclick={(e) => select('hskLevel', e)}
 					onkeydown={onkey('hskLevel')}
 				>
-					<span class="inline-block rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">{src.hsk}</span>
+					<span class="inline-block border px-2.5 py-0.5 text-[11px] font-semibold" style="border-radius:var(--chip-radius,9999px);border-color:color-mix(in srgb,var(--accent) 35%,transparent);background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)">{src.hsk}</span>
 					{#if interactive && selectedElement === 'hskLevel'}<span class={SEL_BADGE}>HSK Level</span>{/if}
 				</div>
 
@@ -580,7 +611,7 @@
 					onclick={(e) => select('frequency', e)}
 					onkeydown={onkey('frequency')}
 				>
-					<span class="inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700">{src.frequency}</span>
+					<span class="inline-block border px-2.5 py-0.5 text-[11px] font-semibold" style="border-radius:var(--chip-radius,9999px);border-color:var(--surface4);background:var(--surface3);color:var(--text2)">{src.frequency}</span>
 					{#if interactive && selectedElement === 'frequency'}<span class={SEL_BADGE}>Frequency</span>{/if}
 				</div>
 
@@ -593,29 +624,29 @@
 					onclick={(e) => select('examples', e)}
 					onkeydown={onkey('examples')}
 				>
-					<div class="flex items-center justify-between rounded-t bg-neutral-100 px-2.5 py-1 text-[11px] font-semibold text-neutral-500">
-						<span>Examples</span><span class="text-neutral-400">▾</span>
+					<div class="flex items-center justify-between px-2.5 py-1 text-[11px] font-semibold" style="background:var(--surface3);color:var(--text2)">
+						<span>Examples</span><span style="color:var(--text2)">▾</span>
 					</div>
 					{#each exList as s (s.simplified)}
-						<div class="border-b border-neutral-100 py-1.5 last:border-0">
+						<div class="border-b py-1.5 last:border-0" style="border-color:var(--surface4)">
 							{#if exOpts.showTraditional && (!isHidden('exampleTraditional') || interactive)}
-								<div class="text-sm text-neutral-800 {selClass('exampleTraditional')} {isHidden('exampleTraditional') ? 'opacity-30' : ''}"
-									style={elStyle('exampleTraditional')} role="button" tabindex="0"
+								<div class="text-sm {selClass('exampleTraditional')} {isHidden('exampleTraditional') ? 'opacity-30' : ''}"
+									style="color:var(--text1);{elStyle('exampleTraditional')}" role="button" tabindex="0"
 									onclick={(e) => select('exampleTraditional', e)} onkeydown={onkey('exampleTraditional')}>{@html exHanziHtml(s.traditional, s.pinyin)}</div>
 							{/if}
 							{#if exOpts.showSimplified && (!isHidden('exampleSimplified') || interactive)}
-								<div class="text-sm text-neutral-800 {selClass('exampleSimplified')} {isHidden('exampleSimplified') ? 'opacity-30' : ''}"
-									style={elStyle('exampleSimplified')} role="button" tabindex="0"
+								<div class="text-sm {selClass('exampleSimplified')} {isHidden('exampleSimplified') ? 'opacity-30' : ''}"
+									style="color:var(--text1);{elStyle('exampleSimplified')}" role="button" tabindex="0"
 									onclick={(e) => select('exampleSimplified', e)} onkeydown={onkey('exampleSimplified')}>{@html exHanziHtml(s.simplified, s.pinyin)}</div>
 							{/if}
 							{#if exOpts.showPinyin && (!isHidden('examplePinyin') || interactive)}
-								<div class="text-xs text-neutral-500 {selClass('examplePinyin')} {isHidden('examplePinyin') ? 'opacity-30' : ''}"
-									style={elStyle('examplePinyin')} role="button" tabindex="0"
+								<div class="text-xs {selClass('examplePinyin')} {isHidden('examplePinyin') ? 'opacity-30' : ''}"
+									style="color:var(--text2);{elStyle('examplePinyin')}" role="button" tabindex="0"
 									onclick={(e) => select('examplePinyin', e)} onkeydown={onkey('examplePinyin')}>{@html exPinyinHtml(s.pinyin)}</div>
 							{/if}
 							{#if exOpts.showTranslation && (!isHidden('exampleTranslation') || interactive)}
-								<div class="text-xs text-neutral-500 {selClass('exampleTranslation')} {isHidden('exampleTranslation') ? 'opacity-30' : ''}"
-									style={elStyle('exampleTranslation')} role="button" tabindex="0"
+								<div class="text-xs {selClass('exampleTranslation')} {isHidden('exampleTranslation') ? 'opacity-30' : ''}"
+									style="color:var(--text2);{elStyle('exampleTranslation')}" role="button" tabindex="0"
 									onclick={(e) => select('exampleTranslation', e)} onkeydown={onkey('exampleTranslation')}>{s.translation}</div>
 							{/if}
 						</div>

@@ -9,6 +9,7 @@
 
 import CONSTANTS from './dict/contants';
 import { resolvePalette, STANDARD_TONES, TONE_KEYS, type TonePalette } from './tonePresets';
+import { CARD_THEME_MAP, CARD_THEME_GROUP_MAP, mergeElementStyles, resolveTheme } from './cardThemes';
 
 const FIELDS = CONSTANTS.FIELDS;
 
@@ -61,6 +62,7 @@ export interface ElementStyle {
 	borderWidth?: string; // border / hr thickness e.g. '1px', '2px'
 	borderStyle?: string; // 'solid' | 'dashed' | 'dotted' — box border (group containers)
 	boxShadow?: string; // e.g. '0 2px 6px rgba(0,0,0,0.18)'
+	backgroundImage?: string; // CSS gradient e.g. 'linear-gradient(…)'
 	order?: number; // flex order — vertical position within the card body
 }
 
@@ -126,6 +128,8 @@ export interface TemplateOpts {
 	toneColors: TonePalette; // used when tonePreset === 'custom'
 	exampleOptions: ExampleOptions;
 	elementStyles: CardElementStyles; // default per-element overrides for new cards
+	cardTheme: string;      // '' = none, else a CARD_THEME_GROUPS id
+	cardThemeMode: 'auto' | 'light' | 'dark';
 }
 
 export const DEFAULT_TEMPLATE: TemplateOpts = {
@@ -138,7 +142,9 @@ export const DEFAULT_TEMPLATE: TemplateOpts = {
 	tonePreset: 'standard',
 	toneColors: { ...STANDARD_TONES },
 	exampleOptions: { ...DEFAULT_EXAMPLE_OPTIONS },
-	elementStyles: {}
+	elementStyles: {},
+	cardTheme: '',
+	cardThemeMode: 'auto'
 };
 
 // ---------------------------------------------------------------------------
@@ -241,6 +247,7 @@ export function elementStyleToCSS(style: ElementStyle, fontStacks: Record<string
 	if (style.marginTop) r.push(`margin-top:${style.marginTop} !important`);
 	if (style.marginBottom) r.push(`margin-bottom:${style.marginBottom} !important`);
 	if (style.backgroundColor) r.push(`background-color:${style.backgroundColor} !important`);
+	if (style.backgroundImage) r.push(`background-image:${style.backgroundImage} !important`);
 	if (style.padding) r.push(`padding:${style.padding} !important`);
 	if (style.borderRadius) r.push(`border-radius:${style.borderRadius} !important`);
 	if (style.letterSpacing) r.push(`letter-spacing:${style.letterSpacing} !important`);
@@ -330,6 +337,32 @@ export function buildGlobalCss(t: TemplateOpts): string {
 	css += TONE_KEYS.map((k) => `.tone${k}{color:${palette[k]};}`).join('') + '\n';
 	// Example-sentence tone palette (independent of the main card colors).
 	css += TONE_KEYS.map((k) => `.ex-tone${k}{color:${palette[k]};}`).join('') + '\n';
+
+	// Card theme: emit CSS vars scoped to `.card`; auto mode also emits `.card.night_mode`.
+	if (t.cardTheme) {
+		const group = CARD_THEME_GROUP_MAP.get(t.cardTheme);
+		if (group) {
+			const mode = t.cardThemeMode ?? 'auto';
+			const lightTheme = group.lightId ? CARD_THEME_MAP.get(group.lightId) : undefined;
+			const darkTheme  = group.darkId  ? CARD_THEME_MAP.get(group.darkId)  : undefined;
+			const baseTheme  = mode === 'dark' ? (darkTheme ?? lightTheme) : (lightTheme ?? darkTheme);
+			if (baseTheme) {
+				const vars = Object.entries(baseTheme.cssVars).map(([k, v]) => `${k}:${v}`).join(';');
+				css += `.card{${vars};}\n`;
+				if (baseTheme.cssVars['--body-bg']) {
+					css += `body{background-color:${baseTheme.cssVars['--body-bg']};}\n`;
+				}
+			}
+			// Auto + both variants: dark vars activate under Anki night mode.
+			if (mode === 'auto' && lightTheme && darkTheme) {
+				const dv = Object.entries(darkTheme.cssVars).map(([k, v]) => `${k}:${v}`).join(';');
+				css += `.card.night_mode{${dv};}\n`;
+				if (darkTheme.cssVars['--body-bg']) {
+					css += `body.night_mode{background-color:${darkTheme.cssVars['--body-bg']};}\n`;
+				}
+			}
+		}
+	}
 
 	return css;
 }
@@ -904,7 +937,9 @@ for (var _hide of hideList) {
 
 		tmpls.push({ name: card, qfmt: QFMT, afmt: AFMT });
 
-		cardCss += buildCardCss(tabContent[card].elementStyles ?? {}, ct, groups, bodyOrder);
+		const themeES = template.cardTheme ? (resolveTheme(template.cardTheme, template.cardThemeMode ?? 'auto', false)?.elementStyles ?? {}) : {};
+		const mergedES = mergeElementStyles(themeES, tabContent[card].elementStyles ?? {});
+		cardCss += buildCardCss(mergedES, ct, groups, bodyOrder);
 	}
 
 	const css = buildGlobalCss(template) + cardCss;

@@ -11,6 +11,7 @@
 		type TemplateOpts
 	} from '$lib/deckTemplate';
 	import { TONE_PRESETS, TONE_KEYS, resolvePalette } from '$lib/tonePresets';
+	import { CARD_THEME_GROUPS } from '$lib/cardThemes';
 	import CardPreview from './CardPreview.svelte';
 	import UnitInput from './UnitInput.svelte';
 	import Monitor from '@lucide/svelte/icons/monitor';
@@ -401,6 +402,39 @@
 
 			<!-- ── Left: element list + properties ─────────────── -->
 			<div class="flex max-h-[45vh] w-full min-h-0 shrink-0 flex-col overflow-y-auto border-b border-neutral-200 md:max-h-none md:w-64 md:overflow-y-auto md:border-b-0 md:border-r xl:w-72">
+
+				<!-- Card theme -->
+				<div class="border-b border-neutral-100 p-3">
+					<p class="mb-2 font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">Card theme</p>
+					<div class="flex flex-wrap gap-1.5">
+						<button
+							class="rounded-full border px-2.5 py-0.5 text-[11px] transition {!localT.cardTheme ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300 text-neutral-500 hover:border-neutral-500'}"
+							onclick={() => patchTemplate({ cardTheme: '' })}
+						>None</button>
+						{#each CARD_THEME_GROUPS as g (g.id)}
+							<button
+								class="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] transition {localT.cardTheme === g.id ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-300 text-neutral-500 hover:border-neutral-500'}"
+								onclick={() => patchTemplate({ cardTheme: g.id })}
+							>
+								<span class="relative flex h-3 w-3 shrink-0 overflow-hidden rounded-full">
+									<span class="absolute inset-0 w-1/2" style="background:{g.swatch[0]}"></span>
+									<span class="absolute inset-0 left-1/2" style="background:{g.swatch[1]}"></span>
+								</span>
+								{g.label}
+							</button>
+						{/each}
+					</div>
+					{#if localT.cardTheme}
+						<div class="mt-2 inline-flex overflow-hidden rounded border border-neutral-200">
+							{#each (['auto', 'light', 'dark'] as const) as m}
+								<button
+									class="px-2.5 py-0.5 text-[10px] capitalize transition {localT.cardThemeMode === m ? 'bg-neutral-900 text-white' : 'text-neutral-500 hover:text-neutral-700'}"
+									onclick={() => patchTemplate({ cardThemeMode: m })}
+								>{m}</button>
+							{/each}
+						</div>
+					{/if}
+				</div>
 
 				<!-- Global tone settings -->
 				<div class="border-b border-neutral-100 p-3">
@@ -895,6 +929,8 @@
 						groups={cardGroups}
 						{order}
 						toneColors={previewPalette}
+						cardTheme={localT.cardTheme}
+						cardThemeMode={localT.cardThemeMode}
 						interactive={true}
 						bind:selectedElement
 						bind:selectedGroup
@@ -911,6 +947,8 @@
 						groups={cardGroups}
 						{order}
 						toneColors={previewPalette}
+						cardTheme={localT.cardTheme}
+						cardThemeMode={localT.cardThemeMode}
 						interactive={true}
 						bind:selectedElement
 						bind:selectedGroup

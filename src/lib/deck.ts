@@ -282,11 +282,12 @@ export function displayReadings(
  * the dictionary fall back to Google Translate. Dedup is the caller's job.
  */
 export async function lookupWord(word: string): Promise<Word> {
-	const entry = await cedictLookup(word);
+	const normalized = Chinese.t2s(word.trim());
+	const entry = await cedictLookup(normalized);
 
 	if (!entry) {
 		// Fallback: word not in cedict.db
-		const fetched = await fetchMeaningGoogleTranslate(word.trim());
+		const fetched = await fetchMeaningGoogleTranslate(normalized);
 		const breakdown = await characterBreakdown(fetched.Simplified);
 		const readings: Reading[] = fetched.Syllable.map((syl, i) => ({
 			syllable: syl,
@@ -333,6 +334,65 @@ export async function lookupWord(word: string): Promise<Word> {
 		readings,
 		breakdown
 	};
+}
+
+/** CEDICT-only lookup — never calls Google Translate. Returns null when not found. */
+export async function lookupWordCedictOnly(word: string): Promise<Word | null> {
+	const entry = await cedictLookup(Chinese.t2s(word.trim()));
+	if (!entry) return null;
+	const readings = entry.readings;
+	const breakdown = await characterBreakdown(entry.simplified);
+	return {
+		Simplified: entry.simplified,
+		Traditional: entry.traditional,
+		Pinyin: readings.map((r) => decodeHtmlEntities(r.pinyin)).join(', '),
+		Zhuyin: readings.map((r) => decodeHtmlEntities(r.zhuyin)).join(', '),
+		Definitions: readings.map((r) => r.definition).join(' │ '),
+		Syllable: readings.map((r) => r.syllable).join(', '),
+		SimpleMeaning: simpleMeaningOf(entry.simplified) || entry.commonMeaning,
+		commonMeaning: entry.commonMeaning,
+		pos: entry.pos,
+		dominantPos: entry.dominantPos,
+		classifiers: entry.classifiers,
+		level: entry.level,
+		rank: entry.rank,
+		readings,
+		breakdown
+	};
+}
+
+/**
+ * Forward maximum matching (FMM) against CEDICT for a word that failed
+ * Google Translate. Tries the longest possible substring from each position;
+ * advances past single characters without adding them (no noise).
+ */
+export async function resolveWithSegmentation(word: string): Promise<Word[]> {
+	const chars = [...Chinese.t2s(word)];
+	const results: Word[] = [];
+	const seen = new Set<string>();
+	let pos = 0;
+
+	while (pos < chars.length) {
+		let matched = false;
+		for (let len = chars.length - pos; len >= 2; len--) {
+			const substr = chars.slice(pos, pos + len).join('');
+			if (seen.has(substr)) {
+				pos += len;
+				matched = true;
+				break;
+			}
+			const w = await lookupWordCedictOnly(substr);
+			if (w) {
+				seen.add(substr);
+				results.push(w);
+				pos += len;
+				matched = true;
+				break;
+			}
+		}
+		if (!matched) pos++; // skip single char silently
+	}
+	return results;
 }
 
 export { wordsByLevel, getSmartSentences };
@@ -539,7 +599,7 @@ export function filterChineseWords(array: string[]): string[] {
 
 /** Segment a paragraph into unique Chinese words via jieba. */
 export function cutParagraph(text: string): string[] {
-	let cutWords = cut(text, true);
+	let cutWords = cut(Chinese.t2s(text), true);
 	cutWords = filterChineseWords(cutWords);
 	return [...new Set(cutWords)];
 }

@@ -8,7 +8,7 @@ vi.mock('hanzi-writer', () => ({
 }));
 
 const WRITING = 'writingComponent';
-const ICON = '[class*="bg-[#5b6a9e]"]';
+const ICON = 'span[style*="btn-radius"]';
 
 function controlIcons(container: HTMLElement): number {
 	return container.querySelectorAll(ICON).length;

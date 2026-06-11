@@ -2,12 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { CARD_PRESETS, presetToCard, presetNeedsAudio } from './cardPresets';
 
 describe('card presets', () => {
-	it('exposes the five named presets', () => {
+	it('exposes the six named presets', () => {
 		expect(CARD_PRESETS.map((p) => p.name)).toEqual([
 			'Beginner',
 			'Intermediate',
 			'Reading',
 			'Writing',
+			'Example Sentences',
 			'HSK Exam'
 		]);
 	});

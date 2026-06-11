@@ -8,7 +8,7 @@ vi.mock('hanzi-writer', () => ({
 	default: { create: () => ({ loopCharacterAnimation() {}, hideCharacter() {} }) }
 }));
 
-const ICON = '[class*="bg-[#5b6a9e]"]';
+const ICON = 'span[style*="btn-radius"]';
 
 function baseProps(over: Record<string, unknown> = {}) {
 	return {

@@ -141,6 +141,7 @@
 	let tabContent = $state<TabContent>({
 		'Card 1': newCard()
 	});
+	let pendingPreset = $state<CardPreset | null>(null);
 
 	// table selection / pagination
 	let selected = $state<Set<Word>>(new Set());
@@ -383,37 +384,51 @@
 		return `${base} ${n}`;
 	}
 
-	// One-click preset: add a ready-made card type and switch to it. The very
-	// first time (still the lone empty "Card 1") we replace it rather than append.
-	function addPreset(preset: CardPreset) {
+	function applyPresetReplace(preset: CardPreset) {
 		const card = presetToCard(preset);
-		// Replace only the pristine, untouched default card — not a previously
-		// chosen preset that happens to share a Simplified-only front.
+		const old = tabs[activeTab];
+		const name = uniqueTabName(preset.name);
+		const next = { ...tabContent };
+		delete next[old];
+		next[name] = card;
+		tabs = tabs.map((t, i) => (i === activeTab ? name : t));
+		tabContent = next;
+		if (presetNeedsAudio(preset)) includeAudio = true;
+	}
+
+	function applyPresetAdd(preset: CardPreset) {
+		const card = presetToCard(preset);
+		const name = uniqueTabName(preset.name);
+		tabs = [...tabs, name];
+		tabContent = { ...tabContent, [name]: card };
+		activeTab = tabs.length - 1;
+		if (presetNeedsAudio(preset)) includeAudio = true;
+	}
+
+	function addPreset(preset: CardPreset) {
 		const def = newCard();
 		const sig = (c: { front: string[]; back: string[] }) =>
 			JSON.stringify([c.front, c.back]);
-		const replaceFirst =
+		const isPristine =
 			tabs.length === 1 &&
 			!!tabContent[tabs[0]] &&
 			sig(tabContent[tabs[0]]) === sig(def);
 
-		if (replaceFirst) {
-			const old = tabs[0];
-			const name = uniqueTabName(preset.name);
-			tabs = [name];
-			const next = { ...tabContent };
-			delete next[old];
-			next[name] = card;
-			tabContent = next;
-			activeTab = 0;
+		if (isPristine) {
+			applyPresetReplace(preset);
 		} else {
-			const name = uniqueTabName(preset.name);
-			tabs = [...tabs, name];
-			tabContent = { ...tabContent, [name]: card };
-			activeTab = tabs.length - 1;
+			pendingPreset = preset;
 		}
+	}
 
-		if (presetNeedsAudio(preset)) includeAudio = true;
+	function confirmPresetReplace() {
+		if (pendingPreset) applyPresetReplace(pendingPreset);
+		pendingPreset = null;
+	}
+
+	function confirmPresetAdd() {
+		if (pendingPreset) applyPresetAdd(pendingPreset);
+		pendingPreset = null;
 	}
 
 	function handleCloseTab(index: number) {
@@ -1372,6 +1387,29 @@
 						breakSelectedWords = new Set();
 					}}
 				>
+					Cancel
+				</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
+{#if pendingPreset}
+	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+		<div class="flex w-full max-w-sm flex-col rounded-xl bg-white shadow-2xl">
+			<div class="border-b border-neutral-200 px-4 py-3">
+				<h3 class="font-semibold text-neutral-900">{pendingPreset.name}</h3>
+				<p class="mt-0.5 text-xs text-neutral-500">{pendingPreset.description}</p>
+			</div>
+			<div class="px-4 py-4">
+				<p class="text-sm text-neutral-700">Replace the current card type or add as a new one?</p>
+			</div>
+			<div class="flex gap-2 border-t border-neutral-200 px-4 py-3">
+				<button class={btnPrimary} onclick={confirmPresetReplace}>
+					Replace "{tabs[activeTab]}"
+				</button>
+				<button class={btnSecondary} onclick={confirmPresetAdd}>Add new</button>
+				<button class="ml-auto text-xs text-neutral-500 hover:text-neutral-900" onclick={() => (pendingPreset = null)}>
 					Cancel
 				</button>
 			</div>

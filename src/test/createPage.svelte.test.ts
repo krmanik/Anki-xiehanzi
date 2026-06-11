@@ -80,10 +80,9 @@ describe('Create page — example sentence options', () => {
 		const user = userEvent.setup();
 		render(Page);
 		// Not shown by default.
-		expect(screen.queryByText('Example sentences')).toBeNull();
+		expect(screen.queryByText('Min length (chars)')).toBeNull();
 		// Tick Example Sentences on the back → contextual options appear.
 		await user.click(screen.getByLabelText('Example Sentences back'));
-		expect(screen.getByText('Example sentences')).toBeInTheDocument();
 		expect(screen.getByText('Min length (chars)')).toBeInTheDocument();
 		expect(screen.getByText('Max length (chars)')).toBeInTheDocument();
 	});

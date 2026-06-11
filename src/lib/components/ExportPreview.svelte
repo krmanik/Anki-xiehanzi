@@ -202,6 +202,7 @@
 			</div>
 		</div>
 
+		{#if onGenerate}
 		<div class="flex shrink-0 items-center justify-end gap-2 border-t border-neutral-200 px-5 py-3">
 			<button onclick={onclose} class="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-50">Back</button>
 			<button
@@ -210,5 +211,6 @@
 				class="rounded-lg bg-neutral-900 px-5 py-2 text-sm text-white hover:bg-neutral-700 disabled:opacity-40"
 			>{isGenerating ? 'Generating…' : 'Generate deck'}</button>
 		</div>
+		{/if}
 	</div>
 </div>

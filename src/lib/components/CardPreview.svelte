@@ -25,6 +25,7 @@
 		items,
 		side = 'front',
 		colorize = true,
+		colorPinyin = false,
 		font = 'default',
 		collapseDict = false,
 		commonPinyinOnly = false,
@@ -45,6 +46,7 @@
 		items: string[];
 		side?: 'front' | 'back';
 		colorize?: boolean;
+		colorPinyin?: boolean;
 		font?: string;
 		collapseDict?: boolean;
 		commonPinyinOnly?: boolean;
@@ -112,6 +114,19 @@
 			} else html += ch;
 		}
 		return html;
+	}
+	// Inline tone-colored pinyin for the main Pinyin field.
+	function pinyinHtml(py: string): string {
+		if (!colorPinyin || !toneColors) return py;
+		return (py ?? '')
+			.split(/(\s+|,)/)
+			.map((p) => {
+				if (p === '' || p === ',' || /^\s+$/.test(p)) return p;
+				const hasLetter = /[a-zü]/i.test(p.normalize('NFD').replace(/[̀-ͯ]/g, ''));
+				if (!hasLetter) return p;
+				return `<span style="color:${paletteColor(toneOfPinyin(p))}">${p}</span>`;
+			})
+			.join('');
 	}
 	// Inline-colored pinyin HTML for a sentence.
 	function exPinyinHtml(py: string): string {
@@ -483,7 +498,7 @@
 					onclick={(e) => select('pinyin', e)}
 					onkeydown={onkey('pinyin')}
 				>
-					{src.pinyin}
+					{@html pinyinHtml(src.pinyin)}
 					{#if interactive && selectedElement === 'pinyin'}<span class={SEL_BADGE}>Pinyin</span>{/if}
 				</div>
 

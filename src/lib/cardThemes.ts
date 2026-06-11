@@ -54,8 +54,7 @@ export const CARD_THEMES: CardTheme[] = [
 			'--surface2': '#17171b', '--surface3': '#1d1d22', '--surface4': '#28282f',
 			'--text1': '#f3f3f7', '--text2': '#67676f', '--accent': '#6f9bff', '--body-bg': '#111114',
 			'--chip-bg': 'var(--accent)', '--chip-fg': '#ffffff',
-			'--btn-radius': '6px', '--container-radius': '10px', '--chip-radius': '9999px',
-			'--btn-next-bg': 'var(--accent)', '--btn-next-fg': '#ffffff'
+			'--btn-radius': '6px', '--container-radius': '10px', '--chip-radius': '9999px'
 		}
 	},
 
@@ -76,8 +75,8 @@ export const CARD_THEMES: CardTheme[] = [
 			'--surface2': '#f4ebd9', '--surface3': 'rgba(255,252,244,.7)', '--surface4': '#cdb98f',
 			'--text1': '#2a241c', '--text2': '#9c8a63', '--accent': '#b5342a', '--body-bg': '#ede4ce',
 			'--chip-bg': 'var(--accent)', '--chip-fg': '#ffffff',
-			'--btn-radius': '9999px', '--container-radius': '6px', '--chip-radius': '9999px',
-			'--btn-next-bg': 'var(--accent)', '--btn-next-fg': '#ffffff'
+			'--btn-radius': '9999px', '--btn-border': '1px solid var(--surface4)',
+			'--container-radius': '6px', '--chip-radius': '9999px'
 		}
 	},
 	{
@@ -100,8 +99,8 @@ export const CARD_THEMES: CardTheme[] = [
 			'--surface2': '#1a1712', '--surface3': '#231f18', '--surface4': '#3a3326',
 			'--text1': '#e8dfc8', '--text2': '#7a6840', '--accent': '#d4845e', '--body-bg': '#111009',
 			'--chip-bg': 'var(--accent)', '--chip-fg': '#ffffff',
-			'--btn-radius': '9999px', '--container-radius': '6px', '--chip-radius': '9999px',
-			'--btn-next-bg': 'var(--accent)', '--btn-next-fg': '#ffffff'
+			'--btn-radius': '9999px', '--btn-border': '1px solid var(--surface4)',
+			'--container-radius': '6px', '--chip-radius': '9999px'
 		}
 	},
 
@@ -148,8 +147,8 @@ export const CARD_THEMES: CardTheme[] = [
 			'--surface2': '#fff5f8', '--surface3': '#fdf0f6', '--surface4': '#fde4ee',
 			'--text1': '#5a3570', '--text2': '#c4a3d6', '--accent': '#f472b6', '--body-bg': '#f0edf8',
 			'--chip-bg': 'var(--accent)', '--chip-fg': '#ffffff',
-			'--btn-radius': '9999px', '--container-radius': '16px', '--chip-radius': '9999px',
-			'--btn-next-bg': 'var(--accent)', '--btn-next-fg': '#ffffff'
+			'--btn-radius': '9999px', '--btn-border': '1px solid var(--surface4)',
+			'--container-radius': '16px', '--chip-radius': '9999px'
 		}
 	},
 	{
@@ -172,8 +171,8 @@ export const CARD_THEMES: CardTheme[] = [
 			'--surface2': '#2a1f3d', '--surface3': '#352847', '--surface4': '#3a2f50',
 			'--text1': '#e2d4f0', '--text2': '#9d8bc4', '--accent': '#ff9ecb', '--body-bg': '#1a1228',
 			'--chip-bg': 'var(--accent)', '--chip-fg': '#1a1228',
-			'--btn-radius': '9999px', '--container-radius': '16px', '--chip-radius': '9999px',
-			'--btn-next-bg': 'var(--accent)', '--btn-next-fg': '#1a1228'
+			'--btn-radius': '9999px', '--btn-border': '1px solid var(--surface4)',
+			'--container-radius': '16px', '--chip-radius': '9999px'
 		}
 	},
 
@@ -195,8 +194,7 @@ export const CARD_THEMES: CardTheme[] = [
 			'--text1': '#16140f', '--text2': '#6a6456', '--accent': '#d6402a', '--body-bg': '#ede8dc',
 			'--chip-bg': 'var(--text1)', '--chip-fg': 'var(--surface2)',
 			'--btn-radius': '0px', '--btn-border': '1px solid var(--text1)',
-			'--container-radius': '0px', '--chip-radius': '3px',
-			'--btn-next-bg': 'var(--accent)', '--btn-next-fg': '#ffffff'
+			'--container-radius': '0px', '--chip-radius': '3px'
 		}
 	},
 	{
@@ -216,8 +214,7 @@ export const CARD_THEMES: CardTheme[] = [
 			'--text1': '#f0ebe0', '--text2': '#9a9080', '--accent': '#e06040', '--body-bg': '#0d0b08',
 			'--chip-bg': 'var(--accent)', '--chip-fg': '#ffffff',
 			'--btn-radius': '0px', '--btn-border': '1px solid var(--text1)',
-			'--container-radius': '0px', '--chip-radius': '3px',
-			'--btn-next-bg': 'var(--accent)', '--btn-next-fg': '#ffffff'
+			'--container-radius': '0px', '--chip-radius': '3px'
 		}
 	},
 

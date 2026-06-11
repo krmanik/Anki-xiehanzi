@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { colorizeHanzi, toneOfPinyin } from '$lib/tone';
-	import { elementOrder, groupOrder, bodyOrderFromLayout, FIELD_TO_ELEMENT, DEFAULT_EXAMPLE_OPTIONS, type CardElementId, type CardElementStyles, type CardGroup, type ElementStyle, type ExampleOptions } from '$lib/deckTemplate';
+	import { elementOrder, groupOrder, bodyOrderFromLayout, withMetaCluster, META_CLUSTER_ID, FIELD_TO_ELEMENT, DEFAULT_EXAMPLE_OPTIONS, type CardElementId, type CardElementStyles, type CardGroup, type ElementStyle, type ExampleOptions } from '$lib/deckTemplate';
 	import { hskLevelLabel, frequencyBand } from '$lib/dict/meta';
 	import { STANDARD_TONES, type TonePalette, type ToneKey } from '$lib/tonePresets';
 	import type { Word, ExampleSentence } from '$lib/deck';
@@ -258,11 +258,16 @@
 	// Item field name (e.g. 'Pinyin') → body element id (e.g. 'pinyin').
 	const elOf = (item: string): CardElementId | undefined => FIELD_TO_ELEMENT[item];
 
+	// User groups plus the synthetic POS/HSK/frequency meta cluster, so the live
+	// preview matches the exported card's one-row meta layout.
+	const presentEls = $derived(items.map((i) => FIELD_TO_ELEMENT[i]).filter(Boolean) as CardElementId[]);
+	const effGroups = $derived(withMetaCluster(groups, presentEls));
+
 	// Ordered render slots: standalone items + group containers (in body order).
 	const slots = $derived.by(() => {
 		const gOf = new Map<CardElementId, string>();
-		for (const g of groups) for (const m of g.members) gOf.set(m, g.id);
-		const byId = new Map(groups.map((g) => [g.id, g]));
+		for (const g of effGroups) for (const m of g.members) gOf.set(m, g.id);
+		const byId = new Map(effGroups.map((g) => [g.id, g]));
 		const memberItems = new Map<string, string[]>();
 		for (const item of items) {
 			const el = elOf(item);
@@ -479,14 +484,15 @@
 
 			{:else if item === 'SimpleMeaning' && (!isHidden('simpleMeaning') || interactive)}
 				<div
-					class="text-[15px] font-semibold text-neutral-800 {selClass('simpleMeaning')} {isHidden('simpleMeaning') ? 'opacity-30' : ''}"
+					class="w-full overflow-hidden rounded-lg border border-neutral-200 {selClass('simpleMeaning')} {isHidden('simpleMeaning') ? 'opacity-30' : ''}"
 					style="order:{ord('simpleMeaning')};{elStyle('simpleMeaning')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('simpleMeaning', e)}
 					onkeydown={onkey('simpleMeaning')}
 				>
-					{src.simple}
+					<div class="bg-neutral-100 px-2.5 py-1 text-left text-[11px] font-semibold text-neutral-500">Common Meaning</div>
+					<div class="px-2.5 py-2 text-[15px] font-semibold text-neutral-800">{src.simple}</div>
 					{#if interactive && selectedElement === 'simpleMeaning'}<span class={SEL_BADGE}>Simple Meaning</span>{/if}
 				</div>
 
@@ -512,37 +518,43 @@
 
 			{:else if item === 'Breakdown' && (!isHidden('breakdown') || interactive)}
 				<div
-					class="flex flex-wrap justify-center gap-2 {selClass('breakdown')} {isHidden('breakdown') ? 'opacity-30' : ''}"
+					class="w-full overflow-hidden rounded-lg border border-neutral-200 {selClass('breakdown')} {isHidden('breakdown') ? 'opacity-30' : ''}"
 					style="order:{ord('breakdown')};{elStyle('breakdown')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('breakdown', e)}
 					onkeydown={onkey('breakdown')}
 				>
-					{#each src.breakdown as b (b.character)}
-						<div class="flex flex-col items-center rounded-lg border border-neutral-200 px-2.5 py-1.5">
-							<span class="text-lg leading-none">{b.character}</span>
-							<span class="text-[10px] text-neutral-500">{b.pinyin}</span>
-							<span class="text-[10px] text-neutral-500">{b.definition}</span>
-						</div>
-					{/each}
+					<div class="bg-neutral-100 px-2.5 py-1 text-left text-[11px] font-semibold text-neutral-500">Character Breakdown</div>
+					<div class="flex flex-wrap justify-center gap-2 p-2.5">
+						{#each src.breakdown as b (b.character)}
+							<div class="flex min-w-[3.5rem] flex-col items-center gap-0.5 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2">
+								<span class="text-xl font-semibold leading-none">{b.character}</span>
+								<span class="text-[10px] text-neutral-500">{b.pinyin}</span>
+								<span class="text-[10px] leading-tight text-neutral-500">{b.definition}</span>
+							</div>
+						{/each}
+					</div>
 					{#if interactive && selectedElement === 'breakdown'}<span class={SEL_BADGE}>Breakdown</span>{/if}
 				</div>
 
 			{:else if item === 'Radical' && (!isHidden('radical') || interactive)}
 				<div
-					class="flex flex-wrap justify-center gap-1.5 {selClass('radical')} {isHidden('radical') ? 'opacity-30' : ''}"
+					class="w-full overflow-hidden rounded-lg border border-neutral-200 {selClass('radical')} {isHidden('radical') ? 'opacity-30' : ''}"
 					style="order:{ord('radical')};{elStyle('radical')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('radical', e)}
 					onkeydown={onkey('radical')}
 				>
-					{#each src.radical as r (r.character)}
-						<span class="inline-flex items-center gap-1 rounded-full border border-neutral-200 px-2 py-0.5 text-xs text-neutral-500">
-							<span class="font-semibold text-neutral-800">{r.character}</span>{r.radical}
-						</span>
-					{/each}
+					<div class="bg-neutral-100 px-2.5 py-1 text-left text-[11px] font-semibold text-neutral-500">Radical</div>
+					<div class="flex flex-wrap justify-center gap-1.5 p-2.5">
+						{#each src.radical as r (r.character)}
+							<span class="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-0.5 text-xs text-neutral-500">
+								<span class="font-bold text-neutral-800">{r.character}</span><span class="border-l border-neutral-300 pl-1.5 text-sm">{r.radical}</span>
+							</span>
+						{/each}
+					</div>
 					{#if interactive && selectedElement === 'radical'}<span class={SEL_BADGE}>Radical</span>{/if}
 				</div>
 
@@ -555,7 +567,7 @@
 					onclick={(e) => select('hskLevel', e)}
 					onkeydown={onkey('hskLevel')}
 				>
-					<span class="inline-block rounded-full border border-neutral-200 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-500">{src.hsk}</span>
+					<span class="inline-block rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700">{src.hsk}</span>
 					{#if interactive && selectedElement === 'hskLevel'}<span class={SEL_BADGE}>HSK Level</span>{/if}
 				</div>
 
@@ -568,7 +580,7 @@
 					onclick={(e) => select('frequency', e)}
 					onkeydown={onkey('frequency')}
 				>
-					<span class="inline-block rounded-full border border-neutral-200 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-500">{src.frequency}</span>
+					<span class="inline-block rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700">{src.frequency}</span>
 					{#if interactive && selectedElement === 'frequency'}<span class={SEL_BADGE}>Frequency</span>{/if}
 				</div>
 
@@ -617,6 +629,13 @@
 		{#each slots as slot (slot.kind === 'group' ? slot.group.id : slot.item)}
 			{#if slot.kind === 'single'}
 				{@render itemBody(slot.item)}
+			{:else if slot.group.id === META_CLUSTER_ID}
+				<!-- Synthetic meta cluster: presentational only, not user-selectable. -->
+				<div class="box-border" style={groupInline(slot.group)}>
+					{#each slot.items as it (it)}
+						{@render itemBody(it)}
+					{/each}
+				</div>
 			{:else}
 				<div
 					class="relative box-border {interactive ? 'cursor-pointer rounded ring-2 transition-all ' + (selectedGroup === slot.group.id ? 'ring-violet-500 ring-offset-1' : 'ring-violet-200 hover:ring-violet-400 hover:ring-offset-1') : ''}"

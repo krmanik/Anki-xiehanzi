@@ -373,7 +373,10 @@ export function buildNoteFields(
 	const dupSimple =
 		norm(word.SimpleMeaning) === norm(Definitions) ||
 		norm(word.SimpleMeaning) === norm(word.commonMeaning);
-	const simpleMeaning = dupSimple ? '' : word.SimpleMeaning || '';
+	const simpleText = dupSimple ? '' : word.SimpleMeaning || '';
+	const simpleMeaning = simpleText
+		? `<div class="info-card-title">Common Meaning</div><div class="simple-content">${simpleText}</div>`
+		: '';
 
 	// Definitions: one meaning-container per reading (always every reading).
 	const pin = Pinyin.split(', ');
@@ -404,23 +407,30 @@ export function buildNoteFields(
 </div>`);
 	}
 
-	// Breakdown: single-char words break down to themselves — leave blank.
+	// Breakdown: single-char words break down to themselves — leave blank. The
+	// titled card chrome lives in the value so the wrapper self-hides when empty.
 	const bd = word.breakdown.length > 1 ? word.breakdown : [];
-	const breakdownHtml = bd
+	const breakdownTiles = bd
 		.map(
 			(c) =>
 				`<div class="bd-item"><span class="bd-char">${c.character}</span><span class="bd-py">${c.pinyin}</span><span class="bd-def">${c.definition}</span></div>`
 		)
 		.join('');
+	const breakdownHtml = breakdownTiles
+		? `<div class="info-card-title">Character Breakdown</div><div class="breakdown-row">${breakdownTiles}</div>`
+		: '';
 
 	const seen = new Set<string>();
-	const radicalHtml = word.breakdown
+	const radicalChips = word.breakdown
 		.filter((c) => c.radical && !seen.has(c.character) && seen.add(c.character))
 		.map(
 			(c) =>
 				`<span class="radical-chip"><span class="radical-char">${c.character}</span><span class="radical-rad">${c.radical}</span></span>`
 		)
 		.join('');
+	const radicalHtml = radicalChips
+		? `<div class="info-card-title">Radical</div><div class="radical-row">${radicalChips}</div>`
+		: '';
 
 	const examplesHtml = examples
 		.map((s) => {

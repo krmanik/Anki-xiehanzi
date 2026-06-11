@@ -258,32 +258,49 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		'\n/* template customization */\n' +
 		':root{--card-w:90%;}\n' +
 		'.card-body{display:flex;flex-direction:column;align-items:center;width:100%;box-sizing:border-box;}\n' +
-		'.simple-card{font-weight:600;padding:10px;margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;border:1px solid var(--surface4);border-radius:8px;}\n' +
-		'.simple-card:empty{display:none;border:0;}\n' +
+		'.simple-content{padding:10px;font-weight:600;}\n' +
 		'.meaning-card{margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;border:1px solid var(--surface4);border-radius:8px;padding:0;overflow:hidden;text-align:left;}\n' +
 		'.meaning-bar{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:6px 10px;font-size:0.8em;font-weight:600;color:var(--text2);background:var(--surface3);-webkit-user-select:none;user-select:none;}\n' +
 		'.meaning-arrow{transition:transform 0.2s ease;display:inline-block;}\n' +
 		'.meaning-bar.collapsed .meaning-arrow{transform:rotate(-90deg);}\n' +
 		'.meaning-content{padding:10px;}\n' +
-		'.pos-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px 0;}\n' +
+		// Divider between successive readings (each is one .meaning-container).
+		'.meaning-content .meaning-container + .meaning-container{margin-top:10px;padding-top:10px;border-top:1px solid var(--surface4);}\n' +
+		// Meta chip row: part-of-speech + HSK + frequency share one wrapping row.
+		// `.meta-row` (the synthetic cluster) is laid out by per-card group CSS; the
+		// margin lives here so the cluster keeps its vertical breathing room.
+		'.meta-row{margin:8px auto;align-items:center;}\n' +
+		'.pos-row{display:inline-flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin:0;}\n' +
 		'.pos-row:empty{display:none;}\n' +
-		'.pos-chip{font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid #ccc;color:#666;}\n' +
-		'.pos-chip.pos-dominant{background:#111;color:#fff;border-color:#111;}\n' +
-		// Metadata badges (HSK level / frequency band)
-		'.meta-badge{display:inline-block;font-size:0.66em;font-weight:600;letter-spacing:0.02em;padding:3px 10px;margin:4px auto;border-radius:999px;border:1px solid var(--surface4);color:var(--text2);}\n' +
+		// POS: soft outline pill; the dominant sense gets a solid accent fill. Chips
+		// are inline-flex with line-height:1 so they vertically center against the
+		// HSK / frequency badges on the same row.
+		'.pos-chip{display:inline-flex;align-items:center;line-height:1;font-size:0.66em;font-weight:600;letter-spacing:0.02em;padding:5px 11px;margin-left:2px;border-radius:999px;background:var(--surface3);color:var(--text2);border:1px solid var(--surface4);}\n' +
+		'.pos-chip.pos-dominant{background:var(--text1);color:var(--surface2);border-color:var(--text1);}\n' +
+		// Metadata badges (HSK level / frequency band) — distinct tinted pills that
+		// sit on the same row as the POS chips (matching box model for alignment).
+		'.meta-badge{display:inline-flex;align-items:center;line-height:1;font-size:0.66em;font-weight:600;letter-spacing:0.02em;padding:5px 11px;margin:0;border-radius:999px;border:1px solid transparent;}\n' +
 		'.meta-badge:empty{display:none;border:0;padding:0;margin:0;}\n' +
-		// Character breakdown (一 char per row: char · pinyin · gloss)
-		'.breakdown-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;}\n' +
-		'.breakdown-row:empty{display:none;}\n' +
-		'.bd-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;border:1px solid var(--surface4);border-radius:8px;min-width:48px;}\n' +
-		'.bd-char{font-size:1.4em;line-height:1;}\n' +
+		'.meta-hsk{background:rgba(33,150,243,0.14);color:#1976d2;border-color:rgba(33,150,243,0.35);}\n' +
+		'.meta-freq{background:rgba(255,152,0,0.16);color:#e07b00;border-color:rgba(255,152,0,0.38);}\n' +
+		'.night_mode .meta-hsk{color:#7ec1ff;}\n' +
+		'.night_mode .meta-freq{color:#ffc266;}\n' +
+		// Titled info cards (breakdown / radical): a card-in-card with a header bar.
+		// The id wrapper hides itself when its field value is empty.
+		'.info-card{margin:8px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;border:1px solid var(--surface4);border-radius:8px;overflow:hidden;}\n' +
+		'.info-card:empty{display:none;border:0;}\n' +
+		'.info-card-title{padding:6px 10px;font-size:0.8em;font-weight:600;color:var(--text2);background:var(--surface3);text-align:left;}\n' +
+		// Character breakdown: one compact tile per component char (char · pinyin · gloss).
+		'.breakdown-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:10px;}\n' +
+		'.bd-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 12px;min-width:56px;background:var(--surface3);border:1px solid var(--surface4);border-radius:10px;}\n' +
+		'.bd-char{font-size:1.5em;line-height:1;font-weight:600;}\n' +
 		'.bd-py{font-size:0.7em;color:var(--text2);}\n' +
-		'.bd-def{font-size:0.68em;color:var(--text2);text-align:center;}\n' +
-		// Radical chips (国 → 囗)
-		'.radical-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:6px auto;}\n' +
-		'.radical-row:empty{display:none;}\n' +
-		'.radical-chip{display:inline-flex;align-items:center;gap:5px;font-size:0.8em;padding:3px 10px;border-radius:999px;border:1px solid var(--surface4);color:var(--text2);}\n' +
-		'.radical-chip .radical-char{font-weight:600;color:var(--text1);}\n' +
+		'.bd-def{font-size:0.66em;color:var(--text2);text-align:center;line-height:1.2;}\n' +
+		// Radical chips (国 │ 囗) — component char, a thin divider, then its radical.
+		'.radical-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:10px;}\n' +
+		'.radical-chip{display:inline-flex;align-items:center;gap:6px;font-size:0.72em;padding:4px 10px;border-radius:999px;background:var(--surface3);border:1px solid var(--surface4);color:var(--text2);}\n' +
+		'.radical-chip .radical-char{font-weight:700;color:var(--text1);}\n' +
+		'.radical-chip .radical-rad{padding-left:6px;border-left:1px solid var(--surface4);font-size:1.05em;}\n' +
 		// Example sentences
 		'.examples-row{margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;text-align:left;}\n' +
 		'.examples-row:empty{display:none;}\n' +
@@ -418,10 +435,13 @@ export const FIELD_DIV: Record<string, string> = {
 	Pinyin: `<div id="char_pinyin">{{Pinyin}}</div>`,
 	Zhuyin: `<div id="char_zhuyin">{{Zhuyin}}</div>`,
 	PartOfSpeech: `<div id="char_pos" class="pos-row">{{PartOfSpeech}}</div>`,
-	SimpleMeaning: `<div id="char_simple" class="simple-card">{{SimpleMeaning}}</div>`,
+	// Simple meaning, breakdown and radical are titled cards-in-card. The field
+	// value carries the header + body markup (or '' when empty), so the id wrapper
+	// self-hides via `.info-card:empty`.
+	SimpleMeaning: `<div id="char_simple" class="info-card">{{SimpleMeaning}}</div>`,
 	Definitions: CONSTANTS.MEANING_CARD,
-	Breakdown: `<div id="char_breakdown" class="breakdown-row">{{Breakdown}}</div>`,
-	Radical: `<div id="char_radical" class="radical-row">{{Radical}}</div>`,
+	Breakdown: `<div id="char_breakdown" class="info-card">{{Breakdown}}</div>`,
+	Radical: `<div id="char_radical" class="info-card">{{Radical}}</div>`,
 	HskLevel: `<div id="char_hsk" class="meta-badge meta-hsk">{{HskLevel}}</div>`,
 	Frequency: `<div id="char_freq" class="meta-badge meta-freq">{{Frequency}}</div>`,
 	// Examples is always a collapsible card (same chrome as Definitions).
@@ -537,6 +557,41 @@ export function wrapGroups(
 	return out.join('\n');
 }
 
+// Part-of-speech, HSK level and frequency read as one compact meta line, so by
+// default they share a single wrapping row. This is purely presentational: when
+// the user has not placed these elements in a group of their own, synthesize a
+// `meta-row` cluster that flows through the same group machinery (assembly +
+// CSS + preview). The cluster renders at the earliest present member's slot.
+export const META_CLUSTER_ID = 'meta-row';
+const META_CLUSTER_MEMBERS: CardElementId[] = ['partOfSpeech', 'hskLevel', 'frequency'];
+// Field name for each meta member (reverse of FIELD_TO_ELEMENT for this trio).
+const ELEMENT_TO_FIELD: Partial<Record<CardElementId, string>> = {
+	partOfSpeech: FIELDS.PART_OF_SPEECH,
+	hskLevel: FIELDS.HSK_LEVEL,
+	frequency: FIELDS.FREQUENCY
+};
+
+/**
+ * User groups plus the synthetic meta cluster. The cluster holds the meta members
+ * that are both ungrouped and present (`present` defaults to all three). Limiting
+ * it to present members keeps the cluster's flex order anchored to a member that
+ * actually renders, so a lone chip is never pulled up into the POS slot.
+ */
+export function withMetaCluster(
+	groups: CardGroup[],
+	present: CardElementId[] = META_CLUSTER_MEMBERS
+): CardGroup[] {
+	const grouped = new Set((groups ?? []).flatMap((g) => g.members));
+	const presentSet = new Set(present);
+	const members = META_CLUSTER_MEMBERS.filter((m) => !grouped.has(m) && presentSet.has(m));
+	// A lone chip needs no row wrapper; only cluster when two or more travel together.
+	if (members.length < 2) return groups ?? [];
+	return [
+		...(groups ?? []),
+		{ id: META_CLUSTER_ID, members, display: 'flex', direction: 'row', style: {} }
+	];
+}
+
 // ---------------------------------------------------------------------------
 // Note-template (qfmt/afmt) + CSS builder — the heart of the exporter
 // ---------------------------------------------------------------------------
@@ -618,7 +673,13 @@ export function buildNoteTemplates(opts: {
 			if (front.includes('Definitions') && !front.includes('SimpleMeaning')) hideDef = false;
 		}
 
-		const groups = tabContent[card].groups ?? [];
+		// Meta fields present on either side of this card type drive the cluster.
+		const backSelEarly = tabContent[card]['back'];
+		const metaPresent = META_CLUSTER_MEMBERS.filter((el) => {
+			const f = ELEMENT_TO_FIELD[el];
+			return frontSel.includes(`front${f}`) || backSelEarly.includes(`back${f}`);
+		});
+		const groups = withMetaCluster(tabContent[card].groups ?? [], metaPresent);
 
 		// Build the front in the user's field order (Definitions included in place),
 		// wrapping any grouped members into their container.
@@ -773,25 +834,46 @@ for (var _hide of hideList) {
 						''
 					);
 				}
-				// Selected extras in field order, split around Definitions so their
-				// vertical position relative to the dictionary card is preserved.
+				// Selected extras in field order. The POS/HSK/frequency trio clusters
+				// into one meta row (like the non-writer layout); remaining extras stay
+				// standalone. Each render unit is placed above or below the dictionary
+				// card by its anchor's position relative to Definitions.
 				const extras = fields.filter(
 					(f) => !WRITER_BUILTIN.has(f) && FIELD_DIV[f] && sel.includes(`${prefix}${f}`)
 				);
+				const META_FIELDS = [FIELDS.PART_OF_SPEECH, FIELDS.HSK_LEVEL, FIELDS.FREQUENCY];
+				const metaPresent = extras.filter((f) => META_FIELDS.includes(f));
+				const cluster = metaPresent.length >= 2;
 				const defIdx = fields.indexOf(FIELDS.DEFINITIONS);
-				const above = extras.filter((f) =>
-					defIdx === -1 ? f === FIELDS.SIMPLE_MEANING : fields.indexOf(f) < defIdx
-				);
-				const below = extras.filter((f) => !above.includes(f));
+				const metaAnchor = metaPresent.length ? fields.indexOf(metaPresent[0]) : -1;
+
+				type Unit = { anchor: number; html: string };
+				const units: Unit[] = [];
+				let metaEmitted = false;
+				for (const f of extras) {
+					if (cluster && META_FIELDS.includes(f)) {
+						if (metaEmitted) continue;
+						metaEmitted = true;
+						units.push({
+							anchor: metaAnchor,
+							html: `<div class="${META_CLUSTER_ID}">\n${metaPresent.map((m) => FIELD_DIV[m]).join('\n')}\n</div>`
+						});
+					} else {
+						units.push({ anchor: fields.indexOf(f), html: FIELD_DIV[f] });
+					}
+				}
+				const isAbove = (u: Unit) => (defIdx === -1 ? false : u.anchor < defIdx);
+				const above = units.filter(isAbove);
+				const below = units.filter((u) => !isAbove(u));
 				if (above.length)
 					tpl = tpl.replace(
 						CONSTANTS.MEANING_CARD,
-						above.map((f) => FIELD_DIV[f]).join('\n') + '\n' + CONSTANTS.MEANING_CARD
+						above.map((u) => u.html).join('\n') + '\n' + CONSTANTS.MEANING_CARD
 					);
 				if (below.length)
 					tpl = tpl.replace(
 						CONSTANTS.MEANING_CARD,
-						CONSTANTS.MEANING_CARD + '\n' + below.map((f) => FIELD_DIV[f]).join('\n')
+						CONSTANTS.MEANING_CARD + '\n' + below.map((u) => u.html).join('\n')
 					);
 				// Wrap so per-card element styles still scope to this template.
 				return `<div class="${ct}">\n${tpl}\n</div>`;

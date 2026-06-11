@@ -5,11 +5,14 @@ import {
 	buildCardCss,
 	elementOrder,
 	formatDefinition,
+	withMetaCluster,
+	META_CLUSTER_ID,
 	DEFAULT_TEMPLATE,
 	DEFAULT_BODY_ORDER,
 	type TabContent,
 	type TemplateOpts,
-	type CardElementStyles
+	type CardElementStyles,
+	type CardElementId
 } from './deckTemplate';
 import CONSTANTS from './dict/contants';
 
@@ -182,7 +185,7 @@ describe('deck CSS — separator + measure word', () => {
 	});
 
 	it('spaces the part-of-speech chips apart', () => {
-		expect(buildGlobalCss(tpl())).toContain('.pos-row{display:flex;flex-wrap:wrap;gap:8px');
+		expect(buildGlobalCss(tpl())).toContain('.pos-row{display:inline-flex;flex-wrap:wrap;gap:8px');
 	});
 });
 
@@ -557,6 +560,101 @@ describe('buildNoteTemplates — breakdown / radical / HSK / frequency fields', 
 	});
 });
 
+describe('withMetaCluster', () => {
+	it('clusters POS + HSK + frequency into one meta-row when none are grouped', () => {
+		const groups = withMetaCluster([]);
+		const cluster = groups.find((g) => g.id === META_CLUSTER_ID);
+		expect(cluster).toBeTruthy();
+		expect(cluster!.members).toEqual(['partOfSpeech', 'hskLevel', 'frequency']);
+		expect(cluster!.display).toBe('flex');
+		expect(cluster!.direction).toBe('row');
+	});
+
+	it('excludes meta members the user already placed in their own group', () => {
+		const userGroup = {
+			id: 'g0',
+			members: ['hskLevel'] as CardElementId[],
+			display: 'flex' as const,
+			direction: 'row' as const,
+			style: {}
+		};
+		const cluster = withMetaCluster([userGroup]).find((g) => g.id === META_CLUSTER_ID);
+		expect(cluster!.members).toEqual(['partOfSpeech', 'frequency']);
+	});
+
+	it('adds no cluster when fewer than two meta members remain ungrouped', () => {
+		const userGroup = {
+			id: 'g0',
+			members: ['hskLevel', 'frequency'] as CardElementId[],
+			display: 'flex' as const,
+			direction: 'row' as const,
+			style: {}
+		};
+		expect(withMetaCluster([userGroup]).some((g) => g.id === META_CLUSTER_ID)).toBe(false);
+	});
+});
+
+describe('buildNoteTemplates — meta-row clustering', () => {
+	const META = ['Breakdown', 'Radical', 'HskLevel', 'Frequency'];
+	const FULL = [...FIELDS, ...META];
+
+	it('wraps POS/HSK/frequency in a meta-row on a plain card', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(onlySimplifiedFront, ['backPartOfSpeech', 'backHskLevel', 'backFrequency'])
+		};
+		const { tmpls, css } = buildNoteTemplates({
+			fields: FULL,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(tmpls[0].afmt).toContain('class="meta-row"');
+		// All three meta chips live inside the single wrapper.
+		const row = tmpls[0].afmt.match(/<div class="meta-row">[\s\S]*?<\/div>\s*<\/div>/)?.[0] ?? '';
+		expect(row).toContain('id="char_pos"');
+		expect(row).toContain('id="char_hsk"');
+		expect(row).toContain('id="char_freq"');
+		// Per-card CSS lays the cluster out as a row.
+		expect(css).toContain('.meta-row{display:flex;flex-direction:row');
+	});
+
+	it('clusters the meta chips on a writer card too', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(onlySimplifiedFront, [
+				'backPartOfSpeech',
+				'backHskLevel',
+				'backFrequency',
+				'backwritingComponent'
+			])
+		};
+		const { tmpls, usesWriter } = buildNoteTemplates({
+			fields: FULL,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(usesWriter).toBe(true);
+		expect(tmpls[0].afmt).toContain('class="meta-row"');
+		expect(tmpls[0].afmt).toContain('{{PartOfSpeech}}');
+		expect(tmpls[0].afmt).toContain('{{HskLevel}}');
+		expect(tmpls[0].afmt).toContain('{{Frequency}}');
+	});
+
+	it('leaves a lone meta field unwrapped', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(onlySimplifiedFront, ['backHskLevel'])
+		};
+		const { tmpls } = buildNoteTemplates({
+			fields: FULL,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(tmpls[0].afmt).toContain('id="char_hsk"');
+		expect(tmpls[0].afmt).not.toContain('class="meta-row"');
+	});
+});
+
 describe('buildNoteTemplates — position move mirrored in CSS', () => {
 	it('emits the moved control/hr order into the per-card CSS', () => {
 		const tabContent: TabContent = {
@@ -573,5 +671,57 @@ describe('buildNoteTemplates — position move mirrored in CSS', () => {
 		});
 		expect(css).toContain('.ct0 .modal-footer1{order:95;}');
 		expect(css).toContain('.ct0 hr{order:96;}');
+	});
+});
+
+describe('titled breakdown / radical cards', () => {
+	it('wraps breakdown and radical fields in a self-hiding info card', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(onlySimplifiedFront, ['backBreakdown', 'backRadical'])
+		};
+		const { tmpls, css } = buildNoteTemplates({
+			fields: [...FIELDS, 'Breakdown', 'Radical'],
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(tmpls[0].afmt).toContain('<div id="char_breakdown" class="info-card">');
+		expect(tmpls[0].afmt).toContain('<div id="char_radical" class="info-card">');
+		expect(css).toContain('.info-card-title');
+		expect(css).toContain('.info-card:empty{display:none');
+	});
+
+	it('renders the simple meaning as a titled info card', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(onlySimplifiedFront, ['backSimpleMeaning'])
+		};
+		const { tmpls, css } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(tmpls[0].afmt).toContain('<div id="char_simple" class="info-card">');
+		expect(css).toContain('.simple-content');
+	});
+
+	it('draws a divider between successive readings in the definitions block', () => {
+		expect(buildGlobalCss(tpl())).toContain(
+			'.meaning-content .meaning-container + .meaning-container{margin-top:10px;padding-top:10px;border-top:1px solid var(--surface4);}'
+		);
+	});
+});
+
+describe('writer card hanzi coloring', () => {
+	it('reads the character list as plain text and tone-colors the big hanzi', () => {
+		// The stroke reader must take textContent (plain chars), not innerHTML, so
+		// colorChars() can safely tint the displayed hanzi without breaking drawing.
+		expect(CONSTANTS.DECK_HTML_WITH_HANZI_WRITER).toContain("getElementById('char_sim').textContent");
+		expect(CONSTANTS.DECK_HTML_WITH_HANZI_WRITER).not.toContain("getElementById('char_sim').innerHTML");
+		expect(CONSTANTS.DECK_HTML_WITH_HANZI_WRITER).toContain('function initWriterCard() { colorChars();');
+	});
+
+	it('defines a tone-5 (neutral) hanzi color so no syllable falls back to black', () => {
+		expect(CONSTANTS.DECK_CSS).toContain('.char-tone5');
 	});
 });

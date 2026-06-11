@@ -59,6 +59,13 @@ export const CARD_PRESETS: CardPreset[] = [
 		back: [F.SIMPLIFIED, WRITING]
 	},
 	{
+		id: 'examples',
+		name: 'Example Sentences',
+		description: 'Hanzi on the front, meaning + example sentences on the back',
+		front: [F.SIMPLIFIED],
+		back: [F.SIMPLIFIED, F.PINYIN, F.SIMPLE_MEANING, F.EXAMPLES, F.AUDIO]
+	},
+	{
 		id: 'hsk',
 		name: 'HSK Exam',
 		description: 'Everything: hanzi, readings, breakdown, level, frequency',

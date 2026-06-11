@@ -576,14 +576,14 @@ ${CARD_JS}
         }
         var perIndex = Persistence.getItem(frontBack + "practice-select");
         document.getElementById("practice-select").selectedIndex = perIndex ? 1 : 0;
-        characters = document.getElementById(perIndex ? 'char_trad' : 'char_sim').innerHTML;
+        characters = document.getElementById(perIndex ? 'char_trad' : 'char_sim').textContent;
     }
 
     function setPrefs(e) {
         var perId = frontBack + e.id;
         if (e.id == "practice-select") {
             Persistence.setItem(perId, e.selectedIndex);
-            characters = document.getElementById(e.selectedIndex == 0 ? 'char_sim' : 'char_trad').innerHTML;
+            characters = document.getElementById(e.selectedIndex == 0 ? 'char_sim' : 'char_trad').textContent;
             doPractice();
         }
         if (e.type == "checkbox") {
@@ -598,9 +598,9 @@ ${CARD_JS}
         }
     }
 
-    // Writer reads char_sim/char_trad text, so only color pinyin here (not the
-    // big hanzi); drive the collapsible dictionary card too.
-    function initWriterCard() { colorPinyin(); initMeaning(); }
+    // The writer reads char_sim/char_trad as plain text (textContent), so it is now
+    // safe to tone-color the displayed big hanzi as well as the pinyin.
+    function initWriterCard() { colorChars(); colorPinyin(); initMeaning(); }
     if (Persistence.isAvailable()) {
         if (window.ankiPlatform == "desktop" || isInWebView()) {
             initPractice();
@@ -647,8 +647,8 @@ ${CARD_JS}
     var grid_data = \`<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' class='grid-color'  id='grid-background-target'><g id="char_grid"><line x1='0' y1='0' x2='100%' y2='100%' stroke='var(--surface1)' /><line x1='100%' y1='0' x2='0' y2='100%' stroke='var(--surface1)' /><line x1='50%' y1='0' x2='50%' y2='100%' stroke='var(--surface1)' /><line x1='0' y1='50%' x2='100%' y2='50%' stroke='var(--surface1)' /></g></svg>\`;
 
     var characters = document.getElementById("practice-select").selectedIndex == "0"
-        ? document.getElementById('char_sim').innerHTML
-        : document.getElementById('char_trad').innerHTML;
+        ? document.getElementById('char_sim').textContent
+        : document.getElementById('char_trad').textContent;
 
     function generateHanziOnFinishQuiz(style = "none", finish = false) {
         var drawGrid = document.getElementById('onfinish-character-target-div');
@@ -1257,6 +1257,10 @@ img {
 
 .char-tone4 {
   color: var(--tone-4);
+}
+
+.char-tone5 {
+  color: var(--tone-5);
 }
 
 .char-sim-1 {

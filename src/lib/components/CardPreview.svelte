@@ -614,7 +614,7 @@
 					onclick={(e) => select('hskLevel', e)}
 					onkeydown={onkey('hskLevel')}
 				>
-					<span class="inline-block border px-2.5 py-0.5 text-[11px] font-semibold" style="border-radius:var(--chip-radius,9999px);border-color:var(--hsk-border,color-mix(in srgb,var(--accent) 35%,transparent));background:var(--hsk-bg,color-mix(in srgb,var(--accent) 14%,transparent));color:var(--hsk-fg,var(--accent))">{src.hsk}</span>
+					<span class="inline-flex items-center border text-[11px] font-semibold leading-none" style="padding:var(--pos-chip-pad,5px 11px);border-radius:var(--chip-radius,9999px);border-color:var(--hsk-border,color-mix(in srgb,var(--accent) 35%,transparent));background:var(--hsk-bg,color-mix(in srgb,var(--accent) 14%,transparent));color:var(--hsk-fg,var(--accent))">{src.hsk}</span>
 					{#if interactive && selectedElement === 'hskLevel'}<span class={SEL_BADGE}>HSK Level</span>{/if}
 				</div>
 
@@ -627,7 +627,7 @@
 					onclick={(e) => select('frequency', e)}
 					onkeydown={onkey('frequency')}
 				>
-					<span class="inline-block border px-2.5 py-0.5 text-[11px] font-semibold" style="border-radius:var(--chip-radius,9999px);border-color:var(--freq-border,var(--surface4));background:var(--freq-bg,var(--surface3));color:var(--freq-fg,var(--text2))">{src.frequency}</span>
+					<span class="inline-flex items-center border text-[11px] font-semibold leading-none" style="padding:var(--pos-chip-pad,5px 11px);border-radius:var(--chip-radius,9999px);border-color:var(--freq-border,var(--surface4));background:var(--freq-bg,var(--surface3));color:var(--freq-fg,var(--text2))">{src.frequency}</span>
 					{#if interactive && selectedElement === 'frequency'}<span class={SEL_BADGE}>Frequency</span>{/if}
 				</div>
 

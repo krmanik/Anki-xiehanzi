@@ -285,7 +285,7 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		// are inline-flex with line-height:1 so they vertically center against the
 		// HSK / frequency badges on the same row.
 		'.pos-chip{display:inline-flex;align-items:center;line-height:1;font-size:0.66em;font-weight:600;letter-spacing:0.02em;text-transform:var(--pos-chip-transform,none);padding:var(--pos-chip-pad,5px 11px);margin-left:2px;border-radius:var(--chip-radius,999px);background:var(--pos-chip-bg,var(--surface3));color:var(--pos-chip-fg,var(--text2));border:var(--pos-chip-border,1px solid var(--surface4));}\n' +
-		'.pos-chip.pos-dominant{background:var(--chip-bg,var(--text1));color:var(--chip-fg,var(--surface2));border-color:transparent;border-bottom:var(--pos-dominant-underline,0 solid transparent);}\n' +
+		'.pos-chip.pos-dominant{background:var(--chip-bg,var(--text1));color:var(--chip-fg,var(--surface2));border:var(--chip-border,1px solid transparent);border-bottom:var(--pos-dominant-underline,0 solid transparent);}\n' +
 		// Metadata badges (HSK level / frequency band) — distinct tinted pills that
 		// sit on the same row as the POS chips (matching box model for alignment).
 		'.meta-badge{display:inline-flex;align-items:center;line-height:1;font-size:0.66em;font-weight:600;letter-spacing:0.02em;padding:5px 11px;margin:0;border-radius:var(--chip-radius,999px);border:1px solid transparent;}\n' +

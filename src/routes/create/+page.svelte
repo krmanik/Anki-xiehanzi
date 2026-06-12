@@ -46,6 +46,7 @@
 		playWordAudio,
 		setupSql,
 		wordsByLevel,
+		wordsByBct,
 		getSmartSentences,
 		type TabContent,
 		type Word,
@@ -154,7 +155,8 @@
 		{ value: 'Word', name: 'Word' },
 		{ value: 'Paragraph', name: 'Paragraph' },
 		{ value: 'File', name: 'File' },
-		{ value: 'HSK', name: 'HSK Level' }
+		{ value: 'HSK', name: 'HSK Level' },
+		{ value: 'BCT', name: 'BCT Level' }
 	];
 
 	// HSK-level word source: pick levels, populate the list with all their words.
@@ -169,6 +171,43 @@
 		if (next.has(lvl)) next.delete(lvl);
 		else next.add(lvl);
 		selectedLevels = next;
+	}
+
+	// BCT word source
+	const BCT_LEVELS = ['A', 'B'];
+	let selectedBctLevels = $state<Set<string>>(new Set());
+	let bctProcessing = $state(false);
+	let bctProgress = $state(0);
+	let bctStatus = $state('');
+
+	function toggleBctLevel(lvl: string) {
+		const next = new Set(selectedBctLevels);
+		if (next.has(lvl)) next.delete(lvl);
+		else next.add(lvl);
+		selectedBctLevels = next;
+	}
+
+	async function addWordsByBct() {
+		if (bctProcessing || selectedBctLevels.size === 0) return;
+		bctProcessing = true;
+		bctProgress = 0;
+		bctStatus = 'Loading word list…';
+		try {
+			const list = await wordsByBct([...selectedBctLevels]);
+			const existing = new Set(words.map((w) => w.Simplified));
+			const todo = list.filter((w) => !existing.has(w));
+			const added: Word[] = [];
+			for (let i = 0; i < todo.length; i++) {
+				bctProgress = Math.round(((i + 1) / todo.length) * 100);
+				bctStatus = `Adding ${i + 1} / ${todo.length}…`;
+				added.push(await lookupWord(todo[i]));
+			}
+			words = [...words, ...added];
+			bctProgress = 100;
+			bctStatus = `Added ${added.length} words.`;
+		} finally {
+			bctProcessing = false;
+		}
 	}
 
 	async function addWordsByLevel() {
@@ -1129,6 +1168,44 @@
 								<span>{hskProgress}%</span>
 							</div>
 							<Progressbar progress={hskProgress} />
+						</div>
+					{/if}
+				</div>
+			{/if}
+
+			{#if selectType === 'BCT'}
+				<div class="my-4">
+					<p class="mb-2 text-sm text-neutral-500">
+						Pick BCT level A (600 words) or B (4000 words) — every word at that level is added to
+						your deck.
+					</p>
+					<div class="mb-3 flex flex-wrap gap-2">
+						{#each BCT_LEVELS as lvl (lvl)}
+							<button
+								type="button"
+								onclick={() => toggleBctLevel(lvl)}
+								class="rounded-lg border px-3 py-1.5 text-sm transition {selectedBctLevels.has(lvl)
+									? 'border-neutral-900 bg-neutral-900 text-white'
+									: 'border-neutral-300 text-neutral-600 hover:border-neutral-900'}"
+							>
+								BCT {lvl}
+							</button>
+						{/each}
+					</div>
+					<button
+						class={btnPrimary}
+						onclick={addWordsByBct}
+						disabled={selectedBctLevels.size === 0 || bctProcessing}
+					>
+						{bctProcessing ? 'Adding…' : 'Add words'}
+					</button>
+					{#if bctProcessing || bctProgress > 0}
+						<div class="mt-3">
+							<div class="mb-1 flex justify-between text-xs text-neutral-500">
+								<span>{bctStatus}</span>
+								<span>{bctProgress}%</span>
+							</div>
+							<Progressbar progress={bctProgress} />
 						</div>
 					{/if}
 				</div>

@@ -27,6 +27,7 @@ import {
 	posDisplay,
 	characterBreakdown,
 	wordsByLevel,
+	wordsByBct,
 	getSmartSentences,
 	type Reading,
 	type CharInfo,
@@ -395,7 +396,7 @@ export async function resolveWithSegmentation(word: string): Promise<Word[]> {
 	return results;
 }
 
-export { wordsByLevel, getSmartSentences };
+export { wordsByLevel, wordsByBct, getSmartSentences };
 export type { ExampleSentence };
 
 // ---------------------------------------------------------------------------

@@ -16,6 +16,7 @@ let SQL: any = null;
 let cedictDb: any = null;
 let sentencesDb: any = null;
 let hskWords: Map<string, string> | null = null;
+let bctFallbackGlosses: Map<string, string> | null = null;
 
 /** Load the simple HSK glosses (word -> short meaning) from hsk_words.json. */
 export async function loadHskMeanings(): Promise<void> {
@@ -42,6 +43,26 @@ export async function loadHskMeanings(): Promise<void> {
 
 export function simpleMeaningOf(word: string): string {
 	return hskWords?.get(word.trim()) ?? '';
+}
+
+async function loadBctFallbackGlosses(): Promise<void> {
+	if (bctFallbackGlosses) return;
+	bctFallbackGlosses = new Map();
+	try {
+		const res = await fetch(`${base}/data/BCT_missing_glosses.json`);
+		if (res.ok) {
+			const data: Record<string, string> = await res.json();
+			for (const [word, gloss] of Object.entries(data)) {
+				if (gloss) bctFallbackGlosses.set(word, gloss);
+			}
+		}
+	} catch {
+		// non-fatal
+	}
+}
+
+export function bctFallbackMeaningOf(word: string): string {
+	return bctFallbackGlosses?.get(word.trim()) ?? '';
 }
 
 /** Part-of-speech code -> human readable name (ICTCLAS-style tags used by cedict.db). */
@@ -237,7 +258,22 @@ export async function lookup(word: string): Promise<CedictEntry | null> {
 		 ORDER BY CASE WHEN rank IS NULL THEN 1 ELSE 0 END, rank ASC LIMIT 1`,
 		[w]
 	);
-	if (!row) return null;
+	if (!row) {
+		await loadBctFallbackGlosses();
+		const gloss = bctFallbackGlosses!.get(w);
+		if (!gloss) return null;
+		return {
+			simplified: w,
+			traditional: w,
+			commonMeaning: gloss,
+			pos: [],
+			dominantPos: '',
+			classifiers: [],
+			level: null,
+			rank: null,
+			readings: []
+		};
+	}
 
 	const pinyinArr = safeJSON<string[]>(row.pinyin, []);
 	const defs = safeJSON<Record<string, string>>(row.definitions, {});
@@ -324,6 +360,32 @@ export async function wordsByLevel(levels: string[]): Promise<string[]> {
 		for (const r of rows) out.add(r.word);
 	}
 	return [...out];
+}
+
+let bctWords: Record<string, string[]> | null = null;
+
+async function loadBctWords(): Promise<Record<string, string[]>> {
+	if (bctWords) return bctWords;
+	const res = await fetch(`${base}/data/BCT_words.json`);
+	bctWords = res.ok ? await res.json() : {};
+	return bctWords!;
+}
+
+/** Words from BCT level A or B, in list order. */
+export async function wordsByBct(levels: string[]): Promise<string[]> {
+	const data = await loadBctWords();
+	const out: string[] = [];
+	const seen = new Set<string>();
+	for (const lvl of levels) {
+		const words: string[] = data[lvl.toUpperCase()] ?? [];
+		for (const w of words) {
+			if (!seen.has(w)) {
+				seen.add(w);
+				out.push(w);
+			}
+		}
+	}
+	return out;
 }
 
 export interface Sentence {

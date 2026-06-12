@@ -47,6 +47,8 @@
 		setupSql,
 		wordsByLevel,
 		wordsByBct,
+		wordsByYct,
+		lookupWordWithFallback,
 		getSmartSentences,
 		type TabContent,
 		type Word,
@@ -156,7 +158,8 @@
 		{ value: 'Paragraph', name: 'Paragraph' },
 		{ value: 'File', name: 'File' },
 		{ value: 'HSK', name: 'HSK Level' },
-		{ value: 'BCT', name: 'BCT Level' }
+		{ value: 'BCT', name: 'BCT Level' },
+		{ value: 'YCT', name: 'YCT Level' }
 	];
 
 	// HSK-level word source: pick levels, populate the list with all their words.
@@ -171,6 +174,43 @@
 		if (next.has(lvl)) next.delete(lvl);
 		else next.add(lvl);
 		selectedLevels = next;
+	}
+
+	// YCT word source
+	const YCT_LEVELS = ['1', '2', '3', '4'];
+	let selectedYctLevels = $state<Set<string>>(new Set());
+	let yctProcessing = $state(false);
+	let yctProgress = $state(0);
+	let yctStatus = $state('');
+
+	function toggleYctLevel(lvl: string) {
+		const next = new Set(selectedYctLevels);
+		if (next.has(lvl)) next.delete(lvl);
+		else next.add(lvl);
+		selectedYctLevels = next;
+	}
+
+	async function addWordsByYct() {
+		if (yctProcessing || selectedYctLevels.size === 0) return;
+		yctProcessing = true;
+		yctProgress = 0;
+		yctStatus = 'Loading word list…';
+		try {
+			const list = await wordsByYct([...selectedYctLevels]);
+			const existing = new Set(words.map((w) => w.Simplified));
+			const todo = list.filter((e) => !existing.has(e.word));
+			const added: Word[] = [];
+			for (let i = 0; i < todo.length; i++) {
+				yctProgress = Math.round(((i + 1) / todo.length) * 100);
+				yctStatus = `Adding ${i + 1} / ${todo.length}…`;
+				added.push(await lookupWordWithFallback(todo[i].word, todo[i].meaning));
+			}
+			words = [...words, ...added];
+			yctProgress = 100;
+			yctStatus = `Added ${added.length} words.`;
+		} finally {
+			yctProcessing = false;
+		}
 	}
 
 	// BCT word source
@@ -1206,6 +1246,43 @@
 								<span>{bctProgress}%</span>
 							</div>
 							<Progressbar progress={bctProgress} />
+						</div>
+					{/if}
+				</div>
+			{/if}
+
+			{#if selectType === 'YCT'}
+				<div class="my-4">
+					<p class="mb-2 text-sm text-neutral-500">
+						Pick one or more YCT levels (1–4) — every word at those levels is added to your deck.
+					</p>
+					<div class="mb-3 flex flex-wrap gap-2">
+						{#each YCT_LEVELS as lvl (lvl)}
+							<button
+								type="button"
+								onclick={() => toggleYctLevel(lvl)}
+								class="rounded-lg border px-3 py-1.5 text-sm transition {selectedYctLevels.has(lvl)
+									? 'border-neutral-900 bg-neutral-900 text-white'
+									: 'border-neutral-300 text-neutral-600 hover:border-neutral-900'}"
+							>
+								YCT {lvl}
+							</button>
+						{/each}
+					</div>
+					<button
+						class={btnPrimary}
+						onclick={addWordsByYct}
+						disabled={selectedYctLevels.size === 0 || yctProcessing}
+					>
+						{yctProcessing ? 'Adding…' : 'Add words'}
+					</button>
+					{#if yctProcessing || yctProgress > 0}
+						<div class="mt-3">
+							<div class="mb-1 flex justify-between text-xs text-neutral-500">
+								<span>{yctStatus}</span>
+								<span>{yctProgress}%</span>
+							</div>
+							<Progressbar progress={yctProgress} />
 						</div>
 					{/if}
 				</div>

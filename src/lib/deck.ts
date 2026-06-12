@@ -23,11 +23,13 @@ import {
 	lookup as cedictLookup,
 	loadCedict,
 	loadHskMeanings,
+	loadYctMeanings,
 	simpleMeaningOf,
 	posDisplay,
 	characterBreakdown,
 	wordsByLevel,
 	wordsByBct,
+	wordsByYct,
 	getSmartSentences,
 	type Reading,
 	type CharInfo,
@@ -91,7 +93,7 @@ export interface Word {
 // ---------------------------------------------------------------------------
 
 export function loadDict() {
-	return Promise.all([loadCedict(), loadHskMeanings()]);
+	return Promise.all([loadCedict(), loadHskMeanings(), loadYctMeanings()]);
 }
 
 export function initJieba() {
@@ -363,6 +365,57 @@ export async function lookupWordCedictOnly(word: string): Promise<Word | null> {
 }
 
 /**
+ * CEDICT lookup with a caller-supplied meaning fallback — never calls Google
+ * Translate. Used for word sources (e.g. YCT) that already carry meanings.
+ */
+export async function lookupWordWithFallback(
+	word: string,
+	fallbackMeaning: string
+): Promise<Word> {
+	const normalized = Chinese.t2s(word.trim());
+	const entry = await cedictLookup(normalized);
+	if (entry) {
+		const readings = entry.readings;
+		const breakdown = await characterBreakdown(entry.simplified);
+		return {
+			Simplified: entry.simplified,
+			Traditional: entry.traditional,
+			Pinyin: readings.map((r) => decodeHtmlEntities(r.pinyin)).join(', '),
+			Zhuyin: readings.map((r) => decodeHtmlEntities(r.zhuyin)).join(', '),
+			Definitions: readings.map((r) => r.definition).join(' │ '),
+			Syllable: readings.map((r) => r.syllable).join(', '),
+			SimpleMeaning: simpleMeaningOf(entry.simplified) || entry.commonMeaning,
+			commonMeaning: entry.commonMeaning,
+			pos: entry.pos,
+			dominantPos: entry.dominantPos,
+			classifiers: entry.classifiers,
+			level: entry.level,
+			rank: entry.rank,
+			readings,
+			breakdown
+		};
+	}
+	const breakdown = await characterBreakdown(normalized);
+	return {
+		Simplified: normalized,
+		Traditional: normalized,
+		Pinyin: '',
+		Zhuyin: '',
+		Definitions: fallbackMeaning,
+		Syllable: '',
+		SimpleMeaning: simpleMeaningOf(normalized) || fallbackMeaning,
+		commonMeaning: fallbackMeaning,
+		pos: [],
+		dominantPos: '',
+		classifiers: [],
+		level: null,
+		rank: null,
+		readings: [],
+		breakdown
+	};
+}
+
+/**
  * Forward maximum matching (FMM) against CEDICT for a word that failed
  * Google Translate. Tries the longest possible substring from each position;
  * advances past single characters without adding them (no noise).
@@ -396,7 +449,7 @@ export async function resolveWithSegmentation(word: string): Promise<Word[]> {
 	return results;
 }
 
-export { wordsByLevel, wordsByBct, getSmartSentences };
+export { wordsByLevel, wordsByBct, wordsByYct, getSmartSentences };
 export type { ExampleSentence };
 
 // ---------------------------------------------------------------------------

@@ -16,6 +16,7 @@ let SQL: any = null;
 let cedictDb: any = null;
 let sentencesDb: any = null;
 let hskWords: Map<string, string> | null = null;
+let yctWords: Map<string, string> | null = null;
 let bctFallbackGlosses: Map<string, string> | null = null;
 
 /** Load the simple HSK glosses (word -> short meaning) from hsk_words.json. */
@@ -42,7 +43,28 @@ export async function loadHskMeanings(): Promise<void> {
 }
 
 export function simpleMeaningOf(word: string): string {
-	return hskWords?.get(word.trim()) ?? '';
+	return hskWords?.get(word.trim()) ?? yctWords?.get(word.trim()) ?? '';
+}
+
+export async function loadYctMeanings(): Promise<void> {
+	if (yctWords) return;
+	yctWords = new Map();
+	try {
+		const res = await fetch(`${base}/data/yct_words.json`);
+		if (res.ok) {
+			const data = await res.json();
+			for (const level of Object.values<any>(data)) {
+				if (!Array.isArray(level)) continue;
+				for (const entry of level) {
+					if (entry?.word && entry?.meaning && !yctWords.has(entry.word)) {
+						yctWords.set(entry.word, String(entry.meaning).trim());
+					}
+				}
+			}
+		}
+	} catch {
+		// non-fatal
+	}
 }
 
 async function loadBctFallbackGlosses(): Promise<void> {
@@ -360,6 +382,35 @@ export async function wordsByLevel(levels: string[]): Promise<string[]> {
 		for (const r of rows) out.add(r.word);
 	}
 	return [...out];
+}
+
+let yctData: Record<string, { word: string; pinyin_tone: string; meaning: string }[]> | null =
+	null;
+
+async function loadYctData(): Promise<
+	Record<string, { word: string; pinyin_tone: string; meaning: string }[]>
+> {
+	if (yctData) return yctData;
+	const res = await fetch(`${base}/data/yct_words.json`);
+	yctData = res.ok ? await res.json() : {};
+	return yctData!;
+}
+
+/** Words from YCT levels 1–4, in list order, with meaning for offline fallback. */
+export async function wordsByYct(levels: string[]): Promise<{ word: string; meaning: string }[]> {
+	const data = await loadYctData();
+	const out: { word: string; meaning: string }[] = [];
+	const seen = new Set<string>();
+	for (const lvl of levels) {
+		const entries = data[`level_${lvl}`] ?? [];
+		for (const entry of entries) {
+			if (!seen.has(entry.word)) {
+				seen.add(entry.word);
+				out.push({ word: entry.word, meaning: entry.meaning });
+			}
+		}
+	}
+	return out;
 }
 
 let bctWords: Record<string, string[]> | null = null;

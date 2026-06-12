@@ -86,7 +86,7 @@
 	const WRITING = 'writingComponent';
 
 	let words = $state<Word[]>([]);
-	let deckName = $state('xiehanzi');
+	let deckName = $state('Anki xiehanzi');
 	// Ordered list of card items: note fields + the writing component, all
 	// reorderable. `fields` (the apkg note fields) is derived from it.
 	let order = $state<string[]>([
@@ -401,6 +401,8 @@
 	});
 
 	onMount(async () => {
+		deckName = `Anki xiehanzi ${new Date().toISOString().slice(0, 10)} ${Math.floor(Date.now() / 1000)}`;
+
 		// Restore saved card style from localStorage.
 		try {
 			const saved = localStorage.getItem(CARD_STYLE_LS_KEY);

@@ -173,12 +173,48 @@ export interface CedictEntry {
 	readings: Reading[];
 }
 
+/**
+ * Reference inside an "erhua variant of …" gloss, e.g.
+ *   erhua variant of 麵條|面条[mian4 tiao2]   -> trad 麵條, simp 面条, py "mian4 tiao2"
+ *   erhua variant of 好玩[hao3 wan2]          -> simp 好玩 (trad == simp)
+ */
+const ERHUA_REF = /erhua variant of ([^|\[\];,]+)(?:\|([^\[\];,]+))?\[([A-Za-z0-9: ]+)\]/;
+
+/** Join a base word's per-reading definitions, preferring the one matching `py`. */
+function flattenDefs(defs: Record<string, string>, py: string): string {
+	const pick = defs[py] ?? defs[py.replace(/v/g, 'u:')];
+	const vals = pick != null ? [pick] : Object.values(defs);
+	return vals
+		.map((v) => v.replace(/;\s*$/, '').trim())
+		.filter(Boolean)
+		.join('; ');
+}
+
+/**
+ * Resolve an "erhua variant of X[…]" gloss to include X's actual definition, on
+ * the fly (cedict.db is left untouched). Returns the original def unchanged when
+ * it isn't an erhua reference or the base word can't be found / has no meaning.
+ */
+function resolveErhua(def: string): string {
+	const m = ERHUA_REF.exec(def);
+	if (!m) return def;
+	const base = (m[2] || m[1]).trim(); // simplified form
+	const py = m[3].trim();
+	const row = queryOne(cedictDb, `SELECT definitions FROM cedict WHERE word = ? LIMIT 1`, [base]);
+	if (!row) return def;
+	const baseDefs = safeJSON<Record<string, string>>(row.definitions, {});
+	const meaning = flattenDefs(baseDefs, py);
+	// Avoid recursing into a base that is itself another erhua reference.
+	if (!meaning || ERHUA_REF.test(meaning)) return def;
+	return `${def}; ${meaning}`;
+}
+
 async function buildReadings(pinyinArr: string[], defs: Record<string, string>): Promise<Reading[]> {
 	const readings: Reading[] = [];
 	for (const raw of pinyinArr) {
 		let syllable = raw.replace(/v/g, 'u:').replace(/0/g, '5');
 		const p = await pinzhu.pinyinAndZhuyin(syllable, 'w-pinyin', 'w-pinyin');
-		const def = (defs[raw] ?? defs[syllable] ?? '').replace(/;\s*$/, '').trim();
+		const def = resolveErhua((defs[raw] ?? defs[syllable] ?? '').replace(/;\s*$/, '').trim());
 		readings.push({
 			syllable: raw,
 			pinyin: p[0],

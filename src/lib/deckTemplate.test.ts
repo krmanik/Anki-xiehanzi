@@ -131,9 +131,9 @@ describe('buildCardCss', () => {
 		expect(css).toContain('.ct0 #char_sim{color:#ff0000 !important;}');
 	});
 
-	it('applies card background to the wrapper itself (no descendant selector)', () => {
+	it('strips card background from exported CSS (body bg handles it via CSS vars)', () => {
 		const css = buildCardCss({ card: { backgroundColor: '#000000' } }, 'ct1');
-		expect(css).toContain('.ct1{background-color:#000000 !important;}');
+		expect(css).not.toContain('background-color:#000000');
 	});
 
 	it('emits display:none for hidden elements', () => {

@@ -390,9 +390,10 @@
 		writerEl.innerHTML = '';
 		import('hanzi-writer').then(({ default: HanziWriter }) => {
 			if (cancelled || !writerEl) return;
+			const firstSyll = (src.pinyin ?? '').split(/\s+/)[0] ?? '';
 			writer = HanziWriter.create(writerEl, src.Simplified[0], {
 				width: 80, height: 80, padding: 4, showOutline: true,
-				strokeColor: colorize ? '#2196f3' : '#333'
+				strokeColor: colorize ? paletteColor(toneOfPinyin(firstSyll)) : '#333'
 			});
 			writer.loopCharacterAnimation();
 		});
@@ -524,20 +525,20 @@
 					onclick={(e) => select('partOfSpeech', e)}
 					onkeydown={onkey('partOfSpeech')}
 				>
-					<span class="px-2 py-0.5 text-[11px]" style="border-radius:var(--chip-radius,9999px);background:var(--chip-bg,var(--text1));color:var(--chip-fg,var(--surface2))">Place Name</span>
+					<span class="px-2 py-0.5 text-[11px]" style="border-radius:var(--chip-radius,9999px);background:var(--chip-bg,var(--text1));color:var(--chip-fg,var(--surface2));text-transform:var(--pos-chip-transform,none);border-bottom:var(--pos-dominant-underline,0 solid transparent)">Place Name</span>
 					{#if interactive && selectedElement === 'partOfSpeech'}<span class={SEL_BADGE}>Part of Speech</span>{/if}
 				</div>
 
 			{:else if item === 'SimpleMeaning' && (!isHidden('simpleMeaning') || interactive)}
 				<div
-					class="w-full overflow-hidden border {selClass('simpleMeaning')} {isHidden('simpleMeaning') ? 'opacity-30' : ''}"
-					style="border-radius:var(--container-radius,8px);border-color:var(--surface4);order:{ord('simpleMeaning')};{elStyle('simpleMeaning')}"
+					class="w-full overflow-hidden {selClass('simpleMeaning')} {isHidden('simpleMeaning') ? 'opacity-30' : ''}"
+					style="border-radius:var(--container-radius,8px);border:var(--panel-border,1.5px solid var(--surface4));background:var(--panel-bg,transparent);order:{ord('simpleMeaning')};{elStyle('simpleMeaning')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('simpleMeaning', e)}
 					onkeydown={onkey('simpleMeaning')}
 				>
-					<div class="px-2.5 py-1 text-left text-[11px] font-semibold" style="background:var(--surface3);color:var(--text2)">Common Meaning</div>
+					<div class="px-2.5 py-1 text-left text-[11px]" style="background:var(--panel-title-bg,var(--surface3));color:var(--section-title-color,var(--text2));text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);font-weight:var(--section-title-weight,600);border-bottom:var(--section-title-border,none)">Common Meaning</div>
 					<div class="px-2.5 py-2 text-[15px] font-semibold" style="color:var(--text1)">{src.simple}</div>
 					{#if interactive && selectedElement === 'simpleMeaning'}<span class={SEL_BADGE}>Simple Meaning</span>{/if}
 				</div>
@@ -564,17 +565,17 @@
 
 			{:else if item === 'Breakdown' && (!isHidden('breakdown') || interactive)}
 				<div
-					class="w-full overflow-hidden border {selClass('breakdown')} {isHidden('breakdown') ? 'opacity-30' : ''}"
-					style="border-radius:var(--container-radius,8px);border-color:var(--surface4);order:{ord('breakdown')};{elStyle('breakdown')}"
+					class="w-full overflow-hidden {selClass('breakdown')} {isHidden('breakdown') ? 'opacity-30' : ''}"
+					style="border-radius:var(--container-radius,8px);border:var(--panel-border,1.5px solid var(--surface4));background:var(--panel-bg,transparent);order:{ord('breakdown')};{elStyle('breakdown')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('breakdown', e)}
 					onkeydown={onkey('breakdown')}
 				>
-					<div class="px-2.5 py-1 text-left text-[11px] font-semibold" style="background:var(--surface3);color:var(--text2)">Character Breakdown</div>
+					<div class="px-2.5 py-1 text-left text-[11px]" style="background:var(--panel-title-bg,var(--surface3));color:var(--section-title-color,var(--text2));text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);font-weight:var(--section-title-weight,600);border-bottom:var(--section-title-border,none)">Character Breakdown</div>
 					<div class="flex flex-wrap justify-center gap-2 p-2.5">
 						{#each src.breakdown as b (b.character)}
-							<div class="flex min-w-[3.5rem] flex-col items-center gap-0.5 border px-3 py-2" style="border-radius:var(--container-radius,8px);border-color:var(--surface4);background:var(--surface3)">
+							<div class="flex min-w-[3.5rem] flex-col items-center gap-0.5 px-3 py-2" style="border-radius:var(--container-radius,8px);border:var(--tile-border,1px solid var(--surface4));background:var(--tile-bg,var(--surface3))">
 								<span class="text-xl font-semibold leading-none" style="color:var(--text1)">{b.character}</span>
 								<span class="text-[10px]" style="color:var(--text2)">{b.pinyin}</span>
 								<span class="text-[10px] leading-tight" style="color:var(--text2)">{b.definition}</span>
@@ -586,18 +587,18 @@
 
 			{:else if item === 'Radical' && (!isHidden('radical') || interactive)}
 				<div
-					class="w-full overflow-hidden border {selClass('radical')} {isHidden('radical') ? 'opacity-30' : ''}"
-					style="border-radius:var(--container-radius,8px);border-color:var(--surface4);order:{ord('radical')};{elStyle('radical')}"
+					class="w-full overflow-hidden {selClass('radical')} {isHidden('radical') ? 'opacity-30' : ''}"
+					style="border-radius:var(--container-radius,8px);border:var(--panel-border,1.5px solid var(--surface4));background:var(--panel-bg,transparent);order:{ord('radical')};{elStyle('radical')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('radical', e)}
 					onkeydown={onkey('radical')}
 				>
-					<div class="px-2.5 py-1 text-left text-[11px] font-semibold" style="background:var(--surface3);color:var(--text2)">Radical</div>
+					<div class="px-2.5 py-1 text-left text-[11px]" style="background:var(--panel-title-bg,var(--surface3));color:var(--section-title-color,var(--text2));text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);font-weight:var(--section-title-weight,600);border-bottom:var(--section-title-border,none)">Radical</div>
 					<div class="flex flex-wrap justify-center gap-1.5 p-2.5">
 						{#each src.radical as r (r.character)}
-							<span class="inline-flex items-center gap-1.5 border px-2.5 py-0.5 text-xs" style="border-radius:var(--chip-radius,9999px);border-color:var(--surface4);background:var(--surface3);color:var(--text2)">
-								<span class="font-bold" style="color:var(--text1)">{r.character}</span><span class="border-l pl-1.5 text-sm" style="border-color:var(--surface4)">{r.radical}</span>
+							<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs" style="border-radius:var(--radical-chip-radius,9999px);border:var(--radical-chip-border,1px solid var(--surface4));background:var(--radical-chip-bg,var(--surface3));color:var(--text2)">
+								<span class="font-bold" style="color:var(--text1)">{r.character}</span><span class="border-l pl-1.5 text-sm" style="border-color:var(--surface4);color:var(--radical-rad-color,inherit)">{r.radical}</span>
 							</span>
 						{/each}
 					</div>
@@ -613,7 +614,7 @@
 					onclick={(e) => select('hskLevel', e)}
 					onkeydown={onkey('hskLevel')}
 				>
-					<span class="inline-block border px-2.5 py-0.5 text-[11px] font-semibold" style="border-radius:var(--chip-radius,9999px);border-color:color-mix(in srgb,var(--accent) 35%,transparent);background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)">{src.hsk}</span>
+					<span class="inline-block border px-2.5 py-0.5 text-[11px] font-semibold" style="border-radius:var(--chip-radius,9999px);border-color:var(--hsk-border,color-mix(in srgb,var(--accent) 35%,transparent));background:var(--hsk-bg,color-mix(in srgb,var(--accent) 14%,transparent));color:var(--hsk-fg,var(--accent))">{src.hsk}</span>
 					{#if interactive && selectedElement === 'hskLevel'}<span class={SEL_BADGE}>HSK Level</span>{/if}
 				</div>
 
@@ -626,24 +627,24 @@
 					onclick={(e) => select('frequency', e)}
 					onkeydown={onkey('frequency')}
 				>
-					<span class="inline-block border px-2.5 py-0.5 text-[11px] font-semibold" style="border-radius:var(--chip-radius,9999px);border-color:var(--surface4);background:var(--surface3);color:var(--text2)">{src.frequency}</span>
+					<span class="inline-block border px-2.5 py-0.5 text-[11px] font-semibold" style="border-radius:var(--chip-radius,9999px);border-color:var(--freq-border,var(--surface4));background:var(--freq-bg,var(--surface3));color:var(--freq-fg,var(--text2))">{src.frequency}</span>
 					{#if interactive && selectedElement === 'frequency'}<span class={SEL_BADGE}>Frequency</span>{/if}
 				</div>
 
 			{:else if item === 'Examples' && (!isHidden('examples') || interactive)}
 				<div
-					class="w-full text-left {selClass('examples')} {isHidden('examples') ? 'opacity-30' : ''}"
-					style="order:{ord('examples')};{elStyle('examples')}"
+					class="w-full overflow-hidden text-left {selClass('examples')} {isHidden('examples') ? 'opacity-30' : ''}"
+					style="border-radius:var(--container-radius,8px);border:var(--panel-border,1.5px solid var(--surface4));background:var(--panel-bg,transparent);order:{ord('examples')};{elStyle('examples')}"
 					role="button"
 					tabindex="0"
 					onclick={(e) => select('examples', e)}
 					onkeydown={onkey('examples')}
 				>
-					<div class="flex items-center justify-between px-2.5 py-1 text-[11px] font-semibold" style="background:var(--surface3);color:var(--text2)">
+					<div class="flex items-center justify-between px-2.5 py-1 text-[11px]" style="background:var(--panel-title-bg,var(--surface3));color:var(--section-title-color,var(--text2));text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);font-weight:var(--section-title-weight,600);border-bottom:var(--section-title-border,none)">
 						<span>Examples</span><span style="color:var(--text2)">▾</span>
 					</div>
 					{#each exList as s (s.simplified)}
-						<div class="border-b py-1.5 last:border-0" style="border-color:var(--surface4)">
+						<div class="border-b py-1.5 last:border-0" style="border-color:var(--surface4);background:var(--example-item-bg,transparent);border-left:var(--example-item-left,none);border-radius:var(--container-radius,0px);padding:var(--example-item-pad,6px 4px)">
 							{#if exOpts.showTraditional && (!isHidden('exampleTraditional') || interactive)}
 								<div class="text-sm {selClass('exampleTraditional')} {isHidden('exampleTraditional') ? 'opacity-30' : ''}"
 									style="color:var(--text1);{elStyle('exampleTraditional')}" role="button" tabindex="0"

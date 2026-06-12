@@ -266,11 +266,13 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		':root{--card-w:90%;}\n' +
 		'.card-body{display:flex;flex-direction:column;align-items:center;width:100%;box-sizing:border-box;}\n' +
 		'.simple-content{padding:10px;font-weight:600;}\n' +
-		'.meaning-card{margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;border:1px solid var(--surface4);border-radius:8px;padding:0;overflow:hidden;text-align:left;}\n' +
-		'.meaning-bar{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:6px 10px;font-size:0.8em;font-weight:600;color:var(--text2);background:var(--surface3);-webkit-user-select:none;user-select:none;}\n' +
+		// Panels (definitions / examples / titled info cards) are themable: flat themes
+		// drop the box (border:none + a hairline divider), boxed themes keep it.
+		'.meaning-card{margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;border:var(--panel-border,1.5px solid var(--surface4));border-top:var(--panel-divider,var(--panel-border,1.5px solid var(--surface4)));background:var(--panel-bg,transparent);border-radius:var(--container-radius,16px);padding:0;overflow:hidden;text-align:left;}\n' +
+		'.meaning-bar{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:8px 12px;font-size:var(--section-title-size,0.8em);font-weight:var(--section-title-weight,700);text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);color:var(--section-title-color,var(--accent));background:var(--panel-title-bg,var(--surface3));border-bottom:var(--section-title-border,none);-webkit-user-select:none;user-select:none;}\n' +
 		'.meaning-arrow{transition:transform 0.2s ease;display:inline-block;}\n' +
 		'.meaning-bar.collapsed .meaning-arrow{transform:rotate(-90deg);}\n' +
-		'.meaning-content{padding:10px;}\n' +
+		'.meaning-content{padding:12px;}\n' +
 		// Divider between successive readings (each is one .meaning-container).
 		'.meaning-content .meaning-container + .meaning-container{margin-top:10px;padding-top:10px;border-top:1px solid var(--surface4);}\n' +
 		// Meta chip row: part-of-speech + HSK + frequency share one wrapping row.
@@ -282,40 +284,39 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		// POS: soft outline pill; the dominant sense gets a solid accent fill. Chips
 		// are inline-flex with line-height:1 so they vertically center against the
 		// HSK / frequency badges on the same row.
-		'.pos-chip{display:inline-flex;align-items:center;line-height:1;font-size:0.66em;font-weight:600;letter-spacing:0.02em;padding:5px 11px;margin-left:2px;border-radius:999px;background:var(--surface3);color:var(--text2);border:1px solid var(--surface4);}\n' +
-		'.pos-chip.pos-dominant{background:var(--text1);color:var(--surface2);border-color:var(--text1);}\n' +
+		'.pos-chip{display:inline-flex;align-items:center;line-height:1;font-size:0.66em;font-weight:600;letter-spacing:0.02em;text-transform:var(--pos-chip-transform,none);padding:var(--pos-chip-pad,5px 11px);margin-left:2px;border-radius:var(--chip-radius,999px);background:var(--pos-chip-bg,var(--surface3));color:var(--pos-chip-fg,var(--text2));border:var(--pos-chip-border,1px solid var(--surface4));}\n' +
+		'.pos-chip.pos-dominant{background:var(--chip-bg,var(--text1));color:var(--chip-fg,var(--surface2));border-color:transparent;border-bottom:var(--pos-dominant-underline,0 solid transparent);}\n' +
 		// Metadata badges (HSK level / frequency band) — distinct tinted pills that
 		// sit on the same row as the POS chips (matching box model for alignment).
-		'.meta-badge{display:inline-flex;align-items:center;line-height:1;font-size:0.66em;font-weight:600;letter-spacing:0.02em;padding:5px 11px;margin:0;border-radius:999px;border:1px solid transparent;}\n' +
+		'.meta-badge{display:inline-flex;align-items:center;line-height:1;font-size:0.66em;font-weight:600;letter-spacing:0.02em;padding:5px 11px;margin:0;border-radius:var(--chip-radius,999px);border:1px solid transparent;}\n' +
 		'.meta-badge:empty{display:none;border:0;padding:0;margin:0;}\n' +
-		'.meta-hsk{background:rgba(33,150,243,0.14);color:#1976d2;border-color:rgba(33,150,243,0.35);}\n' +
-		'.meta-freq{background:rgba(255,152,0,0.16);color:#e07b00;border-color:rgba(255,152,0,0.38);}\n' +
-		'.night_mode .meta-hsk{color:#7ec1ff;}\n' +
-		'.night_mode .meta-freq{color:#ffc266;}\n' +
+		'.meta-hsk{background:var(--hsk-bg,rgba(33,150,243,0.14));color:var(--hsk-fg,#1976d2);border-color:var(--hsk-border,rgba(33,150,243,0.35));}\n' +
+		'.meta-freq{background:var(--freq-bg,rgba(255,152,0,0.16));color:var(--freq-fg,#e07b00);border-color:var(--freq-border,rgba(255,152,0,0.38));}\n' +
+		'.night_mode .meta-hsk{color:var(--hsk-fg,#7ec1ff);}\n' +
+		'.night_mode .meta-freq{color:var(--freq-fg,#ffc266);}\n' +
 		// Titled info cards (breakdown / radical): a card-in-card with a header bar.
 		// The id wrapper hides itself when its field value is empty.
-		'.info-card{margin:8px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;border:1px solid var(--surface4);border-radius:8px;overflow:hidden;}\n' +
+		'.info-card{margin:8px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;border:var(--panel-border,1.5px solid var(--surface4));border-top:var(--panel-divider,var(--panel-border,1.5px solid var(--surface4)));background:var(--panel-bg,transparent);border-radius:var(--container-radius,16px);overflow:hidden;}\n' +
 		'.info-card:empty{display:none;border:0;}\n' +
-		'.info-card-title{padding:6px 10px;font-size:0.8em;font-weight:600;color:var(--text2);background:var(--surface3);text-align:left;}\n' +
+		'.info-card-title{padding:8px 12px;font-size:var(--section-title-size,0.8em);font-weight:var(--section-title-weight,700);text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);color:var(--section-title-color,var(--accent));background:var(--panel-title-bg,var(--surface3));border-bottom:var(--section-title-border,none);text-align:left;}\n' +
 		// Character breakdown: one compact tile per component char (char · pinyin · gloss).
-		'.breakdown-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:10px;}\n' +
-		'.bd-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 12px;min-width:56px;background:var(--surface3);border:1px solid var(--surface4);border-radius:10px;}\n' +
+		'.breakdown-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:12px;}\n' +
+		'.bd-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 12px;min-width:56px;background:var(--tile-bg,var(--surface3));border:var(--tile-border,1px solid var(--surface4));border-radius:var(--container-radius,10px);}\n' +
 		'.bd-char{font-size:1.5em;line-height:1;font-weight:600;}\n' +
 		'.bd-py{font-size:0.7em;color:var(--text2);}\n' +
 		'.bd-def{font-size:0.66em;color:var(--text2);text-align:center;line-height:1.2;}\n' +
 		// Radical chips (国 │ 囗) — component char, a thin divider, then its radical.
-		'.radical-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:10px;}\n' +
-		'.radical-chip{display:inline-flex;align-items:center;gap:6px;font-size:0.72em;padding:4px 10px;border-radius:999px;background:var(--surface3);border:1px solid var(--surface4);color:var(--text2);}\n' +
+		'.radical-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:12px;}\n' +
+		'.radical-chip{display:inline-flex;align-items:center;gap:6px;font-size:0.72em;padding:4px 10px;border-radius:var(--radical-chip-radius,999px);background:var(--radical-chip-bg,var(--surface3));border:var(--radical-chip-border,1px solid var(--surface4));color:var(--text2);}\n' +
 		'.radical-chip .radical-char{font-weight:700;color:var(--text1);}\n' +
-		'.radical-chip .radical-rad{padding-left:6px;border-left:1px solid var(--surface4);font-size:1.05em;}\n' +
-		// Example sentences
-		'.examples-row{margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;text-align:left;}\n' +
+		'.radical-chip .radical-rad{padding-left:6px;border-left:1px solid var(--surface4);font-size:1.05em;color:var(--radical-rad-color,inherit);}\n' +
+		// Example sentences — each sentence is a mini card (matches reference design)
+		'.examples-row{margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;text-align:left;display:flex;flex-direction:column;gap:12px;}\n' +
 		'.examples-row:empty{display:none;}\n' +
-		'.example-item{font-size:0.85em;line-height:1.5;padding:6px 0;border-bottom:1px solid var(--surface4);}\n' +
-		'.example-item:last-child{border-bottom:0;}\n' +
+		'.example-item{font-size:0.85em;line-height:1.5;padding:var(--example-item-pad,10px 14px);background:var(--example-item-bg,transparent);border:var(--example-item-border,none);border-left:var(--example-item-left,var(--example-item-border,none));border-radius:var(--container-radius,16px);}\n' +
 		'.example-trad,.example-sim{font-size:1em;}\n' +
-		'.example-pinyin{font-size:0.85em;color:var(--text2);}\n' +
-		'.example-translation{font-size:0.85em;color:var(--text2);}\n' +
+		'.example-pinyin{font-size:0.85em;color:var(--text2);margin-top:2px;}\n' +
+		'.example-translation{font-size:0.85em;color:var(--text2);margin-top:1px;}\n' +
 		// Example hanzi/pinyin are tone-colored with their OWN `ex-tone*` classes so
 		// the "Example sentences" sidebar section can turn them on/off independently
 		// of the main card. `no-ex-hanzi-color` / `no-ex-pinyin-color` neutralise them.
@@ -348,18 +349,19 @@ export function buildGlobalCss(t: TemplateOpts): string {
 			const baseTheme  = mode === 'dark' ? (darkTheme ?? lightTheme) : (lightTheme ?? darkTheme);
 			if (baseTheme) {
 				const vars = Object.entries(baseTheme.cssVars).map(([k, v]) => `${k}:${v}`).join(';');
-				css += `.card{${vars};}\n`;
-				if (baseTheme.cssVars['--body-bg']) {
-					css += `body{background-color:${baseTheme.cssVars['--body-bg']};}\n`;
+				// Define vars on body too so body{background-color:var(...)} can resolve them.
+				css += `body,.card{${vars};}\n`;
+				css += `body{background-color:var(--body-bg,var(--surface2));background-image:var(--body-bg-image,none);background-attachment:fixed;}\n`;
+				// Light-only mode: lock body bg even when Anki flips to night_mode.
+				if (mode === 'light') {
+					css += `body.night_mode{background-color:var(--body-bg,var(--surface2)) !important;background-image:var(--body-bg-image,none) !important;}\n`;
 				}
 			}
 			// Auto + both variants: dark vars activate under Anki night mode.
 			if (mode === 'auto' && lightTheme && darkTheme) {
 				const dv = Object.entries(darkTheme.cssVars).map(([k, v]) => `${k}:${v}`).join(';');
-				css += `.card.night_mode{${dv};}\n`;
-				if (darkTheme.cssVars['--body-bg']) {
-					css += `body.night_mode{background-color:${darkTheme.cssVars['--body-bg']};}\n`;
-				}
+				css += `body.night_mode,.card.night_mode{${dv};}\n`;
+				css += `body.night_mode{background-color:var(--body-bg,var(--surface2)) !important;background-image:var(--body-bg-image,none) !important;}\n`;
 			}
 		}
 	}
@@ -377,11 +379,21 @@ export function buildCardCss(
 	let css = '';
 	const pre = `.${ctClass}`;
 
-	// Visual style overrides.
+	// Visual style overrides. Strip card box-model and fill from exported CSS — card merges with body
+	// (body bg = card bg via CSS vars; no border/radius/shadow avoids a visible floating box).
 	for (const [id, style] of Object.entries(es ?? {})) {
 		const sel = SCOPED_SELECTORS[id as CardElementId];
 		if (sel === undefined || !style) continue;
-		const rules = elementStyleToCSS(style, FONT_STACKS);
+		const effectiveStyle = id === 'card' ? {
+			...style,
+			backgroundColor: undefined,
+			borderColor: undefined,
+			borderWidth: undefined,
+			borderStyle: undefined,
+			borderRadius: undefined,
+			boxShadow: undefined
+		} : style;
+		const rules = elementStyleToCSS(effectiveStyle, FONT_STACKS);
 		if (!rules) continue;
 		css += id === 'card' ? `${pre}{${rules};}\n` : `${pre} ${sel}{${rules};}\n`;
 	}
@@ -408,6 +420,7 @@ export function buildCardCss(
 		const extra = styleRules ? ';' + styleRules : '';
 		css += `${pre} .${g.id}{${decls.join(';')}${extra};}\n`;
 	}
+
 
 	return css;
 }
@@ -682,6 +695,8 @@ export function buildNoteTemplates(opts: {
 
 	let usesWriter = false;
 	let cardCss = '';
+
+
 	let ri = 0;
 	let ci = 0;
 	for (const card in tabContent) {

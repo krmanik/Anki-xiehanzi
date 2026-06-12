@@ -376,24 +376,21 @@ const DECK_HTML_FRONT_CHROME = `${PERSISTENCE}\n\n${SIDEBAR_BLOCK}\n\n${sideScri
 const DECK_HTML_WITH_HANZI_WRITER =
 `
 <script>
-    // tone-colored stroke helper; theme-aware default color
-    var stroke_color = "#555";
-    var outline_color = "#DDD";
-    var drawing_color = "#333";
-    if (document.body.classList.contains("night_mode")) {
-        stroke_color = "#ffffff";
-        outline_color = "#5B5B5B";
-        drawing_color = "#fff";
+    // Writer colors come from the live CSS vars so they track the card theme
+    // (--stroke/--outline/--drawing map to the theme's text/surface colors) and
+    // the chosen tone palette (--tone-1..5, overridden by the tone preset).
+    function cssVar(name, fallback) {
+        var v = (getComputedStyle(document.body).getPropertyValue(name) || "").trim();
+        return v || fallback;
     }
-    function getToneColor(char) {
-        var def = document.body.classList.contains("night_mode") ? "#ffffff" : "#555";
-        switch (char) {
-            case "char-tone1": return "#f44336";
-            case "char-tone2": return "#ff9800";
-            case "char-tone3": return "#4caf50";
-            case "char-tone4": return "#2196f3";
-            default: return def;
-        }
+    var _night = document.body.classList.contains("night_mode");
+    var stroke_color = cssVar("--stroke", _night ? "#ffffff" : "#555");
+    var outline_color = cssVar("--outline", _night ? "#5B5B5B" : "#DDD");
+    var drawing_color = cssVar("--drawing", _night ? "#fff" : "#333");
+    function getToneColor(charCls) {
+        var m = /char-tone([1-5])/.exec(charCls || "");
+        if (!m) return cssVar("--stroke", _night ? "#ffffff" : "#555");
+        return cssVar("--tone-" + m[1], stroke_color);
     }
 </script>
 
@@ -644,7 +641,7 @@ ${CARD_JS}
     var btnAudio = document.getElementById("btnPlayAudio");
     if (btnAudio) btnAudio.onclick = playAudio;
 
-    var grid_data = \`<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' class='grid-color'  id='grid-background-target'><g id="char_grid"><line x1='0' y1='0' x2='100%' y2='100%' stroke='var(--surface1)' /><line x1='100%' y1='0' x2='0' y2='100%' stroke='var(--surface1)' /><line x1='50%' y1='0' x2='50%' y2='100%' stroke='var(--surface1)' /><line x1='0' y1='50%' x2='100%' y2='50%' stroke='var(--surface1)' /></g></svg>\`;
+    var grid_data = \`<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' class='grid-color' id='grid-background-target'><g id="char_grid"><line x1='0' y1='0' x2='100%' y2='100%' stroke='var(--surface4)' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='100%' y1='0' x2='0' y2='100%' stroke='var(--surface4)' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='50%' y1='0' x2='50%' y2='100%' stroke='var(--surface4)' stroke-width='0.7' stroke-dasharray='3 4'/><line x1='0' y1='50%' x2='100%' y2='50%' stroke='var(--surface4)' stroke-width='0.7' stroke-dasharray='3 4'/></g></svg>\`;
 
     var characters = document.getElementById("practice-select").selectedIndex == "0"
         ? document.getElementById('char_sim').textContent
@@ -918,60 +915,60 @@ const DECK_CSS =
 }
 
 .card {
-  --title-color: grey;
-  --time-left-color: teal;
-  --hanzi-grid: #fafafa;
-  --stroke: #555;
-  --outline: #ddd;
-  --drawing: #333;
-  --pinyin-color: #ef6c00;
-  --simplified-color: #6495ed;
-  --traditional-color: #00796b;
-  --meaning-color: #607d8b;
-  --icon-button-background: #63759d;
-  --icon-button-background-focus: #7d92c2;
-  --sidebar-color: white;
-  --sidebar-background-color: #52575d;
-  --header-color: #455a64;
+  --title-color: var(--text2, grey);
+  --time-left-color: var(--accent, teal);
+  --hanzi-grid: var(--surface3, #fafafa);
+  --stroke: var(--text1, #555);
+  --outline: var(--surface4, #ddd);
+  --drawing: var(--text1, #333);
+  --pinyin-color: var(--accent, #ef6c00);
+  --simplified-color: var(--text1, #6495ed);
+  --traditional-color: var(--text2, #00796b);
+  --meaning-color: var(--text2, #607d8b);
+  --icon-button-background: var(--btn-bg, var(--surface3));
+  --icon-button-background-focus: var(--surface4);
+  --sidebar-color: var(--text1, white);
+  --sidebar-background-color: var(--surface1, #52575d);
+  --header-color: var(--text1, #455a64);
+  --brand-bg1: var(--accent, rgb(255, 117, 195));
+  --brand-bg2: var(--accent, rgb(157, 119, 255));
   --surface1: rgb(226, 226, 226);
   --surface2: rgb(255, 255, 254);
   --surface3: rgb(249, 249, 249);
   --surface4: rgb(212, 212, 212);
   --text1: rgb(48, 48, 48);
   --text2: rgb(94, 94, 94);
-  --brand: rgb(47, 167, 214);
+  --brand: var(--accent, rgb(47, 167, 214));
   --thumb-highlight-color: rgba(0, 0, 0, 0.2);
   font-size: 20px;
   text-align: center;
-  color: black;
-  background-color: white;
+  color: var(--text1, black);
+  background-color: var(--surface2, white);
 }
 
 .card.night_mode {
-  --header-color: white;
-  --title-color: #00bcd4;
-  --time-left-color: #fff;
-  --hanzi-grid: #262626;
-  --stroke: #ffffff;
-  --outline: #5b5b5b;
-  --drawing: #fff;
-  --pinyin-color: #27b46e;
-  --simplified-color: #6495ed;
-  --traditional-color: #fba910;
-  --meaning-color: #00bfa5;
-  --icon-button-background: #63759d;
-  --icon-button-background-focus: #7d92c2;
-  --sidebar-color: white;
-  --sidebar-background-color: #52575d;
+  --header-color: var(--text1, white);
+  --title-color: var(--text2, #00bcd4);
+  --time-left-color: var(--accent, #fff);
+  --hanzi-grid: var(--surface3, #262626);
+  --stroke: var(--text1, #ffffff);
+  --outline: var(--surface4, #5b5b5b);
+  --drawing: var(--text1, #fff);
+  --pinyin-color: var(--accent, #27b46e);
+  --simplified-color: var(--text1, #6495ed);
+  --traditional-color: var(--text2, #fba910);
+  --meaning-color: var(--text2, #00bfa5);
+  --sidebar-color: var(--text1, white);
+  --sidebar-background-color: var(--surface1, #52575d);
   --surface1: rgb(27, 27, 27);
   --surface2: rgb(37, 37, 37);
   --surface3: rgb(48, 48, 48);
   --surface4: rgb(59, 59, 59);
   --text1: rgb(240, 240, 240);
   --text2: rgb(184, 184, 184);
-  --brand: rgb(118, 161, 184);
-  color: white;
-  background-color: #1f1f1f;
+  --brand: var(--accent, rgb(118, 161, 184));
+  color: var(--text1, white);
+  background-color: var(--surface2, #1f1f1f);
 }
 
 .char-card {
@@ -1076,12 +1073,12 @@ const DECK_CSS =
   margin: 3px;
   position: relative;
   display: inline-block;
-  color: white;
+  color: var(--btn-fg, var(--text2));
   background-color: var(--icon-button-background);
+  border: var(--btn-border, 1px solid var(--surface4));
   width: 2rem;
   height: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  border-radius: var(--btn-radius, 8px);
   transition: all 0.3s ease;
 }
 
@@ -1226,12 +1223,12 @@ img {
 
 .py {
   font-size: 14px;
-  color: gray;
+  color: var(--text2, gray);
 }
 
 .zy {
   font-size: 14px;
-  color: gray;
+  color: var(--text2, gray);
 }
 
 .header {
@@ -1366,7 +1363,7 @@ select {
   border-radius: 12px;
   width: 34px;
   padding-left: 6px;
-  color: white;
+  color: var(--chip-fg, white);
   background: linear-gradient(to right, transparent 40px, var(--surface1) 0),
     var(--brand-bg-gradient) fixed;
   transition: background 0.5s ease;
@@ -1476,7 +1473,7 @@ input[type="number"] {
 }
 
 .btn-active {
-  color: white;
+  color: var(--chip-fg, white);
   background: var(--brand-bg2);
 }
 
@@ -1485,7 +1482,7 @@ input[type="number"] {
 }
 
 .fieldset-item:focus-within svg {
-  fill: #fff;
+  fill: var(--text2, #fff);
 }
 
 .fieldset-item:focus-within picture {
@@ -1547,10 +1544,10 @@ hr {
   right: 16px;
   width: 30px;
   height: 30px;
-  background: red;
+  background: var(--accent, red);
   border-radius: 24px;
   align-self: center;
-  color: white;
+  color: var(--chip-fg, white);
   line-height: 1.5;
 }
 
@@ -1587,7 +1584,11 @@ hr {
 .def-num {
   font-size: 0.7em;
   font-weight: 700;
-  color: var(--text2, #888);
+  color: var(--def-num-color, var(--text2, #888));
+  background: var(--def-num-bg, transparent);
+  border: var(--def-num-border, none);
+  border-radius: var(--def-num-radius, 0);
+  padding: var(--def-num-pad, 0);
   vertical-align: middle;
 }
 

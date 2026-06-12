@@ -40,7 +40,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#d9d9dd',
 			'--surface2': '#ffffff', '--surface3': '#f5f5f8', '--surface4': '#ececef',
-			'--text1': '#17171c', '--text2': '#9a9aa2', '--accent': '#3a6df0', '--body-bg': '#ffffff',
+			'--text1': '#17171c', '--text2': '#9a9aa2', '--accent': '#3a6df0', '--on-accent': '#ffffff', '--body-bg': '#ffffff',
 			'--panel-border': 'none', '--panel-divider': '1px solid #eeeef1',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': '#aaaab2', '--section-title-transform': 'uppercase',
@@ -76,7 +76,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#0a0a0e',
 			'--surface2': '#17171b', '--surface3': '#1d1d22', '--surface4': '#28282f',
-			'--text1': '#f3f3f7', '--text2': '#67676f', '--accent': '#6f9bff', '--body-bg': '#17171b',
+			'--text1': '#f3f3f7', '--text2': '#67676f', '--accent': '#6f9bff', '--on-accent': '#15151b', '--body-bg': '#17171b',
 			'--panel-border': 'none', '--panel-divider': '1px solid #26262d',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': '#67676f', '--section-title-transform': 'uppercase',
@@ -119,7 +119,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#ddd5bf',
 			'--surface2': '#f4ebd9', '--surface3': 'rgba(255,252,244,.7)', '--surface4': '#cdb98f',
-			'--text1': '#2a241c', '--text2': '#9c8a63', '--accent': '#b5342a', '--body-bg': '#f4ebd9',
+			'--text1': '#2a241c', '--text2': '#9c8a63', '--accent': '#b5342a', '--on-accent': '#fdf3ea', '--body-bg': '#f4ebd9',
 			'--panel-border': 'none', '--panel-divider': '1px solid #cdb98f',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': '#8a4632', '--section-title-transform': 'none',
@@ -160,7 +160,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#0c0b07',
 			'--surface2': '#1a1712', '--surface3': 'rgba(40,34,22,.6)', '--surface4': '#5a4d33',
-			'--text1': '#f2e7cf', '--text2': '#a8966c', '--accent': '#e0654f', '--body-bg': '#1a1712',
+			'--text1': '#f2e7cf', '--text2': '#a8966c', '--accent': '#e0654f', '--on-accent': '#1a1712', '--body-bg': '#1a1712',
 			'--panel-border': 'none', '--panel-divider': '1px solid #5a4d33',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': '#e8a06f', '--section-title-transform': 'none',
@@ -200,7 +200,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#1c1c28',
 			'--surface2': '#000000', '--surface3': '#0c0c14', '--surface4': '#1c1c24',
-			'--text1': '#f4f2ff', '--text2': '#6a6a78', '--accent': '#a78bfa', '--body-bg': '#000000',
+			'--text1': '#f4f2ff', '--text2': '#6a6a78', '--accent': '#a78bfa', '--on-accent': '#0a0a0c', '--body-bg': '#000000',
 			'--panel-border': 'none', '--panel-divider': '1px solid #1c1c24',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': '#6a6a78', '--section-title-transform': 'uppercase',
@@ -238,7 +238,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#d4d0ec',
 			'--surface2': '#ffffff', '--surface3': '#faf8ff', '--surface4': '#ece8fb',
-			'--text1': '#2e2842', '--text2': '#8a82a0', '--accent': '#7c5cf0', '--body-bg': '#ffffff',
+			'--text1': '#2e2842', '--text2': '#8a82a0', '--accent': '#7c5cf0', '--on-accent': '#ffffff', '--body-bg': '#ffffff',
 			'--panel-border': 'none', '--panel-divider': '1px solid #f0edf9',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': '#a89edf', '--section-title-transform': 'uppercase',
@@ -282,7 +282,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#e2ddf5',
 			'--surface2': '#fff5f8', '--surface3': '#fffafc', '--surface4': '#fbe3ee',
-			'--text1': '#5a4b66', '--text2': '#b09ec2', '--accent': '#f472b6', '--body-bg': '#fff5f8',
+			'--text1': '#5a4b66', '--text2': '#b09ec2', '--accent': '#f472b6', '--on-accent': '#ffffff', '--body-bg': '#fff5f8',
 			'--panel-border': '1.5px solid #fbe3ee', '--panel-divider': '1.5px solid #fbe3ee',
 			'--panel-bg': '#fffafc', '--panel-title-bg': 'transparent',
 			'--section-title-color': 'var(--accent)', '--section-title-transform': 'none',
@@ -323,7 +323,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#130d1e',
 			'--surface2': '#2a1f3d', '--surface3': 'rgba(255,255,255,.04)', '--surface4': '#3a2f50',
-			'--text1': '#f0e9f7', '--text2': '#9d8bc4', '--accent': '#ff9ecb', '--body-bg': '#2a1f3d',
+			'--text1': '#f0e9f7', '--text2': '#9d8bc4', '--accent': '#ff9ecb', '--on-accent': '#2a1f3d', '--body-bg': '#2a1f3d',
 			'--panel-border': '1.5px solid #3a2f50', '--panel-divider': '1.5px solid #3a2f50',
 			'--panel-bg': 'rgba(255,255,255,.04)', '--panel-title-bg': 'transparent',
 			'--section-title-color': 'var(--accent)', '--section-title-transform': 'none',
@@ -362,7 +362,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#ddd8cc',
 			'--surface2': '#f6f3ec', '--surface3': '#ede8de', '--surface4': '#16140f',
-			'--text1': '#16140f', '--text2': '#8a8378', '--accent': '#d6402a', '--body-bg': '#f6f3ec',
+			'--text1': '#16140f', '--text2': '#8a8378', '--accent': '#d6402a', '--on-accent': '#f6f3ec', '--body-bg': '#f6f3ec',
 			'--panel-border': 'none', '--panel-divider': 'none',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': 'var(--accent)', '--section-title-transform': 'uppercase',
@@ -399,7 +399,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#080604',
 			'--surface2': '#15120e', '--surface3': '#1e1a14', '--surface4': '#f0ebe0',
-			'--text1': '#f0ebe0', '--text2': '#9c9482', '--accent': '#ef6a4d', '--body-bg': '#15120e',
+			'--text1': '#f0ebe0', '--text2': '#9c9482', '--accent': '#ef6a4d', '--on-accent': '#15120e', '--body-bg': '#15120e',
 			'--panel-border': 'none', '--panel-divider': 'none',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': 'var(--accent)', '--section-title-transform': 'uppercase',
@@ -439,7 +439,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#d2dce8',
 			'--surface2': '#ffffff', '--surface3': '#f6f8fc', '--surface4': '#eef1f6',
-			'--text1': '#1f2937', '--text2': '#8b93a3', '--accent': '#2f6bff', '--body-bg': '#ffffff',
+			'--text1': '#1f2937', '--text2': '#8b93a3', '--accent': '#2f6bff', '--on-accent': '#ffffff', '--body-bg': '#ffffff',
 			'--panel-border': '1px solid #eef1f6', '--panel-divider': '1px solid #eef1f6',
 			'--panel-bg': 'transparent', '--panel-title-bg': '#f6f8fc',
 			'--section-title-color': '#8b93a3', '--section-title-transform': 'none',
@@ -475,7 +475,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#0a0c10',
 			'--surface2': '#14161c', '--surface3': '#1a1d24', '--surface4': '#23262f',
-			'--text1': '#eef1f6', '--text2': '#7b8395', '--accent': '#5d93ff', '--body-bg': '#14161c',
+			'--text1': '#eef1f6', '--text2': '#7b8395', '--accent': '#5d93ff', '--on-accent': '#ffffff', '--body-bg': '#14161c',
 			'--panel-border': '1px solid #23262f', '--panel-divider': '1px solid #23262f',
 			'--panel-bg': 'transparent', '--panel-title-bg': '#1a1d24',
 			'--section-title-color': '#7b8395', '--section-title-transform': 'none',
@@ -515,7 +515,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#d4ccb8',
 			'--surface2': '#fffced', '--surface3': '#ffffff', '--surface4': '#121212',
-			'--text1': '#121212', '--text2': '#5a5a5a', '--accent': '#ffe600', '--body-bg': '#fffced',
+			'--text1': '#121212', '--text2': '#5a5a5a', '--accent': '#ffe600', '--on-accent': '#121212', '--body-bg': '#fffced',
 			'--panel-border': 'none', '--panel-divider': 'none',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': '#121212', '--section-title-transform': 'uppercase',
@@ -555,7 +555,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#000000',
 			'--surface2': '#141414', '--surface3': '#0c0c0c', '--surface4': '#f4f4ec',
-			'--text1': '#f4f4ec', '--text2': '#8a8a8a', '--accent': '#c6ff3a', '--body-bg': '#141414',
+			'--text1': '#f4f4ec', '--text2': '#8a8a8a', '--accent': '#c6ff3a', '--on-accent': '#141414', '--body-bg': '#141414',
 			'--panel-border': 'none', '--panel-divider': 'none',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': '#f4f4ec', '--section-title-transform': 'uppercase',
@@ -601,7 +601,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#cec4b0',
 			'--surface2': '#efe6d0', '--surface3': '#f3ecd9', '--surface4': '#b5a87f',
-			'--text1': '#33301f', '--text2': '#7a6e4d', '--accent': '#2c5f56', '--body-bg': '#efe6d0',
+			'--text1': '#33301f', '--text2': '#7a6e4d', '--accent': '#2c5f56', '--on-accent': '#f3ecd9', '--body-bg': '#efe6d0',
 			'--panel-border': 'none', '--panel-divider': '1px solid #b5a87f',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': '#7a6e4d', '--section-title-transform': 'uppercase',
@@ -643,7 +643,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#0c0a06',
 			'--surface2': '#1b1610', '--surface3': 'rgba(40,32,18,.6)', '--surface4': '#6a572f',
-			'--text1': '#ecdfc4', '--text2': '#b79a5e', '--accent': '#6fc7b4', '--body-bg': '#1b1610',
+			'--text1': '#ecdfc4', '--text2': '#b79a5e', '--accent': '#6fc7b4', '--on-accent': '#1b1610', '--body-bg': '#1b1610',
 			'--panel-border': 'none', '--panel-divider': '1px solid #6a572f',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': '#b79a5e', '--section-title-transform': 'uppercase',
@@ -687,7 +687,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#2a2070',
 			'--surface2': 'rgba(255,255,255,0.08)', '--surface3': 'rgba(255,255,255,0.06)', '--surface4': 'rgba(255,255,255,0.18)',
-			'--text1': '#ffffff', '--text2': 'rgba(255,255,255,0.55)', '--accent': '#a8f0ff', '--body-bg': '#241a52',
+			'--text1': '#ffffff', '--text2': 'rgba(255,255,255,0.55)', '--accent': '#a8f0ff', '--on-accent': '#1b2a4a', '--body-bg': '#241a52',
 			'--body-bg-image': 'radial-gradient(circle at 15% 20%,#5b3fd6 0%,transparent 45%),radial-gradient(circle at 85% 25%,#e0479e 0%,transparent 42%),radial-gradient(circle at 70% 90%,#1ec8c8 0%,transparent 48%),linear-gradient(140deg,#241a52,#0e2a44)',
 			'--panel-border': 'none', '--panel-divider': '1px solid rgba(255,255,255,0.18)',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
@@ -728,7 +728,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#d2c0e0',
 			'--surface2': 'rgba(255,255,255,0.55)', '--surface3': 'rgba(255,255,255,0.5)', '--surface4': 'rgba(120,130,180,0.22)',
-			'--text1': '#2a2e44', '--text2': '#8a90ad', '--accent': '#3aa0a8', '--body-bg': '#fdf3f8',
+			'--text1': '#2a2e44', '--text2': '#8a90ad', '--accent': '#3aa0a8', '--on-accent': '#ffffff', '--body-bg': '#fdf3f8',
 			'--body-bg-image': 'radial-gradient(circle at 14% 18%,#ffd9ec 0%,transparent 46%),radial-gradient(circle at 88% 22%,#cfe5ff 0%,transparent 44%),radial-gradient(circle at 72% 92%,#cdf5ec 0%,transparent 50%),linear-gradient(140deg,#fdf3f8,#eef4fb)',
 			'--panel-border': 'none', '--panel-divider': '1px solid rgba(120,130,180,0.22)',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
@@ -769,7 +769,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#dcd7c8',
 			'--surface2': '#f3efe6', '--surface3': '#ece7da', '--surface4': '#e3ddce',
-			'--text1': '#3c3a30', '--text2': '#a89f88', '--accent': '#7d8a6a', '--body-bg': '#f3efe6',
+			'--text1': '#3c3a30', '--text2': '#a89f88', '--accent': '#7d8a6a', '--on-accent': '#ffffff', '--body-bg': '#f3efe6',
 			'--panel-border': 'none', '--panel-divider': '1px solid #e3ddce',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': '#a89f88', '--section-title-transform': 'uppercase',
@@ -806,7 +806,7 @@ export const CARD_THEMES: CardTheme[] = [
 		cssVars: {
 			'--surface1': '#0e0c0a',
 			'--surface2': '#1a1915', '--surface3': '#23211b', '--surface4': '#2e2c24',
-			'--text1': '#ece8dc', '--text2': '#7c7666', '--accent': '#a3b389', '--body-bg': '#1a1915',
+			'--text1': '#ece8dc', '--text2': '#7c7666', '--accent': '#a3b389', '--on-accent': '#1a1915', '--body-bg': '#1a1915',
 			'--panel-border': 'none', '--panel-divider': '1px solid #2e2c24',
 			'--panel-bg': 'transparent', '--panel-title-bg': 'transparent',
 			'--section-title-color': '#7c7666', '--section-title-transform': 'uppercase',

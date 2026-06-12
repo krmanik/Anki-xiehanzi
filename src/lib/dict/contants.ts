@@ -939,6 +939,7 @@ const DECK_CSS =
   --text1: rgb(48, 48, 48);
   --text2: rgb(94, 94, 94);
   --brand: var(--accent, rgb(47, 167, 214));
+  --on-accent: #ffffff;
   --thumb-highlight-color: rgba(0, 0, 0, 0.2);
   font-size: 20px;
   text-align: center;
@@ -967,6 +968,7 @@ const DECK_CSS =
   --text1: rgb(240, 240, 240);
   --text2: rgb(184, 184, 184);
   --brand: var(--accent, rgb(118, 161, 184));
+  --on-accent: #ffffff;
   color: var(--text1, white);
   background-color: var(--surface2, #1f1f1f);
 }
@@ -1363,7 +1365,7 @@ select {
   border-radius: 12px;
   width: 34px;
   padding-left: 6px;
-  color: var(--chip-fg, white);
+  color: var(--on-accent, var(--chip-fg, white));
   background: linear-gradient(to right, transparent 40px, var(--surface1) 0),
     var(--brand-bg-gradient) fixed;
   transition: background 0.5s ease;
@@ -1470,11 +1472,16 @@ input[type="number"] {
 
 .front-back {
   padding: var(--space-xs);
+  color: var(--text1);
+  background: var(--surface2);
+  border: 1px solid var(--surface4);
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .btn-active {
-  color: var(--chip-fg, white);
+  color: var(--on-accent, var(--chip-fg, white));
   background: var(--brand-bg2);
+  border-color: transparent;
 }
 
 .fieldset-item:focus-within {
@@ -1547,7 +1554,7 @@ hr {
   background: var(--accent, red);
   border-radius: 24px;
   align-self: center;
-  color: var(--chip-fg, white);
+  color: var(--on-accent, white);
   line-height: 1.5;
 }
 

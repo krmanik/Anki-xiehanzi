@@ -525,7 +525,7 @@
 					onclick={(e) => select('partOfSpeech', e)}
 					onkeydown={onkey('partOfSpeech')}
 				>
-					<span class="px-2 py-0.5 text-[11px]" style="border-radius:var(--chip-radius,9999px);background:var(--chip-bg,var(--text1));color:var(--chip-fg,var(--surface2));text-transform:var(--pos-chip-transform,none);border-bottom:var(--pos-dominant-underline,0 solid transparent)">Place Name</span>
+					<span class="inline-flex items-center text-[11px] leading-none" style="padding:var(--pos-chip-pad,5px 11px);border-radius:var(--chip-radius,9999px);background:var(--pos-chip-bg,var(--surface3));color:var(--pos-chip-fg,var(--text2));border:var(--pos-chip-border,1px solid var(--surface4));text-transform:var(--pos-chip-transform,none)">Place Name</span>
 					{#if interactive && selectedElement === 'partOfSpeech'}<span class={SEL_BADGE}>Part of Speech</span>{/if}
 				</div>
 

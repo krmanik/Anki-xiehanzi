@@ -24,7 +24,14 @@ describe('card presets', () => {
 		const beginner = CARD_PRESETS.find((p) => p.id === 'beginner')!;
 		const card = presetToCard(beginner);
 		expect(card.front).toEqual(['frontSimplified']);
-		expect(card.back).toEqual(['backSimplified', 'backPinyin', 'backSimpleMeaning', 'backAudio']);
+		expect(card.back).toEqual([
+			'backSimplified',
+			'backPinyin',
+			'backSimpleMeaning',
+			'backAudio',
+			'backControlButtons',
+			'backSeparator'
+		]);
 		expect(card.additional).toEqual([]);
 		expect(card.elementStyles).toEqual({});
 	});

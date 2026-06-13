@@ -7,10 +7,13 @@
  */
 
 import CONSTANTS from './dict/contants';
-import type { CardElementStyles } from './deckTemplate';
+import { CONTROL_BUTTONS_TOKEN, SEPARATOR_TOKEN, type CardElementStyles } from './deckTemplate';
 
 const F = CONSTANTS.FIELDS;
 const WRITING = 'writingComponent';
+// Chrome tokens (control bar + separator line) default to the back/answer side
+// of every preset, per Anki convention.
+const CHROME = [CONTROL_BUTTONS_TOKEN, SEPARATOR_TOKEN];
 
 export interface CardPreset {
 	id: string;
@@ -35,35 +38,35 @@ export const CARD_PRESETS: CardPreset[] = [
 		name: 'Beginner',
 		description: 'Recognise the character → pinyin, meaning, audio',
 		front: [F.SIMPLIFIED],
-		back: [F.SIMPLIFIED, F.PINYIN, F.SIMPLE_MEANING, F.AUDIO]
+		back: [F.SIMPLIFIED, F.PINYIN, F.SIMPLE_MEANING, F.AUDIO, ...CHROME]
 	},
 	{
 		id: 'intermediate',
 		name: 'Intermediate',
 		description: 'Adds traditional + full dictionary definitions',
 		front: [F.SIMPLIFIED],
-		back: [F.TRADITIONAL, F.PINYIN, F.SIMPLE_MEANING, F.DEFINITIONS]
+		back: [F.TRADITIONAL, F.PINYIN, F.SIMPLE_MEANING, F.DEFINITIONS, ...CHROME]
 	},
 	{
 		id: 'reading',
 		name: 'Reading',
 		description: 'Hanzi + pinyin on the front, meaning on the back',
 		front: [F.SIMPLIFIED, F.PINYIN],
-		back: [F.SIMPLE_MEANING]
+		back: [F.SIMPLE_MEANING, ...CHROME]
 	},
 	{
 		id: 'writing',
 		name: 'Writing',
 		description: 'Meaning prompt → write the character (stroke order)',
 		front: [F.SIMPLE_MEANING],
-		back: [F.SIMPLIFIED, WRITING]
+		back: [F.SIMPLIFIED, WRITING, ...CHROME]
 	},
 	{
 		id: 'examples',
 		name: 'Example Sentences',
 		description: 'Hanzi on the front, meaning + example sentences on the back',
 		front: [F.SIMPLIFIED],
-		back: [F.SIMPLIFIED, F.PINYIN, F.SIMPLE_MEANING, F.EXAMPLES, F.AUDIO]
+		back: [F.SIMPLIFIED, F.PINYIN, F.SIMPLE_MEANING, F.EXAMPLES, F.AUDIO, ...CHROME]
 	},
 	{
 		id: 'hsk',
@@ -82,7 +85,8 @@ export const CARD_PRESETS: CardPreset[] = [
 			F.RADICAL,
 			F.HSK_LEVEL,
 			F.FREQUENCY,
-			F.AUDIO
+			F.AUDIO,
+			...CHROME
 		]
 	}
 ];

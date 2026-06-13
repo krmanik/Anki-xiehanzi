@@ -140,3 +140,7 @@ Author : Mani (krmanik)
 
 ## Other Third Party License
 [License](https://github.com/krmanik/Anki-xiehanzi/blob/master/License.md)
+
+---
+
+> Part of the code in this project was generated with AI (Claude Opus 4.8).

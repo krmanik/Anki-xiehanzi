@@ -1,14 +1,23 @@
 <script lang="ts">
 	import '../app.css';
+	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
 	import { page } from '$app/state';
 	import Menu from '@lucide/svelte/icons/menu';
 	import X from '@lucide/svelte/icons/x';
+	import Share2 from '@lucide/svelte/icons/share-2';
+	import ShareModal from '$lib/components/ShareModal.svelte';
+	import { initSharePrefs, popupHidden } from '$lib/share.svelte';
 
 	let { children } = $props();
 	const repo = 'https://github.com/krmanik/Anki-xiehanzi';
 
 	let open = $state(false);
+	let showShare = $state(false);
+
+	// The Share menu entry appears only after the user dismisses the
+	// export-success popup with "Do not show again".
+	onMount(initSharePrefs);
 
 	const nav = [
 		{ href: `${base}/create`, label: 'Create' },
@@ -47,6 +56,14 @@
 				class="ml-1 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-500 hover:text-neutral-900"
 				>GitHub</a
 			>
+			{#if popupHidden()}
+				<button
+					onclick={() => (showShare = true)}
+					class="ml-1 flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-500 transition hover:text-neutral-900"
+				>
+					<Share2 size={14} /> Share
+				</button>
+			{/if}
 		</div>
 
 		<!-- mobile toggle -->
@@ -78,10 +95,25 @@
 					class="rounded-md px-2 py-2.5 font-mono text-sm uppercase tracking-wider text-neutral-600"
 					>GitHub</a
 				>
+				{#if popupHidden()}
+					<button
+						onclick={() => {
+							open = false;
+							showShare = true;
+						}}
+						class="flex items-center gap-2 rounded-md px-2 py-2.5 text-left font-mono text-sm uppercase tracking-wider text-neutral-600"
+					>
+						<Share2 size={16} /> Share
+					</button>
+				{/if}
 			</div>
 		</div>
 	{/if}
 </header>
+
+{#if showShare}
+	<ShareModal onClose={() => (showShare = false)} />
+{/if}
 
 <main class="min-h-[70vh]">
 	{@render children()}

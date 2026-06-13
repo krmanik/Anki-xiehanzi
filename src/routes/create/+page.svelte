@@ -20,6 +20,8 @@
 	import CardPreview from '$lib/components/CardPreview.svelte';
 	import CardCustomizer from '$lib/components/CardCustomizer.svelte';
 	import ExportPreview from '$lib/components/ExportPreview.svelte';
+	import ExportSuccess from '$lib/components/ExportSuccess.svelte';
+	import { popupHidden } from '$lib/share.svelte';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
 	import {
 		CARD_STYLE_LS_KEY,
@@ -707,6 +709,8 @@
 	}
 
 	let isGenerating = $state(false);
+	let showSuccess = $state(false);
+	let exportedDeckName = $state('');
 	async function doGenerateDeck() {
 		if (isGenerating || words.length === 0) return;
 		isGenerating = true;
@@ -727,6 +731,8 @@
 				template,
 				onProgress: (v) => (progressbarValue = v)
 			});
+			exportedDeckName = deckName;
+			if (!popupHidden()) showSuccess = true;
 		} finally {
 			isGenerating = false;
 			showPreview = false;
@@ -1435,6 +1441,10 @@
 			isGenerating={false}
 			onclose={() => (showSettingsPreview = false)}
 		/>
+	{/if}
+
+	{#if showSuccess}
+		<ExportSuccess deckName={exportedDeckName} onClose={() => (showSuccess = false)} />
 	{/if}
 
 	<nav class="mt-10 flex items-center justify-between gap-4 border-t border-neutral-200 pt-6">

@@ -12,6 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@hiseb/confetti": "^2.1.0",
     "@kingdanx/edge-tts-browser": "^1.0.0",
     "chinese-s2t": "^1.0.0",
     "chinese-to-pinyin": "^1.3.1",

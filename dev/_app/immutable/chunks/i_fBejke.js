@@ -1,1 +1,0 @@
-import{Ot as e}from"./B7zrpn7Y.js";var t,n=e((()=>{t=globalThis||self}));export{n,t};

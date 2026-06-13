@@ -73,4 +73,27 @@
 		border-radius: 0.25rem;
 		font-size: 0.9em;
 	}
+	.prose-doc :global(table) {
+		width: 100%;
+		margin: 1.25rem 0;
+		border-collapse: collapse;
+		font-size: 0.95rem;
+	}
+	.prose-doc :global(th),
+	.prose-doc :global(td) {
+		padding: 0.5rem 0.85rem;
+		text-align: left;
+		vertical-align: top;
+		border: 1px solid #e5e5e5;
+		line-height: 1.6;
+		color: #3f3f46;
+	}
+	.prose-doc :global(thead th) {
+		background: #f4f4f5;
+		font-weight: 600;
+		color: #18181b;
+	}
+	.prose-doc :global(tbody tr:nth-child(even)) {
+		background: #fafafa;
+	}
 </style>

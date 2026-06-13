@@ -23,12 +23,36 @@ information.
 ### Can I make my own deck?
 
 Yes. Use the <a href="{base}/create">Create</a> tool. Enter words, a paragraph or upload a word
-list, pick your card types and fields, then generate an `.apkg` you can import into Anki.
+list — or pull a whole HSK / BCT / YCT level — pick your card types and fields, then generate
+an `.apkg` you can import into Anki. See <a href="{base}/docs/export-deck">Export a Deck</a>.
+
+### Where do the words and definitions come from?
+
+Definitions are from CC-CEDICT; pinyin, zhuyin and frequency are derived from it. Word lists
+cover New HSK (2025) levels 1–9, plus BCT (A/B) and YCT (1–4). Pasted paragraphs are segmented
+into words automatically.
+
+### Does it send my words to a server?
+
+No. The deck is generated entirely in your browser. Audio and stroke data are fetched from a
+CDN during export, but your word list and the `.apkg` never leave your device.
+
+### Will the cards work offline?
+
+Yes. The exported `.apkg` bundles its audio, fonts and stroke-order data, so cards review
+offline after import.
+
+### Can I customize how a card looks?
+
+Yes. Choose a tone-color palette (Standard, Pleco, MDBG) and a card theme (Minimal, OLED,
+Editorial and more, each light/dark). Inside Anki, the sidebar lets you show/hide fields and
+change grid size, stroke width and hints — see <a href="{base}/docs/studying">Studying cards</a>.
 
 ### Does audio work in every browser?
 
 Text-to-speech audio generation works best in Microsoft Edge. HSK words also pull pre-recorded
-audio when available, so other browsers still work for those.
+audio when available, so other browsers still work for those. Exporting a large deck with audio
+is slower because TTS is fetched in small batches — keep the tab open until the download starts.
 
 ### Why are some characters drawn with colored strokes?
 

@@ -24,6 +24,25 @@ The stroke color matches the tone color of the first pinyin if multiple pinyin e
 
 <img src="{base}/img/colored-stroke.gif" alt="Colored strokes" />
 
+### Tone color palettes
+
+Pick the scheme that matches what you already use: **Standard**, **Pleco**, or
+**MDBG Type 1 / 2 / 3**. The palette colors pinyin, characters and strokes
+consistently.
+
+### Card themes
+
+Over a dozen built-in themes — Minimal, Ink & Rice Paper, OLED, Soft Pastel,
+Editorial, Modern App, Bold Brutalist, Vintage Dictionary, Frosted Aurora — each with
+light and dark variants. Themes can be locked to light/dark or follow Anki's night
+mode automatically.
+
+### Example sentences
+
+Add real example sentences to each note. Sentence length and count are configurable,
+and you choose whether to show simplified, traditional, pinyin and/or translation.
+The sentence database is fetched on demand, so decks without examples stay small.
+
 ### Practice Simplified & Traditional characters
 
 Easily toggle between simplified and traditional to practice both.
@@ -44,9 +63,20 @@ HSK 1 – HSK 9 audio is included in the decks.
 
 ### Customization
 
-Change grid size, pen size, and show or hide fields using the left side bar.
+Change grid size, stroke width, hint-after-misses, and show or hide any field using
+the left side bar — your choices persist from card to card.
 
 <img src="{base}/img/options.png" alt="Options" />
+
+See <a href="{base}/docs/studying">Studying cards</a> for every in-card control.
+
+### Build your own deck
+
+The <a href="{base}/create">Create</a> tool builds a `.apkg` from your own words.
+Add them by typing, pasting a paragraph (auto-segmented), uploading a word list, or
+pulling a whole **HSK**, **BCT** or **YCT** level. Design multiple card types, drag
+fields into any order, and export. Full walkthrough in
+<a href="{base}/docs/export-deck">Export a Deck</a>.
 
 ### More-info sidebar
 

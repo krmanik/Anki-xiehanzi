@@ -1,28 +1,16 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import {
-		Alert,
-		Button,
-		Checkbox,
-		Fileupload,
-		Input,
-		Progressbar,
-		Select,
-		Textarea
-	} from 'flowbite-svelte';
-	import CircleX from '@lucide/svelte/icons/circle-x';
-	import GripVertical from '@lucide/svelte/icons/grip-vertical';
-	import ChevronUp from '@lucide/svelte/icons/chevron-up';
-	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import ArrowRight from '@lucide/svelte/icons/arrow-right';
-	import WordCard from '$lib/components/WordCard.svelte';
-	import CardPreview from '$lib/components/CardPreview.svelte';
+	import { Checkbox, Input } from 'flowbite-svelte';
+	import AppearancePanel from '$lib/components/AppearancePanel.svelte';
+	import CardTypeEditor from '$lib/components/CardTypeEditor.svelte';
+	import LivePreview from '$lib/components/LivePreview.svelte';
+	import WordSourceInput from '$lib/components/WordSourceInput.svelte';
+	import WordReviewTable from '$lib/components/WordReviewTable.svelte';
+	import StepNav from '$lib/components/StepNav.svelte';
 	import CardCustomizer from '$lib/components/CardCustomizer.svelte';
 	import ExportPreview from '$lib/components/ExportPreview.svelte';
 	import ExportSuccess from '$lib/components/ExportSuccess.svelte';
 	import { popupHidden } from '$lib/share.svelte';
-	import Settings2 from '@lucide/svelte/icons/settings-2';
 	import {
 		CARD_STYLE_LS_KEY,
 		CARD_TABS_LS_KEY,
@@ -31,84 +19,27 @@
 		type TemplateOpts
 	} from '$lib/deck';
 	import { CONTROL_BUTTONS_TOKEN, SEPARATOR_TOKEN } from '$lib/deckTemplate';
-
-	import CONSTANTS from '$lib/dict/contants';
-	import { CARD_PRESETS, presetToCard, presetNeedsAudio, type CardPreset } from '$lib/cardPresets';
-	import { TONE_PRESETS, TONE_KEYS, resolvePalette } from '$lib/tonePresets';
-	import { CARD_THEME_GROUPS } from '$lib/cardThemes';
+	import { FIELDS, WRITING, DEFAULT_ORDER, newCard, fieldLabels } from '$lib/cardEditorModel';
+	import { resolvePalette } from '$lib/tonePresets';
 	import { posDisplay } from '$lib/dict/cedict';
 	import {
-		cutParagraph,
 		generateDeck,
 		initJieba,
 		loadDict,
 		loadHskWordsDict,
 		lookupWord,
-		resolveWithSegmentation,
-		playWordAudio,
 		setupSql,
-		wordsByLevel,
-		wordsByBct,
-		wordsByYct,
-		lookupWordWithFallback,
 		getSmartSentences,
 		type TabContent,
 		type Word,
 		type ExampleSentence
 	} from '$lib/deck';
 
-	const FIELDS = CONSTANTS.FIELDS;
-
-	const DISPLAY_FIELDS = [
-		FIELDS.SIMPLIFIED,
-		FIELDS.TRADITIONAL,
-		FIELDS.PINYIN,
-		FIELDS.ZHUYIN,
-		FIELDS.PART_OF_SPEECH,
-		FIELDS.SIMPLE_MEANING,
-		FIELDS.DEFINITIONS
-	];
-
-	// Defaults for a new card type: Simplified on front, all display fields on back;
-	// control bar + separator shown on both sides by default.
-	function newCard() {
-		return {
-			front: [`front${FIELDS.SIMPLIFIED}`, `front${CONTROL_BUTTONS_TOKEN}`, `front${SEPARATOR_TOKEN}`],
-			back: [
-				...DISPLAY_FIELDS.map((f) => `back${f}`),
-				`back${CONTROL_BUTTONS_TOKEN}`,
-				`back${SEPARATOR_TOKEN}`,
-				`back${FIELDS.AUDIO}`
-			],
-			additional: [] as string[],
-			elementStyles: {} as CardElementStyles
-		};
-	}
-
-	const WRITING = 'writingComponent';
-
 	let words = $state<Word[]>([]);
 	let deckName = $state('Anki xiehanzi');
 	// Ordered list of card items: note fields + the writing component, all
 	// reorderable. `fields` (the apkg note fields) is derived from it.
-	let order = $state<string[]>([
-		FIELDS.SIMPLIFIED,
-		FIELDS.TRADITIONAL,
-		FIELDS.PINYIN,
-		FIELDS.ZHUYIN,
-		FIELDS.PART_OF_SPEECH,
-		FIELDS.SIMPLE_MEANING,
-		CONTROL_BUTTONS_TOKEN,
-		SEPARATOR_TOKEN,
-		FIELDS.DEFINITIONS,
-		FIELDS.BREAKDOWN,
-		FIELDS.RADICAL,
-		FIELDS.HSK_LEVEL,
-		FIELDS.FREQUENCY,
-		FIELDS.EXAMPLES,
-		FIELDS.AUDIO,
-		WRITING
-	]);
+	let order = $state<string[]>([...DEFAULT_ORDER]);
 	// Layout tokens are positioning-only; note fields exclude the writing component
 	// and the chrome tokens (control buttons / separator).
 	let fields = $derived(order.filter((o) => o !== WRITING && o !== CONTROL_BUTTONS_TOKEN && o !== SEPARATOR_TOKEN));
@@ -122,207 +53,15 @@
 	let loadingSettingsPreview = $state(false);
 	let appearanceOpen = $state(true);
 	let mobileTab = $state<'customize' | 'preview'>('customize');
-	let wordValue = $state('');
-	let selectType = $state('Word');
-	let texAreaValue = $state('');
-	let progressbarValue = $state(0);
 	let hskWordsDict = $state<Set<string>>(new Set());
-	let fileStatus = $state('');
-	let fileProgress = $state(0);
-	let fileProcessing = $state(false);
-
-	let paragraphProgress = $state(0);
-	let paragraphProcessing = $state(false);
-	let paragraphStatus = $state('');
-	let translateFailedWords = $state<string[]>([]);
-	let showBreakToast = $state(false);
-	let breakPreviewing = $state(false);
-	let showBreakModal = $state(false);
-	let breakPreviewWords = $state<Word[]>([]);
-	let breakSelectedWords = $state<Set<string>>(new Set());
 
 	let activeTab = $state(0);
 	let tabs = $state<string[]>(['Card 1']);
 	let tabContent = $state<TabContent>({
 		'Card 1': newCard()
 	});
-	let pendingPreset = $state<CardPreset | null>(null);
-
-	// table selection / pagination
-	let selected = $state<Set<Word>>(new Set());
-	let currentPage = $state(1);
-	let rowsPerPage = $state(10);
 
 	const prevNextButtonText = ['', 'Create Card Types', 'Input Chinese Characters'];
-
-	const selectionTypes = [
-		{ value: 'Word', name: 'Word' },
-		{ value: 'Paragraph', name: 'Paragraph' },
-		{ value: 'File', name: 'File' },
-		{ value: 'HSK', name: 'HSK Level' },
-		{ value: 'BCT', name: 'BCT Level' },
-		{ value: 'YCT', name: 'YCT Level' }
-	];
-
-	// HSK-level word source: pick levels, populate the list with all their words.
-	const HSK_LEVELS = ['1', '2', '3', '4', '5', '6', '7+'];
-	let selectedLevels = $state<Set<string>>(new Set());
-	let hskProcessing = $state(false);
-	let hskProgress = $state(0);
-	let hskStatus = $state('');
-
-	function toggleLevel(lvl: string) {
-		const next = new Set(selectedLevels);
-		if (next.has(lvl)) next.delete(lvl);
-		else next.add(lvl);
-		selectedLevels = next;
-	}
-
-	// YCT word source
-	const YCT_LEVELS = ['1', '2', '3', '4'];
-	let selectedYctLevels = $state<Set<string>>(new Set());
-	let yctProcessing = $state(false);
-	let yctProgress = $state(0);
-	let yctStatus = $state('');
-
-	function toggleYctLevel(lvl: string) {
-		const next = new Set(selectedYctLevels);
-		if (next.has(lvl)) next.delete(lvl);
-		else next.add(lvl);
-		selectedYctLevels = next;
-	}
-
-	async function addWordsByYct() {
-		if (yctProcessing || selectedYctLevels.size === 0) return;
-		yctProcessing = true;
-		yctProgress = 0;
-		yctStatus = 'Loading word list…';
-		try {
-			const list = await wordsByYct([...selectedYctLevels]);
-			const existing = new Set(words.map((w) => w.Simplified));
-			const todo = list.filter((e) => !existing.has(e.word));
-			const added: Word[] = [];
-			for (let i = 0; i < todo.length; i++) {
-				yctProgress = Math.round(((i + 1) / todo.length) * 100);
-				yctStatus = `Adding ${i + 1} / ${todo.length}…`;
-				added.push(await lookupWordWithFallback(todo[i].word, todo[i].meaning));
-			}
-			words = [...words, ...added];
-			yctProgress = 100;
-			yctStatus = `Added ${added.length} words.`;
-		} finally {
-			yctProcessing = false;
-		}
-	}
-
-	// BCT word source
-	const BCT_LEVELS = ['A', 'B'];
-	let selectedBctLevels = $state<Set<string>>(new Set());
-	let bctProcessing = $state(false);
-	let bctProgress = $state(0);
-	let bctStatus = $state('');
-
-	function toggleBctLevel(lvl: string) {
-		const next = new Set(selectedBctLevels);
-		if (next.has(lvl)) next.delete(lvl);
-		else next.add(lvl);
-		selectedBctLevels = next;
-	}
-
-	async function addWordsByBct() {
-		if (bctProcessing || selectedBctLevels.size === 0) return;
-		bctProcessing = true;
-		bctProgress = 0;
-		bctStatus = 'Loading word list…';
-		try {
-			const list = await wordsByBct([...selectedBctLevels]);
-			const existing = new Set(words.map((w) => w.Simplified));
-			const todo = list.filter((w) => !existing.has(w));
-			const added: Word[] = [];
-			for (let i = 0; i < todo.length; i++) {
-				bctProgress = Math.round(((i + 1) / todo.length) * 100);
-				bctStatus = `Adding ${i + 1} / ${todo.length}…`;
-				added.push(await lookupWord(todo[i]));
-			}
-			words = [...words, ...added];
-			bctProgress = 100;
-			bctStatus = `Added ${added.length} words.`;
-		} finally {
-			bctProcessing = false;
-		}
-	}
-
-	async function addWordsByLevel() {
-		if (hskProcessing || selectedLevels.size === 0) return;
-		hskProcessing = true;
-		hskProgress = 0;
-		hskStatus = 'Loading word list…';
-		try {
-			const list = await wordsByLevel([...selectedLevels]);
-			const existing = new Set(words.map((w) => w.Simplified));
-			const todo = list.filter((w) => !existing.has(w));
-			const added: Word[] = [];
-			for (let i = 0; i < todo.length; i++) {
-				hskProgress = Math.round(((i + 1) / todo.length) * 100);
-				hskStatus = `Adding ${i + 1} / ${todo.length}…`;
-				added.push(await lookupWord(todo[i]));
-			}
-			words = [...words, ...added];
-			hskProgress = 100;
-			hskStatus = `Added ${added.length} words.`;
-		} finally {
-			hskProcessing = false;
-		}
-	}
-
-	// Button styles matching the site's black/neutral design system.
-	const btnPrimary =
-		'rounded-lg bg-neutral-900 px-5 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-40';
-	const btnSecondary =
-		'rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition hover:border-neutral-900 hover:text-neutral-900 disabled:opacity-40';
-	const btnDanger =
-		'rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-100 disabled:opacity-40';
-
-	const fieldLabels: Record<string, string> = Object.fromEntries(
-		[
-			{ id: WRITING, label: 'Writing Component' },
-			{ id: CONTROL_BUTTONS_TOKEN, label: 'Control buttons' },
-			{ id: SEPARATOR_TOKEN, label: 'Separator line' },
-			{ id: FIELDS.SIMPLIFIED, label: 'Simplified' },
-			{ id: FIELDS.TRADITIONAL, label: 'Traditional' },
-			{ id: FIELDS.PINYIN, label: 'Pinyin' },
-			{ id: FIELDS.ZHUYIN, label: 'Zhuyin' },
-			{ id: FIELDS.PART_OF_SPEECH, label: 'Part of Speech' },
-			{ id: FIELDS.SIMPLE_MEANING, label: 'Simple Meaning' },
-			{ id: FIELDS.DEFINITIONS, label: 'Dictionary Definitions' },
-			{ id: FIELDS.BREAKDOWN, label: 'Character Breakdown' },
-			{ id: FIELDS.RADICAL, label: 'Radical' },
-			{ id: FIELDS.HSK_LEVEL, label: 'HSK Level' },
-			{ id: FIELDS.FREQUENCY, label: 'Frequency' },
-			{ id: FIELDS.EXAMPLES, label: 'Example Sentences' },
-			{ id: FIELDS.AUDIO, label: 'Audio' }
-		].map((f) => [f.id, f.label])
-	);
-
-	// ---- field ordering (drag + up/down) ----
-	let dragIndex = $state<number | null>(null);
-
-	function moveField(index: number, dir: -1 | 1) {
-		const j = index + dir;
-		if (j < 0 || j >= order.length) return;
-		const next = [...order];
-		[next[index], next[j]] = [next[j], next[index]];
-		order = next;
-	}
-
-	function onFieldDrop(target: number) {
-		if (dragIndex === null || dragIndex === target) return;
-		const next = [...order];
-		const [moved] = next.splice(dragIndex, 1);
-		next.splice(target, 0, moved);
-		order = next;
-		dragIndex = null;
-	}
 
 	// active card preview: ordered ids (fields + writing) selected on each side
 	const frontItems = $derived(
@@ -366,8 +105,6 @@
 			cancelled = true;
 		};
 	});
-
-	const rowsPerPageOptions = [5, 10, 25, 50, 100, 500].map((n) => ({ value: n, name: String(n) }));
 
 	// Sync Audio field with includeAudio checkbox (Audio sits before the writing component)
 	$effect(() => {
@@ -445,245 +182,12 @@
 		hskWordsDict = await loadHskWordsDict();
 	});
 
-	// ---- card-type tabs ----
-	function findNextTabNumber() {
-		let n = 1;
-		while (tabs.includes(`Card ${n}`)) n++;
-		return n;
-	}
-
-	function handleAddTab() {
-		const name = `Card ${findNextTabNumber()}`;
-		tabs = [...tabs, name];
-		tabContent = { ...tabContent, [name]: newCard() };
-		activeTab = tabs.length - 1;
-	}
-
-	// Unique tab name from a desired base (e.g. "Beginner", "Beginner 2").
-	function uniqueTabName(base: string) {
-		if (!tabs.includes(base)) return base;
-		let n = 2;
-		while (tabs.includes(`${base} ${n}`)) n++;
-		return `${base} ${n}`;
-	}
-
-	function applyPresetReplace(preset: CardPreset) {
-		const card = presetToCard(preset);
-		const old = tabs[activeTab];
-		const name = uniqueTabName(preset.name);
-		const next = { ...tabContent };
-		delete next[old];
-		next[name] = card;
-		tabs = tabs.map((t, i) => (i === activeTab ? name : t));
-		tabContent = next;
-		if (presetNeedsAudio(preset)) includeAudio = true;
-	}
-
-	function applyPresetAdd(preset: CardPreset) {
-		const card = presetToCard(preset);
-		const name = uniqueTabName(preset.name);
-		tabs = [...tabs, name];
-		tabContent = { ...tabContent, [name]: card };
-		activeTab = tabs.length - 1;
-		if (presetNeedsAudio(preset)) includeAudio = true;
-	}
-
-	function addPreset(preset: CardPreset) {
-		const def = newCard();
-		const sig = (c: { front: string[]; back: string[] }) =>
-			JSON.stringify([c.front, c.back]);
-		const isPristine =
-			tabs.length === 1 &&
-			!!tabContent[tabs[0]] &&
-			sig(tabContent[tabs[0]]) === sig(def);
-
-		if (isPristine) {
-			applyPresetReplace(preset);
-		} else {
-			pendingPreset = preset;
-		}
-	}
-
-	function confirmPresetReplace() {
-		if (pendingPreset) applyPresetReplace(pendingPreset);
-		pendingPreset = null;
-	}
-
-	function confirmPresetAdd() {
-		if (pendingPreset) applyPresetAdd(pendingPreset);
-		pendingPreset = null;
-	}
-
-	function handleCloseTab(index: number) {
-		const removed = tabs[index];
-		tabs = tabs.filter((_, i) => i !== index);
-		const next = { ...tabContent };
-		delete next[removed];
-		tabContent = next;
-		activeTab = 0;
-	}
-
-	function handleCheckboxChange(fieldId: string, side: 'front' | 'back' | 'additional') {
-		const current = tabs[activeTab];
-		const content = { ...tabContent[current] };
-		const isChecked = content[side].includes(fieldId);
-		content[side] = isChecked
-			? content[side].filter((id) => id !== fieldId)
-			: [...content[side], fieldId];
-		tabContent = { ...tabContent, [current]: content };
-	}
-
-	// ---- word lookup ----
-	async function searchAndAdd(word: string) {
-		if (!word.trim()) return;
-		if (words.some((w) => w.Simplified === word.trim())) return;
-		const result = await lookupWord(word);
-		words = [...words, result];
-		wordValue = '';
-	}
-
-	async function generateWords(file: File) {
-		fileStatus = 'Processing...';
-		fileProcessing = true;
-		fileProgress = 0;
-		const text = await file.text();
-		const lines = text.split('\n').filter((l) => l.trim());
-		const added: Word[] = [];
-		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
-			fileProgress = Math.round(((i + 1) / lines.length) * 100);
-			if (words.some((w) => w.Simplified === line.trim())) continue;
-			if (added.some((w) => w.Simplified === line.trim())) continue;
-			added.push(await lookupWord(line));
-		}
-		words = [...words, ...added];
-		fileProgress = 100;
-		fileProcessing = false;
-		fileStatus = 'Completed';
-	}
-
-	async function generateFromParagraph() {
-		const cutWords = cutParagraph(texAreaValue);
-		if (cutWords.length === 0) return;
-
-		paragraphProcessing = true;
-		paragraphProgress = 0;
-		paragraphStatus = '';
-		showBreakToast = false;
-		translateFailedWords = [];
-
-		const added: Word[] = [];
-		const failed: string[] = [];
-
-		for (let i = 0; i < cutWords.length; i++) {
-			const word = cutWords[i];
-			paragraphProgress = Math.round(((i + 1) / cutWords.length) * 100);
-			paragraphStatus = `Processing ${i + 1} / ${cutWords.length}…`;
-			if (words.some((w) => w.Simplified === word.trim())) continue;
-			if (added.some((w) => w.Simplified === word.trim())) continue;
-			try {
-				added.push(await lookupWord(word));
-			} catch {
-				failed.push(word);
-			}
-		}
-
-		words = [...words, ...added];
-		paragraphProcessing = false;
-		paragraphStatus = `Added ${added.length} word${added.length === 1 ? '' : 's'}${failed.length ? `, ${failed.length} failed` : ''}.`;
-
-		if (failed.length > 0) {
-			translateFailedWords = failed;
-			showBreakToast = true;
-		}
-	}
-
 	async function openSettingsPreview() {
 		loadingSettingsPreview = true;
 		const defaults = ['写', '汉字', '的', '比如', '好'];
 		settingsPreviewWords = await Promise.all(defaults.map(lookupWord));
 		showSettingsPreview = true;
 		loadingSettingsPreview = false;
-	}
-
-	async function previewBreakWords() {
-		breakPreviewing = true;
-		const existing = new Set(words.map((w) => w.Simplified));
-		const seen = new Set<string>();
-		const preview: Word[] = [];
-
-		for (const failedWord of translateFailedWords) {
-			const resolved = await resolveWithSegmentation(failedWord);
-			for (const w of resolved) {
-				if (seen.has(w.Simplified) || existing.has(w.Simplified)) continue;
-				seen.add(w.Simplified);
-				preview.push(w);
-			}
-		}
-
-		breakPreviewWords = preview;
-		breakSelectedWords = new Set(preview.map((w) => w.Simplified));
-		breakPreviewing = false;
-		showBreakModal = true;
-	}
-
-	function toggleBreakWord(simplified: string) {
-		const next = new Set(breakSelectedWords);
-		if (next.has(simplified)) next.delete(simplified);
-		else next.add(simplified);
-		breakSelectedWords = next;
-	}
-
-	function toggleAllBreakWords() {
-		if (breakSelectedWords.size === breakPreviewWords.length) {
-			breakSelectedWords = new Set();
-		} else {
-			breakSelectedWords = new Set(breakPreviewWords.map((w) => w.Simplified));
-		}
-	}
-
-	function addSelectedBreakWords() {
-		const toAdd = breakPreviewWords.filter((w) => breakSelectedWords.has(w.Simplified));
-		words = [...words, ...toAdd];
-		paragraphStatus += ` Added ${toAdd.length} character${toAdd.length === 1 ? '' : 's'}.`;
-		showBreakModal = false;
-		showBreakToast = false;
-		translateFailedWords = [];
-		breakPreviewWords = [];
-		breakSelectedWords = new Set();
-	}
-
-	function handleFileChange(e: Event) {
-		const input = e.target as HTMLInputElement;
-		const file = input.files?.[0];
-		if (file) generateWords(file);
-	}
-
-	// ---- table actions ----
-	function toggleRow(word: Word) {
-		const next = new Set(selected);
-		if (next.has(word)) next.delete(word);
-		else next.add(word);
-		selected = next;
-	}
-
-	function deleteSelectedWord() {
-		if (selected.size === 0) return;
-		words = words.filter((w) => !selected.has(w));
-		selected = new Set();
-	}
-
-	function deleteWord(word: Word) {
-		words = words.filter((w) => w !== word);
-		if (selected.has(word)) {
-			const next = new Set(selected);
-			next.delete(word);
-			selected = next;
-		}
-	}
-
-	function cancelSelection() {
-		selected = new Set();
 	}
 
 	// Cell value for a CSV column. PartOfSpeech lives on `word.pos` (an array of
@@ -711,6 +215,7 @@
 	let isGenerating = $state(false);
 	let showSuccess = $state(false);
 	let exportedDeckName = $state('');
+	let progressbarValue = $state(0);
 	async function doGenerateDeck() {
 		if (isGenerating || words.length === 0) return;
 		isGenerating = true;
@@ -738,12 +243,6 @@
 			showPreview = false;
 		}
 	}
-
-	// derived view
-	let totalPages = $derived(Math.max(1, Math.ceil(words.length / rowsPerPage)));
-	let pagedWords = $derived(
-		words.slice((currentPage - 1) * rowsPerPage, (currentPage - 1) * rowsPerPage + rowsPerPage)
-	);
 </script>
 
 <svelte:head>
@@ -780,357 +279,37 @@
 				{/if}
 			</div>
 
-			<div class="mt-6 flex items-center gap-2 border-b border-neutral-200 pb-2">
-				<button
-					type="button"
-					onclick={() => (appearanceOpen = !appearanceOpen)}
-					aria-expanded={appearanceOpen}
-					class="flex flex-1 items-center gap-2 text-left"
-				>
-					<ChevronDown size={18} class="text-neutral-400 transition {appearanceOpen ? '' : '-rotate-90'}" />
-					<span class="text-xl font-semibold">Customize appearance</span>
-					<span class="text-sm font-normal text-neutral-400">tone colors, font, definitions — optional</span>
-				</button>
-				<button
-					type="button"
-					onclick={openSettingsPreview}
-					disabled={loadingSettingsPreview}
-					class="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition hover:border-neutral-900 hover:text-neutral-900 disabled:opacity-40"
-				>
-					{loadingSettingsPreview ? 'Loading…' : 'Preview'}
-				</button>
-			</div>
+			<AppearancePanel
+				bind:template
+				bind:open={appearanceOpen}
+				{palette}
+				{examplesUsed}
+				loadingPreview={loadingSettingsPreview}
+				onpreview={openSettingsPreview}
+			/>
 
-			{#if appearanceOpen}
-			<div class="mt-4 grid gap-3">
-
-				<!-- Theme -->
-				<div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
-					<div class="mb-3 flex items-center gap-3">
-						<p class="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Card Theme</p>
-						{#if template.cardTheme}
-							<div class="ml-auto inline-flex overflow-hidden rounded-lg border border-neutral-300">
-								{#each (['auto', 'light', 'dark'] as const) as m}
-									<button
-										class="px-3 py-1.5 text-sm capitalize transition {template.cardThemeMode === m ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:text-neutral-900'}"
-										onclick={() => (template.cardThemeMode = m)}
-									>{m}</button>
-								{/each}
-							</div>
-						{/if}
-					</div>
-					<div class="flex flex-wrap gap-2">
-						<button
-							class="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition {!template.cardTheme ? 'border-neutral-900 bg-neutral-900 text-white' : 'border-neutral-200 text-neutral-600 hover:border-neutral-400'}"
-							onclick={() => (template.cardTheme = '')}
-						>
-							<span class="flex h-5 w-5 items-center justify-center rounded-full border border-neutral-300 bg-white text-[9px] text-neutral-400">–</span>
-							None
-						</button>
-						{#each CARD_THEME_GROUPS as g (g.id)}
-							<button
-								class="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition {template.cardTheme === g.id ? 'border-neutral-900 ring-1 ring-neutral-900' : 'border-neutral-200 hover:border-neutral-400'}"
-								onclick={() => (template.cardTheme = g.id)}
-								title={g.description}
-							>
-								<span class="relative flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-neutral-200">
-									<span class="absolute inset-0 w-1/2" style="background:{g.swatch[0]}"></span>
-									<span class="absolute inset-0 left-1/2" style="background:{g.swatch[1]}"></span>
-								</span>
-								{g.label}
-							</button>
-						{/each}
-					</div>
-				</div>
-
-				<!-- Colors -->
-				<div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
-					<p class="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Colors</p>
-					<div class="inline-flex overflow-hidden rounded-lg border border-neutral-300">
-						<button
-							class="px-3 py-1.5 text-sm transition {!template.mono ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:text-neutral-900'}"
-							onclick={() => (template.mono = false)}>Tone colors</button>
-						<button
-							class="px-3 py-1.5 text-sm transition {template.mono ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:text-neutral-900'}"
-							onclick={() => (template.mono = true)}>Black & white</button>
-					</div>
-
-					{#if !template.mono}
-						<div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
-							<label class="flex items-center gap-2 text-sm">
-								<input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.colorHanzi} /> Color hanzi
-							</label>
-							<label class="flex items-center gap-2 text-sm">
-								<input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.colorPinyin} /> Color pinyin
-							</label>
-							<label class="flex items-center gap-2 text-sm">
-								Palette
-								<select bind:value={template.tonePreset} class="min-w-[9rem] rounded-lg border border-neutral-300 px-2 py-1.5 text-sm">
-									{#each TONE_PRESETS as p (p.id)}
-										<option value={p.id}>{p.label}</option>
-									{/each}
-									<option value="custom">Custom…</option>
-								</select>
-							</label>
-						</div>
-						<div class="mt-3 flex flex-wrap items-center gap-4">
-							<div class="flex items-center gap-1.5">
-								<span class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">Tones</span>
-								{#each TONE_KEYS as k (k)}
-									<span
-										class="inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold text-white"
-										style="background-color:{palette[k]}"
-										title={`Tone ${k}`}>{k}</span>
-								{/each}
-							</div>
-							{#if template.tonePreset === 'custom'}
-								<div class="flex flex-wrap items-center gap-3">
-									{#each TONE_KEYS as k (k)}
-										<label class="flex items-center gap-1 text-xs text-neutral-600">
-											Tone {k}
-											<input type="color" bind:value={template.toneColors[k]} class="h-7 w-8 cursor-pointer rounded border border-neutral-200 p-0.5" />
-										</label>
-									{/each}
-								</div>
-							{/if}
-						</div>
-					{/if}
-				</div>
-
-				<!-- Typography & Display -->
-				<div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
-					<p class="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Typography & Display</p>
-					<div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-						<label class="flex items-center gap-2 text-sm">
-							Hanzi font
-							<select bind:value={template.font} class="min-w-[10rem] rounded-lg border border-neutral-300 px-2 py-1.5 text-sm">
-								<option value="default">Default (sans)</option>
-								<option value="kaiti">Kaiti 楷体</option>
-								<option value="songti">Songti 宋体</option>
-							</select>
-						</label>
-						<label class="flex items-center gap-2 text-sm" title="Multi-reading characters show only their most common reading (the one with the longest definition)">
-							<input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.commonPinyinOnly} /> Most common pinyin only
-						</label>
-						<label class="flex items-center gap-2 text-sm">
-							<input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.collapseDict} /> Collapse dictionary definitions
-						</label>
-					</div>
-				</div>
-
-				<!-- Example Sentences (conditional) -->
-				{#if examplesUsed}
-					<div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
-						<p class="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Example Sentences</p>
-						<div class="flex flex-wrap items-end gap-4">
-							<label class="flex flex-col gap-1 text-xs text-neutral-600">
-								How many
-								<input type="number" min="1" max="10" bind:value={template.exampleOptions.count}
-									class="w-20 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm" />
-							</label>
-							<label class="flex flex-col gap-1 text-xs text-neutral-600">
-								Min length (chars)
-								<input type="number" min="1" max="50" bind:value={template.exampleOptions.minChars}
-									class="w-24 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm" />
-							</label>
-							<label class="flex flex-col gap-1 text-xs text-neutral-600">
-								Max length (chars)
-								<input type="number" min="1" max="80" bind:value={template.exampleOptions.maxChars}
-									class="w-24 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm" />
-							</label>
-						</div>
-						<div class="mt-3 border-t border-neutral-200 pt-3">
-							<p class="mb-2 font-mono text-[10px] uppercase tracking-wider text-neutral-400">Show</p>
-							<div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-								<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.showSimplified} /> Simplified</label>
-								<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.showTraditional} /> Traditional</label>
-								<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.showPinyin} /> Pinyin</label>
-								<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.showTranslation} /> Translation</label>
-							</div>
-						</div>
-						{#if !template.mono}
-							<div class="mt-3 border-t border-neutral-200 pt-3">
-								<p class="mb-2 font-mono text-[10px] uppercase tracking-wider text-neutral-400">Colorize</p>
-								<div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-									<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.colorizeHanzi} /> Hanzi</label>
-									<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.colorizePinyin} /> Pinyin</label>
-								</div>
-							</div>
-						{/if}
-						<p class="mt-3 border-t border-neutral-200 pt-3 text-[11px] text-neutral-400">Examples show as a collapsible card (tap the bar to expand), like Definitions.</p>
-					</div>
-				{/if}
-
-			</div>
-			{/if}
-
-			<div class="mt-6 flex items-center gap-3">
-				<h2 class="text-xl font-semibold">Create Card Types</h2>
-				<button
-					onclick={() => (showCustomizer = true)}
-					class="ml-auto flex items-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-1.5 text-sm text-neutral-600 transition hover:border-neutral-900 hover:text-neutral-900"
-				>
-					<Settings2 size={14} />
-					Advanced customisation
-				</button>
-			</div>
-			<p class="mb-2 text-sm text-neutral-500">
-				Each card type is one Anki template. Drag to set field order, then choose which fields show
-				on the front and back. The preview updates live.
-			</p>
-
-			<div class="mb-4 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
-				<p class="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">
-					Quick start — add a ready-made card type
-				</p>
-				<div class="flex flex-wrap gap-2">
-					{#each CARD_PRESETS as preset (preset.id)}
-						<button
-							type="button"
-							onclick={() => addPreset(preset)}
-							title={preset.description}
-							class="group rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-left transition hover:border-neutral-900 hover:shadow-[3px_3px_0_0_#111]"
-						>
-							<span class="block text-sm font-semibold text-neutral-900">{preset.name}</span>
-							<span class="block max-w-[14rem] text-[11px] leading-snug text-neutral-500">{preset.description}</span>
-						</button>
-					{/each}
-				</div>
-			</div>
-
-			<div>
-				<ul class="flex flex-wrap gap-2 border-b border-neutral-200">
-					{#each tabs as tab, index (tab)}
-						<li
-							class="flex cursor-pointer items-center gap-1 rounded-t px-3 py-2 text-sm {activeTab ===
-							index
-								? 'border-b-2 border-neutral-900 font-semibold'
-								: 'text-neutral-500'}"
-						>
-							<span
-								onclick={() => (activeTab = index)}
-								onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && (activeTab = index)}
-								role="button"
-								tabindex="0">{tab}</span
-							>
-							{#if tabs.length > 1}
-								<button onclick={() => handleCloseTab(index)} aria-label="close tab">
-									<CircleX size={15} />
-								</button>
-							{/if}
-						</li>
-					{/each}
-					<li class="text-lg text-neutral-500">
-						<button class="cursor-pointer px-3 py-2" onclick={handleAddTab} aria-label="add card type">+</button>
-					</li>
-				</ul>
-
-				{#if tabContent[tabs[activeTab]]}
-					<div class="py-4">
-						<!-- field editor -->
-						<div>
-							<p class="mb-2 text-xs text-neutral-500">Tick a field to show it on the front and/or back of this card type.</p>
-							<div
-								class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 pb-1 font-mono text-[10px] uppercase tracking-wider text-neutral-400"
-							>
-								<span>Field</span><span class="text-center">Front</span
-								><span class="text-center">Back</span>
-							</div>
-							<ul class="divide-y divide-neutral-200 rounded-lg border border-neutral-200">
-								{#each order as item, index (item)}
-									{@const isChrome = item === CONTROL_BUTTONS_TOKEN || item === SEPARATOR_TOKEN}
-										<li
-											draggable="true"
-											ondragstart={() => (dragIndex = index)}
-											ondragover={(e) => e.preventDefault()}
-											ondrop={() => onFieldDrop(index)}
-											class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 py-2 {item === WRITING || isChrome
-												? 'bg-neutral-50'
-												: 'bg-white'} {dragIndex === index ? 'opacity-50' : ''}"
-										>
-											<span class="flex items-center gap-2">
-												<GripVertical size={15} class="cursor-grab text-neutral-300" />
-												<span class="text-sm">{fieldLabels[item] ?? item}</span>
-												<span class="ml-auto flex flex-col">
-													<button
-														class="text-neutral-400 hover:text-neutral-900 disabled:opacity-20"
-														disabled={index === 0}
-														onclick={() => moveField(index, -1)}
-														aria-label="move up"><ChevronUp size={13} /></button
-													>
-													<button
-														class="text-neutral-400 hover:text-neutral-900 disabled:opacity-20"
-														disabled={index === order.length - 1}
-														onclick={() => moveField(index, 1)}
-														aria-label="move down"><ChevronDown size={13} /></button
-													>
-												</span>
-											</span>
-											<span class="text-center">
-												<input
-													type="checkbox"
-													class="h-4 w-4 accent-neutral-900"
-													aria-label={`${fieldLabels[item] ?? item} front`}
-													checked={tabContent[tabs[activeTab]].front.includes(`front${item}`)}
-													onchange={() => handleCheckboxChange(`front${item}`, 'front')}
-												/>
-											</span>
-											<span class="text-center">
-												<input
-													type="checkbox"
-													class="h-4 w-4 accent-neutral-900"
-													aria-label={`${fieldLabels[item] ?? item} back`}
-													checked={tabContent[tabs[activeTab]].back.includes(`back${item}`)}
-													onchange={() => handleCheckboxChange(`back${item}`, 'back')}
-												/>
-											</span>
-										</li>
-								{/each}
-							</ul>
-						</div>
-					</div>
-				{/if}
-			</div>
+			<CardTypeEditor
+				bind:tabs
+				bind:tabContent
+				bind:activeTab
+				bind:order
+				bind:includeAudio
+				onshowcustomizer={() => (showCustomizer = true)}
+			/>
 		</div>
 		<!-- Sticky live preview — right column on lg+, preview tab on mobile -->
 		<div class="{mobileTab === 'customize' ? 'hidden lg:block' : ''} w-full space-y-3 lg:w-[320px] lg:shrink-0 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:pt-9">
 			{#if tabContent[tabs[activeTab]]}
-				<p class="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Live preview — {tabs[activeTab]}</p>
-				<CardPreview
-					label="Front"
-					side="front"
-					items={frontItems}
-					colorize={!template.mono && template.colorHanzi}
-					colorPinyin={!template.mono && template.colorPinyin}
-					font={template.font}
-					collapseDict={template.collapseDict}
-					commonPinyinOnly={template.commonPinyinOnly}
+				<LivePreview
+					tabName={tabs[activeTab]}
+					{template}
+					{palette}
+					{order}
+					{frontItems}
+					{backItems}
 					elementStyles={activeStyles}
 					groups={activeGroups}
-					{order}
-					toneColors={palette}
-					cardTheme={template.cardTheme}
-					cardThemeMode={template.cardThemeMode}
 					exampleSentences={previewExamples}
-					exampleOptions={template.exampleOptions}
-				/>
-				<CardPreview
-					label="Back"
-					side="back"
-					items={backItems}
-					colorize={!template.mono && template.colorHanzi}
-					colorPinyin={!template.mono && template.colorPinyin}
-					font={template.font}
-					collapseDict={template.collapseDict}
-					commonPinyinOnly={template.commonPinyinOnly}
-					elementStyles={activeStyles}
-					groups={activeGroups}
-					{order}
-					toneColors={palette}
-					cardTheme={template.cardTheme}
-					cardThemeMode={template.cardThemeMode}
-					exampleSentences={previewExamples}
-					exampleOptions={template.exampleOptions}
 				/>
 			{/if}
 		</div>
@@ -1139,264 +318,20 @@
 
 	{#if page === 2}
 		<div>
-			<h2 class="text-xl font-semibold">Enter Chinese Characters</h2>
+			<WordSourceInput bind:words />
 
-			<div class="my-4 inline-flex overflow-hidden rounded-lg border border-neutral-300">
-				{#each selectionTypes as st}
-					<button
-						class="px-4 py-1.5 text-sm {selectType === st.value
-							? 'bg-neutral-900 text-white'
-							: 'text-neutral-600 hover:bg-neutral-100'}"
-						onclick={() => (selectType = st.value)}>{st.name}</button
-					>
-				{/each}
-			</div>
-
-			{#if selectType === 'Word'}
-				<div class="my-4 flex items-center gap-3">
-					<Input
-						class="w-3/5"
-						placeholder="Type a word, e.g. 中国"
-						bind:value={wordValue}
-						onkeydown={(e) => e.key === 'Enter' && searchAndAdd(wordValue)}
-					/>
-					<button class={btnPrimary} onclick={() => searchAndAdd(wordValue)}>Add</button>
-				</div>
-			{/if}
-
-			{#if selectType === 'File'}
-				<div class="my-4">
-					<Fileupload accept="text/*" onchange={handleFileChange} />
-					{#if fileProcessing || fileProgress > 0}
-						<div class="mt-3">
-							<div class="mb-1 flex justify-between text-xs text-neutral-500">
-								<span>{fileProcessing ? 'Processing…' : 'Completed'}</span>
-								<span>{fileProgress}%</span>
-							</div>
-							<Progressbar progress={fileProgress} />
-						</div>
-					{:else}
-						<p class="mt-1 text-sm text-neutral-500">
-							{fileStatus || 'Upload a text file with one word per line.'}
-						</p>
-					{/if}
-				</div>
-			{/if}
-
-			{#if selectType === 'HSK'}
-				<div class="my-4">
-					<p class="mb-2 text-sm text-neutral-500">
-						Pick one or more HSK levels — every word at those levels is added to your deck,
-						most-common first.
-					</p>
-					<div class="mb-3 flex flex-wrap gap-2">
-						{#each HSK_LEVELS as lvl (lvl)}
-							<button
-								type="button"
-								onclick={() => toggleLevel(lvl)}
-								class="rounded-lg border px-3 py-1.5 text-sm transition {selectedLevels.has(lvl)
-									? 'border-neutral-900 bg-neutral-900 text-white'
-									: 'border-neutral-300 text-neutral-600 hover:border-neutral-900'}"
-							>
-								HSK {lvl}
-							</button>
-						{/each}
-					</div>
-					<button
-						class={btnPrimary}
-						onclick={addWordsByLevel}
-						disabled={selectedLevels.size === 0 || hskProcessing}
-					>
-						{hskProcessing ? 'Adding…' : 'Add words'}
-					</button>
-					{#if hskProcessing || hskProgress > 0}
-						<div class="mt-3">
-							<div class="mb-1 flex justify-between text-xs text-neutral-500">
-								<span>{hskStatus}</span>
-								<span>{hskProgress}%</span>
-							</div>
-							<Progressbar progress={hskProgress} />
-						</div>
-					{/if}
-				</div>
-			{/if}
-
-			{#if selectType === 'BCT'}
-				<div class="my-4">
-					<p class="mb-2 text-sm text-neutral-500">
-						Pick BCT level A (600 words) or B (4000 words) — every word at that level is added to
-						your deck.
-					</p>
-					<div class="mb-3 flex flex-wrap gap-2">
-						{#each BCT_LEVELS as lvl (lvl)}
-							<button
-								type="button"
-								onclick={() => toggleBctLevel(lvl)}
-								class="rounded-lg border px-3 py-1.5 text-sm transition {selectedBctLevels.has(lvl)
-									? 'border-neutral-900 bg-neutral-900 text-white'
-									: 'border-neutral-300 text-neutral-600 hover:border-neutral-900'}"
-							>
-								BCT {lvl}
-							</button>
-						{/each}
-					</div>
-					<button
-						class={btnPrimary}
-						onclick={addWordsByBct}
-						disabled={selectedBctLevels.size === 0 || bctProcessing}
-					>
-						{bctProcessing ? 'Adding…' : 'Add words'}
-					</button>
-					{#if bctProcessing || bctProgress > 0}
-						<div class="mt-3">
-							<div class="mb-1 flex justify-between text-xs text-neutral-500">
-								<span>{bctStatus}</span>
-								<span>{bctProgress}%</span>
-							</div>
-							<Progressbar progress={bctProgress} />
-						</div>
-					{/if}
-				</div>
-			{/if}
-
-			{#if selectType === 'YCT'}
-				<div class="my-4">
-					<p class="mb-2 text-sm text-neutral-500">
-						Pick one or more YCT levels (1–4) — every word at those levels is added to your deck.
-					</p>
-					<div class="mb-3 flex flex-wrap gap-2">
-						{#each YCT_LEVELS as lvl (lvl)}
-							<button
-								type="button"
-								onclick={() => toggleYctLevel(lvl)}
-								class="rounded-lg border px-3 py-1.5 text-sm transition {selectedYctLevels.has(lvl)
-									? 'border-neutral-900 bg-neutral-900 text-white'
-									: 'border-neutral-300 text-neutral-600 hover:border-neutral-900'}"
-							>
-								YCT {lvl}
-							</button>
-						{/each}
-					</div>
-					<button
-						class={btnPrimary}
-						onclick={addWordsByYct}
-						disabled={selectedYctLevels.size === 0 || yctProcessing}
-					>
-						{yctProcessing ? 'Adding…' : 'Add words'}
-					</button>
-					{#if yctProcessing || yctProgress > 0}
-						<div class="mt-3">
-							<div class="mb-1 flex justify-between text-xs text-neutral-500">
-								<span>{yctStatus}</span>
-								<span>{yctProgress}%</span>
-							</div>
-							<Progressbar progress={yctProgress} />
-						</div>
-					{/if}
-				</div>
-			{/if}
-
-			{#if selectType === 'Paragraph'}
-				<div class="my-4">
-					<Textarea
-						class="w-full"
-						rows={6}
-						placeholder="Paste Chinese text — it will be segmented into words."
-						bind:value={texAreaValue}
-					/>
-					<div class="mt-2">
-						<button
-							class={btnPrimary}
-							onclick={generateFromParagraph}
-							disabled={!texAreaValue.trim() || paragraphProcessing}
-						>
-							{paragraphProcessing ? 'Processing…' : 'Generate words'}
-						</button>
-					</div>
-					{#if paragraphProcessing || paragraphProgress > 0}
-						<div class="mt-3">
-							<div class="mb-1 flex justify-between text-xs text-neutral-500">
-								<span>{paragraphStatus}</span>
-								<span>{paragraphProgress}%</span>
-							</div>
-							<Progressbar progress={paragraphProgress} />
-						</div>
-					{/if}
-				</div>
-			{/if}
-
-			<Progressbar progress={progressbarValue} class="my-4" />
-			<p class="mb-2 text-sm text-gray-500">
-				{#if progressbarValue > 0}
-					{progressbarValue.toFixed(1)}% - {includeAudio ? 'Processing audio...' : 'Processing...'}
-				{:else}
-					{includeAudio ? 'Ready to generate (includes audio)' : 'Ready to generate (no audio)'}
-				{/if}
-			</p>
-
-			<div class="my-4 flex flex-wrap items-center justify-between gap-2">
-				<div class="flex gap-2">
-					<button class={btnDanger} onclick={deleteSelectedWord}>Delete</button>
-					<button class={btnSecondary} onclick={cancelSelection}>Cancel</button>
-				</div>
-				<div class="flex gap-2">
-					<button class={btnSecondary} onclick={exportCSV} disabled={words.length === 0}>Export CSV</button>
-					<button class={btnSecondary} onclick={() => (showPreview = true)} disabled={words.length === 0 || isGenerating}>
-						Preview
-					</button>
-					<button class={btnPrimary} onclick={doGenerateDeck} disabled={words.length === 0 || isGenerating}>
-						{isGenerating ? 'Generating…' : 'Generate'}
-					</button>
-				</div>
-			</div>
-
-			{#if words.length === 0}
-				<p class="rounded-lg border border-dashed border-neutral-300 py-10 text-center text-sm text-neutral-400">
-					No words yet. Add words above to build your deck.
-				</p>
-			{:else}
-				<div class="grid gap-3">
-					{#each pagedWords as word (word)}
-						<WordCard
-							{word}
-							selected={selected.has(word)}
-							colorize={!template.mono && template.colorHanzi}
-							toneColors={palette}
-							onToggle={() => toggleRow(word)}
-							onDelete={() => deleteWord(word)}
-							onPlay={() => void playWordAudio(word.Simplified, hskWordsDict)}
-						/>
-					{/each}
-				</div>
-			{/if}
-
-			<div class="my-4 flex items-center justify-between">
-				<div class="flex items-center gap-2">
-					<span class="text-sm text-gray-500">Rows per page</span>
-					<div class="w-24">
-						<Select
-							items={rowsPerPageOptions}
-							bind:value={rowsPerPage}
-							onchange={() => (currentPage = 1)}
-						/>
-					</div>
-				</div>
-				<div class="flex items-center gap-2">
-					<Button
-						size="xs"
-						color="alternative"
-						disabled={currentPage <= 1}
-						onclick={() => (currentPage = currentPage - 1)}>Prev</Button
-					>
-					<span class="text-sm">Page {currentPage} / {totalPages}</span>
-					<Button
-						size="xs"
-						color="alternative"
-						disabled={currentPage >= totalPages}
-						onclick={() => (currentPage = currentPage + 1)}>Next</Button
-					>
-				</div>
-			</div>
+			<WordReviewTable
+				bind:words
+				{template}
+				{palette}
+				{hskWordsDict}
+				{includeAudio}
+				{progressbarValue}
+				{isGenerating}
+				onexportcsv={exportCSV}
+				onpreview={() => (showPreview = true)}
+				ongenerate={doGenerateDeck}
+			/>
 		</div>
 	{/if}
 
@@ -1447,138 +382,5 @@
 		<ExportSuccess deckName={exportedDeckName} onClose={() => (showSuccess = false)} />
 	{/if}
 
-	<nav class="mt-10 flex items-center justify-between gap-4 border-t border-neutral-200 pt-6">
-		{#if page > 1}
-			<button
-				class="group flex items-center gap-3 rounded-lg border border-neutral-200 px-4 py-3 transition hover:border-neutral-900 hover:shadow-[4px_4px_0_0_#111]"
-				onclick={() => (page = page - 1)}
-			>
-				<ArrowLeft size={16} class="shrink-0 text-neutral-400 transition group-hover:text-neutral-900" />
-				<div class="text-left">
-					<div class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">Previous</div>
-					<div class="font-semibold text-neutral-900">{prevNextButtonText[page - 1]}</div>
-				</div>
-			</button>
-		{:else}
-			<div></div>
-		{/if}
-
-		{#if page < 2}
-			<button
-				class="group flex items-center gap-3 rounded-lg border border-neutral-200 px-4 py-3 transition hover:border-neutral-900 hover:shadow-[4px_4px_0_0_#111]"
-				onclick={() => (page = page + 1)}
-			>
-				<div class="text-right">
-					<div class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">Next</div>
-					<div class="font-semibold text-neutral-900">{prevNextButtonText[page + 1]}</div>
-				</div>
-				<ArrowRight size={16} class="shrink-0 text-neutral-400 transition group-hover:text-neutral-900" />
-			</button>
-		{:else}
-			<div></div>
-		{/if}
-	</nav>
+	<StepNav bind:page labels={prevNextButtonText} maxPage={2} />
 </section>
-
-{#if showBreakToast}
-	<div class="fixed bottom-6 left-1/2 z-50 w-full max-w-md -translate-x-1/2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-lg">
-		<p class="mb-2 text-sm font-medium text-amber-900">
-			Google Translate failed for {translateFailedWords.length} word{translateFailedWords.length === 1 ? '' : 's'}.
-			Break into individual characters and look up in dictionary?
-		</p>
-		<div class="flex gap-2">
-			<button class={btnPrimary} onclick={previewBreakWords} disabled={breakPreviewing}>
-				{breakPreviewing ? 'Loading…' : 'Preview'}
-			</button>
-			<button
-				class={btnSecondary}
-				onclick={() => {
-					showBreakToast = false;
-					translateFailedWords = [];
-				}}
-			>
-				Skip
-			</button>
-		</div>
-	</div>
-{/if}
-
-{#if showBreakModal}
-	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-		<div class="flex w-full max-w-sm flex-col rounded-xl bg-white shadow-2xl">
-			<div class="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
-				<h3 class="font-semibold text-neutral-900">
-					{breakPreviewWords.length} character{breakPreviewWords.length === 1 ? '' : 's'} found
-				</h3>
-				<button
-					class="text-xs text-neutral-500 hover:text-neutral-900"
-					onclick={toggleAllBreakWords}
-				>
-					{breakSelectedWords.size === breakPreviewWords.length ? 'Deselect all' : 'Select all'}
-				</button>
-			</div>
-			{#if breakPreviewWords.length === 0}
-				<p class="px-4 py-6 text-center text-sm text-neutral-500">No characters found in dictionary.</p>
-			{:else}
-				<ul class="max-h-72 overflow-y-auto divide-y divide-neutral-100">
-					{#each breakPreviewWords as w (w.Simplified)}
-						<li class="flex items-center gap-3 px-4 py-2">
-							<input
-								type="checkbox"
-								checked={breakSelectedWords.has(w.Simplified)}
-								onchange={() => toggleBreakWord(w.Simplified)}
-								class="h-4 w-4 rounded border-neutral-300 accent-neutral-900"
-							/>
-							<span class="text-xl font-medium">{w.Simplified}</span>
-							<span class="text-xs text-neutral-500 truncate">{w.Pinyin} — {w.Definitions.split(' │ ')[0]}</span>
-						</li>
-					{/each}
-				</ul>
-			{/if}
-			<div class="flex gap-2 border-t border-neutral-200 px-4 py-3">
-				<button
-					class={btnPrimary}
-					onclick={addSelectedBreakWords}
-					disabled={breakSelectedWords.size === 0}
-				>
-					Add selected ({breakSelectedWords.size})
-				</button>
-				<button
-					class={btnSecondary}
-					onclick={() => {
-						showBreakModal = false;
-						showBreakToast = false;
-						translateFailedWords = [];
-						breakPreviewWords = [];
-						breakSelectedWords = new Set();
-					}}
-				>
-					Cancel
-				</button>
-			</div>
-		</div>
-	</div>
-{/if}
-
-{#if pendingPreset}
-	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-		<div class="flex w-full max-w-sm flex-col rounded-xl bg-white shadow-2xl">
-			<div class="border-b border-neutral-200 px-4 py-3">
-				<h3 class="font-semibold text-neutral-900">{pendingPreset.name}</h3>
-				<p class="mt-0.5 text-xs text-neutral-500">{pendingPreset.description}</p>
-			</div>
-			<div class="px-4 py-4">
-				<p class="text-sm text-neutral-700">Replace the current card type or add as a new one?</p>
-			</div>
-			<div class="flex gap-2 border-t border-neutral-200 px-4 py-3">
-				<button class={btnPrimary} onclick={confirmPresetReplace}>
-					Replace "{tabs[activeTab]}"
-				</button>
-				<button class={btnSecondary} onclick={confirmPresetAdd}>Add new</button>
-				<button class="ml-auto text-xs text-neutral-500 hover:text-neutral-900" onclick={() => (pendingPreset = null)}>
-					Cancel
-				</button>
-			</div>
-		</div>
-	</div>
-{/if}

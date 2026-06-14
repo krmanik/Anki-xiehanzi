@@ -93,7 +93,7 @@ export interface Word {
 // ---------------------------------------------------------------------------
 
 export function loadDict() {
-	return Promise.all([loadCedict(), loadHskMeanings(), loadYctMeanings()]);
+	return Promise.all([loadCedict(), loadHskMeanings(), loadYctMeanings(), loadGtGlosses()]);
 }
 
 export function initJieba() {
@@ -205,10 +205,82 @@ export function decodeHtmlEntities(input: string): string {
 	return input.replace(htmlEntityRegex, replaceEntity as any);
 }
 
+// Cache for Google Translate fallback lookups. Words missing from cedict.db get
+// translated via the network; without this, regenerating decks (e.g. HSK 1 then
+// HSK 7-9) refetches the same words every time.
+//
+// Three layers, cheapest first:
+//   1. seed JSON (static/data/gt_glosses.json) — committed {word: text} map,
+//      collected from prior runs so they never hit the network at all.
+//   2. localStorage — survives reloads within a browser.
+//   3. network — last resort; result is written back to the in-memory map and
+//      localStorage. Words collected this way can be promoted into the seed file.
+const GT_CACHE_PREFIX = 'gt:zh-en:';
+const gtInflight = new Map<string, Promise<string>>();
+let gtGlosses: Map<string, string> | null = null;
+
+/** Load the committed seed glosses ({word: text}) into memory. Idempotent. */
+export async function loadGtGlosses(): Promise<void> {
+	if (gtGlosses) return;
+	gtGlosses = new Map();
+	try {
+		const res = await fetch(`${base}/data/gt_glosses.json`);
+		if (res.ok) {
+			const data: Record<string, string> = await res.json();
+			for (const [word, text] of Object.entries(data)) {
+				if (text) gtGlosses.set(word, text);
+			}
+		}
+	} catch {
+		// non-fatal — seed file may not exist yet
+	}
+}
+
+function gtCacheGet(word: string): string | null {
+	const seed = gtGlosses?.get(word);
+	if (seed !== undefined) return seed;
+	try {
+		return globalThis.localStorage?.getItem(GT_CACHE_PREFIX + word) ?? null;
+	} catch {
+		return null;
+	}
+}
+
+function gtCacheSet(word: string, text: string) {
+	(gtGlosses ??= new Map()).set(word, text);
+	try {
+		globalThis.localStorage?.setItem(GT_CACHE_PREFIX + word, text);
+	} catch {
+		/* quota / unavailable — fall through, cache is best-effort */
+	}
+}
+
+async function fetchTranslation(word: string): Promise<string> {
+	const cached = gtCacheGet(word);
+	if (cached !== null) return cached;
+
+	const existing = gtInflight.get(word);
+	if (existing) return existing;
+
+	const p = (async () => {
+		const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-CN&tl=en-US&dt=t&q=${word}`;
+		const response = await fetch(url);
+		const data = await response.json();
+		const text = data[0][0][0];
+		gtCacheSet(word, text);
+		return text;
+	})();
+
+	gtInflight.set(word, p);
+	try {
+		return await p;
+	} finally {
+		gtInflight.delete(word);
+	}
+}
+
 export async function fetchMeaningGoogleTranslate(word: string) {
-	const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=zh-CN&tl=en-US&dt=t&q=${word.trim()}`;
-	const response = await fetch(url);
-	const data = await response.json();
+	const definition = await fetchTranslation(word.trim());
 
 	const simplified = word.trim();
 	const traditional = Chinese.s2t(word.trim());
@@ -223,7 +295,7 @@ export async function fetchMeaningGoogleTranslate(word: string) {
 	const pinyin1 = [decodeHtmlEntities(pizh[1])];
 	const zhuyin1 = [decodeHtmlEntities(pizh[2])];
 	const syllable1 = [pin];
-	const definitions1 = [data[0][0][0]];
+	const definitions1 = [definition];
 
 	return {
 		Simplified: simplified,

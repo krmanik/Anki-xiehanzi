@@ -1,145 +1,146 @@
 # Anki xiě hànzì (写汉字)
 
-[Anki-xiehanzi](https://krmanik.github.io/Anki-xiehanzi)
+> Learn, read, write and pronounce Mandarin by drawing stroke order in
+> [Anki](https://apps.ankiweb.net/) — with HSK 1–9 audio, pinyin tone colors and
+> a browser-based deck generator.
 
-Learn, read, write and practice Mandarin by drawing strokes in [Anki Desktop](https://apps.ankiweb.net/), [AnkiDroid](https://play.google.com/store/apps/details?id=com.ichi2.anki) and [AnkiMobile](https://apps.apple.com/us/app/ankimobile-flashcards/id373493387) with audio of HSK1 to HSK6 characters. 
+🔗 **[krmanik.github.io/Anki-xiehanzi](https://krmanik.github.io/Anki-xiehanzi)**
 
-# Quick Start
-
-## New HSK (2025-11)
-
-Download HSK Anki apkg file for [Anki Desktop](https://apps.ankiweb.net/), [AnkiDroid](https://play.google.com/store/apps/details?id=com.ichi2.anki) or [AnkiMobile](https://apps.apple.com/us/app/ankimobile-flashcards/id373493387)
-
-### Download
-
-- [Anki-xiehanzi - New HSK (2025).apkg](https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.3/Anki-xiehanzi.-.New.HSK.2025.apkg)
-- [Anki-xiehanzi - New HSK (2025) with sentences.apkg](https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.3/Anki-xiehanzi.-.New.HSK.2025.with.sentences.apkg)
-
-> **Note:** Before importing Anki Deck please make backups with scheduling information.
+Works in [Anki Desktop](https://apps.ankiweb.net/),
+[AnkiDroid](https://play.google.com/store/apps/details?id=com.ichi2.anki) and
+[AnkiMobile](https://apps.apple.com/us/app/ankimobile-flashcards/id373493387).
 
 <img src="https://raw.githubusercontent.com/krmanik/Anki-xiehanzi/main/static/img/xiehanzi_v2.0.gif" height="450px"></img>
 
-# Features
-- Night mode
-- Change size of characters
-- Change drawing stroke width
-- New Deck with frequency order
-- Colored strokes and characters
-- Pinyin with tone color in HSK 3.0 decks
-- HSK1 - HSK9 audio included in the decks
-- View meaning by opening [Pleco dictionary](https://www.pleco.com/) on phone.
-- View character details using [https://hanzicraft.com/](https://hanzicraft.com/) 
-- View mnemonics of characters using [http://rtega.be/chmn/](http://rtega.be/chmn/)
-- Practice simplified as well as traditional characters
-- Show or hide Simplified, Traditional characters, Pinyin or Meaning
-- Draw characters to learn Mandarin with Simplified, Traditional, Pinyin and Meaning
-- Indicator at bottom for showing if character loaded or not (```green - loaded, red - not loaded or some error```)
+## Two ways to use it
 
-Note: Some changes will get reflect from next card.
+1. **Download a ready-made deck** — New HSK (2025) covering HSK 3.0 levels 1–9. See below.
+2. **Build your own** — the [Create](https://krmanik.github.io/Anki-xiehanzi/create)
+   tool turns any Chinese words into a custom `.apkg`, in your browser, no account or upload.
+
+---
+
+## Download the deck — New HSK (2025-11)
+
+- [Anki-xiehanzi — New HSK (2025).apkg](https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.3/Anki-xiehanzi.-.New.HSK.2025.apkg)
+- [Anki-xiehanzi — New HSK (2025) with sentences.apkg](https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.3/Anki-xiehanzi.-.New.HSK.2025.with.sentences.apkg)
+
+Import via **File → Import** in Anki.
+
+> [!WARNING]
+> Make a backup of your collection (with scheduling information) before importing.
+
+## Build your own deck — Create tool
+
+[**krmanik.github.io/Anki-xiehanzi/create**](https://krmanik.github.io/Anki-xiehanzi/create)
+
+Generate a deck from typed words, pasted paragraphs, an uploaded file, or a full
+HSK / BCT / YCT level. The tool segments the text, looks up each word in
+CC-CEDICT, lets you customize card types, fields and appearance with a live
+preview, then exports a self-contained `.apkg` (audio, fonts and stroke data
+bundled — works offline once imported). Everything runs client-side.
+
+See [Export a Deck](https://krmanik.github.io/Anki-xiehanzi/docs/export-deck) for the walkthrough.
+
+## Features
+
+- Draw and practice stroke order (powered by [Hanzi Writer](https://hanziwriter.org))
+- Simplified **and** traditional characters
+- Pinyin (tone-marked) and Zhuyin (Bopomofo), with tone colors
+- Colored strokes and characters
+- HSK 1–9 audio plus text-to-speech
+- CC-CEDICT definitions, part of speech, radical, breakdown, HSK level and frequency
+- Smart example sentences
+- Night mode; adjustable character size and stroke width
+- Show / hide Simplified, Traditional, Pinyin or Meaning per card
+- Decks sorted in frequency order
+- External lookups: [Pleco](https://www.pleco.com/),
+  [HanziCraft](https://hanzicraft.com/),
+  [mnemonics](http://rtega.be/chmn/)
+- Load indicator at the bottom (`green = loaded, red = error / not loaded`)
+
+> Some setting changes take effect on the next card.
+
+## Docs
+
+[View the docs](https://krmanik.github.io/Anki-xiehanzi/docs/intro) — features,
+studying tips, exporting a deck, and FAQ.
+
+---
+
+<details>
+<summary><b>Previous decks (2021-03)</b> — five legacy types, click to view</summary>
 
 <br/>
 
-# View Previous Deck (2021-03)
-
-<details>
-
-<summary>Click to View</summary>
-
-## There are five types of Anki-xiehanzi deck.
-
 ### Type 1 (Recommended)
 
-The deck contains separate decks for each types.
-1. Learn Strokes order of characters
-2. Learn Meaning of characters
-3. Learn Pinyin or Zhuyin of characters
-4. Learn Pronunciation using audio and Pinyin or Zhuyin
+Separate decks for each type:
+1. Stroke order
+2. Meaning
+3. Pinyin / Zhuyin
+4. Pronunciation (audio + Pinyin / Zhuyin)
 
-> The deck is sorted in frequency order.
-
-[Download](https://ankiweb.net/shared/info/1351435439)
+> Sorted in frequency order. [Download](https://ankiweb.net/shared/info/1351435439)
 
 ### Type 2 (Recommended)
 
-The deck contains five card types in each HSK level notes.
-1. Learn Strokes order of characters
-2. Learn Meaning of characters
-3. Learn Pinyin or Zhuyin of characters
-4. Learn Pronunciation using audio and Pinyin or Zhuyin
-5. Learn Tone marks of characters 
+Five card types per HSK-level note: stroke order, meaning, pinyin/zhuyin,
+pronunciation, tone marks.
 
-> The deck is sorted in frequency order.
-
-[Download](https://ankiweb.net/shared/info/239300382)
+> Sorted in frequency order. [Download](https://ankiweb.net/shared/info/239300382)
 
 ### Type 3
 
-The deck contains five card types, but decks are sorted in alphabetical pinyin order.
-1. Learn strokes order of characters
-2. Learn meaning of characters
-3. Learn Pinyin or Zhuyin of characters
-4. Learn pronunciation using audio and Pinyin or Zhuyin
-5. Learn tone marks of characters 
+Same five card types as Type 2, but sorted in alphabetical pinyin order.
 
-> This deck is **not** sorted in frequency order.
-
-[Download](https://ankiweb.net/shared/info/1063372083)
+> **Not** frequency-sorted. [Download](https://ankiweb.net/shared/info/1063372083)
 
 ### Type 4
 
-The deck contains notes with single note type <br>
-- Front side contains pinyin and meaning.
-- Back side contains writing component.
+Single note type — front: pinyin + meaning; back: writing component.
 
-> This deck is **not** sorted in frequency order.
-
-[Download](https://ankiweb.net/shared/info/536858343)
+> **Not** frequency-sorted. [Download](https://ankiweb.net/shared/info/536858343)
 
 ### Type 5
-HSK 2.0 deck
 
-> This deck is **not** sorted in frequency order.
+HSK 2.0 deck.
 
-[Download](https://ankiweb.net/shared/info/119943820)
+> **Not** frequency-sorted. [Download](https://ankiweb.net/shared/info/119943820)
 
 </details>
 
-## Create
+---
 
-Create Anki-xiehanzi deck from simplified word, paragraph and file containing simplified characters.
+## Acknowledgements
 
-https://krmanik.github.io/Anki-xiehanzi/create
+Stroke drawing uses the [Hanzi Writer](https://hanziwriter.org) JavaScript
+library. Its character and stroke-order data is derived from
+[Make Me a Hanzi](https://github.com/skishore/makemeahanzi).
 
-## Docs
-View [docs](https://krmanik.github.io/Anki-xiehanzi/docs/intro)
-
-## Acknowledgement
-I have not designed the writing chinese js library Hanziwriter. It comes from the awesome [Hanziwriter](https://hanziwriter.org) JavaScript library. 
-
-The chinese character and stroke order data used by [Hanziwriter](https://github.com/chanind/hanzi-writer)
-is derived from [ Make me a Hanzi](https://github.com/skishore/makemeahanzi).
-  
 ## Disclaimer
- This implementation is in javascript. It works because Anki uses webview for flashcard review. It may not work on some devices. Please make backups of your decks with scheduling information before importing xiehanzi hsk decks.
- Some audio files missing but using a simple python script audio file can be generated using text to speech. [Read](https://github.com/krmanik/gtts-textToMp3)
 
-## To create word list view this
+This is a JavaScript implementation that works because Anki renders flashcards in
+a webview. It may not work on every device. Make backups (with scheduling
+information) before importing. Some audio files are missing; they can be
+regenerated with text-to-speech using
+[gtts-textToMp3](https://github.com/krmanik/gtts-textToMp3).
+
+## Build a word list
+
 - [Anki Chinese Vocabulary Generator](https://github.com/krmanik/Anki-Chinese-Vocabulary-Generator)
 - [Vocabulary](https://simplezhongwen.blogspot.com/search/label/vocabulary)
 
 ## Contribute
- View [Contributing.md](https://github.com/krmanik/Anki-xiehanzi/blob/master/Contributing.md)
 
-# My other anki decks
-[Anki Decks](https://ankiweb.net/shared/byauthor/119943820) 
+See [Contributing.md](https://github.com/krmanik/Anki-xiehanzi/blob/master/Contributing.md).
 
-## License - Anki-xiehanzi (写汉字)
-Author : Mani (krmanik)
-<br>The MIT License
-<br>The GPL 3.0
+More decks by the author: [AnkiWeb](https://ankiweb.net/shared/byauthor/119943820).
 
-## Other Third Party License
-[License](https://github.com/krmanik/Anki-xiehanzi/blob/master/License.md)
+## License
+
+Author: Mani (krmanik). MIT License and GPL 3.0.
+Third-party licenses: [License.md](https://github.com/krmanik/Anki-xiehanzi/blob/master/License.md).
 
 ---
 

@@ -51,7 +51,11 @@
 			fileProgress = Math.round(((i + 1) / lines.length) * 100);
 			if (words.some((w) => w.Simplified === line.trim())) continue;
 			if (added.some((w) => w.Simplified === line.trim())) continue;
-			added.push(await lookupWord(line));
+			try {
+				added.push(await lookupWord(line));
+			} catch {
+				// Skip a line that fails to look up rather than aborting the batch.
+			}
 		}
 		words = [...words, ...added];
 		fileProgress = 100;
@@ -92,7 +96,11 @@
 			for (let i = 0; i < todo.length; i++) {
 				hskProgress = Math.round(((i + 1) / todo.length) * 100);
 				hskStatus = `Adding ${i + 1} / ${todo.length}…`;
-				added.push(await lookupWord(todo[i]));
+				try {
+					added.push(await lookupWord(todo[i]));
+				} catch {
+					// Skip a word that fails to look up rather than aborting the batch.
+				}
 			}
 			words = [...words, ...added];
 			hskProgress = 100;
@@ -129,7 +137,11 @@
 			for (let i = 0; i < todo.length; i++) {
 				bctProgress = Math.round(((i + 1) / todo.length) * 100);
 				bctStatus = `Adding ${i + 1} / ${todo.length}…`;
-				added.push(await lookupWord(todo[i]));
+				try {
+					added.push(await lookupWord(todo[i]));
+				} catch {
+					// Skip a word that fails to look up rather than aborting the batch.
+				}
 			}
 			words = [...words, ...added];
 			bctProgress = 100;
@@ -166,7 +178,11 @@
 			for (let i = 0; i < todo.length; i++) {
 				yctProgress = Math.round(((i + 1) / todo.length) * 100);
 				yctStatus = `Adding ${i + 1} / ${todo.length}…`;
-				added.push(await lookupWordWithFallback(todo[i].word, todo[i].meaning));
+				try {
+					added.push(await lookupWordWithFallback(todo[i].word, todo[i].meaning));
+				} catch {
+					// Skip a word that fails to look up rather than aborting the batch.
+				}
 			}
 			words = [...words, ...added];
 			yctProgress = 100;

@@ -20,9 +20,9 @@ The project contains three parts
 1. HSK tsv file which contains words and meaning of Chinese characters with pinyin and zhuyin.
    This is available as submodule in this project.
 2. The Anki xiehanzi deck which can be imported into Anki.
-   Download decks from [here](https://krmanik.github.io/Anki-xiehanzi/docs/gettings-started/download).
-3. The web page which can be used as documentation as well as deck generation tool. The docs page created using [docusaurus.io](https://docusaurus.io/).
-   View webpage [https://krmanik.github.io/Anki-xiehanzi]
+   Download decks from the [releases page](https://github.com/krmanik/Anki-xiehanzi/releases).
+3. The web app (homepage + deck generation tool), built with [SvelteKit](https://svelte.dev/) + Vite.
+   Run locally with `npm install` then `npm run dev`. View webpage [https://krmanik.github.io/Anki-xiehanzi]
 
 ### Issues
 

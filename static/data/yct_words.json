@@ -1,0 +1,3120 @@
+{
+  "level_1": [
+    {
+      "word": "爱",
+      "pinyin_tone": "ài",
+      "meaning": "to love"
+    },
+    {
+      "word": "八",
+      "pinyin_tone": "bā",
+      "meaning": "eight"
+    },
+    {
+      "word": "爸爸",
+      "pinyin_tone": "bà ba",
+      "meaning": "father"
+    },
+    {
+      "word": "鼻子",
+      "pinyin_tone": "bí zi",
+      "meaning": "nose"
+    },
+    {
+      "word": "不",
+      "pinyin_tone": "bù",
+      "meaning": "not; no"
+    },
+    {
+      "word": "长",
+      "pinyin_tone": "cháng",
+      "meaning": "long"
+    },
+    {
+      "word": "吃",
+      "pinyin_tone": "chī",
+      "meaning": "to eat"
+    },
+    {
+      "word": "大",
+      "pinyin_tone": "dà",
+      "meaning": "big"
+    },
+    {
+      "word": "的",
+      "pinyin_tone": "de",
+      "meaning": "of"
+    },
+    {
+      "word": "点",
+      "pinyin_tone": "diǎn",
+      "meaning": "o’clock; spot; dot"
+    },
+    {
+      "word": "多",
+      "pinyin_tone": "duō",
+      "meaning": "much/many; how [+adjective]"
+    },
+    {
+      "word": "耳朵",
+      "pinyin_tone": "ěr duo",
+      "meaning": "ears"
+    },
+    {
+      "word": "二",
+      "pinyin_tone": "èr",
+      "meaning": "two"
+    },
+    {
+      "word": "高",
+      "pinyin_tone": "gāo",
+      "meaning": "high; tall"
+    },
+    {
+      "word": "高兴",
+      "pinyin_tone": "gāo xìng",
+      "meaning": "pleased; happy"
+    },
+    {
+      "word": "哥哥",
+      "pinyin_tone": "gē ge",
+      "meaning": "elder brother"
+    },
+    {
+      "word": "个",
+      "pinyin_tone": "gè",
+      "meaning": "individual; [general measure word]"
+    },
+    {
+      "word": "个子",
+      "pinyin_tone": "gè zi",
+      "meaning": "height; stature"
+    },
+    {
+      "word": "狗",
+      "pinyin_tone": "gǒu",
+      "meaning": "dog"
+    },
+    {
+      "word": "好",
+      "pinyin_tone": "hǎo",
+      "meaning": "good"
+    },
+    {
+      "word": "号",
+      "pinyin_tone": "hào",
+      "meaning": "date"
+    },
+    {
+      "word": "喝",
+      "pinyin_tone": "hē",
+      "meaning": "to drink"
+    },
+    {
+      "word": "和",
+      "pinyin_tone": "hé",
+      "meaning": "and "
+    },
+    {
+      "word": "很",
+      "pinyin_tone": "hěn",
+      "meaning": "very"
+    },
+    {
+      "word": "几",
+      "pinyin_tone": "jǐ",
+      "meaning": "how much/many? [expecting a small number]"
+    },
+    {
+      "word": "家",
+      "pinyin_tone": "jiā",
+      "meaning": "family; home"
+    },
+    {
+      "word": "叫",
+      "pinyin_tone": "jiào",
+      "meaning": "to call; to be named"
+    },
+    {
+      "word": "姐姐",
+      "pinyin_tone": "jiě jie",
+      "meaning": "elder sister"
+    },
+    {
+      "word": "今天",
+      "pinyin_tone": "jīn tiān",
+      "meaning": "today"
+    },
+    {
+      "word": "九",
+      "pinyin_tone": "jiǔ",
+      "meaning": "nine"
+    },
+    {
+      "word": "看",
+      "pinyin_tone": "kàn",
+      "meaning": "to see; to read; to watch; to look at"
+    },
+    {
+      "word": "口",
+      "pinyin_tone": "kǒu",
+      "meaning": "mouth; [measure word for family members]"
+    },
+    {
+      "word": "老师",
+      "pinyin_tone": "lǎo shī",
+      "meaning": "teacher"
+    },
+    {
+      "word": "六",
+      "pinyin_tone": "liù",
+      "meaning": "six"
+    },
+    {
+      "word": "妈妈",
+      "pinyin_tone": "mā ma",
+      "meaning": "mother"
+    },
+    {
+      "word": "吗",
+      "pinyin_tone": "ma",
+      "meaning": "[makes a yes/no question]"
+    },
+    {
+      "word": "猫",
+      "pinyin_tone": "māo",
+      "meaning": "cat"
+    },
+    {
+      "word": "米饭",
+      "pinyin_tone": "mǐ fàn",
+      "meaning": "rice [cooked; boiled]"
+    },
+    {
+      "word": "面条",
+      "pinyin_tone": "miàn tiáo",
+      "meaning": "noodles"
+    },
+    {
+      "word": "明天",
+      "pinyin_tone": "míng tiān",
+      "meaning": "tomorrow"
+    },
+    {
+      "word": "哪",
+      "pinyin_tone": "nǎ",
+      "meaning": "which?"
+    },
+    {
+      "word": "哪儿",
+      "pinyin_tone": "nǎ er",
+      "meaning": "where?"
+    },
+    {
+      "word": "那",
+      "pinyin_tone": "nà",
+      "meaning": "that"
+    },
+    {
+      "word": "那儿",
+      "pinyin_tone": "nà er",
+      "meaning": "there"
+    },
+    {
+      "word": "你",
+      "pinyin_tone": "nǐ",
+      "meaning": "you"
+    },
+    {
+      "word": "鸟",
+      "pinyin_tone": "niǎo",
+      "meaning": "bird"
+    },
+    {
+      "word": "牛奶",
+      "pinyin_tone": "niú nǎi",
+      "meaning": "milk"
+    },
+    {
+      "word": "苹果",
+      "pinyin_tone": "píng guǒ",
+      "meaning": "apple"
+    },
+    {
+      "word": "七",
+      "pinyin_tone": "qī",
+      "meaning": "seven"
+    },
+    {
+      "word": "去",
+      "pinyin_tone": "qù",
+      "meaning": "to go"
+    },
+    {
+      "word": "认识",
+      "pinyin_tone": "rèn shi",
+      "meaning": "to know [be familiar with]"
+    },
+    {
+      "word": "三",
+      "pinyin_tone": "sān",
+      "meaning": "three"
+    },
+    {
+      "word": "商店",
+      "pinyin_tone": "shāng diàn",
+      "meaning": "shop"
+    },
+    {
+      "word": "谁",
+      "pinyin_tone": "shéi",
+      "meaning": "who?"
+    },
+    {
+      "word": "什么",
+      "pinyin_tone": "shén me",
+      "meaning": "what?"
+    },
+    {
+      "word": "十",
+      "pinyin_tone": "shí",
+      "meaning": "ten"
+    },
+    {
+      "word": "是",
+      "pinyin_tone": "shì",
+      "meaning": "to be"
+    },
+    {
+      "word": "手",
+      "pinyin_tone": "shǒu",
+      "meaning": "hand"
+    },
+    {
+      "word": "水",
+      "pinyin_tone": "shuǐ",
+      "meaning": "water"
+    },
+    {
+      "word": "四",
+      "pinyin_tone": "sì",
+      "meaning": "four"
+    },
+    {
+      "word": "岁",
+      "pinyin_tone": "suì",
+      "meaning": "year (of crop harvests)"
+    },
+    {
+      "word": "他",
+      "pinyin_tone": "tā",
+      "meaning": "he; him"
+    },
+    {
+      "word": "她",
+      "pinyin_tone": "tā",
+      "meaning": "she; her"
+    },
+    {
+      "word": "头发",
+      "pinyin_tone": "tóu fa",
+      "meaning": "hair"
+    },
+    {
+      "word": "我",
+      "pinyin_tone": "wǒ",
+      "meaning": "I; me"
+    },
+    {
+      "word": "我们",
+      "pinyin_tone": "wǒ men",
+      "meaning": "we; us"
+    },
+    {
+      "word": "五",
+      "pinyin_tone": "wǔ",
+      "meaning": "five"
+    },
+    {
+      "word": "喜欢",
+      "pinyin_tone": "xǐ huan",
+      "meaning": "to like"
+    },
+    {
+      "word": "现在",
+      "pinyin_tone": "xiàn zài",
+      "meaning": "now"
+    },
+    {
+      "word": "小",
+      "pinyin_tone": "xiǎo",
+      "meaning": "small"
+    },
+    {
+      "word": "谢谢",
+      "pinyin_tone": "xiè xie",
+      "meaning": "thank you"
+    },
+    {
+      "word": "星期",
+      "pinyin_tone": "xīng qī",
+      "meaning": "week"
+    },
+    {
+      "word": "学校",
+      "pinyin_tone": "xué xiào",
+      "meaning": "school"
+    },
+    {
+      "word": "眼睛",
+      "pinyin_tone": "yǎn jing",
+      "meaning": "eye"
+    },
+    {
+      "word": "一",
+      "pinyin_tone": "yī",
+      "meaning": "one; once; first; structural word between two of the same verb; as soon as; throughout"
+    },
+    {
+      "word": "有",
+      "pinyin_tone": "yǒu",
+      "meaning": "to have"
+    },
+    {
+      "word": "鱼",
+      "pinyin_tone": "yú",
+      "meaning": "fish"
+    },
+    {
+      "word": "月",
+      "pinyin_tone": "yuè",
+      "meaning": "month; moon"
+    },
+    {
+      "word": "在",
+      "pinyin_tone": "zài",
+      "meaning": "in; at; on"
+    },
+    {
+      "word": "再见",
+      "pinyin_tone": "zài jiàn",
+      "meaning": "goodbye"
+    },
+    {
+      "word": "这",
+      "pinyin_tone": "zhè",
+      "meaning": "this"
+    },
+    {
+      "word": "这儿",
+      "pinyin_tone": "zhè er",
+      "meaning": "here"
+    },
+    {
+      "word": "中国人",
+      "pinyin_tone": "zhōng guó rén",
+      "meaning": "Chinese [person]"
+    }
+  ],
+  "level_2": [
+    {
+      "word": "包子",
+      "pinyin_tone": "bāo zi",
+      "meaning": "bao zi [steamed stuffed bun]"
+    },
+    {
+      "word": "北京",
+      "pinyin_tone": "běi jīng",
+      "meaning": "Beijing"
+    },
+    {
+      "word": "比",
+      "pinyin_tone": "bǐ",
+      "meaning": "to compare"
+    },
+    {
+      "word": "不客气",
+      "pinyin_tone": "bú kè qi",
+      "meaning": "you're welcome"
+    },
+    {
+      "word": "茶",
+      "pinyin_tone": "chá",
+      "meaning": "tea"
+    },
+    {
+      "word": "打电话",
+      "pinyin_tone": "dǎ diàn huà",
+      "meaning": "to make a telephone call"
+    },
+    {
+      "word": "弟弟",
+      "pinyin_tone": "dì di",
+      "meaning": "younger brother"
+    },
+    {
+      "word": "电视",
+      "pinyin_tone": "diàn shì",
+      "meaning": "TV"
+    },
+    {
+      "word": "对不起",
+      "pinyin_tone": "duì bu qǐ",
+      "meaning": "sorry"
+    },
+    {
+      "word": "多少",
+      "pinyin_tone": "duō shao",
+      "meaning": "how much/many?"
+    },
+    {
+      "word": "房间",
+      "pinyin_tone": "fáng jiān",
+      "meaning": "room"
+    },
+    {
+      "word": "分钟",
+      "pinyin_tone": "fēn zhōng",
+      "meaning": "minute [time]"
+    },
+    {
+      "word": "汉语",
+      "pinyin_tone": "hàn yǔ",
+      "meaning": "Standard Chinese language"
+    },
+    {
+      "word": "好吃",
+      "pinyin_tone": "hǎo chī",
+      "meaning": "delicious"
+    },
+    {
+      "word": "红",
+      "pinyin_tone": "hóng",
+      "meaning": "red"
+    },
+    {
+      "word": "画",
+      "pinyin_tone": "huà",
+      "meaning": "to draw/paint (pictures)"
+    },
+    {
+      "word": "黄",
+      "pinyin_tone": "huáng",
+      "meaning": "yellow"
+    },
+    {
+      "word": "会",
+      "pinyin_tone": "huì",
+      "meaning": "to know how to; can; meeting"
+    },
+    {
+      "word": "脚",
+      "pinyin_tone": "jiǎo",
+      "meaning": "foot"
+    },
+    {
+      "word": "觉得",
+      "pinyin_tone": "jué de",
+      "meaning": "to think; feel"
+    },
+    {
+      "word": "可以",
+      "pinyin_tone": "kě yǐ",
+      "meaning": "can; may"
+    },
+    {
+      "word": "块",
+      "pinyin_tone": "kuài",
+      "meaning": "yuan"
+    },
+    {
+      "word": "来",
+      "pinyin_tone": "lái",
+      "meaning": "to come"
+    },
+    {
+      "word": "了",
+      "pinyin_tone": "le",
+      "meaning": "[makes an exclamation]"
+    },
+    {
+      "word": "冷",
+      "pinyin_tone": "lěng",
+      "meaning": "cold"
+    },
+    {
+      "word": "里面",
+      "pinyin_tone": "lǐ miàn",
+      "meaning": "inside"
+    },
+    {
+      "word": "两",
+      "pinyin_tone": "liǎng",
+      "meaning": "two (of something)"
+    },
+    {
+      "word": "零",
+      "pinyin_tone": "líng",
+      "meaning": "zero"
+    },
+    {
+      "word": "绿",
+      "pinyin_tone": "lǜ",
+      "meaning": "green"
+    },
+    {
+      "word": "买",
+      "pinyin_tone": "mǎi",
+      "meaning": "buy"
+    },
+    {
+      "word": "没关系",
+      "pinyin_tone": "méi guān xi",
+      "meaning": "no problem"
+    },
+    {
+      "word": "没有",
+      "pinyin_tone": "méi yǒu",
+      "meaning": "not have; there is/are not"
+    },
+    {
+      "word": "妹妹",
+      "pinyin_tone": "mèi mei",
+      "meaning": "younger sister"
+    },
+    {
+      "word": "名字",
+      "pinyin_tone": "míng zi",
+      "meaning": "given name"
+    },
+    {
+      "word": "呢",
+      "pinyin_tone": "ne",
+      "meaning": "[returns/forwards a question]"
+    },
+    {
+      "word": "年",
+      "pinyin_tone": "nián",
+      "meaning": "year"
+    },
+    {
+      "word": "朋友",
+      "pinyin_tone": "péng you",
+      "meaning": "friend"
+    },
+    {
+      "word": "漂亮",
+      "pinyin_tone": "piào liang",
+      "meaning": "beautiful"
+    },
+    {
+      "word": "起床",
+      "pinyin_tone": "qǐ chuáng",
+      "meaning": "get up (out of bed)"
+    },
+    {
+      "word": "铅笔",
+      "pinyin_tone": "qiān bǐ",
+      "meaning": "pencil"
+    },
+    {
+      "word": "钱",
+      "pinyin_tone": "qián",
+      "meaning": "money"
+    },
+    {
+      "word": "请",
+      "pinyin_tone": "qǐng",
+      "meaning": "to invite; please"
+    },
+    {
+      "word": "热",
+      "pinyin_tone": "rè",
+      "meaning": "hot"
+    },
+    {
+      "word": "上边",
+      "pinyin_tone": "shàng bian",
+      "meaning": "top side"
+    },
+    {
+      "word": "书包",
+      "pinyin_tone": "shū bāo",
+      "meaning": "school bag"
+    },
+    {
+      "word": "睡觉",
+      "pinyin_tone": "shuì jiào",
+      "meaning": "to go to bed; to sleep"
+    },
+    {
+      "word": "说话",
+      "pinyin_tone": "shuō huà",
+      "meaning": "speak"
+    },
+    {
+      "word": "天气",
+      "pinyin_tone": "tiān qì",
+      "meaning": "weather"
+    },
+    {
+      "word": "同学",
+      "pinyin_tone": "tóng xué",
+      "meaning": "schoolmate; classmate"
+    },
+    {
+      "word": "玩",
+      "pinyin_tone": "wán",
+      "meaning": "to play"
+    },
+    {
+      "word": "晚上",
+      "pinyin_tone": "wǎn shang",
+      "meaning": "evening"
+    },
+    {
+      "word": "香蕉",
+      "pinyin_tone": "xiāng jiāo",
+      "meaning": "banana"
+    },
+    {
+      "word": "熊猫",
+      "pinyin_tone": "xióng māo",
+      "meaning": "panda"
+    },
+    {
+      "word": "学生",
+      "pinyin_tone": "xué sheng",
+      "meaning": "student"
+    },
+    {
+      "word": "学习",
+      "pinyin_tone": "xué xí",
+      "meaning": "to learn; to study"
+    },
+    {
+      "word": "颜色",
+      "pinyin_tone": "yán sè",
+      "meaning": "colour"
+    },
+    {
+      "word": "要",
+      "pinyin_tone": "yào",
+      "meaning": "want; be going to; ask for; demand"
+    },
+    {
+      "word": "也",
+      "pinyin_tone": "yě",
+      "meaning": "too; also"
+    },
+    {
+      "word": "医生",
+      "pinyin_tone": "yī shēng",
+      "meaning": "doctor"
+    },
+    {
+      "word": "医院",
+      "pinyin_tone": "yī yuàn",
+      "meaning": "hospital"
+    },
+    {
+      "word": "椅子",
+      "pinyin_tone": "yǐ zi",
+      "meaning": "chair"
+    },
+    {
+      "word": "早上",
+      "pinyin_tone": "zǎo shang",
+      "meaning": "early morning"
+    },
+    {
+      "word": "怎么",
+      "pinyin_tone": "zěn me",
+      "meaning": "how?"
+    },
+    {
+      "word": "怎么样",
+      "pinyin_tone": "zěn me yàng",
+      "meaning": "how about it?"
+    },
+    {
+      "word": "真",
+      "pinyin_tone": "zhēn",
+      "meaning": "real; so (+adjective)"
+    },
+    {
+      "word": "只",
+      "pinyin_tone": "zhī",
+      "meaning": "[measure word for animals]"
+    },
+    {
+      "word": "桌子",
+      "pinyin_tone": "zhuō zi",
+      "meaning": "table"
+    },
+    {
+      "word": "昨天",
+      "pinyin_tone": "zuó tiān",
+      "meaning": "yesterday"
+    },
+    {
+      "word": "坐",
+      "pinyin_tone": "zuò",
+      "meaning": "to sit"
+    },
+    {
+      "word": "做",
+      "pinyin_tone": "zuò",
+      "meaning": "to do; to be; become (an occupation) "
+    }
+  ],
+  "level_3": [
+    {
+      "word": "八",
+      "pinyin_tone": "bā ",
+      "meaning": "eight"
+    },
+    {
+      "word": "把",
+      "pinyin_tone": "bǎ ",
+      "meaning": "grasp; [measure word for knives]"
+    },
+    {
+      "word": "吧",
+      "pinyin_tone": "ba ",
+      "meaning": "[makes a suggestion, eg. \"Let's …\")]"
+    },
+    {
+      "word": "白",
+      "pinyin_tone": "bái",
+      "meaning": "white"
+    },
+    {
+      "word": "百",
+      "pinyin_tone": "bǎi ",
+      "meaning": "hundred"
+    },
+    {
+      "word": "半",
+      "pinyin_tone": "bàn",
+      "meaning": "half"
+    },
+    {
+      "word": "帮助",
+      "pinyin_tone": "bāng zhù",
+      "meaning": "to help"
+    },
+    {
+      "word": "饱",
+      "pinyin_tone": "bǎo",
+      "meaning": "full up; eaten to one’s satisfaction"
+    },
+    {
+      "word": "杯子",
+      "pinyin_tone": "bēi zi",
+      "meaning": "cup; glass; mug"
+    },
+    {
+      "word": "本",
+      "pinyin_tone": "běn",
+      "meaning": "root; [measure word for books]"
+    },
+    {
+      "word": "别",
+      "pinyin_tone": "bié",
+      "meaning": "separate"
+    },
+    {
+      "word": "不客气",
+      "pinyin_tone": "bú kè qi ",
+      "meaning": "you're welcome; impolite"
+    },
+    {
+      "word": "菜",
+      "pinyin_tone": "cài",
+      "meaning": "vegetable"
+    },
+    {
+      "word": "唱歌",
+      "pinyin_tone": "chàng gē",
+      "meaning": "to sing; singing"
+    },
+    {
+      "word": "车站",
+      "pinyin_tone": "chē zhàn",
+      "meaning": "station; stop [public transport]"
+    },
+    {
+      "word": "迟到",
+      "pinyin_tone": "chí dào",
+      "meaning": "arrive late"
+    },
+    {
+      "word": "出",
+      "pinyin_tone": "chū",
+      "meaning": "to go out"
+    },
+    {
+      "word": "穿",
+      "pinyin_tone": "chuān",
+      "meaning": "to wear; to put on"
+    },
+    {
+      "word": "次",
+      "pinyin_tone": "cì",
+      "meaning": "time"
+    },
+    {
+      "word": "打篮球",
+      "pinyin_tone": "dǎ lán qiú",
+      "meaning": "play basketball"
+    },
+    {
+      "word": "蛋糕",
+      "pinyin_tone": "dàn gāo",
+      "meaning": "cake"
+    },
+    {
+      "word": "但是",
+      "pinyin_tone": "dàn shì",
+      "meaning": "but"
+    },
+    {
+      "word": "当然",
+      "pinyin_tone": "dāng rán",
+      "meaning": "of course"
+    },
+    {
+      "word": "得",
+      "pinyin_tone": "dé",
+      "meaning": "gain; obtain"
+    },
+    {
+      "word": "第一",
+      "pinyin_tone": "dì yī",
+      "meaning": "firstly"
+    },
+    {
+      "word": "电脑",
+      "pinyin_tone": "diàn nǎo",
+      "meaning": "computer"
+    },
+    {
+      "word": "电影",
+      "pinyin_tone": "diàn yǐng",
+      "meaning": "film; movie"
+    },
+    {
+      "word": "丢",
+      "pinyin_tone": "diū",
+      "meaning": "lose"
+    },
+    {
+      "word": "东西",
+      "pinyin_tone": "dōng xi",
+      "meaning": "thing"
+    },
+    {
+      "word": "懂",
+      "pinyin_tone": "dǒng",
+      "meaning": "to understand"
+    },
+    {
+      "word": "动物园",
+      "pinyin_tone": "dòng wù yuán",
+      "meaning": "zoo"
+    },
+    {
+      "word": "都",
+      "pinyin_tone": "dōu",
+      "meaning": "both; all"
+    },
+    {
+      "word": "读",
+      "pinyin_tone": "dú",
+      "meaning": "read aloud"
+    },
+    {
+      "word": "对",
+      "pinyin_tone": "duì",
+      "meaning": "correct; right"
+    },
+    {
+      "word": "饿",
+      "pinyin_tone": "è",
+      "meaning": "hungry"
+    },
+    {
+      "word": "飞机",
+      "pinyin_tone": "fēi jī",
+      "meaning": "plane"
+    },
+    {
+      "word": "感冒",
+      "pinyin_tone": "gǎn mào",
+      "meaning": "to catch a cold"
+    },
+    {
+      "word": "给",
+      "pinyin_tone": "gěi",
+      "meaning": "to give"
+    },
+    {
+      "word": "公共汽车",
+      "pinyin_tone": "gōng gòng qì chē",
+      "meaning": "bus"
+    },
+    {
+      "word": "刮风",
+      "pinyin_tone": "guā fēng",
+      "meaning": "windy"
+    },
+    {
+      "word": "关",
+      "pinyin_tone": "guān",
+      "meaning": "to close"
+    },
+    {
+      "word": "果汁",
+      "pinyin_tone": "guǒ zhī",
+      "meaning": "fruit juice"
+    },
+    {
+      "word": "过",
+      "pinyin_tone": "guò",
+      "meaning": "to cross (road; bridge; river etc.)"
+    },
+    {
+      "word": "还",
+      "pinyin_tone": "hái",
+      "meaning": "still"
+    },
+    {
+      "word": "黑",
+      "pinyin_tone": "hēi",
+      "meaning": "black"
+    },
+    {
+      "word": "猴子",
+      "pinyin_tone": "hóu zi",
+      "meaning": "monkey"
+    },
+    {
+      "word": "后",
+      "pinyin_tone": "hòu",
+      "meaning": "behind"
+    },
+    {
+      "word": "坏",
+      "pinyin_tone": "huài",
+      "meaning": "bad"
+    },
+    {
+      "word": "欢迎",
+      "pinyin_tone": "huān yíng",
+      "meaning": "to welcome"
+    },
+    {
+      "word": "回",
+      "pinyin_tone": "huí",
+      "meaning": "to return"
+    },
+    {
+      "word": "鸡蛋",
+      "pinyin_tone": "jī dàn",
+      "meaning": "(chicken) egg"
+    },
+    {
+      "word": "件",
+      "pinyin_tone": "jiàn",
+      "meaning": "item; [measure word for items of clothing]"
+    },
+    {
+      "word": "饺子",
+      "pinyin_tone": "jiǎo zi",
+      "meaning": "dumpling"
+    },
+    {
+      "word": "教室",
+      "pinyin_tone": "jiào shì",
+      "meaning": "classroom"
+    },
+    {
+      "word": "进",
+      "pinyin_tone": "jìn",
+      "meaning": "to enter"
+    },
+    {
+      "word": "近",
+      "pinyin_tone": "jìn",
+      "meaning": "near; close by"
+    },
+    {
+      "word": "就",
+      "pinyin_tone": "jiù",
+      "meaning": "simply"
+    },
+    {
+      "word": "开",
+      "pinyin_tone": "kāi",
+      "meaning": "to switch on; open"
+    },
+    {
+      "word": "可爱",
+      "pinyin_tone": "kě ài",
+      "meaning": "lovely; loveable"
+    },
+    {
+      "word": "课",
+      "pinyin_tone": "kè",
+      "meaning": "lesson"
+    },
+    {
+      "word": "哭",
+      "pinyin_tone": "kū",
+      "meaning": "cry"
+    },
+    {
+      "word": "裤子",
+      "pinyin_tone": "kù zi",
+      "meaning": "trousers"
+    },
+    {
+      "word": "快",
+      "pinyin_tone": "kuài",
+      "meaning": "fast; quick"
+    },
+    {
+      "word": "快乐",
+      "pinyin_tone": "kuài lè",
+      "meaning": "happy"
+    },
+    {
+      "word": "蓝",
+      "pinyin_tone": "lán",
+      "meaning": "blue"
+    },
+    {
+      "word": "老虎",
+      "pinyin_tone": "lǎo hǔ",
+      "meaning": "tiger"
+    },
+    {
+      "word": "累",
+      "pinyin_tone": "lèi",
+      "meaning": "tired"
+    },
+    {
+      "word": "礼物",
+      "pinyin_tone": "lǐ wù",
+      "meaning": "gift; present"
+    },
+    {
+      "word": "卖",
+      "pinyin_tone": "mài",
+      "meaning": "to sell"
+    },
+    {
+      "word": "慢",
+      "pinyin_tone": "màn",
+      "meaning": "slow"
+    },
+    {
+      "word": "忙",
+      "pinyin_tone": "máng",
+      "meaning": "busy"
+    },
+    {
+      "word": "玫瑰花",
+      "pinyin_tone": "méi gui huā",
+      "meaning": "rose"
+    },
+    {
+      "word": "每",
+      "pinyin_tone": "měi",
+      "meaning": "every; each"
+    },
+    {
+      "word": "面包",
+      "pinyin_tone": "miàn bāo",
+      "meaning": "bread"
+    },
+    {
+      "word": "拿",
+      "pinyin_tone": "ná",
+      "meaning": "to take"
+    },
+    {
+      "word": "奶奶",
+      "pinyin_tone": "nǎi nai",
+      "meaning": "grandmother [father's mother]     "
+    },
+    {
+      "word": "男",
+      "pinyin_tone": "nán",
+      "meaning": "male"
+    },
+    {
+      "word": "难",
+      "pinyin_tone": "nán",
+      "meaning": "hard; difficult"
+    },
+    {
+      "word": "能",
+      "pinyin_tone": "néng",
+      "meaning": "to be able to; can"
+    },
+    {
+      "word": "年级",
+      "pinyin_tone": "nián jí",
+      "meaning": "(school) year/grade"
+    },
+    {
+      "word": "您",
+      "pinyin_tone": "nín",
+      "meaning": "you (polite form)"
+    },
+    {
+      "word": "女",
+      "pinyin_tone": "nǚ",
+      "meaning": "female"
+    },
+    {
+      "word": "旁边",
+      "pinyin_tone": "páng biān",
+      "meaning": "next to"
+    },
+    {
+      "word": "胖",
+      "pinyin_tone": "pàng",
+      "meaning": "fat"
+    },
+    {
+      "word": "跑步",
+      "pinyin_tone": "pǎo bù",
+      "meaning": "running; jogging"
+    },
+    {
+      "word": "千",
+      "pinyin_tone": "qiān",
+      "meaning": "thousand"
+    },
+    {
+      "word": "前",
+      "pinyin_tone": "qián",
+      "meaning": "in front of"
+    },
+    {
+      "word": "去年",
+      "pinyin_tone": "qù nián",
+      "meaning": "last year"
+    },
+    {
+      "word": "裙子",
+      "pinyin_tone": "qún zi",
+      "meaning": "skirt"
+    },
+    {
+      "word": "让",
+      "pinyin_tone": "ràng",
+      "meaning": "to let; allow"
+    },
+    {
+      "word": "上网",
+      "pinyin_tone": "shàng wǎng",
+      "meaning": "get on the internet"
+    },
+    {
+      "word": "少",
+      "pinyin_tone": "shǎo",
+      "meaning": "few"
+    },
+    {
+      "word": "身体",
+      "pinyin_tone": "shēn tǐ",
+      "meaning": "body; health"
+    },
+    {
+      "word": "生病",
+      "pinyin_tone": "shēng bìng",
+      "meaning": "ill; sick; unwell"
+    },
+    {
+      "word": "生日",
+      "pinyin_tone": "shēng rì",
+      "meaning": "birthday"
+    },
+    {
+      "word": "时候",
+      "pinyin_tone": "shí hou",
+      "meaning": "[duration of] time"
+    },
+    {
+      "word": "时间",
+      "pinyin_tone": "shí jiān",
+      "meaning": "time"
+    },
+    {
+      "word": "事情",
+      "pinyin_tone": "shì qing",
+      "meaning": "matter; affair; thing"
+    },
+    {
+      "word": "瘦",
+      "pinyin_tone": "shòu",
+      "meaning": "thin"
+    },
+    {
+      "word": "舒服",
+      "pinyin_tone": "shū fu",
+      "meaning": "comfortable"
+    },
+    {
+      "word": "水果",
+      "pinyin_tone": "shuǐ guǒ",
+      "meaning": "fruit"
+    },
+    {
+      "word": "送",
+      "pinyin_tone": "sòng",
+      "meaning": "to give (present); deliver; see someone off"
+    },
+    {
+      "word": "岁",
+      "pinyin_tone": "suì ",
+      "meaning": "year (of crop harvests)"
+    },
+    {
+      "word": "所以",
+      "pinyin_tone": "suǒ yǐ",
+      "meaning": "therefore"
+    },
+    {
+      "word": "它",
+      "pinyin_tone": "tā",
+      "meaning": "it"
+    },
+    {
+      "word": "太",
+      "pinyin_tone": "tài",
+      "meaning": "too (+adjective)"
+    },
+    {
+      "word": "太阳",
+      "pinyin_tone": "tài yáng",
+      "meaning": "sun"
+    },
+    {
+      "word": "疼",
+      "pinyin_tone": "téng",
+      "meaning": "pain"
+    },
+    {
+      "word": "踢足球",
+      "pinyin_tone": "tī zú qiú",
+      "meaning": "play football"
+    },
+    {
+      "word": "跳舞",
+      "pinyin_tone": "tiào wǔ",
+      "meaning": "to dance"
+    },
+    {
+      "word": "听",
+      "pinyin_tone": "tīng",
+      "meaning": "to listen/hear"
+    },
+    {
+      "word": "外面",
+      "pinyin_tone": "wài miàn",
+      "meaning": "outside"
+    },
+    {
+      "word": "完",
+      "pinyin_tone": "wán",
+      "meaning": "to finish; [+ verb indicates completion]"
+    },
+    {
+      "word": "喂",
+      "pinyin_tone": "wèi",
+      "meaning": "hello"
+    },
+    {
+      "word": "为什么",
+      "pinyin_tone": "wèi shén me ",
+      "meaning": "why?"
+    },
+    {
+      "word": "问",
+      "pinyin_tone": "wèn",
+      "meaning": "to ask"
+    },
+    {
+      "word": "问题",
+      "pinyin_tone": "wèn tí",
+      "meaning": "problem"
+    },
+    {
+      "word": "西瓜",
+      "pinyin_tone": "xī guā",
+      "meaning": "watermelon"
+    },
+    {
+      "word": "洗澡",
+      "pinyin_tone": "xǐ zǎo",
+      "meaning": "have a shower; bath"
+    },
+    {
+      "word": "下",
+      "pinyin_tone": "xià",
+      "meaning": "down; below"
+    },
+    {
+      "word": "下雪",
+      "pinyin_tone": "xià xuě ",
+      "meaning": "snow"
+    },
+    {
+      "word": "先生",
+      "pinyin_tone": "xiān sheng",
+      "meaning": "Mr; Sir"
+    },
+    {
+      "word": "想",
+      "pinyin_tone": "xiǎng",
+      "meaning": "to want; to think"
+    },
+    {
+      "word": "小姐",
+      "pinyin_tone": "xiǎo jiě",
+      "meaning": "Miss"
+    },
+    {
+      "word": "小时",
+      "pinyin_tone": "xiǎo shí",
+      "meaning": "hour"
+    },
+    {
+      "word": "笑",
+      "pinyin_tone": "xiào",
+      "meaning": "to laugh; smile"
+    },
+    {
+      "word": "些",
+      "pinyin_tone": "xiē",
+      "meaning": "some"
+    },
+    {
+      "word": "鞋",
+      "pinyin_tone": "xié",
+      "meaning": "shoe"
+    },
+    {
+      "word": "写",
+      "pinyin_tone": "xiě",
+      "meaning": "to write"
+    },
+    {
+      "word": "新",
+      "pinyin_tone": "xīn",
+      "meaning": "new"
+    },
+    {
+      "word": "休息",
+      "pinyin_tone": "xiū xi",
+      "meaning": "to rest"
+    },
+    {
+      "word": "药",
+      "pinyin_tone": "yào",
+      "meaning": "medicine"
+    },
+    {
+      "word": "爷爷",
+      "pinyin_tone": "yé ye",
+      "meaning": "grandfather [father's father]    "
+    },
+    {
+      "word": "衣服",
+      "pinyin_tone": "yī fu",
+      "meaning": "clothes"
+    },
+    {
+      "word": "一起",
+      "pinyin_tone": "yī qǐ",
+      "meaning": "together"
+    },
+    {
+      "word": "意思",
+      "pinyin_tone": "yì si",
+      "meaning": "meaning"
+    },
+    {
+      "word": "因为",
+      "pinyin_tone": "yīn wèi",
+      "meaning": "because"
+    },
+    {
+      "word": "游泳",
+      "pinyin_tone": "yóu yǒng",
+      "meaning": "swimming"
+    },
+    {
+      "word": "右",
+      "pinyin_tone": "yòu",
+      "meaning": "right"
+    },
+    {
+      "word": "雨伞",
+      "pinyin_tone": "yǔ sǎn",
+      "meaning": "umbrella"
+    },
+    {
+      "word": "远",
+      "pinyin_tone": "yuǎn",
+      "meaning": "far"
+    },
+    {
+      "word": "月亮",
+      "pinyin_tone": "yuè liang ",
+      "meaning": "moon"
+    },
+    {
+      "word": "运动",
+      "pinyin_tone": "yùn dòng",
+      "meaning": "sport"
+    },
+    {
+      "word": "再",
+      "pinyin_tone": "zài",
+      "meaning": "again"
+    },
+    {
+      "word": "着急",
+      "pinyin_tone": "zháo jí",
+      "meaning": "anxious"
+    },
+    {
+      "word": "找",
+      "pinyin_tone": "zhǎo",
+      "meaning": "to find; to look for"
+    },
+    {
+      "word": "知道",
+      "pinyin_tone": "zhī dào",
+      "meaning": "to know"
+    },
+    {
+      "word": "中午",
+      "pinyin_tone": "zhōng wǔ",
+      "meaning": "midday"
+    },
+    {
+      "word": "自己",
+      "pinyin_tone": "zì jǐ",
+      "meaning": "self; oneself"
+    },
+    {
+      "word": "自行车",
+      "pinyin_tone": "zì xíng chē",
+      "meaning": "bicycle"
+    },
+    {
+      "word": "走",
+      "pinyin_tone": "zǒu",
+      "meaning": "go; walk"
+    },
+    {
+      "word": "最",
+      "pinyin_tone": "zuì",
+      "meaning": "most"
+    },
+    {
+      "word": "左",
+      "pinyin_tone": "zuǒ",
+      "meaning": "left"
+    }
+  ],
+  "level_4": [
+    {
+      "word": "阿姨",
+      "pinyin_tone": "ā yí",
+      "meaning": "auntie [mother's younger sister]    "
+    },
+    {
+      "word": "啊",
+      "pinyin_tone": "a",
+      "meaning": "ah"
+    },
+    {
+      "word": "矮",
+      "pinyin_tone": "ǎi",
+      "meaning": "short (height)"
+    },
+    {
+      "word": "安静",
+      "pinyin_tone": "ān jìng",
+      "meaning": "to be quiet"
+    },
+    {
+      "word": "安全",
+      "pinyin_tone": "ān quán",
+      "meaning": "safe; security"
+    },
+    {
+      "word": "爸爸",
+      "pinyin_tone": "bà ba ",
+      "meaning": "father"
+    },
+    {
+      "word": "白",
+      "pinyin_tone": "bái ",
+      "meaning": "white"
+    },
+    {
+      "word": "搬",
+      "pinyin_tone": "bān ",
+      "meaning": "to move"
+    },
+    {
+      "word": "半",
+      "pinyin_tone": "bàn ",
+      "meaning": "half"
+    },
+    {
+      "word": "办法",
+      "pinyin_tone": "bàn fǎ ",
+      "meaning": "way; method; solution"
+    },
+    {
+      "word": "帮助",
+      "pinyin_tone": "bāng zhù ",
+      "meaning": "to help"
+    },
+    {
+      "word": "饱",
+      "pinyin_tone": "bǎo ",
+      "meaning": "full up; eaten to one’s satisfaction"
+    },
+    {
+      "word": "报纸",
+      "pinyin_tone": "bào zhǐ ",
+      "meaning": "newspaper"
+    },
+    {
+      "word": "北方",
+      "pinyin_tone": "běi fāng ",
+      "meaning": "the north"
+    },
+    {
+      "word": "北京",
+      "pinyin_tone": "běi jīng ",
+      "meaning": "Beijing"
+    },
+    {
+      "word": "被",
+      "pinyin_tone": "bèi ",
+      "meaning": "quilt; by (somebody/something)"
+    },
+    {
+      "word": "本",
+      "pinyin_tone": "běn ",
+      "meaning": "root; [measure word for books]"
+    },
+    {
+      "word": "鼻子",
+      "pinyin_tone": "bí zi ",
+      "meaning": "nose"
+    },
+    {
+      "word": "比",
+      "pinyin_tone": "bǐ ",
+      "meaning": "to compare"
+    },
+    {
+      "word": "比赛",
+      "pinyin_tone": "bǐ sài ",
+      "meaning": "competition; match"
+    },
+    {
+      "word": "必须",
+      "pinyin_tone": "bì xū ",
+      "meaning": "must"
+    },
+    {
+      "word": "毕业",
+      "pinyin_tone": "bì yè ",
+      "meaning": "graduate"
+    },
+    {
+      "word": "变化",
+      "pinyin_tone": "biàn huà ",
+      "meaning": "change"
+    },
+    {
+      "word": "表演",
+      "pinyin_tone": "biǎo yǎn ",
+      "meaning": "performance"
+    },
+    {
+      "word": "别",
+      "pinyin_tone": "bié ",
+      "meaning": "separate"
+    },
+    {
+      "word": "别人",
+      "pinyin_tone": "bié rén ",
+      "meaning": "other people"
+    },
+    {
+      "word": "冰激凌",
+      "pinyin_tone": "bīng jī líng ",
+      "meaning": "ice-cream"
+    },
+    {
+      "word": "冰箱",
+      "pinyin_tone": "bīng xiāng ",
+      "meaning": "fridge"
+    },
+    {
+      "word": "饼干",
+      "pinyin_tone": "bǐng gān ",
+      "meaning": "cookie; biscuit"
+    },
+    {
+      "word": "不但……而且……",
+      "pinyin_tone": "bú dàn … ér qiě …",
+      "meaning": "not only... but also"
+    },
+    {
+      "word": "猜",
+      "pinyin_tone": "cāi",
+      "meaning": "guess"
+    },
+    {
+      "word": "参观",
+      "pinyin_tone": "cān guān",
+      "meaning": "to visit (a place, a museum, etc.)"
+    },
+    {
+      "word": "参加",
+      "pinyin_tone": "cān jiā",
+      "meaning": "to take part"
+    },
+    {
+      "word": "草地",
+      "pinyin_tone": "cǎo dì",
+      "meaning": "lawn"
+    },
+    {
+      "word": "层",
+      "pinyin_tone": "céng",
+      "meaning": "storey"
+    },
+    {
+      "word": "尝",
+      "pinyin_tone": "cháng",
+      "meaning": "taste"
+    },
+    {
+      "word": "长城",
+      "pinyin_tone": "cháng chéng",
+      "meaning": "The Great Wall"
+    },
+    {
+      "word": "超市",
+      "pinyin_tone": "chāo shì",
+      "meaning": "supermarket"
+    },
+    {
+      "word": "成绩",
+      "pinyin_tone": "chéng jì",
+      "meaning": "results; marks; achievement"
+    },
+    {
+      "word": "虫子",
+      "pinyin_tone": "chóng zi",
+      "meaning": "insect"
+    },
+    {
+      "word": "出发",
+      "pinyin_tone": "chū fā",
+      "meaning": "set off; depart"
+    },
+    {
+      "word": "初中",
+      "pinyin_tone": "chū zhōng",
+      "meaning": "lower middle-school"
+    },
+    {
+      "word": "除了",
+      "pinyin_tone": "chú le",
+      "meaning": "apart from (\"chule...yiwai\" construction)"
+    },
+    {
+      "word": "窗户",
+      "pinyin_tone": "chuāng hu",
+      "meaning": "window"
+    },
+    {
+      "word": "床",
+      "pinyin_tone": "chuáng",
+      "meaning": "bed"
+    },
+    {
+      "word": "春季",
+      "pinyin_tone": "chūn jì",
+      "meaning": "spring time"
+    },
+    {
+      "word": "词典",
+      "pinyin_tone": "cí diǎn",
+      "meaning": "dictionary"
+    },
+    {
+      "word": "聪明",
+      "pinyin_tone": "cōng ming",
+      "meaning": "clever; intelligent "
+    },
+    {
+      "word": "从",
+      "pinyin_tone": "cóng",
+      "meaning": "from"
+    },
+    {
+      "word": "错",
+      "pinyin_tone": "cuò",
+      "meaning": "wrong"
+    },
+    {
+      "word": "打扰",
+      "pinyin_tone": "dǎ rǎo",
+      "meaning": "disturb"
+    },
+    {
+      "word": "打扫",
+      "pinyin_tone": "dǎ sǎo",
+      "meaning": "to clean"
+    },
+    {
+      "word": "打算",
+      "pinyin_tone": "dǎ suàn",
+      "meaning": "plan; intention"
+    },
+    {
+      "word": "打针",
+      "pinyin_tone": "dǎ zhēn",
+      "meaning": "give/have an injection"
+    },
+    {
+      "word": "大概",
+      "pinyin_tone": "dà gài",
+      "meaning": "probably; maybe"
+    },
+    {
+      "word": "大海",
+      "pinyin_tone": "dà hǎi",
+      "meaning": "ocean"
+    },
+    {
+      "word": "大家",
+      "pinyin_tone": "dà jiā",
+      "meaning": "everybody"
+    },
+    {
+      "word": "大象",
+      "pinyin_tone": "dà xiàng",
+      "meaning": "elephant"
+    },
+    {
+      "word": "带",
+      "pinyin_tone": "dài",
+      "meaning": "carry"
+    },
+    {
+      "word": "戴",
+      "pinyin_tone": "dài",
+      "meaning": "to wear (accessories)"
+    },
+    {
+      "word": "担心",
+      "pinyin_tone": "dān xīn",
+      "meaning": "worry"
+    },
+    {
+      "word": "到处",
+      "pinyin_tone": "dào chù",
+      "meaning": "everywhere"
+    },
+    {
+      "word": "地",
+      "pinyin_tone": "de",
+      "meaning": "ground"
+    },
+    {
+      "word": "等",
+      "pinyin_tone": "děng",
+      "meaning": "to wait for"
+    },
+    {
+      "word": "地铁",
+      "pinyin_tone": "dì tiě",
+      "meaning": "underground train; tube; metro"
+    },
+    {
+      "word": "地图",
+      "pinyin_tone": "dì tú",
+      "meaning": "map"
+    },
+    {
+      "word": "地址",
+      "pinyin_tone": "dì zhǐ",
+      "meaning": "address"
+    },
+    {
+      "word": "电灯",
+      "pinyin_tone": "diàn dēng",
+      "meaning": "electric light"
+    },
+    {
+      "word": "电梯",
+      "pinyin_tone": "diàn tī",
+      "meaning": "lift; elevator"
+    },
+    {
+      "word": "电子邮件",
+      "pinyin_tone": "diàn zǐ yóu jiàn",
+      "meaning": "email "
+    },
+    {
+      "word": "东",
+      "pinyin_tone": "dōng",
+      "meaning": "east"
+    },
+    {
+      "word": "冬",
+      "pinyin_tone": "dōng",
+      "meaning": "winter"
+    },
+    {
+      "word": "肚子",
+      "pinyin_tone": "dù zi",
+      "meaning": "belly"
+    },
+    {
+      "word": "短",
+      "pinyin_tone": "duǎn",
+      "meaning": "short"
+    },
+    {
+      "word": "锻炼",
+      "pinyin_tone": "duàn liàn",
+      "meaning": "to engage in physical exercise"
+    },
+    {
+      "word": "对（形）",
+      "pinyin_tone": "duì",
+      "meaning": "correct"
+    },
+    {
+      "word": "对（介）",
+      "pinyin_tone": "duì",
+      "meaning": "to; for"
+    },
+    {
+      "word": "多么",
+      "pinyin_tone": "duō me",
+      "meaning": "how ..."
+    },
+    {
+      "word": "儿子",
+      "pinyin_tone": "ér zi",
+      "meaning": "son"
+    },
+    {
+      "word": "发烧",
+      "pinyin_tone": "fā shāo",
+      "meaning": "fever; have a fever"
+    },
+    {
+      "word": "方便",
+      "pinyin_tone": "fāng biàn",
+      "meaning": "convenient"
+    },
+    {
+      "word": "放",
+      "pinyin_tone": "fàng",
+      "meaning": "to put; set free"
+    },
+    {
+      "word": "放假",
+      "pinyin_tone": "fàng jià",
+      "meaning": "start holiday"
+    },
+    {
+      "word": "非常",
+      "pinyin_tone": "fēi cháng",
+      "meaning": "extremely"
+    },
+    {
+      "word": "服务员",
+      "pinyin_tone": "fú wù yuán",
+      "meaning": "waiter/waitress; attendant"
+    },
+    {
+      "word": "附近",
+      "pinyin_tone": "fù jìn",
+      "meaning": "nearby"
+    },
+    {
+      "word": "复习",
+      "pinyin_tone": "fù xí",
+      "meaning": "revise"
+    },
+    {
+      "word": "干净",
+      "pinyin_tone": "gān jìng",
+      "meaning": "clean"
+    },
+    {
+      "word": "敢",
+      "pinyin_tone": "gǎn",
+      "meaning": "dare to"
+    },
+    {
+      "word": "感兴趣",
+      "pinyin_tone": "gǎn xìng qù",
+      "meaning": "be interested in"
+    },
+    {
+      "word": "刚才",
+      "pinyin_tone": "gāng cái",
+      "meaning": "just now"
+    },
+    {
+      "word": "告诉",
+      "pinyin_tone": "gào su",
+      "meaning": "to tell"
+    },
+    {
+      "word": "更",
+      "pinyin_tone": "gèng",
+      "meaning": "even more"
+    },
+    {
+      "word": "功夫",
+      "pinyin_tone": "gōng fu",
+      "meaning": "labour; kung fu"
+    },
+    {
+      "word": "公斤",
+      "pinyin_tone": "gōng jīn",
+      "meaning": "kilogram"
+    },
+    {
+      "word": "公里",
+      "pinyin_tone": "gōng lǐ",
+      "meaning": "kilometre"
+    },
+    {
+      "word": "公园",
+      "pinyin_tone": "gōng yuán",
+      "meaning": "park"
+    },
+    {
+      "word": "工作",
+      "pinyin_tone": "gōng zuò",
+      "meaning": "job; work"
+    },
+    {
+      "word": "够",
+      "pinyin_tone": "gòu",
+      "meaning": "enough"
+    },
+    {
+      "word": "挂",
+      "pinyin_tone": "guà",
+      "meaning": "hang up"
+    },
+    {
+      "word": "关于",
+      "pinyin_tone": "guān yú",
+      "meaning": "about"
+    },
+    {
+      "word": "贵",
+      "pinyin_tone": "guì",
+      "meaning": "expensive"
+    },
+    {
+      "word": "国家",
+      "pinyin_tone": "guó jiā",
+      "meaning": "country"
+    },
+    {
+      "word": "哈",
+      "pinyin_tone": "hā",
+      "meaning": "ha"
+    },
+    {
+      "word": "还是",
+      "pinyin_tone": "hái shì",
+      "meaning": "...or...? [in a question]"
+    },
+    {
+      "word": "孩子",
+      "pinyin_tone": "hái zi",
+      "meaning": "child; children"
+    },
+    {
+      "word": "害怕",
+      "pinyin_tone": "hài pà",
+      "meaning": "afraid"
+    },
+    {
+      "word": "寒假",
+      "pinyin_tone": "hán jià",
+      "meaning": "winter holiday"
+    },
+    {
+      "word": "好像",
+      "pinyin_tone": "hǎo xiàng",
+      "meaning": "to seem"
+    },
+    {
+      "word": "号码",
+      "pinyin_tone": "hào mǎ",
+      "meaning": "number"
+    },
+    {
+      "word": "合适",
+      "pinyin_tone": "hé shì",
+      "meaning": "suitable"
+    },
+    {
+      "word": "盒子",
+      "pinyin_tone": "hé zi",
+      "meaning": "small box"
+    },
+    {
+      "word": "蝴蝶",
+      "pinyin_tone": "hú dié",
+      "meaning": "butterfly"
+    },
+    {
+      "word": "护士",
+      "pinyin_tone": "hù shi",
+      "meaning": "nurse"
+    },
+    {
+      "word": "互相",
+      "pinyin_tone": "hù xiāng",
+      "meaning": "each other"
+    },
+    {
+      "word": "花",
+      "pinyin_tone": "huā",
+      "meaning": "to spend (time/money); flower"
+    },
+    {
+      "word": "换",
+      "pinyin_tone": "huàn",
+      "meaning": "to change (to another one)"
+    },
+    {
+      "word": "火车",
+      "pinyin_tone": "huǒ chē",
+      "meaning": "train"
+    },
+    {
+      "word": "或者",
+      "pinyin_tone": "huò zhě",
+      "meaning": "perhaps"
+    },
+    {
+      "word": "极",
+      "pinyin_tone": "jí",
+      "meaning": "extreme"
+    },
+    {
+      "word": "记得",
+      "pinyin_tone": "jì de",
+      "meaning": "to remember"
+    },
+    {
+      "word": "加",
+      "pinyin_tone": "jiā",
+      "meaning": "add"
+    },
+    {
+      "word": "坚持",
+      "pinyin_tone": "jiān chí",
+      "meaning": "to persevere with"
+    },
+    {
+      "word": "减",
+      "pinyin_tone": "jiǎn",
+      "meaning": "to lower"
+    },
+    {
+      "word": "健康",
+      "pinyin_tone": "jiàn kāng",
+      "meaning": "healthy; health"
+    },
+    {
+      "word": "见面",
+      "pinyin_tone": "jiàn miàn",
+      "meaning": "to meet"
+    },
+    {
+      "word": "将来",
+      "pinyin_tone": "jiāng lái",
+      "meaning": "in the future; future"
+    },
+    {
+      "word": "讲",
+      "pinyin_tone": "jiǎng",
+      "meaning": "speak"
+    },
+    {
+      "word": "教",
+      "pinyin_tone": "jiāo",
+      "meaning": "to teach"
+    },
+    {
+      "word": "接",
+      "pinyin_tone": "jiē",
+      "meaning": "connect"
+    },
+    {
+      "word": "节目",
+      "pinyin_tone": "jié mù",
+      "meaning": "programme"
+    },
+    {
+      "word": "节日",
+      "pinyin_tone": "jié rì",
+      "meaning": "festival"
+    },
+    {
+      "word": "借",
+      "pinyin_tone": "jiè",
+      "meaning": "to lend"
+    },
+    {
+      "word": "介绍",
+      "pinyin_tone": "jiè shào",
+      "meaning": "introduce"
+    },
+    {
+      "word": "紧张",
+      "pinyin_tone": "jǐn zhāng",
+      "meaning": "nervous; anxious"
+    },
+    {
+      "word": "经常",
+      "pinyin_tone": "jīng cháng",
+      "meaning": "often; regularly"
+    },
+    {
+      "word": "警察",
+      "pinyin_tone": "jǐng chá",
+      "meaning": "police"
+    },
+    {
+      "word": "旧",
+      "pinyin_tone": "jiù",
+      "meaning": "old; former"
+    },
+    {
+      "word": "既……又……",
+      "pinyin_tone": "jì…yòu…",
+      "meaning": "both ... and ..."
+    },
+    {
+      "word": "句子",
+      "pinyin_tone": "jù zi",
+      "meaning": "sentence"
+    },
+    {
+      "word": "决定",
+      "pinyin_tone": "jué dìng",
+      "meaning": "decide"
+    },
+    {
+      "word": "开会",
+      "pinyin_tone": "kāi huì",
+      "meaning": "have a meeting"
+    },
+    {
+      "word": "开始",
+      "pinyin_tone": "kāi shǐ",
+      "meaning": "to begin"
+    },
+    {
+      "word": "考试",
+      "pinyin_tone": "kǎo shì",
+      "meaning": "examination"
+    },
+    {
+      "word": "烤鸭",
+      "pinyin_tone": "kǎo yā",
+      "meaning": "roast duck"
+    },
+    {
+      "word": "渴",
+      "pinyin_tone": "kě",
+      "meaning": "thirsty"
+    },
+    {
+      "word": "可能",
+      "pinyin_tone": "kě néng",
+      "meaning": "perhaps; possibly"
+    },
+    {
+      "word": "刻",
+      "pinyin_tone": "kè",
+      "meaning": "quarter"
+    },
+    {
+      "word": "空调",
+      "pinyin_tone": "kōng tiáo",
+      "meaning": "air-conditioning"
+    },
+    {
+      "word": "筷子",
+      "pinyin_tone": "kuài zi",
+      "meaning": "chopsticks"
+    },
+    {
+      "word": "辣",
+      "pinyin_tone": "là",
+      "meaning": "spicy"
+    },
+    {
+      "word": "来得及",
+      "pinyin_tone": "lái de jí",
+      "meaning": "there's still time"
+    },
+    {
+      "word": "老",
+      "pinyin_tone": "lǎo",
+      "meaning": "old; aged"
+    },
+    {
+      "word": "离",
+      "pinyin_tone": "lí",
+      "meaning": "away from"
+    },
+    {
+      "word": "梨",
+      "pinyin_tone": "lí",
+      "meaning": "pear"
+    },
+    {
+      "word": "离开",
+      "pinyin_tone": "lí kāi",
+      "meaning": "leave"
+    },
+    {
+      "word": "礼貌",
+      "pinyin_tone": "lǐ mào",
+      "meaning": "courtesy; politeness"
+    },
+    {
+      "word": "厉害",
+      "pinyin_tone": "lì hai",
+      "meaning": "fierce"
+    },
+    {
+      "word": "俩",
+      "pinyin_tone": "liǎ",
+      "meaning": "two; both (people)"
+    },
+    {
+      "word": "联系",
+      "pinyin_tone": "lián xì",
+      "meaning": "to make contact"
+    },
+    {
+      "word": "脸",
+      "pinyin_tone": "liǎn",
+      "meaning": "face"
+    },
+    {
+      "word": "练习",
+      "pinyin_tone": "liàn xí",
+      "meaning": "to practise"
+    },
+    {
+      "word": "凉快",
+      "pinyin_tone": "liáng kuai",
+      "meaning": "cool"
+    },
+    {
+      "word": "辆",
+      "pinyin_tone": "liàng",
+      "meaning": "[measure word for vehicles]"
+    },
+    {
+      "word": "聊天儿",
+      "pinyin_tone": "liáo tiān er",
+      "meaning": "to chat [erhua variant of 聊天]"
+    },
+    {
+      "word": "邻居",
+      "pinyin_tone": "lín jū",
+      "meaning": "neighbour"
+    },
+    {
+      "word": "另外",
+      "pinyin_tone": "lìng wài",
+      "meaning": "another"
+    },
+    {
+      "word": "流汗",
+      "pinyin_tone": "liú hàn",
+      "meaning": "to sweat"
+    },
+    {
+      "word": "楼",
+      "pinyin_tone": "lóu",
+      "meaning": "multi-storied building"
+    },
+    {
+      "word": "旅游",
+      "pinyin_tone": "lǚ yóu",
+      "meaning": "tourism"
+    },
+    {
+      "word": "马虎",
+      "pinyin_tone": "mǎ hu",
+      "meaning": "careless"
+    },
+    {
+      "word": "马上",
+      "pinyin_tone": "mǎ shàng",
+      "meaning": "immediately"
+    },
+    {
+      "word": "门口",
+      "pinyin_tone": "mén kǒu",
+      "meaning": "door way"
+    },
+    {
+      "word": "迷路",
+      "pinyin_tone": "mí lù",
+      "meaning": "lose the way; get lost"
+    },
+    {
+      "word": "明白",
+      "pinyin_tone": "míng bai",
+      "meaning": "to understand"
+    },
+    {
+      "word": "名字",
+      "pinyin_tone": "míng zì",
+      "meaning": "given name"
+    },
+    {
+      "word": "南",
+      "pinyin_tone": "nán",
+      "meaning": "south"
+    },
+    {
+      "word": "难过",
+      "pinyin_tone": "nán guò",
+      "meaning": "have a hard time"
+    },
+    {
+      "word": "年轻",
+      "pinyin_tone": "nián qīng",
+      "meaning": "young"
+    },
+    {
+      "word": "努力",
+      "pinyin_tone": "nǔ lì",
+      "meaning": "hardworking"
+    },
+    {
+      "word": "暖和",
+      "pinyin_tone": "nuǎn huo",
+      "meaning": "warm"
+    },
+    {
+      "word": "女儿",
+      "pinyin_tone": "nǚ ér",
+      "meaning": "daughter"
+    },
+    {
+      "word": "爬山",
+      "pinyin_tone": "pá shān",
+      "meaning": "to climb hills/mountains     "
+    },
+    {
+      "word": "排队",
+      "pinyin_tone": "pái duì",
+      "meaning": "queue up; line up"
+    },
+    {
+      "word": "排球",
+      "pinyin_tone": "pái qiú",
+      "meaning": "volleyball"
+    },
+    {
+      "word": "盘子",
+      "pinyin_tone": "pán zi",
+      "meaning": "tray"
+    },
+    {
+      "word": "便宜",
+      "pinyin_tone": "pián yi",
+      "meaning": "cheap"
+    },
+    {
+      "word": "乒乓球",
+      "pinyin_tone": "pīng pāng qiú",
+      "meaning": "table tennis; ping-pong"
+    },
+    {
+      "word": "破",
+      "pinyin_tone": "pò",
+      "meaning": "break"
+    },
+    {
+      "word": "葡萄",
+      "pinyin_tone": "pú tao",
+      "meaning": "grapes"
+    },
+    {
+      "word": "奇怪",
+      "pinyin_tone": "qí guài",
+      "meaning": "strange"
+    },
+    {
+      "word": "骑马",
+      "pinyin_tone": "qí mǎ",
+      "meaning": "horse-riding"
+    },
+    {
+      "word": "其他",
+      "pinyin_tone": "qí tā",
+      "meaning": "other"
+    },
+    {
+      "word": "起来",
+      "pinyin_tone": "qǐ lái",
+      "meaning": "stand up; sit up; rise to one's feet"
+    },
+    {
+      "word": "桥",
+      "pinyin_tone": "qiáo",
+      "meaning": "bridge"
+    },
+    {
+      "word": "巧克力",
+      "pinyin_tone": "qiǎo kè lì",
+      "meaning": "chocolate"
+    },
+    {
+      "word": "清楚",
+      "pinyin_tone": "qīng chu",
+      "meaning": "clear"
+    },
+    {
+      "word": "晴",
+      "pinyin_tone": "qíng",
+      "meaning": "fine; sunny"
+    },
+    {
+      "word": "秋",
+      "pinyin_tone": "qiū",
+      "meaning": "autumn"
+    },
+    {
+      "word": "然后",
+      "pinyin_tone": "rán hòu",
+      "meaning": "and then; after that"
+    },
+    {
+      "word": "认真",
+      "pinyin_tone": "rèn zhēn",
+      "meaning": "earnest"
+    },
+    {
+      "word": "容易",
+      "pinyin_tone": "róng yì",
+      "meaning": "easy"
+    },
+    {
+      "word": "如果……那么……",
+      "pinyin_tone": "rú guǒ…nà me…",
+      "meaning": "if ... then ..."
+    },
+    {
+      "word": "散步",
+      "pinyin_tone": "sàn bù",
+      "meaning": "go for a walk; stroll"
+    },
+    {
+      "word": "沙发",
+      "pinyin_tone": "shā fā",
+      "meaning": "sofa"
+    },
+    {
+      "word": "上班",
+      "pinyin_tone": "shàng bān",
+      "meaning": "start work"
+    },
+    {
+      "word": "上海",
+      "pinyin_tone": "shàng hǎi",
+      "meaning": "Shanghai"
+    },
+    {
+      "word": "生活",
+      "pinyin_tone": "shēng huó",
+      "meaning": "life"
+    },
+    {
+      "word": "生气",
+      "pinyin_tone": "shēng qì",
+      "meaning": "to get angry"
+    },
+    {
+      "word": "声音",
+      "pinyin_tone": "shēng yīn",
+      "meaning": "sound"
+    },
+    {
+      "word": "手表",
+      "pinyin_tone": "shǒu biǎo",
+      "meaning": "watch"
+    },
+    {
+      "word": "受不了",
+      "pinyin_tone": "shòu bu liǎo",
+      "meaning": "cannot bear it"
+    },
+    {
+      "word": "售票员",
+      "pinyin_tone": "shòu piào yuán",
+      "meaning": "ticket seller"
+    },
+    {
+      "word": "叔叔",
+      "pinyin_tone": "shū shu",
+      "meaning": "uncle [father's younger brother]"
+    },
+    {
+      "word": "熟悉",
+      "pinyin_tone": "shú xī",
+      "meaning": "to be familiar with"
+    },
+    {
+      "word": "暑假",
+      "pinyin_tone": "shǔ jià",
+      "meaning": "summer holiday"
+    },
+    {
+      "word": "刷牙",
+      "pinyin_tone": "shuā yá",
+      "meaning": "brush teeth"
+    },
+    {
+      "word": "双",
+      "pinyin_tone": "shuāng",
+      "meaning": "a pair of"
+    },
+    {
+      "word": "虽然",
+      "pinyin_tone": "suī rán",
+      "meaning": "although"
+    },
+    {
+      "word": "孙子",
+      "pinyin_tone": "sūn zi",
+      "meaning": "grandson [father's family]   "
+    },
+    {
+      "word": "弹钢琴",
+      "pinyin_tone": "tán gāng qín",
+      "meaning": "to play the piano"
+    },
+    {
+      "word": "汤",
+      "pinyin_tone": "tāng",
+      "meaning": "soup"
+    },
+    {
+      "word": "糖",
+      "pinyin_tone": "táng",
+      "meaning": "sugar"
+    },
+    {
+      "word": "躺",
+      "pinyin_tone": "tǎng",
+      "meaning": "lie down"
+    },
+    {
+      "word": "桃",
+      "pinyin_tone": "táo",
+      "meaning": "peach"
+    },
+    {
+      "word": "讨论",
+      "pinyin_tone": "tǎo lùn",
+      "meaning": "to discuss"
+    },
+    {
+      "word": "讨厌",
+      "pinyin_tone": "tǎo yàn",
+      "meaning": "dislike; loathe"
+    },
+    {
+      "word": "特别",
+      "pinyin_tone": "tè bié",
+      "meaning": "special; especially"
+    },
+    {
+      "word": "体育馆",
+      "pinyin_tone": "tǐ yù guǎn",
+      "meaning": "sports centre; gym"
+    },
+    {
+      "word": "甜",
+      "pinyin_tone": "tián",
+      "meaning": "sweet"
+    },
+    {
+      "word": "条",
+      "pinyin_tone": "tiáo",
+      "meaning": "[measure word for long pieces (hair; branch; trousers etc.)]"
+    },
+    {
+      "word": "听说",
+      "pinyin_tone": "tīng shuō",
+      "meaning": "it is said that"
+    },
+    {
+      "word": "停",
+      "pinyin_tone": "tíng",
+      "meaning": "to stop"
+    },
+    {
+      "word": "同意",
+      "pinyin_tone": "tóng yì",
+      "meaning": "to agree"
+    },
+    {
+      "word": "突然",
+      "pinyin_tone": "tū rán",
+      "meaning": "suddenly"
+    },
+    {
+      "word": "图书馆",
+      "pinyin_tone": "tú shū guǎn",
+      "meaning": "library"
+    },
+    {
+      "word": "兔子",
+      "pinyin_tone": "tù zi",
+      "meaning": "rabbit"
+    },
+    {
+      "word": "腿",
+      "pinyin_tone": "tuǐ",
+      "meaning": "leg"
+    },
+    {
+      "word": "脱",
+      "pinyin_tone": "tuō",
+      "meaning": "to escape; shed"
+    },
+    {
+      "word": "玩具",
+      "pinyin_tone": "wán jù",
+      "meaning": "toy"
+    },
+    {
+      "word": "万",
+      "pinyin_tone": "wàn",
+      "meaning": "ten thousand"
+    },
+    {
+      "word": "网球",
+      "pinyin_tone": "wǎng qiú",
+      "meaning": "tennis"
+    },
+    {
+      "word": "忘记",
+      "pinyin_tone": "wàng jì",
+      "meaning": "forget"
+    },
+    {
+      "word": "危险",
+      "pinyin_tone": "wēi xiǎn",
+      "meaning": "dangerous; danger"
+    },
+    {
+      "word": "为了",
+      "pinyin_tone": "wèi le",
+      "meaning": "in order to"
+    },
+    {
+      "word": "为什么",
+      "pinyin_tone": "wèi shén me",
+      "meaning": "why?"
+    },
+    {
+      "word": "无论",
+      "pinyin_tone": "wú lùn",
+      "meaning": "no matter what or how"
+    },
+    {
+      "word": "西",
+      "pinyin_tone": "xī",
+      "meaning": "west"
+    },
+    {
+      "word": "西红柿",
+      "pinyin_tone": "xī hóng shì",
+      "meaning": "tomato"
+    },
+    {
+      "word": "希望",
+      "pinyin_tone": "xī wàng",
+      "meaning": "hope; wish"
+    },
+    {
+      "word": "习惯",
+      "pinyin_tone": "xí guàn",
+      "meaning": "be used to"
+    },
+    {
+      "word": "洗手间",
+      "pinyin_tone": "xǐ shǒu jiān",
+      "meaning": "toilets; washroom"
+    },
+    {
+      "word": "夏",
+      "pinyin_tone": "xià",
+      "meaning": "summer"
+    },
+    {
+      "word": "下雪",
+      "pinyin_tone": "xià xuě",
+      "meaning": "snow"
+    },
+    {
+      "word": "先",
+      "pinyin_tone": "xiān",
+      "meaning": "first"
+    },
+    {
+      "word": "响",
+      "pinyin_tone": "xiǎng",
+      "meaning": "echo"
+    },
+    {
+      "word": "向",
+      "pinyin_tone": "xiàng",
+      "meaning": "towards"
+    },
+    {
+      "word": "小心",
+      "pinyin_tone": "xiǎo xīn",
+      "meaning": "take care"
+    },
+    {
+      "word": "校园",
+      "pinyin_tone": "xiào yuán",
+      "meaning": "campus"
+    },
+    {
+      "word": "心情",
+      "pinyin_tone": "xīn qíng",
+      "meaning": "mood"
+    },
+    {
+      "word": "新闻",
+      "pinyin_tone": "xīn wén",
+      "meaning": "news"
+    },
+    {
+      "word": "信封",
+      "pinyin_tone": "xìn fēng",
+      "meaning": "envelope"
+    },
+    {
+      "word": "星星",
+      "pinyin_tone": "xīng xing",
+      "meaning": "star"
+    },
+    {
+      "word": "行",
+      "pinyin_tone": "xíng",
+      "meaning": "OK"
+    },
+    {
+      "word": "醒",
+      "pinyin_tone": "xǐng",
+      "meaning": "wake; awake"
+    },
+    {
+      "word": "幸福",
+      "pinyin_tone": "xìng fú",
+      "meaning": "happiness"
+    },
+    {
+      "word": "选择",
+      "pinyin_tone": "xuǎn zé",
+      "meaning": "choice"
+    },
+    {
+      "word": "眼镜",
+      "pinyin_tone": "yǎn jìng",
+      "meaning": "(eye) glasses"
+    },
+    {
+      "word": "羊肉",
+      "pinyin_tone": "yáng ròu",
+      "meaning": "mutton"
+    },
+    {
+      "word": "钥匙",
+      "pinyin_tone": "yào shi",
+      "meaning": "key"
+    },
+    {
+      "word": "页",
+      "pinyin_tone": "yè",
+      "meaning": "page"
+    },
+    {
+      "word": "一定",
+      "pinyin_tone": "yí dìng",
+      "meaning": "definitely"
+    },
+    {
+      "word": "一共",
+      "pinyin_tone": "yí gòng",
+      "meaning": "altogether"
+    },
+    {
+      "word": "一会儿",
+      "pinyin_tone": "yí huì er",
+      "meaning": "a short while"
+    },
+    {
+      "word": "一下儿",
+      "pinyin_tone": "yí xià er",
+      "meaning": "once; all of a sudden; for a moment"
+    },
+    {
+      "word": "一样",
+      "pinyin_tone": "yí yàng",
+      "meaning": "same; identical"
+    },
+    {
+      "word": "已经",
+      "pinyin_tone": "yǐ jīng",
+      "meaning": "already"
+    },
+    {
+      "word": "以前",
+      "pinyin_tone": "yǐ qián",
+      "meaning": "before"
+    },
+    {
+      "word": "以为",
+      "pinyin_tone": "yǐ wéi",
+      "meaning": "think; feel; reckon"
+    },
+    {
+      "word": "一边……一边……",
+      "pinyin_tone": "yì biān ...... yì biān ...... ",
+      "meaning": "on the one hand ... on the other hand ..."
+    },
+    {
+      "word": "一点儿",
+      "pinyin_tone": "yì diǎn er",
+      "meaning": "a little"
+    },
+    {
+      "word": "一起",
+      "pinyin_tone": "yì qǐ",
+      "meaning": "together"
+    },
+    {
+      "word": "一直",
+      "pinyin_tone": "yì zhí",
+      "meaning": "straight on; always"
+    },
+    {
+      "word": "饮料",
+      "pinyin_tone": "yǐn liào",
+      "meaning": "drink"
+    },
+    {
+      "word": "应该",
+      "pinyin_tone": "yīng gāi",
+      "meaning": "should"
+    },
+    {
+      "word": "勇敢",
+      "pinyin_tone": "yǒng gǎn",
+      "meaning": "brave"
+    },
+    {
+      "word": "用",
+      "pinyin_tone": "yòng",
+      "meaning": "to use"
+    },
+    {
+      "word": "游戏",
+      "pinyin_tone": "yóu xì",
+      "meaning": "game"
+    },
+    {
+      "word": "有名",
+      "pinyin_tone": "yǒu míng",
+      "meaning": "famous"
+    },
+    {
+      "word": "元",
+      "pinyin_tone": "yuán",
+      "meaning": "yuan [unit of Chinese currency]; dollar"
+    },
+    {
+      "word": "圆",
+      "pinyin_tone": "yuán",
+      "meaning": "round"
+    },
+    {
+      "word": "越来越......",
+      "pinyin_tone": "yuè lái yuè ……",
+      "meaning": "more and more ..."
+    },
+    {
+      "word": "月亮",
+      "pinyin_tone": "yuè liang",
+      "meaning": "moon"
+    },
+    {
+      "word": "云",
+      "pinyin_tone": "yún",
+      "meaning": "cloud"
+    },
+    {
+      "word": "杂志",
+      "pinyin_tone": "zá zhì",
+      "meaning": "magazine"
+    },
+    {
+      "word": "站",
+      "pinyin_tone": "zhàn",
+      "meaning": "stand"
+    },
+    {
+      "word": "张",
+      "pinyin_tone": "zhāng",
+      "meaning": "to open up; to spread; [measure word for table, picture, paper etc]"
+    },
+    {
+      "word": "照顾",
+      "pinyin_tone": "zhào gù",
+      "meaning": "to look after"
+    },
+    {
+      "word": "照片",
+      "pinyin_tone": "zhào piàn",
+      "meaning": "photograph"
+    },
+    {
+      "word": "照相",
+      "pinyin_tone": "zhào xiàng",
+      "meaning": "to take a photo"
+    },
+    {
+      "word": "这",
+      "pinyin_tone": "zhè ",
+      "meaning": "this"
+    },
+    {
+      "word": "着",
+      "pinyin_tone": "zhe",
+      "meaning": "-ing"
+    },
+    {
+      "word": "正在",
+      "pinyin_tone": "zhèng zài",
+      "meaning": "to be in the process of"
+    },
+    {
+      "word": "知识",
+      "pinyin_tone": "zhī shi",
+      "meaning": "knowledge"
+    },
+    {
+      "word": "只要",
+      "pinyin_tone": "zhǐ yào",
+      "meaning": "so long as ..."
+    },
+    {
+      "word": "中间",
+      "pinyin_tone": "zhōng jiān",
+      "meaning": "middle"
+    },
+    {
+      "word": "种",
+      "pinyin_tone": "zhǒng",
+      "meaning": "kind; type "
+    },
+    {
+      "word": "重要",
+      "pinyin_tone": "zhòng yào",
+      "meaning": "important"
+    },
+    {
+      "word": "周末",
+      "pinyin_tone": "zhōu mò",
+      "meaning": "weekend"
+    },
+    {
+      "word": "住",
+      "pinyin_tone": "zhù",
+      "meaning": "to live; stay (a number of nights)"
+    },
+    {
+      "word": "祝贺",
+      "pinyin_tone": "zhù hè",
+      "meaning": "to congratulate"
+    },
+    {
+      "word": "注意",
+      "pinyin_tone": "zhù yì",
+      "meaning": "take note of"
+    },
+    {
+      "word": "准备",
+      "pinyin_tone": "zhǔn bèi",
+      "meaning": "to prepare"
+    },
+    {
+      "word": "准时",
+      "pinyin_tone": "zhǔn shí",
+      "meaning": "punctual"
+    },
+    {
+      "word": "最近",
+      "pinyin_tone": "zuì jìn",
+      "meaning": "recently"
+    },
+    {
+      "word": "作业",
+      "pinyin_tone": "zuò yè",
+      "meaning": "homework"
+    }
+  ]
+}

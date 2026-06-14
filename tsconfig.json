@@ -1,9 +1,14 @@
 {
-  // This file is not used in compilation. It is here just for a nice editor experience.
-  "extends": "@docusaurus/tsconfig",
+  "extends": "./.svelte-kit/tsconfig.json",
   "compilerOptions": {
-    "jsx": "react",
-    "baseUrl": ".",
+    "allowJs": true,
+    "checkJs": true,
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": false,
+    "moduleResolution": "bundler"
   }
 }

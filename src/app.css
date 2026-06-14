@@ -1,0 +1,61 @@
+/* source(none) disables Tailwind v4 automatic content detection so it does not
+   try to scan the multi-MB binaries in static/data (cedict_ts.u8, *.idx, *.zip,
+   *.db, *.wasm), which makes the build hang. Sources are declared explicitly. */
+@import 'tailwindcss' source(none);
+@plugin 'flowbite/plugin';
+
+@source '../src';
+@source '../node_modules/flowbite-svelte/dist';
+
+/* flowbite-svelte default buttons use the `primary` palette; define it (indigo)
+   or those buttons render invisible (no color). */
+@theme {
+	--color-primary-50: #eef2ff;
+	--color-primary-100: #e0e7ff;
+	--color-primary-200: #c7d2fe;
+	--color-primary-300: #a5b4fc;
+	--color-primary-400: #818cf8;
+	--color-primary-500: #6366f1;
+	--color-primary-600: #4f46e5;
+	--color-primary-700: #4338ca;
+	--color-primary-800: #3730a3;
+	--color-primary-900: #312e81;
+	--color-primary-950: #1e1b4b;
+}
+
+:root {
+	--xie-green: #4caf50;
+	--xie-blue: #2196f3;
+	--tone-1: #f44336;
+	--tone-2: #ff9800;
+	--tone-3: #4caf50;
+	--tone-4: #2196f3;
+	--tone-5: #9e9e9e;
+}
+
+/* Tone coloring for hanzi/pinyin in the app UI (mirrors the deck CSS). */
+.tone1 {
+	color: var(--tone-1);
+}
+.tone2 {
+	color: var(--tone-2);
+}
+.tone3 {
+	color: var(--tone-3);
+}
+.tone4 {
+	color: var(--tone-4);
+}
+.tone5 {
+	color: var(--tone-5);
+}
+
+body {
+	margin: 0;
+	font-family:
+		system-ui,
+		-apple-system,
+		'Segoe UI',
+		Roboto,
+		sans-serif;
+}

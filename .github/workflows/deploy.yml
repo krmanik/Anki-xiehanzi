@@ -3,7 +3,6 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - port-vite-svelte
       - main
 
 jobs:
@@ -13,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: port-vite-svelte
+          ref: main
 
       - uses: actions/setup-node@v4
         with:
@@ -30,7 +29,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: docusaurus-legacy
           path: docusaurus-src
           clean: false
 
@@ -44,8 +43,22 @@ jobs:
 
       - name: Combine builds
         run: |
-          mv docusaurus-src/build combined-build
-          mv svelte-build combined-build/dev
+          mv svelte-build combined-build
+          mv docusaurus-src/build combined-build/v1
+          mkdir -p combined-build/dev
+          cat > combined-build/dev/index.html <<'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta http-equiv="refresh" content="0; url=/Anki-xiehanzi/" />
+            <link rel="canonical" href="https://krmanik.github.io/Anki-xiehanzi/" />
+            <title>Redirecting…</title>
+            <script>location.replace("/Anki-xiehanzi/" + location.search + location.hash);</script>
+          </head>
+          <body>Redirecting to <a href="/Anki-xiehanzi/">krmanik.github.io/Anki-xiehanzi</a>…</body>
+          </html>
+          EOF
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

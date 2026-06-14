@@ -80,6 +80,15 @@ async function pinyinAndZhuyin(syllables, showToneColors, pinyinClass) {
             continue;
         }
         let m = parse(syllable);
+        // Some entries carry tokens with no tone digit / vowel (e.g. already
+        // toned pinyin, punctuation, junk). parse() returns null for those —
+        // emit the raw syllable instead of dereferencing null and crashing.
+        if (!m) {
+            html += syllable;
+            text += syllable;
+            zhuyin += numericPinyin2Zhuyin(syllable);
+            continue;
+        }
         let t = tonify(m[2], m[4]);
         html += m[1] + t[0] + m[3];
         text += m[1] + t[1] + m[3];

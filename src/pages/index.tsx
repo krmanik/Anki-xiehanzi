@@ -77,7 +77,7 @@ function DevAlert() {
         </p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
           <a
-            href="/Anki-xiehanzi/dev/"
+            href="/Anki-xiehanzi/"
             style={{
               background: '#4f46e5', color: '#fff', borderRadius: 8,
               padding: '9px 20px', fontWeight: 600, fontSize: 14,

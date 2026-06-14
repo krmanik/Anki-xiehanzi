@@ -9,7 +9,7 @@ const config = {
   title: 'Anki xiehanzi',
   tagline: 'Learn, read, write and practice Mandarin by drawing strokes in Anki',
   url: 'https://krmanik.github.io',
-  baseUrl: '/Anki-xiehanzi/',
+  baseUrl: '/Anki-xiehanzi/v1/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.png',

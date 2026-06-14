@@ -40,6 +40,7 @@ Coverage spans **HSK 3.0 levels 1–9** (New HSK 2025), plus BCT and YCT word li
 - <a href="{base}/docs/export-deck">Export a Deck</a> — build and export your own `.apkg`.
 - <a href="{base}/docs/studying">Studying cards</a> — the in-card controls in Anki.
 - <a href="{base}/docs/faq">FAQ</a> — common questions.
+- <a href="{base}/docs/contributing">Contributing</a> — report bugs and fix word data.
 
 ## Requirements
 

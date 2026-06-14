@@ -133,7 +133,11 @@ regenerated with text-to-speech using
 
 ## Contribute
 
-See [Contributing.md](https://github.com/krmanik/Anki-xiehanzi/blob/master/Contributing.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) or the
+[Contributing](https://krmanik.github.io/Anki-xiehanzi/docs/contributing) docs
+page. Wrong word, pinyin or meaning? Those live in the
+[HSK-3.0-words-list](https://github.com/krmanik/HSK-3.0-words-list) submodule —
+fix them there.
 
 More decks by the author: [AnkiWeb](https://ankiweb.net/shared/byauthor/119943820).
 

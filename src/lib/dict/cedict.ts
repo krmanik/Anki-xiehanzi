@@ -148,6 +148,10 @@ async function openDbFromZip(zipUrl: string): Promise<any> {
 export async function loadCedict(): Promise<void> {
 	if (cedictDb) return;
 	cedictDb = await openDbFromZip(`${base}/data/cedict.db.zip`);
+	// The shipped db only indexes cedict.word (PK). lookup() filters on
+	// `simplified`, so without this every word triggers a full 120k-row scan
+	// (~12ms/word, ~68s for a 5k-word HSK batch). Build it once, in-memory.
+	cedictDb.run('CREATE INDEX IF NOT EXISTS idx_cedict_simplified ON cedict(simplified)');
 	console.log('cedict.db loaded');
 }
 
@@ -157,24 +161,47 @@ export async function loadSentences(): Promise<void> {
 	console.log('hsk_sentences.db loaded');
 }
 
+/**
+ * Compiled-statement cache, keyed by db then SQL string. sql.js `prepare()`
+ * recompiles SQL on every call and is ~half the per-query cost, so for the
+ * batch lookups on /create (same SQL run thousands of times) we prepare once
+ * and reuse with bind/step/reset. Keyed by db via WeakMap so a reopened
+ * Database gets a fresh statement set automatically.
+ */
+const stmtCache = new WeakMap<any, Map<string, any>>();
+
+function cachedStmt(db: any, sql: string): any {
+	let m = stmtCache.get(db);
+	if (!m) {
+		m = new Map();
+		stmtCache.set(db, m);
+	}
+	let stmt = m.get(sql);
+	if (!stmt) {
+		stmt = db.prepare(sql);
+		m.set(sql, stmt);
+	}
+	return stmt;
+}
+
 function queryOne(db: any, sql: string, params: any[]): Record<string, any> | null {
-	const stmt = db.prepare(sql);
+	const stmt = cachedStmt(db, sql);
 	try {
 		stmt.bind(params);
 		return stmt.step() ? stmt.getAsObject() : null;
 	} finally {
-		stmt.free();
+		stmt.reset();
 	}
 }
 
 function queryAll(db: any, sql: string, params: any[]): Record<string, any>[] {
-	const stmt = db.prepare(sql);
+	const stmt = cachedStmt(db, sql);
 	const rows: Record<string, any>[] = [];
 	try {
 		stmt.bind(params);
 		while (stmt.step()) rows.push(stmt.getAsObject());
 	} finally {
-		stmt.free();
+		stmt.reset();
 	}
 	return rows;
 }
@@ -331,25 +358,35 @@ function shortCharDef(raw: string): string {
 	return raw.split(/[;,]/)[0].trim();
 }
 
+// Per-character info is identical across every word containing that char, so
+// cache it across the whole batch (the same chars repeat constantly). `null`
+// caches a confirmed miss to skip re-querying chars not in the db.
+const charInfoCache = new Map<string, CharInfo | null>();
+
 /** Look up per-character info (pinyin, gloss, radical, decomposition). */
 export async function lookupCharacters(chars: string[]): Promise<CharInfo[]> {
 	if (!cedictDb) await loadCedict();
 	const out: CharInfo[] = [];
 	for (const ch of chars) {
-		const row = queryOne(
-			cedictDb,
-			`SELECT character, definition, pinyin, decomposition, radical FROM character WHERE character = ? LIMIT 1`,
-			[ch]
-		);
-		if (!row) continue;
-		const pinyinArr = safeJSON<string[]>(row.pinyin, []);
-		out.push({
-			character: row.character,
-			pinyin: pinyinArr.join(' '),
-			definition: shortCharDef(row.definition || ''),
-			radical: safeJSON<string>(row.radical, '') || (row.radical ?? ''),
-			decomposition: row.decomposition || ''
-		});
+		let info = charInfoCache.get(ch);
+		if (info === undefined) {
+			const row = queryOne(
+				cedictDb,
+				`SELECT character, definition, pinyin, decomposition, radical FROM character WHERE character = ? LIMIT 1`,
+				[ch]
+			);
+			info = row
+				? {
+						character: row.character,
+						pinyin: safeJSON<string[]>(row.pinyin, []).join(' '),
+						definition: shortCharDef(row.definition || ''),
+						radical: safeJSON<string>(row.radical, '') || (row.radical ?? ''),
+						decomposition: row.decomposition || ''
+					}
+				: null;
+			charInfoCache.set(ch, info);
+		}
+		if (info) out.push(info);
 	}
 	return out;
 }
@@ -460,6 +497,42 @@ export interface SentenceQueryOptions {
 	maxChars?: number;
 }
 
+// In-memory sentence store + token->sentence inverted index. The db ships an
+// FTS5 table (sentences_fts), but the sql.js wasm we load is built WITHOUT
+// FTS5, so MATCH throws. And `sentence LIKE '%w%'` is a full 75k-row scan run
+// once per word — froze the 5k-word export. Instead we read the rows once and
+// index by the pre-segmented `tokens` column, so every per-word lookup is pure
+// JS (a Map hit), no SQL, no scan.
+let sentenceRows: Map<number, Sentence> | null = null;
+let sentenceTokenIndex: Map<string, number[]> | null = null;
+
+function ensureSentenceIndex(): void {
+	if (sentenceTokenIndex) return;
+	sentenceRows = new Map();
+	sentenceTokenIndex = new Map();
+	const rows = queryAll(
+		sentencesDb,
+		`SELECT rank, sentence, pinyin, translation, tokens, n_chars, difficulty FROM sentences`,
+		[]
+	);
+	for (const r of rows) {
+		const rank: number = r.rank;
+		sentenceRows.set(rank, {
+			sentence: r.sentence,
+			pinyin: r.pinyin ?? '',
+			translation: r.translation ?? '',
+			nChars: r.n_chars ?? 0,
+			difficulty: r.difficulty
+		});
+		for (const tok of String(r.tokens ?? '').split(/\s+/)) {
+			if (!tok) continue;
+			const arr = sentenceTokenIndex.get(tok);
+			if (arr) arr.push(rank);
+			else sentenceTokenIndex.set(tok, [rank]);
+		}
+	}
+}
+
 /**
  * Example sentences containing the word, easiest first, optionally length-bounded
  * by n_chars. Loads the sentences db on demand.
@@ -474,31 +547,26 @@ export async function getSentences(word: string, opts: SentenceQueryOptions = {}
 			return [];
 		}
 	}
+	ensureSentenceIndex();
 	const w = word.trim();
-	const where = ['sentence LIKE ?'];
-	const params: any[] = [`%${w}%`];
-	if (minChars != null) {
-		where.push('n_chars >= ?');
-		params.push(minChars);
+
+	// Primary: whole-token match via the inverted index.
+	let hits: Sentence[] = (sentenceTokenIndex!.get(w) ?? []).map((r) => sentenceRows!.get(r)!);
+
+	// Fallback: words that only ever appear inside a longer token have no
+	// standalone token entry. Substring-scan the in-memory rows (no SQL) — rare,
+	// and a 75k-item JS pass is a few ms vs the old per-word table scan.
+	if (hits.length === 0) {
+		hits = [];
+		for (const s of sentenceRows!.values()) {
+			if (s.sentence.includes(w)) hits.push(s);
+		}
 	}
-	if (maxChars != null) {
-		where.push('n_chars <= ?');
-		params.push(maxChars);
-	}
-	params.push(limit);
-	const rows = queryAll(
-		sentencesDb,
-		`SELECT sentence, pinyin, translation, n_chars, difficulty
-		 FROM sentences WHERE ${where.join(' AND ')} ORDER BY difficulty ASC LIMIT ?`,
-		params
-	);
-	return rows.map((r) => ({
-		sentence: r.sentence,
-		pinyin: r.pinyin ?? '',
-		translation: r.translation ?? '',
-		nChars: r.n_chars ?? 0,
-		difficulty: r.difficulty
-	}));
+
+	if (minChars != null) hits = hits.filter((s) => s.nChars >= minChars);
+	if (maxChars != null) hits = hits.filter((s) => s.nChars <= maxChars);
+	hits.sort((a, b) => a.difficulty - b.difficulty);
+	return hits.slice(0, limit);
 }
 
 /**

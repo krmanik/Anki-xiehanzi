@@ -14,6 +14,11 @@
 
 	let { words = $bindable() }: { words: Word[] } = $props();
 
+	// Progress/status are reactive $state; writing them every word forces a Svelte
+	// re-render + style/layout per iteration. Update once per stride instead — the
+	// bar still moves smoothly but DOM work drops ~25x on large batches.
+	const PROGRESS_STRIDE = 25;
+
 	const selectionTypes = [
 		{ value: 'Word', name: 'Word' },
 		{ value: 'Paragraph', name: 'Paragraph' },
@@ -94,8 +99,10 @@
 			const todo = list.filter((w) => !existing.has(w));
 			const added: Word[] = [];
 			for (let i = 0; i < todo.length; i++) {
-				hskProgress = Math.round(((i + 1) / todo.length) * 100);
-				hskStatus = `Adding ${i + 1} / ${todo.length}…`;
+				if ((i + 1) % PROGRESS_STRIDE === 0 || i === todo.length - 1) {
+					hskProgress = Math.round(((i + 1) / todo.length) * 100);
+					hskStatus = `Adding ${i + 1} / ${todo.length}…`;
+				}
 				try {
 					added.push(await lookupWord(todo[i]));
 				} catch {
@@ -135,8 +142,10 @@
 			const todo = list.filter((w) => !existing.has(w));
 			const added: Word[] = [];
 			for (let i = 0; i < todo.length; i++) {
-				bctProgress = Math.round(((i + 1) / todo.length) * 100);
-				bctStatus = `Adding ${i + 1} / ${todo.length}…`;
+				if ((i + 1) % PROGRESS_STRIDE === 0 || i === todo.length - 1) {
+					bctProgress = Math.round(((i + 1) / todo.length) * 100);
+					bctStatus = `Adding ${i + 1} / ${todo.length}…`;
+				}
 				try {
 					added.push(await lookupWord(todo[i]));
 				} catch {
@@ -176,8 +185,10 @@
 			const todo = list.filter((e) => !existing.has(e.word));
 			const added: Word[] = [];
 			for (let i = 0; i < todo.length; i++) {
-				yctProgress = Math.round(((i + 1) / todo.length) * 100);
-				yctStatus = `Adding ${i + 1} / ${todo.length}…`;
+				if ((i + 1) % PROGRESS_STRIDE === 0 || i === todo.length - 1) {
+					yctProgress = Math.round(((i + 1) / todo.length) * 100);
+					yctStatus = `Adding ${i + 1} / ${todo.length}…`;
+				}
 				try {
 					added.push(await lookupWordWithFallback(todo[i].word, todo[i].meaning));
 				} catch {
@@ -212,13 +223,17 @@
 
 		const added: Word[] = [];
 		const failed: string[] = [];
+		const seen = new Set(words.map((w) => w.Simplified));
 
 		for (let i = 0; i < cutWords.length; i++) {
 			const word = cutWords[i];
-			paragraphProgress = Math.round(((i + 1) / cutWords.length) * 100);
-			paragraphStatus = `Processing ${i + 1} / ${cutWords.length}…`;
-			if (words.some((w) => w.Simplified === word.trim())) continue;
-			if (added.some((w) => w.Simplified === word.trim())) continue;
+			if ((i + 1) % PROGRESS_STRIDE === 0 || i === cutWords.length - 1) {
+				paragraphProgress = Math.round(((i + 1) / cutWords.length) * 100);
+				paragraphStatus = `Processing ${i + 1} / ${cutWords.length}…`;
+			}
+			const key = word.trim();
+			if (seen.has(key)) continue;
+			seen.add(key);
 			try {
 				added.push(await lookupWord(word));
 			} catch {

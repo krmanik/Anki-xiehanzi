@@ -22,6 +22,7 @@
 	import { FIELDS, WRITING, DEFAULT_ORDER, newCard, fieldLabels } from '$lib/cardEditorModel';
 	import { resolvePalette } from '$lib/tonePresets';
 	import { posDisplay } from '$lib/dict/cedict';
+	import { frequencyBand, hskLevelLabel } from '$lib/dict/meta';
 	import {
 		generateDeck,
 		initJieba,
@@ -190,18 +191,72 @@
 		loadingSettingsPreview = false;
 	}
 
-	// Cell value for a CSV column. PartOfSpeech lives on `word.pos` (an array of
-	// codes), not a direct field — map it to display labels so it isn't blank.
-	function csvCell(w: Word, col: string): string {
-		if (col === FIELDS.PART_OF_SPEECH) return w.pos.map((p) => posDisplay(p)).join('; ');
-		return (w as any)[col] ?? '';
+	// Plain-text value for a CSV column. Field display names (FIELDS.*) don't all
+	// map 1:1 to Word props — derived fields (Breakdown, Radical, HskLevel,
+	// Frequency, Examples, PartOfSpeech) are computed here so they aren't blank.
+	function csvCell(w: Word, col: string, examples: ExampleSentence[]): string {
+		switch (col) {
+			case FIELDS.SIMPLIFIED:
+				return w.Simplified;
+			case FIELDS.TRADITIONAL:
+				return w.Traditional;
+			case FIELDS.PINYIN:
+				return w.Pinyin;
+			case FIELDS.ZHUYIN:
+				return w.Zhuyin;
+			case FIELDS.PART_OF_SPEECH:
+				return w.pos.map((p) => posDisplay(p)).join('; ');
+			case FIELDS.SIMPLE_MEANING:
+				return w.SimpleMeaning ?? '';
+			case FIELDS.DEFINITIONS:
+				return w.Definitions ?? '';
+			case FIELDS.BREAKDOWN:
+				return w.breakdown.length > 1
+					? w.breakdown.map((c) => `${c.character}(${c.pinyin}: ${c.definition})`).join('; ')
+					: '';
+			case FIELDS.RADICAL: {
+				const seen = new Set<string>();
+				return w.breakdown
+					.filter((c) => c.radical && !seen.has(c.character) && seen.add(c.character))
+					.map((c) => `${c.character}→${c.radical}`)
+					.join('; ');
+			}
+			case FIELDS.HSK_LEVEL:
+				return hskLevelLabel(w.level) ?? '';
+			case FIELDS.FREQUENCY:
+				return frequencyBand(w.rank) ?? '';
+			case FIELDS.EXAMPLES:
+				return examples
+					.map((s) => [s.simplified, s.pinyin, s.translation].filter(Boolean).join(' | '))
+					.join('\n');
+			default:
+				return (w as any)[col] ?? '';
+		}
 	}
 
-	function exportCSV() {
+	async function exportCSV() {
 		const cols = fields.filter((f) => f !== FIELDS.AUDIO);
+		// Fetch example sentences (simplified + pinyin + translation) per word when
+		// the Examples column is included, matching the deck's example options.
+		const exMap = new Map<string, ExampleSentence[]>();
+		if (cols.includes(FIELDS.EXAMPLES)) {
+			const o = template.exampleOptions ?? DEFAULT_TEMPLATE.exampleOptions;
+			const args = { limit: o.count, minChars: o.minChars, maxChars: o.maxChars };
+			await Promise.all(
+				words.map(async (w) => {
+					try {
+						exMap.set(w.Simplified, await getSmartSentences(w.Simplified, args));
+					} catch (_) {
+						exMap.set(w.Simplified, []);
+					}
+				})
+			);
+		}
 		const escape = (v: string) => `"${(v ?? '').replace(/"/g, '""')}"`;
 		const header = cols.map(escape).join(',');
-		const rows = words.map((w) => cols.map((c) => escape(csvCell(w, c))).join(','));
+		const rows = words.map((w) =>
+			cols.map((c) => escape(csvCell(w, c, exMap.get(w.Simplified) ?? []))).join(',')
+		);
 		const csv = [header, ...rows].join('\n');
 		const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
 		const url = URL.createObjectURL(blob);

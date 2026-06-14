@@ -35,7 +35,7 @@ import {
 	type CharInfo,
 	type ExampleSentence
 } from './dict/cedict';
-import { frequencyBand, hskLevelLabel } from './dict/meta';
+import { frequencyBand, hskLevelLabel, hskLevels } from './dict/meta';
 import { colorizeSentenceHanzi, colorizePinyinString } from './tone';
 import {
 	buildNoteTemplates,
@@ -668,6 +668,41 @@ async function buildHanziDataSubset(_words: Word[]): Promise<string> {
 }
 
 
+/**
+ * Hierarchical Anki tags for a word, so users can filter / build custom study
+ * by HSK level, part of speech and frequency band inside Anki. Tags can't
+ * contain spaces, so labels are underscore-joined.
+ *   中国 → ['Xiehanzi', 'HSK::1', 'POS::Noun', 'Frequency::Top_100']
+ */
+export function noteTags(word: Word): string[] {
+	const tags = ['Xiehanzi'];
+	for (const lvl of hskLevels(word.level)) tags.push(`HSK::${lvl}`);
+	const pos = word.dominantPos ? posDisplay(word.dominantPos) : '';
+	if (pos) tags.push(`POS::${pos.replace(/\s+/g, '_')}`);
+	const band = frequencyBand(word.rank);
+	if (band) tags.push(`Frequency::${band.replace(/\s+/g, '_')}`);
+	return tags;
+}
+
+/**
+ * Stable note GUID seeded on the word's identity (not its field HTML). genanki
+ * defaults the guid to a hash of every field, so any styling/preset tweak would
+ * shift the guid and re-importing an updated deck would duplicate every note.
+ * Seeding on Simplified+Traditional+model keeps the guid constant across
+ * re-exports, so Anki updates the existing note instead. FNV-1a → base36.
+ */
+export function stableNoteGuid(word: Word, modelId: string): string {
+	const seed = `xiehanzi:${modelId}:${word.Simplified}:${word.Traditional}`;
+	let h1 = 0x811c9dc5;
+	let h2 = 0x811c9dc5 ^ 0x9e3779b9;
+	for (let i = 0; i < seed.length; i++) {
+		const c = seed.charCodeAt(i);
+		h1 = Math.imul(h1 ^ c, 0x01000193);
+		h2 = Math.imul(h2 ^ c, 0x01000193);
+	}
+	return (h1 >>> 0).toString(36).padStart(7, '0') + (h2 >>> 0).toString(36).padStart(7, '0');
+}
+
 export interface GenerateDeckOptions {
 	words: Word[];
 	deckName: string;
@@ -734,10 +769,11 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 		}
 	}
 
+	const modelId = String(m.props.id);
 	words.forEach((word) => {
 		const fmap = buildNoteFields(word, template, examplesMap.get(word.Simplified) ?? []);
 		const note = flds.map((f) => fmap[f.name] ?? '');
-		d.addNote(m.note(note));
+		d.addNote(m.note(note, noteTags(word), stableNoteGuid(word, modelId)));
 	});
 
 	const p = new Package();

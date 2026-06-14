@@ -19,7 +19,7 @@ vi.mock('@kingdanx/edge-tts-browser', () => ({
 }));
 vi.mock('jieba-wasm', () => ({ default: async () => {}, cut: () => [] }));
 
-import { generateDeck, commonReadingIndex, displayReadings, buildNoteFields, renderCardHtml, type Word } from './deck';
+import { generateDeck, commonReadingIndex, displayReadings, buildNoteFields, renderCardHtml, noteTags, stableNoteGuid, type Word } from './deck';
 import { DEFAULT_TEMPLATE, type TabContent } from './deckTemplate';
 import type { Reading } from './dict/cedict';
 
@@ -121,6 +121,32 @@ describe('exact-match preview', () => {
 		expect(html).not.toContain('src="_');
 		// Offline loaders the preview can't use are stripped
 		expect(html).not.toContain('_anki-persistence.js');
+	});
+});
+
+describe('note tags', () => {
+	it('tags a word by HSK level, part of speech and frequency band', () => {
+		const w = { ...word(), level: 'new-1,new-2', dominantPos: 'n', rank: 50 } as Word;
+		expect(noteTags(w)).toEqual(['Xiehanzi', 'HSK::1', 'HSK::2', 'POS::Noun', 'Frequency::Top_100']);
+	});
+
+	it('omits tags whose data is missing and never emits spaces', () => {
+		const w = { ...word(), level: null, dominantPos: '', rank: null } as Word;
+		expect(noteTags(w)).toEqual(['Xiehanzi']);
+		const multi = { ...word(), level: null, dominantPos: 'ad', rank: 50 } as Word;
+		expect(noteTags(multi).every((t) => !/\s/.test(t))).toBe(true);
+	});
+});
+
+describe('stable note guid', () => {
+	it('is deterministic and identity-based, so re-exports update rather than duplicate', () => {
+		const a = stableNoteGuid(word(), '1969669503');
+		const b = stableNoteGuid({ ...word(), Pinyin: 'changed', SimpleMeaning: 'changed' } as Word, '1969669503');
+		// Same Simplified+Traditional → same guid even when other fields change.
+		expect(a).toBe(b);
+		// Different word or model → different guid.
+		expect(stableNoteGuid({ ...word(), Simplified: '美国' } as Word, '1969669503')).not.toBe(a);
+		expect(stableNoteGuid(word(), '1969669504')).not.toBe(a);
 	});
 });
 
@@ -233,7 +259,11 @@ describe('generateDeck — real .apkg round-trip', () => {
 		expect(model.flds.map((f: any) => f.name)).toEqual(expect.arrayContaining(META));
 
 		// The note's stored field values carry the rendered metadata.
-		const flds = cdb.exec('SELECT flds FROM notes')[0].values[0][0] as string;
+		const noteRow = cdb.exec('SELECT flds, tags, guid FROM notes')[0].values[0];
+		const flds = noteRow[0] as string;
+		// Hierarchical tags + a stable identity guid ride along on the note.
+		expect(noteRow[1]).toBe('Xiehanzi HSK::1 Frequency::Top_100');
+		expect(noteRow[2]).toBe(stableNoteGuid(word(), '1969669504'));
 		expect(flds).toContain('bd-char'); // character breakdown chips
 		expect(flds).toContain('country'); // 国 gloss
 		expect(flds).toContain('radical-chip'); // radical chip

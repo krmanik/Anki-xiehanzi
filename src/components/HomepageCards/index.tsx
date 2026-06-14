@@ -11,7 +11,7 @@ export function HomepageXiehanziCard(): JSX.Element {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg margin--sm"
-            to="/Anki-xiehanzi/create">
+            to="/create">
             Create Now
           </Link>
         </div>

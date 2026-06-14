@@ -647,6 +647,47 @@ ${CARD_JS}
         ? document.getElementById('char_sim').textContent
         : document.getElementById('char_trad').textContent;
 
+    function isHanzi(c) {
+        return (c >= 0x4E00 && c <= 0x9FFF) || (c >= 0x3400 && c <= 0x4DBF) || (c >= 0xF900 && c <= 0xFAFF);
+    }
+
+    // Paint the gray practice grid synchronously, before the async stroke-data
+    // fetch resolves and doPractice() runs. Without this the target div stays a
+    // blank 0px box until the fetch finishes, so the grid pops in white -> gray
+    // late and shoves the layout. Sized to charWidth/charHeight so it matches the
+    // writer's SVG exactly (no shrink) — the writer just draws strokes inside it.
+    function prefillGrid() {
+        var onBack = !!document.getElementById("back");
+        var box = document.getElementById(onBack ? "onfinish-character-target-div" : "character-target-div");
+        if (!box) return;
+        box.innerHTML = "";
+        if (onBack) {
+            box.style.position = "unset";
+            box.style.display = "block";
+            box.style.whiteSpace = "nowrap";
+        }
+        for (var k = 0; k < characters.length; k++) {
+            if (!isHanzi(characters.charCodeAt(k))) continue;
+            var cell = document.createElement(onBack ? 'span' : 'div');
+            cell.innerHTML = grid_data;
+            var svg = cell.children[0];
+            svg.removeAttribute('id');
+            svg.style.margin = onBack ? "6px" : "";
+            svg.style.width = (onBack ? 100 : charWidth) + "px";
+            svg.style.height = (onBack ? 100 : charHeight) + "px";
+            box.appendChild(cell);
+        }
+        // doPractice() reveals ch_load_status on the front, and its inline
+        // margin-top:-36px nets ~-12px once shown — that pulled everything below
+        // the grid up when the writer kicked in. Reserve it now (shows the red
+        // loading dot during the fetch; the writer recolors it on success).
+        if (!onBack) {
+            var status = document.getElementById("ch_load_status");
+            if (status) status.style.display = "block";
+        }
+    }
+    prefillGrid();
+
     function generateHanziOnFinishQuiz(style = "none", finish = false) {
         var drawGrid = document.getElementById('onfinish-character-target-div');
         drawGrid.innerHTML = "";
@@ -1525,12 +1566,22 @@ hr {
   border-bottom: 1px solid var(--surface4);
 }
 
+@keyframes hwGridFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 #character-target-div {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  animation: hwGridFadeIn 0.35s ease-out;
+}
+
+#onfinish-character-target-div {
+  animation: hwGridFadeIn 0.35s ease-out;
 }
 
 #character-target-div > div {
@@ -1538,6 +1589,14 @@ hr {
 }
 
 #character-target-div > :first-child {
+  display: block;
+}
+
+/* Render grid SVGs as block so the inline baseline descender gap can't make the
+   prefilled placeholder taller than the writer's final SVG (caused a ~12px
+   shrink/jump when the writer took over). */
+#character-target-div svg,
+#onfinish-character-target-div svg {
   display: block;
 }
 

@@ -1,1 +1,0 @@
-import{Ct as e}from"./BADBINva.js";e();

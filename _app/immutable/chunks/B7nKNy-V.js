@@ -1,1 +1,0 @@
-import{kt as e}from"./BADBINva.js";var t,n=e((()=>{t=globalThis||self}));export{n,t};

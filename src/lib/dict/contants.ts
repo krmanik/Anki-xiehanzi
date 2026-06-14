@@ -480,9 +480,14 @@ ${PERSISTENCE}
 
 <script>
     var charClass = document.getElementById("char-sim-id").children;
-    var switchIdList = ["text-grid", "text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-breakdown", "text-radical", "text-hsk", "text-freq", "text-examples", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin", "text-stroke-color", "text-outline"];
-    var colorIds = ["text-color-hanzi", "text-color-pinyin"];
-    function colorClassOf(id) { return id == "text-color-hanzi" ? "no-hanzi-color" : "no-pinyin-color"; }
+    var switchIdList = ["text-grid", "text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-breakdown", "text-radical", "text-hsk", "text-freq", "text-examples", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin", "text-ex-color-hanzi", "text-ex-color-pinyin", "text-stroke-color", "text-outline"];
+    var colorIds = ["text-color-hanzi", "text-color-pinyin", "text-ex-color-hanzi", "text-ex-color-pinyin"];
+    function colorClassOf(id) {
+        if (id == "text-color-hanzi") return "no-hanzi-color";
+        if (id == "text-color-pinyin") return "no-pinyin-color";
+        if (id == "text-ex-color-hanzi") return "no-ex-hanzi-color";
+        return "no-ex-pinyin-color";
+    }
 
 ${SIDEBAR_JS}
 
@@ -494,7 +499,6 @@ ${CARD_JS}
         ["text-simple", "Simple meaning", "char_simple"], ["text-meaning", "Meaning", "char_meaning"],
         ["text-breakdown", "Breakdown", "char_breakdown"], ["text-radical", "Radical", "char_radical"],
         ["text-hsk", "HSK level", "char_hsk"], ["text-freq", "Frequency", "char_freq"],
-        ["text-examples", "Examples", "char_examples"],
         ["text-color-hanzi", "Color hanzi"], ["text-color-pinyin", "Color pinyin"],
         ["text-grid", "Grid"], ["text-outline", "Outline"], ["text-stroke-color", "Stroke tone color"]
     ], [
@@ -502,6 +506,15 @@ ${CARD_JS}
         ["stroke-size", "Stroke width", 6, 2, 50],
         ["hint-miss", "Hint after misses", 3, 1, 10]
     ]);
+
+    // Separate "Example sentences" section (matches the non-writer cards): show/hide
+    // examples and control their hanzi / pinyin colour independently. Only rendered
+    // when the card actually has examples (char_examples present).
+    buildToggles("sidebar-toggles", [
+        ["text-examples", "Examples", "char_examples"],
+        ["text-ex-color-hanzi", "Color hanzi", "char_examples"],
+        ["text-ex-color-pinyin", "Color pinyin", "char_examples"]
+    ], null, "Example sentences");
 
     var frontBack = "front";
     function setActive(side) {
@@ -527,6 +540,8 @@ ${CARD_JS}
         if (id == "text-trad") { showHide("#char-trad-id", isShow); showHide(".sep", isShow); }
         if (id == "text-color-hanzi") document.body.classList.toggle("no-hanzi-color", !isShow);
         if (id == "text-color-pinyin") document.body.classList.toggle("no-pinyin-color", !isShow);
+        if (id == "text-ex-color-hanzi") document.body.classList.toggle("no-ex-hanzi-color", !isShow);
+        if (id == "text-ex-color-pinyin") document.body.classList.toggle("no-ex-pinyin-color", !isShow);
     }
 
     function initSwitchPrefs() {

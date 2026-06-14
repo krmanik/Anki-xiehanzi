@@ -342,6 +342,24 @@ describe('buildNoteTemplates — colour defaults', () => {
 		expect(afmt).toContain('no-ex-pinyin-color');
 	});
 
+	it('writing-practice card also gets the "Example sentences" config section', () => {
+		const fields = [...FIELDS, 'Examples'];
+		const tabContent: TabContent = {
+			'Card 1': makeCard(onlySimplifiedFront, [
+				'backwritingComponent',
+				'backDefinitions',
+				'backExamples'
+			])
+		};
+		const { tmpls } = buildNoteTemplates({ fields, tabContent, includeAudio: false, template: tpl() });
+		const afmt = tmpls[0].afmt;
+		expect(afmt).toContain('HanziWriter'); // writer card path
+		expect(afmt).toContain('id="char_examples"');
+		expect(afmt).toContain('null, "Example sentences"');
+		expect(afmt).toContain('"text-ex-color-hanzi", "Color hanzi", "char_examples"');
+		expect(afmt).toContain('"no-ex-hanzi-color", !isShow');
+	});
+
 	it('seeds example colour body classes from the example options', () => {
 		const tabContent: TabContent = { 'Card 1': makeCard(onlySimplifiedFront, allBack) };
 		const off = buildNoteTemplates({

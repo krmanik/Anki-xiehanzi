@@ -1,0 +1,1 @@
+import{c as e,s as t}from"./BADBINva.js";import"./xihTtKlq.js";import{t as n}from"./D24pKz4Q.js";var r=new Set([`$$slots`,`$$events`,`$$legacy`]);function i(i,a){let o=t(a,r),s=[[`path`,{d:`M5 12h14`}],[`path`,{d:`m12 5 7 7-7 7`}]];n(i,e({name:`arrow-right`},()=>o,{get iconNode(){return s}}))}export{i as t};

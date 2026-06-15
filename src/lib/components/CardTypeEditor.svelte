@@ -200,6 +200,7 @@
 			<!-- field editor -->
 			<div>
 				<p class="mb-2 text-xs text-neutral-500">Tick a field to show it on the front and/or back of this card type.</p>
+				<p class="mb-2 border-l-2 border-red-400 pl-2 text-xs text-red-600">Drag a field by its handle to reorder it.</p>
 				<div
 					class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 pb-1 font-mono text-[10px] uppercase tracking-wider text-neutral-400"
 				>

@@ -312,6 +312,7 @@ ${SIDEBAR_JS}
         if (id == "text-zhuyin") showHide(".zhuyin", isShow);
         if (id == "text-sim") showHide("#char-sim-id", isShow);
         if (id == "text-trad") { showHide("#char-trad-id", isShow); showHide(".sep", isShow); }
+        if (id == "text-grid") document.body.classList.toggle("no-grid", !isShow);
         if (id == "text-color-hanzi") document.body.classList.toggle("no-hanzi-color", !isShow);
         if (id == "text-color-pinyin") document.body.classList.toggle("no-pinyin-color", !isShow);
         if (id == "text-ex-color-hanzi") document.body.classList.toggle("no-ex-hanzi-color", !isShow);
@@ -538,6 +539,7 @@ ${CARD_JS}
         if (id == "text-zhuyin") showHide(".zhuyin", isShow);
         if (id == "text-sim") showHide("#char-sim-id", isShow);
         if (id == "text-trad") { showHide("#char-trad-id", isShow); showHide(".sep", isShow); }
+        if (id == "text-grid") document.body.classList.toggle("no-grid", !isShow);
         if (id == "text-color-hanzi") document.body.classList.toggle("no-hanzi-color", !isShow);
         if (id == "text-color-pinyin") document.body.classList.toggle("no-pinyin-color", !isShow);
         if (id == "text-ex-color-hanzi") document.body.classList.toggle("no-ex-hanzi-color", !isShow);
@@ -656,7 +658,7 @@ ${CARD_JS}
     var btnAudio = document.getElementById("btnPlayAudio");
     if (btnAudio) btnAudio.onclick = playAudio;
 
-    var grid_data = \`<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' class='grid-color' id='grid-background-target'><g id="char_grid"><line x1='0' y1='0' x2='100%' y2='100%' stroke='var(--surface4)' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='100%' y1='0' x2='0' y2='100%' stroke='var(--surface4)' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='50%' y1='0' x2='50%' y2='100%' stroke='var(--surface4)' stroke-width='0.7' stroke-dasharray='3 4'/><line x1='0' y1='50%' x2='100%' y2='50%' stroke='var(--surface4)' stroke-width='0.7' stroke-dasharray='3 4'/></g></svg>\`;
+    var grid_data = \`<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' class='grid-color' id='grid-background-target'><g id="char_grid" class="char-grid"><line x1='0' y1='0' x2='100%' y2='100%' stroke='var(--surface4)' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='100%' y1='0' x2='0' y2='100%' stroke='var(--surface4)' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='50%' y1='0' x2='50%' y2='100%' stroke='var(--surface4)' stroke-width='0.7' stroke-dasharray='3 4'/><line x1='0' y1='50%' x2='100%' y2='50%' stroke='var(--surface4)' stroke-width='0.7' stroke-dasharray='3 4'/></g></svg>\`;
 
     var characters = document.getElementById("practice-select").selectedIndex == "0"
         ? document.getElementById('char_sim').textContent
@@ -1098,6 +1100,11 @@ const DECK_CSS =
   background-color: var(--hanzi-grid);
   padding: 2px;
   box-shadow: 0px 0px 10px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* "Grid" toggle hides the dashed guide lines; the writing cell stays. */
+.no-grid .char-grid {
+  display: none;
 }
 
 .stroke-color {

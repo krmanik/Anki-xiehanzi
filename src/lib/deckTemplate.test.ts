@@ -208,6 +208,40 @@ describe('buildNoteTemplates — fields', () => {
 		});
 		expect(withAudio.flds.map((f) => f.name)).toContain('Audio');
 	});
+
+	it('keeps the writer-builtin fields in the model when a card uses the writer, even if deselected', () => {
+		// Repro: writing component on the back, Zhuyin shown on neither side. The
+		// writer template hardcodes {{Zhuyin}}, so the field must stay in the model
+		// or Anki rejects the template ("there is no field called 'Zhuyin'").
+		const back = ['backwritingComponent', 'backDefinitions'];
+		const tabContent: TabContent = { 'Card 1': makeCard(['frontSimplified'], back) };
+		const { flds, tmpls } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		const names = flds.map((f) => f.name);
+		expect(names).toContain('Zhuyin');
+		expect(tmpls[0].afmt).toContain('{{Zhuyin}}');
+		// Every field the writer template references must exist in the model.
+		for (const f of ['Simplified', 'Traditional', 'Pinyin', 'Zhuyin', 'Definitions']) {
+			expect(names).toContain(f);
+		}
+	});
+
+	it('still drops a deselected field when no card uses the writer', () => {
+		const tabContent: TabContent = {
+			'Card 1': makeCard(['frontSimplified'], ['backSimplified', 'backDefinitions'])
+		};
+		const { flds } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(flds.map((f) => f.name)).not.toContain('Zhuyin');
+	});
 });
 
 describe('buildNoteTemplates — per card type', () => {

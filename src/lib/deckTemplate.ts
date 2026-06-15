@@ -660,13 +660,40 @@ export function buildNoteTemplates(opts: {
 }): BuildTemplatesResult {
 	const { tabContent, includeAudio, template } = opts;
 
+	// The writing component's template hardcodes the sim/trad/pinyin/zhuyin divs and
+	// the dictionary (Definitions) card, referencing those fields regardless of the
+	// front/back selection. If a card uses the writer, those fields must stay in the
+	// model or Anki rejects the template ("there is no field called 'Zhuyin'").
+	const WRITER_BUILTIN_FIELDS: string[] = [
+		FIELDS.SIMPLIFIED,
+		FIELDS.TRADITIONAL,
+		FIELDS.PINYIN,
+		FIELDS.ZHUYIN,
+		FIELDS.DEFINITIONS
+	];
+	const writerUsed = Object.values(tabContent).some(
+		(c) => c.front.includes('frontwritingComponent') || c.back.includes('backwritingComponent')
+	);
+
 	// Only ship fields that some card actually uses (front or back). Audio is the
 	// play button gated by includeAudio, never a front/back selection — keep it.
 	// This keeps unselected fields (e.g. example sentences + their fetched data and
 	// sidebar section) out of the deck entirely instead of shipping them hidden.
 	const fields = opts.fields.filter(
-		(f) => f === FIELDS.AUDIO || fieldUsedByAnyCard(tabContent, f)
+		(f) =>
+			f === FIELDS.AUDIO ||
+			fieldUsedByAnyCard(tabContent, f) ||
+			(writerUsed && WRITER_BUILTIN_FIELDS.includes(f))
 	);
+
+	// A writer-builtin field can be missing from opts.fields entirely (removed from
+	// the layout, not just deselected). The hardcoded writer template still emits its
+	// `{{Field}}`, so the field must exist in the model — append any that are absent.
+	if (writerUsed) {
+		for (const f of WRITER_BUILTIN_FIELDS) {
+			if (!fields.includes(f)) fields.push(f);
+		}
+	}
 
 	// Flex order follows the user's layout sequence (chrome + fields, reorderable).
 	const bodyOrder: CardElementId[] = opts.order

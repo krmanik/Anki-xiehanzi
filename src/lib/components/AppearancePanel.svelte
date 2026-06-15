@@ -144,41 +144,34 @@
 		</div>
 
 		{#if !template.mono}
-			<div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
-				<label class="flex items-center gap-2 text-sm">
-					<input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.colorHanzi} /> Color hanzi
-				</label>
-				<label class="flex items-center gap-2 text-sm">
-					<input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.colorPinyin} /> Color pinyin
-				</label>
-				<div class="flex items-center gap-2 text-sm">
-					Palette
-					<button
-						type="button"
-						onclick={() => (showPalettePicker = true)}
-						class="flex items-center gap-2 rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-sm transition hover:border-neutral-900"
-					>
-						<span class="flex gap-0.5">
-							{#each TONE_KEYS as k (k)}
-								<span class="h-3.5 w-3.5 rounded-sm" style="background-color:{palette[k]}"></span>
-							{/each}
-						</span>
-						<span class="font-medium text-neutral-900">{currentPaletteLabel}</span>
-						<ChevronDown size={14} class="-rotate-90 text-neutral-400" />
-					</button>
+			<div class="mt-3 grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-x-6">
+				<span class="text-sm font-medium text-neutral-700">Palette</span>
+				<button
+					type="button"
+					onclick={() => (showPalettePicker = true)}
+					class="flex w-fit items-center gap-2 rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-sm transition hover:border-neutral-900"
+				>
+					<span class="flex gap-0.5">
+						{#each TONE_KEYS as k (k)}
+							<span class="h-4 w-4 rounded-sm" style="background-color:{palette[k]}" title={`Tone ${k}`}></span>
+						{/each}
+					</span>
+					<span class="font-medium text-neutral-900">{currentPaletteLabel}</span>
+					<ChevronDown size={14} class="-rotate-90 text-neutral-400" />
+				</button>
+
+				<span class="text-sm font-medium text-neutral-700">Apply to</span>
+				<div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+					<label class="flex items-center gap-2 text-sm">
+						<input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.colorHanzi} /> Hanzi
+					</label>
+					<label class="flex items-center gap-2 text-sm">
+						<input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.colorPinyin} /> Pinyin
+					</label>
 				</div>
-			</div>
-			<div class="mt-3 flex flex-wrap items-center gap-4">
-				<div class="flex items-center gap-1.5">
-					<span class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">Tones</span>
-					{#each TONE_KEYS as k (k)}
-						<span
-							class="inline-flex h-5 w-5 items-center justify-center rounded text-[10px] font-semibold text-white"
-							style="background-color:{palette[k]}"
-							title={`Tone ${k}`}>{k}</span>
-					{/each}
-				</div>
+
 				{#if template.tonePreset === 'custom'}
+					<span class="self-start pt-1.5 text-sm font-medium text-neutral-700">Custom colors</span>
 					<div class="flex flex-wrap items-center gap-3">
 						{#each TONE_KEYS as k (k)}
 							<label class="flex items-center gap-1 text-xs text-neutral-600">

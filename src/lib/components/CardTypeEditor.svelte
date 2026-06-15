@@ -4,7 +4,9 @@
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
+	import Plus from '@lucide/svelte/icons/plus';
 	import PresetConfirmModal from '$lib/components/PresetConfirmModal.svelte';
+	import PickerModal from '$lib/components/PickerModal.svelte';
 	import { CONTROL_BUTTONS_TOKEN, SEPARATOR_TOKEN } from '$lib/deckTemplate';
 	import { CARD_PRESETS, presetToCard, presetNeedsAudio, type CardPreset } from '$lib/cardPresets';
 	import { newCard, fieldLabels, WRITING } from '$lib/cardEditorModel';
@@ -27,6 +29,8 @@
 	} = $props();
 
 	let pendingPreset = $state<CardPreset | null>(null);
+	// Preset list lives in a picker modal so the front doesn't show all options.
+	let showPresetPicker = $state(false);
 
 	// ---- card-type tabs ----
 	function findNextTabNumber() {
@@ -149,24 +153,41 @@
 	on the front and back. The preview updates live.
 </p>
 
-<div class="mb-4 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
-	<p class="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">
-		Quick start — add a ready-made card type
-	</p>
-	<div class="flex flex-wrap gap-2">
-		{#each CARD_PRESETS as preset (preset.id)}
-			<button
-				type="button"
-				onclick={() => addPreset(preset)}
-				title={preset.description}
-				class="group rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-left transition hover:border-neutral-900 hover:shadow-[3px_3px_0_0_#111]"
-			>
-				<span class="block text-sm font-semibold text-neutral-900">{preset.name}</span>
-				<span class="block max-w-[14rem] text-[11px] leading-snug text-neutral-500">{preset.description}</span>
-			</button>
-		{/each}
-	</div>
+<div class="mb-4 flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+	<button
+		type="button"
+		onclick={() => (showPresetPicker = true)}
+		class="flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-900 hover:shadow-[3px_3px_0_0_#111]"
+	>
+		<Plus size={15} />
+		Add a ready-made card type
+	</button>
+	<span class="text-xs text-neutral-400">Beginner, Writing, HSK Exam &amp; more</span>
 </div>
+
+{#if showPresetPicker}
+	<PickerModal
+		title="Add a card type"
+		subtitle="Pick a ready-made layout — adjust the fields after."
+		onclose={() => (showPresetPicker = false)}
+	>
+		<div class="grid gap-2 sm:grid-cols-2">
+			{#each CARD_PRESETS as preset (preset.id)}
+				<button
+					type="button"
+					onclick={() => {
+						addPreset(preset);
+						showPresetPicker = false;
+					}}
+					class="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-left transition hover:border-neutral-900 hover:shadow-[3px_3px_0_0_#111]"
+				>
+					<span class="block text-sm font-semibold text-neutral-900">{preset.name}</span>
+					<span class="block text-[11px] leading-snug text-neutral-500">{preset.description}</span>
+				</button>
+			{/each}
+		</div>
+	</PickerModal>
+{/if}
 
 <div>
 	<ul class="flex flex-wrap gap-2 border-b border-neutral-200">

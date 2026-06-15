@@ -677,9 +677,13 @@ ${CARD_JS}
         if (!box) return;
         box.innerHTML = "";
         if (onBack) {
+            // Match the finished layout (centered single row) so the placeholder
+            // doesn't flash left-aligned before doPractice centers it.
             box.style.position = "unset";
-            box.style.display = "block";
-            box.style.whiteSpace = "nowrap";
+            box.style.display = "flex";
+            box.style.justifyContent = "center";
+            box.style.flexWrap = "nowrap";
+            box.style.overflow = "auto";
         }
         for (var k = 0; k < characters.length; k++) {
             if (!isHanzi(characters.charCodeAt(k))) continue;
@@ -705,17 +709,32 @@ ${CARD_JS}
 
     function generateHanziOnFinishQuiz(style = "none", finish = false) {
         var drawGrid = document.getElementById('onfinish-character-target-div');
+        if (!drawGrid) return;
         drawGrid.innerHTML = "";
         drawGrid.style = "";
-        drawGrid.style.position = "absolute";
-        drawGrid.style.display = "grid";
         var size = 40;
         if (finish) {
+            // All chars done: one centered row of full-size finished glyphs
+            // (single and multi char alike), scroll only if it overflows.
             size = 100;
             drawGrid.style.position = "unset";
-            drawGrid.style.display = "block";
-            drawGrid.style.whiteSpace = "nowrap";
-            drawGrid.style.overflow = "scroll";
+            drawGrid.style.display = "flex";
+            drawGrid.style.justifyContent = "center";
+            drawGrid.style.flexWrap = "nowrap";
+            drawGrid.style.overflow = "auto";
+        } else {
+            // During writing: stack completed mini-chars in a column that hugs
+            // the left edge of the centered grid. The grid is centered in the
+            // viewport, so its left edge is at (50% - gridWidth/2); right-align
+            // a left-half-width column there so each finished char sits just
+            // beside the grid, not on top of it or at the window's left edge.
+            var half = (parseInt(charWidth, 10) || 200) / 2;
+            drawGrid.style.position = "absolute";
+            drawGrid.style.left = "0";
+            drawGrid.style.width = "calc(50% - " + half + "px)";
+            drawGrid.style.display = "flex";
+            drawGrid.style.flexDirection = "column";
+            drawGrid.style.alignItems = "flex-end";
         }
 
         for (i = 0; i < characters.length; i++) {

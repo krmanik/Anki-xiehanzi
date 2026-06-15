@@ -483,6 +483,7 @@ ${PERSISTENCE}
     var charClass = document.getElementById("char-sim-id").children;
     var switchIdList = ["text-grid", "text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-breakdown", "text-radical", "text-hsk", "text-freq", "text-examples", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin", "text-ex-color-hanzi", "text-ex-color-pinyin", "text-stroke-color", "text-outline"];
     var colorIds = ["text-color-hanzi", "text-color-pinyin", "text-ex-color-hanzi", "text-ex-color-pinyin"];
+    var defaultOff = [];
     function colorClassOf(id) {
         if (id == "text-color-hanzi") return "no-hanzi-color";
         if (id == "text-color-pinyin") return "no-pinyin-color";
@@ -553,9 +554,10 @@ ${CARD_JS}
             if (!cb) continue;
             var dv = document.getElementById(_id.replace("text-", "char_"));
             var stored = Persistence.getItem(frontBack + _id);
-            var on = colorIds.indexOf(_id) != -1 && stored == null
-                ? !document.body.classList.contains(colorClassOf(_id))
-                : stored != "false";
+            var on;
+            if (stored != null) on = stored != "false";
+            else if (colorIds.indexOf(_id) != -1) on = !document.body.classList.contains(colorClassOf(_id));
+            else on = defaultOff.indexOf(_id) == -1;
             cb.checked = on;
             if (on) Persistence.setItem(frontBack + _id, "true");
             if (!drawIds.includes(_id) && dv) {

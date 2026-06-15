@@ -543,6 +543,39 @@ describe('buildNoteTemplates — back field visibility', () => {
 		expect(tmpls[0].afmt).toContain('var defaultOff = ["text-pinyin","text-meaning"]');
 	});
 
+	it('seeds defaultOff on the front-with-chrome template so the front respects deselected fields', () => {
+		// Front shows the dictionary card but not Zhuyin; the control bar pulls in the
+		// full front sidebar, whose `defaultOff` must hide the reading's zhuyin row.
+		const tabContent: TabContent = {
+			'Card 1': makeCard(['frontDefinitions', 'frontControlButtons'], ['backSimplified'])
+		};
+		const { tmpls } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(tmpls[0].qfmt).toContain('"text-zhuyin"');
+		expect(tmpls[0].qfmt).not.toContain('var defaultOff = [];');
+	});
+
+	it('seeds defaultOff on the writer template so deselected zhuyin hides in its dictionary card', () => {
+		// The writing component embeds the dictionary card (with the reading's zhuyin).
+		// With Zhuyin deselected, the writer's defaultOff must list text-zhuyin so it
+		// starts hidden instead of showing regardless of selection.
+		const tabContent: TabContent = {
+			'Card 1': makeCard(['frontSimplified'], ['backwritingComponent', 'backDefinitions'])
+		};
+		const { tmpls } = buildNoteTemplates({
+			fields: FIELDS,
+			tabContent,
+			includeAudio: false,
+			template: tpl()
+		});
+		expect(tmpls[0].afmt).toContain('"text-zhuyin"');
+		expect(tmpls[0].afmt).not.toContain('var defaultOff = [];');
+	});
+
 	it('drops fields that no card uses (e.g. unselected examples) from note + template', () => {
 		const tabContent: TabContent = {
 			'Card 1': makeCard(onlySimplifiedFront, ['backSimplified', 'backDefinitions'])

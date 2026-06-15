@@ -877,10 +877,18 @@ for (var _hide of hideList) {
 		const backBody = `<div class="${ct} card-body">\n${backChrome}${backFieldsHtml}\n</div>`;
 		let AFMT = CONSTANTS.DECK_HTML_BACK.replace('<!--FIELDS-->', backBody);
 
-		const defaultOff = fields
-			.filter((f) => FIELD_DIV[f] && !backSel.includes(`back${f}`))
-			.map((f) => FIELD_TOGGLE[f]);
-		AFMT = AFMT.replace('var defaultOff = [];', `var defaultOff = ${JSON.stringify(defaultOff)};`);
+		// Each side's sidebar defaults: a display field not selected on that side
+		// starts hidden. This also gates the dictionary card's embedded sim/trad/
+		// pinyin/zhuyin (e.g. Zhuyin deselected → the reading's zhuyin row hides via
+		// showHide('.zhuyin')). Applied after the writer block below so it reaches the
+		// final QFMT/AFMT (front-with-chrome and the writer template carry their own
+		// `var defaultOff = []`, not just the back).
+		const defaultOffFor = (sel: string[], prefix: 'front' | 'back') =>
+			fields
+				.filter((f) => FIELD_DIV[f] && !sel.includes(`${prefix}${f}`))
+				.map((f) => FIELD_TOGGLE[f]);
+		const frontDefaultOff = defaultOffFor(frontSel, 'front');
+		const backDefaultOff = defaultOffFor(backSel, 'back');
 
 		// Writing component: independent front and back placement.
 		const writingFront = frontSel.includes('frontwritingComponent');
@@ -959,6 +967,12 @@ for (var _hide of hideList) {
 					? `<div class="${ct}"><div id="back">{{FrontSide}}</div></div>`
 					: writerFor(backSel, 'back');
 		}
+
+		// Seed each side's sidebar defaults on the finalised templates (front-chrome
+		// and writer carry their own `var defaultOff = []`; the back's is in
+		// DECK_HTML_BACK). The plain front has no such var — the replace is a no-op.
+		QFMT = QFMT.replace('var defaultOff = [];', `var defaultOff = ${JSON.stringify(frontDefaultOff)};`);
+		AFMT = AFMT.replace('var defaultOff = [];', `var defaultOff = ${JSON.stringify(backDefaultOff)};`);
 
 		// When Simplified and Traditional are identical, hide the redundant
 		// traditional display so the card shows a single hanzi (runtime check).

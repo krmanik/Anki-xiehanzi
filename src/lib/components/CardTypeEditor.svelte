@@ -117,8 +117,11 @@
 		tabContent = { ...tabContent, [current]: content };
 	}
 
-	// ---- field ordering (drag + up/down) ----
+	// ---- field ordering (pointer drag + up/down) ----
+	// Pointer Events (not HTML5 DnD) so reorder works on touch screens too —
+	// mobile browsers don't emit dragstart/drop from a touch.
 	let dragIndex = $state<number | null>(null);
+	let listEl = $state<HTMLUListElement | null>(null);
 
 	function moveField(index: number, dir: -1 | 1) {
 		const j = index + dir;
@@ -128,12 +131,38 @@
 		order = next;
 	}
 
-	function onFieldDrop(target: number) {
-		if (dragIndex === null || dragIndex === target) return;
+	// Index of the list item under the given client Y, or null.
+	function indexAt(clientY: number): number | null {
+		if (!listEl) return null;
+		const items = listEl.querySelectorAll<HTMLElement>('[data-field-index]');
+		for (const el of items) {
+			const r = el.getBoundingClientRect();
+			if (clientY >= r.top && clientY <= r.bottom) {
+				return Number(el.dataset.fieldIndex);
+			}
+		}
+		return null;
+	}
+
+	function startDrag(index: number, e: PointerEvent) {
+		e.preventDefault();
+		dragIndex = index;
+		(e.target as HTMLElement).setPointerCapture(e.pointerId);
+	}
+
+	function onDragMove(e: PointerEvent) {
+		if (dragIndex === null) return;
+		e.preventDefault();
+		const target = indexAt(e.clientY);
+		if (target === null || target === dragIndex) return;
 		const next = [...order];
 		const [moved] = next.splice(dragIndex, 1);
 		next.splice(target, 0, moved);
 		order = next;
+		dragIndex = target;
+	}
+
+	function endDrag() {
 		dragIndex = null;
 	}
 </script>
@@ -228,20 +257,29 @@
 					<span>Field</span><span class="text-center">Front</span
 					><span class="text-center">Back</span>
 				</div>
-				<ul class="divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+				<ul bind:this={listEl} class="divide-y divide-neutral-200 rounded-lg border border-neutral-200">
 					{#each order as item, index (item)}
 						{@const isChrome = item === CONTROL_BUTTONS_TOKEN || item === SEPARATOR_TOKEN}
 							<li
-								draggable="true"
-								ondragstart={() => (dragIndex = index)}
-								ondragover={(e) => e.preventDefault()}
-								ondrop={() => onFieldDrop(index)}
+								data-field-index={index}
 								class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 py-2 {item === WRITING || isChrome
 									? 'bg-neutral-50'
 									: 'bg-white'} {dragIndex === index ? 'opacity-50' : ''}"
 							>
 								<span class="flex items-center gap-2">
-									<GripVertical size={15} class="cursor-grab text-neutral-300" />
+									<span
+										class="cursor-grab touch-none text-neutral-300"
+										style="touch-action: none;"
+										role="button"
+										tabindex="-1"
+										aria-label="drag to reorder"
+										onpointerdown={(e) => startDrag(index, e)}
+										onpointermove={onDragMove}
+										onpointerup={endDrag}
+										onpointercancel={endDrag}
+									>
+										<GripVertical size={15} />
+									</span>
 									<span class="text-sm">{fieldLabels[item] ?? item}</span>
 									<span class="ml-auto flex flex-col">
 										<button

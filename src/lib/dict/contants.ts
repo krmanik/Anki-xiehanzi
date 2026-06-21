@@ -41,9 +41,6 @@ const MORE_INFO_SIDEBAR =
     <a class="fieldset-item tappable" id="plecoMobile" href="plecoapi://x-callback-url/df?hw={{Simplified}}"><img src="_pleco.png"><small>Pleco</small></a>
     <a class="fieldset-item tappable" href="http://dict.youdao.com/search?q={{Simplified}}"><img src="_youdao.png"><small>Youdao</small></a>
     <a class="fieldset-item tappable" href="https://hanzicraft.com/character/{{Simplified}}"><img src="_hanzicraft.png"><small>HanziCraft</small></a>
-    <a class="fieldset-item tappable" href="https://characterpop.com/characters/{{Simplified}}"><img src="_characterpop.svg"><small>CharacterPop</small></a>
-    <a class="fieldset-item tappable" href="http://rtega.be/chmn/index.php?c={{Simplified}}"><img src="_rtega.png"><small>Rtega</small></a>
-    <a class="fieldset-item tappable" href="https://tatoeba.org/en/sentences/search?from=cmn&query={{Simplified}}&to="><img src="_tatoeba.png"><small>Tatoeba</small></a>
 </div>`;
 
 // Shared sidebar helpers + DOM builders. Building the toggle rows in JS keeps

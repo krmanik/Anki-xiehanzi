@@ -855,12 +855,9 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 	// Image/font media live in /img.
 	const mediaFiles = [
 		'_MaterialIcons-Regular.woff2',
-		'_characterpop.svg',
 		'_hanzicraft.png',
 		'_pleco.png',
-		'_rtega.png',
-		'_youdao.png',
-		'_tatoeba.png'
+		'_youdao.png'
 	];
 
 	// Script media live in /data. Persistence ships with every deck; the writer

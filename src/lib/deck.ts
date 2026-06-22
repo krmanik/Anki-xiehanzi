@@ -76,7 +76,27 @@ export interface Word {
 	Zhuyin: string;
 	Definitions: string;
 	Syllable: string;
-	SimpleMeaning: string;
+	// Direct Method: Chinese-to-Chinese definition (replaces SimpleMeaning)
+	Definition_ZH: string;
+	// Part of Speech tag for dynamic coloring
+	PoS_Tag: string;
+	// Media resources for immersion
+	Media_URL?: string;
+	Image_URL?: string;
+	// Friction control for spaced revelation
+	Friction_Level?: number;
+	// Conceptual scaffolding
+	Radical_Info?: string;
+	Synonyms?: string;
+	Antonyms?: string;
+	Usage_Notes?: string;
+	// Classification & metadata
+	HskLevel?: string | null;
+	Frequency?: string | null;
+	Breakdown?: CharInfo[];
+	// Example sentences (Chinese only, no translation)
+	Examples?: string;
+	Example_Source?: string;
 	// Rich metadata from cedict.db (used by the UI; not part of the apkg fields)
 	commonMeaning: string;
 	pos: string[];
@@ -378,7 +398,9 @@ export async function lookupWord(word: string): Promise<Word> {
 			Zhuyin: fetched.Zhuyin.join(', '),
 			Definitions: fetched.Definitions.join(' │ '),
 			Syllable: fetched.Syllable.join(', '),
-			SimpleMeaning: simpleMeaningOf(fetched.Simplified) || fetched.Definitions.join('; '),
+			// Direct Method: use Definitions as Zh-Zh fallback (no English SimpleMeaning)
+			Definition_ZH: fetched.Definitions.join('; '),
+			PoS_Tag: '',
 			commonMeaning: fetched.Definitions.join('; '),
 			pos: [],
 			dominantPos: '',
@@ -399,7 +421,10 @@ export async function lookupWord(word: string): Promise<Word> {
 		Zhuyin: readings.map((r) => decodeHtmlEntities(r.zhuyin)).join(', '),
 		Definitions: readings.map((r) => r.definition).join(' │ '),
 		Syllable: readings.map((r) => r.syllable).join(', '),
-		SimpleMeaning: simpleMeaningOf(entry.simplified) || entry.commonMeaning,
+		// Direct Method: use common meaning as Zh-Zh definition
+		Definition_ZH: entry.commonMeaning,
+		// PoS tag for dynamic coloring (first/primary POS)
+		PoS_Tag: entry.pos.length > 0 ? entry.pos[0] : '',
 		commonMeaning: entry.commonMeaning,
 		pos: entry.pos,
 		dominantPos: entry.dominantPos,
@@ -424,7 +449,10 @@ export async function lookupWordCedictOnly(word: string): Promise<Word | null> {
 		Zhuyin: readings.map((r) => decodeHtmlEntities(r.zhuyin)).join(', '),
 		Definitions: readings.map((r) => r.definition).join(' │ '),
 		Syllable: readings.map((r) => r.syllable).join(', '),
-		SimpleMeaning: simpleMeaningOf(entry.simplified) || entry.commonMeaning,
+		// Direct Method: use common meaning as Zh-Zh definition
+		Definition_ZH: entry.commonMeaning,
+		// PoS tag for dynamic coloring
+		PoS_Tag: entry.pos.length > 0 ? entry.pos[0] : '',
 		commonMeaning: entry.commonMeaning,
 		pos: entry.pos,
 		dominantPos: entry.dominantPos,
@@ -456,7 +484,10 @@ export async function lookupWordWithFallback(
 			Zhuyin: readings.map((r) => decodeHtmlEntities(r.zhuyin)).join(', '),
 			Definitions: readings.map((r) => r.definition).join(' │ '),
 			Syllable: readings.map((r) => r.syllable).join(', '),
-			SimpleMeaning: simpleMeaningOf(entry.simplified) || entry.commonMeaning,
+			// Direct Method: use common meaning or fallback as Zh-Zh definition
+			Definition_ZH: entry.commonMeaning || fallbackMeaning,
+			// PoS tag for dynamic coloring
+			PoS_Tag: entry.pos.length > 0 ? entry.pos[0] : '',
 			commonMeaning: entry.commonMeaning,
 			pos: entry.pos,
 			dominantPos: entry.dominantPos,
@@ -475,7 +506,9 @@ export async function lookupWordWithFallback(
 		Zhuyin: '',
 		Definitions: fallbackMeaning,
 		Syllable: '',
-		SimpleMeaning: simpleMeaningOf(normalized) || fallbackMeaning,
+		// Direct Method: use fallback as Zh-Zh definition
+		Definition_ZH: fallbackMeaning,
+		PoS_Tag: '',
 		commonMeaning: fallbackMeaning,
 		pos: [],
 		dominantPos: '',
@@ -532,6 +565,9 @@ export type { ExampleSentence };
  * Build the HTML value of every display field for one word, exactly as the
  * exporter writes it into the note. Single source of truth so the preview can
  * substitute the same values into the real card template (no drift).
+ * 
+ * DIRECT METHOD: Replaced SimpleMeaning/English with Definition_ZH (Chinese-to-Chinese),
+ * added PoS_Tag for dynamic coloring, and removed translation from examples.
  */
 export function buildNoteFields(
 	word: Word,
@@ -543,25 +579,25 @@ export function buildNoteFields(
 	const Pinyin = word.Pinyin;
 	const Zhuyin = word.Zhuyin;
 	const Definitions = word.Definitions;
+	// Direct Method: Chinese-to-Chinese definition
+	const Definition_ZH = word.Definition_ZH || Definitions;
+	const PoS_Tag = word.PoS_Tag || '';
 	// "Most common pinyin only" affects ONLY the standalone Pinyin/Zhuyin fields.
 	const top = displayReadings(word, template.commonPinyinOnly);
 	const exOpts = template.exampleOptions ?? DEFAULT_TEMPLATE.exampleOptions;
 
+	// Direct Method: POS chips use PoS_Tag for dynamic coloring class
 	const posChips = word.pos
 		.map((c) => {
 			const dom = c === word.dominantPos ? ' pos-dominant' : '';
-			return `<span class="pos-chip${dom}">${posDisplay(c)}</span>`;
+			// Add data-pos attribute for dynamic coloring in sentences
+			return `<span class="pos-chip${dom}" data-pos="${c}">${posDisplay(c)}</span>`;
 		})
 		.join('');
 
-	// Dedupe: blank the simple meaning when it matches the dictionary text.
-	const norm = (s: string) => s.toLowerCase().replace(/[\s;,│/]+/g, ' ').trim();
-	const dupSimple =
-		norm(word.SimpleMeaning) === norm(Definitions) ||
-		norm(word.SimpleMeaning) === norm(word.commonMeaning);
-	const simpleText = dupSimple ? '' : word.SimpleMeaning || '';
-	const simpleMeaning = simpleText
-		? `<div class="info-card-title">Common Meaning</div><div class="simple-content">${simpleText}</div>`
+	// Direct Method: Definition_ZH is the primary definition (no English simple meaning)
+	const definitionZH = Definition_ZH
+		? `<div class="info-card-title">中文释义</div><div class="simple-content zh-zh-def">${Definition_ZH}</div>`
 		: '';
 
 	// Definitions: one meaning-container per reading (always every reading).
@@ -618,6 +654,7 @@ export function buildNoteFields(
 		? `<div class="info-card-title">Radical</div><div class="radical-row">${radicalChips}</div>`
 		: '';
 
+	// Direct Method: Examples show Chinese only (no translation)
 	const examplesHtml = examples
 		.map((s) => {
 			const parts: string[] = [];
@@ -627,8 +664,7 @@ export function buildNoteFields(
 				parts.push(`<div class="example-sim">${colorizeSentenceHanzi(s.simplified, s.pinyin)}</div>`);
 			if (exOpts.showPinyin)
 				parts.push(`<div class="example-pinyin">${colorizePinyinString(s.pinyin)}</div>`);
-			if (exOpts.showTranslation)
-				parts.push(`<div class="example-translation">${s.translation}</div>`);
+			// Direct Method: No translation shown
 			return `<div class="example-item">${parts.join('')}</div>`;
 		})
 		.join('');
@@ -638,8 +674,12 @@ export function buildNoteFields(
 		Traditional: `〔${Traditional}〕`,
 		Pinyin: top.Pinyin,
 		Zhuyin: top.Zhuyin,
+		// Direct Method: New fields
+		Definition_ZH: definitionZH,
+		PoS_Tag: PoS_Tag,
+		// Legacy fields kept for backward compatibility (can be removed later)
 		PartOfSpeech: posChips,
-		SimpleMeaning: simpleMeaning,
+		SimpleMeaning: '', // Deprecated - use Definition_ZH
 		Definitions: definition.join('\n'),
 		Breakdown: breakdownHtml,
 		Radical: radicalHtml,

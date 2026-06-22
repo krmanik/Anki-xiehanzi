@@ -7,22 +7,46 @@
  *   _anki-persistence.js     review preferences (https://github.com/SimonLammer/anki-persistence)
  *   _hanzi-writer.min.js     stroke animation/quiz engine
  *   _hanzi-writer-data.json  { char: {strokes, medians} } subset for the deck's words
+ *
+ * DIRECT METHOD SCHEMA: Immersion-first design with Zh-Zh definitions,
+ * dynamic PoS coloring, controlled friction reveals, and icon-only UI.
  */
 
 const FIELDS = {
+    // Core character fields
     SIMPLIFIED: 'Simplified',
     TRADITIONAL: 'Traditional',
     PINYIN: 'Pinyin',
     ZHUYIN: 'Zhuyin',
-    PART_OF_SPEECH: 'PartOfSpeech',
-    SIMPLE_MEANING: 'SimpleMeaning',
-    DEFINITIONS: 'Definitions',
-    BREAKDOWN: 'Breakdown',
-    RADICAL: 'Radical',
+    
+    // Direct Method: Chinese-to-Chinese definition (replaces SimpleMeaning/English)
+    DEFINITION_ZH: 'Definition_ZH',
+    
+    // Part of Speech tag for dynamic coloring (e.g., "noun", "verb", "adj")
+    POS_TAG: 'PoS_Tag',
+    
+    // Media resources for immersion
+    MEDIA_URL: 'Media_URL',        // Primary image/GIF URL
+    IMAGE_URL: 'Image_URL',        // Alternate/supplementary image
+    AUDIO: 'Audio',
+    
+    // Friction control for spaced revelation
+    FRICTION_LEVEL: 'Friction_Level',  // 0=none, 1=definition, 2=radicals/synonyms, 3=external dict
+    
+    // Conceptual scaffolding
+    RADICAL_INFO: 'Radical_Info',      // Radical breakdown with meanings
+    SYNONYMS: 'Synonyms',              // Chinese synonyms for conceptual mapping
+    ANTONYMS: 'Antonyms',              // Chinese antonyms for contrast
+    USAGE_NOTES: 'Usage_Notes',        // Zh-Zh usage guidance
+    
+    // Classification & metadata
     HSK_LEVEL: 'HskLevel',
     FREQUENCY: 'Frequency',
+    BREAKDOWN: 'Breakdown',            // Character component breakdown
+    
+    // Example sentences (Chinese only, no translation)
     EXAMPLES: 'Examples',
-    AUDIO: 'Audio',
+    EXAMPLE_SOURCE: 'Example_Source',  // e.g., "Tatoeba", "Zdic"
 };
 
 // Persistence library, loaded from bundled media (works offline, one copy).

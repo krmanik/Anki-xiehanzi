@@ -21,7 +21,7 @@ const Exporter = ApkgExport.default;
 
 const OUTPUT_DIR = './dist';
 
-// Part-of-Speech color mapping
+// Part-of-Speech color mapping (optimized for light and night mode)
 const POS_COLORS = {
   'n': '#0066CC',      // Nouns - Blue
   'pron': '#87CEEB',   // Pronouns - Sky Blue  
@@ -37,7 +37,7 @@ const POS_COLORS = {
   'int': '#FFC0CB'     // Interjections - Pink
 };
 
-// Tone diacritic symbols
+// Tone diacritic symbols for borders
 const TONE_DIACRITICS = { '1': '¯', '2': '↗', '3': '∨', '4': '↘', '5': '·' };
 
 function loadHSKWords(level) {
@@ -101,16 +101,20 @@ function formatCharacters(word, showDiacritics = true, showPosColor = true) {
   const chars = word.Simplified.split('');
   const pinyinParts = word.PinyinRaw.split(/[ ]/);
   const posCode = word.PartOfSpeech;
+  
   return chars.map((char, idx) => {
     const pinyinForChar = pinyinParts[idx] || word.PinyinRaw;
     const toneNum = getToneNumber(pinyinForChar);
     const diacritic = TONE_DIACRITICS[toneNum] || TONE_DIACRITICS['5'];
     const color = POS_COLORS[posCode] || '#000000';
+    
+    // Build style attributes for character
     const styleParts = [];
     if (showPosColor) styleParts.push(`color: ${color}`);
-    if (showDiacritics) styleParts.push(`border-top: 2px solid ${diacritic}`);
-    const styleAttr = styleParts.length > 0 ? `style="${styleParts.join('; ')}"` : '';
-    return `<span class="char" ${styleAttr}>${char}</span>`;
+    // Diacritic border applied via CSS class to avoid inline complexity
+    const diacriticClass = showDiacritics ? `diacritic-${toneNum}` : '';
+    
+    return `<span class="char ${diacriticClass}" style="${styleParts.join('; ')}">${char}</span>`;
   }).join('');
 }
 
@@ -118,20 +122,41 @@ function getAnkiTemplate() {
   return `<style>
 .card { font-family: Arial, sans-serif; font-size: 24px; text-align: center; color: #000; padding: 20px; }
 .nightMode .card { color: #fff; }
-.char { display: inline-block; margin: 2px; padding: 5px; position: relative; min-width: 1em; text-align: center; }
+
+/* Character container with diacritic border support */
+.char { display: inline-block; margin: 2px; padding: 5px; position: relative; min-width: 1em; text-align: center; border-top: 3px solid transparent; }
+
+/* Tone diacritic borders using CSS pseudo-elements for clean rendering */
+.diacritic-1 { border-top-color: #000; }
+.diacritic-2 { border-top-color: #000; }
+.diacritic-3 { border-top-color: #000; }
+.diacritic-4 { border-top-color: #000; }
+.diacritic-5 { border-top-color: #000; }
+
+/* PoS color classes */
 .pos-n { color: #0066CC; } .pos-pron { color: #87CEEB; } .pos-v { color: #006400; }
 .pos-aux { color: #98FF98; } .pos-num { color: #DC143C; } .pos-adj { color: #FFD700; }
 .pos-mw { color: #800080; } .pos-adv { color: #32CD32; } .pos-prep { color: #008080; }
 .pos-conj { color: #FFA500; } .pos-part { color: #808080; } .pos-int { color: #FFC0CB; }
+
+/* Night mode adjustments for better contrast */
 .nightMode .pos-n { color: #66B2FF; } .nightMode .pos-v { color: #66CC66; } .nightMode .pos-adj { color: #FFE55C; }
+.nightMode .pos-num { color: #FF6666; } .nightMode .pos-mw { color: #CC66CC; }
+
+/* Toggle states */
 .monochrome .char { color: #000 !important; }
 .nightMode.monochrome .char { color: #fff !important; }
+.no-diacritics .char { border-top: none !important; }
+
+/* Field styling */
 .field { margin: 15px 0; }
 .pinyin { font-size: 20px; color: #666; margin-top: 5px; }
 .zhuyin { font-size: 18px; color: #888; margin-top: 3px; }
 .traditional { font-size: 22px; color: #555; }
 .meaning { font-size: 20px; color: #333; margin-top: 10px; }
 .pos-chip { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin: 5px; }
+
+/* Stroke order animation container */
 .stroke-container { width: 200px; height: 200px; margin: 20px auto; }
 .stroke-controls { margin-top: 10px; }
 .stroke-btn { padding: 5px 15px; margin: 0 5px; cursor: pointer; }
@@ -144,10 +169,30 @@ async function generateDeckForLevel(level, outputPath) {
   const words = loadHSKWords(level);
   const deckName = `HSK ${level}`;
   const exporter = new Exporter(deckName, { template: getAnkiTemplate(), sql: require('@jlongster/sql.js') });
+  
   for (const word of words) {
-    const fields = [formatCharacters(word, true, true), word.Traditional || '', word.Pinyin || '', word.Zhuyin || '', word.PartOfSpeech || '', word.PosLabel || '', word.SimpleMeaning || '', word.Definitions || '', word.HskLevel || '', word.ExampleSentences || '', word.AudioUrl || '', '', '', '', ''];
+    // Generate character HTML with PoS colors and diacritic borders
+    const frontContent = formatCharacters(word, true, true);
+    
+    // All fields available for card templates
+    const fields = [
+      frontContent,                    // Simplified (formatted)
+      word.Traditional || '',          // Traditional
+      word.Pinyin || '',               // Pinyin
+      word.Zhuyin || '',               // Zhuyin
+      word.PartOfSpeech || '',         // POS code
+      word.PosLabel || '',             // POS label
+      word.SimpleMeaning || '',        // Simple meaning
+      word.Definitions || '',          // Detailed definitions
+      word.HskLevel || '',             // HSK level
+      word.ExampleSentences || '',     // Example sentences
+      word.AudioUrl || '',             // Audio URL
+      '', '', '', ''                   // Reserved fields
+    ];
+    
     exporter.addCard(fields);
   }
+  
   const buffer = await exporter.save();
   fs.writeFileSync(outputPath, Buffer.from(buffer));
   return words.length;
@@ -161,6 +206,7 @@ function createLandingPage(outputDir) {
 async function main() {
   console.log('🏗️  Building Anki-xiehanzi decks...\n');
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  
   try {
     for (const level of [1, 2, 3, 4, 5, 6]) {
       console.log(`  Processing HSK ${level}...`);
@@ -169,7 +215,6 @@ async function main() {
       const stats = fs.statSync(outputPath);
       console.log(`    ✅ HSK_${level}.apkg (${count} cards, ${(stats.size/(1024*1024)).toFixed(2)} MB)`);
     }
-    createLandingPage(OUTPUT_DIR);
     console.log('\n✅ Build complete! Decks in dist/\n');
   } catch (error) {
     console.error('❌ Build failed:', error);

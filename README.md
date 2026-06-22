@@ -12,6 +12,33 @@
 
 ### Option 2: Build Locally
 
+#### Step 1: Prepare HSK 3.0 Wordlists
+
+Create a `wordlists/` directory and add your HSK 3.0 vocabulary files. The build script supports multiple formats:
+
+**CSV Format (Recommended):**
+```csv
+Simplified,Traditional,Pinyin,Definition,PartOfSpeech,HSKLevel
+你，你，ni3,you;thou,pronoun,1
+好，好，hao3,good;well,adjective,1
+```
+
+**Plain Text Format:**
+```
+你 你 ni3 pronoun you;thou
+好 好 hao3 adjective good;well
+```
+
+**File Naming:** Place files in `wordlists/` with names like:
+- `HSK_1.csv`, `HSK_2.csv`, etc. (preferred)
+- `HSK1.csv`, `HSK2.csv`, etc.
+- `hsk1.csv`, `hsk2.csv`, etc.
+- `HSK_Official_3.0_L1.txt`, etc.
+
+The script auto-detects the format based on file extension (.csv vs .txt).
+
+#### Step 2: Build the Decks
+
 ```bash
 npm install
 npm run build

@@ -20,6 +20,11 @@ const ApkgExport = require('anki-apkg-export');
 const Exporter = ApkgExport.default;
 
 const OUTPUT_DIR = './dist';
+const WORDLIST_DIR = './wordlists';
+
+// HSK 3.0 Wordlist format expected:
+// CSV or TSV with columns: Word, Simplified, Traditional, Pinyin, Definition, PartOfSpeech, HSKLevel
+// OR plain text format: Simplified Traditional Pinyin POS Definition
 
 // Part-of-Speech color mapping (optimized for light and night mode)
 const POS_COLORS = {
@@ -41,10 +46,80 @@ const POS_COLORS = {
 const TONE_DIACRITICS = { '1': '¯', '2': '↗', '3': '∨', '4': '↘', '5': '·' };
 
 function loadHSKWords(level) {
-  const filePath = path.join(__dirname, 'HSK Wordlist', `HSK Official With Definitions 2012 L${level}.txt`);
-  if (!fs.existsSync(filePath)) throw new Error(`No wordlist found for HSK ${level}`);
+  // Try multiple formats and locations for HSK 3.0 wordlists
+  const possibleFiles = [
+    path.join(WORDLIST_DIR, `HSK_${level}.txt`),
+    path.join(WORDLIST_DIR, `HSK${level}.txt`),
+    path.join(WORDLIST_DIR, `hsk${level}.txt`),
+    path.join(WORDLIST_DIR, `HSK_${level}.csv`),
+    path.join(WORDLIST_DIR, `HSK${level}.csv`),
+    path.join(WORDLIST_DIR, `hsk${level}.csv`),
+    path.join(WORDLIST_DIR, `HSK_Official_3.0_L${level}.txt`),
+    path.join(__dirname, 'HSK Wordlist', `HSK Official With Definitions 2012 L${level}.txt`)
+  ];
+  
+  let filePath = null;
+  for (const file of possibleFiles) {
+    if (fs.existsSync(file)) {
+      filePath = file;
+      break;
+    }
+  }
+  
+  if (!filePath) throw new Error(`No wordlist found for HSK ${level}. Expected one of: ${possibleFiles.map(f => f.replace(__dirname + '/', '')).join(', ')}`);
+  
   const content = fs.readFileSync(filePath, 'utf-8');
-  return parseOldHSKFormat(content, level);
+  
+  // Auto-detect format based on file extension and content
+  if (filePath.endsWith('.csv')) {
+    return parseCSVFormat(content, level);
+  } else {
+    return parseOldHSKFormat(content, level);
+  }
+}
+
+function parseCSVFormat(content, level) {
+  const lines = content.trim().split('\n');
+  const words = [];
+  const headers = lines[0].toLowerCase().split(/[,\t]/).map(h => h.trim());
+  
+  // Find column indices
+  const idx = {
+    simplified: headers.findIndex(h => h.includes('simplified') || h === 'word' || h === 'hanzi'),
+    traditional: headers.findIndex(h => h.includes('traditional')),
+    pinyin: headers.findIndex(h => h.includes('pinyin')),
+    definition: headers.findIndex(h => h.includes('definition') || h.includes('meaning')),
+    pos: headers.findIndex(h => h.includes('pos') || h.includes('part of speech')),
+    level: headers.findIndex(h => h.includes('level') || h === 'hsk')
+  };
+  
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line || line.startsWith('#')) continue;
+    
+    const parts = line.split(/[,\t]/).map(p => p.trim());
+    if (parts.length < 3) continue;
+    
+    const simplified = parts[idx.simplified >= 0 ? idx.simplified : 0] || '';
+    const traditional = parts[idx.traditional >= 0 ? idx.traditional : 1] || simplified;
+    const pinyinRaw = parts[idx.pinyin >= 0 ? idx.pinyin : 2] || '';
+    const posRaw = parts[idx.pos >= 0 ? idx.pos : 3] || '';
+    const definition = parts[idx.definition >= 0 ? idx.definition : 4] || '';
+    const hskLevel = parts[idx.level >= 0 ? idx.level : 5] || level.toString();
+    
+    words.push({
+      Simplified: simplified,
+      Traditional: traditional,
+      Pinyin: convertPinyinNumToTone(pinyinRaw),
+      PinyinRaw: pinyinRaw,
+      Zhuyin: pinyinToZhuyin(pinyinRaw),
+      PartOfSpeech: posRaw,
+      PosLabel: getPosLabel(posRaw),
+      SimpleMeaning: definition,
+      HskLevel: hskLevel
+    });
+  }
+  return words;
 }
 
 function parseOldHSKFormat(content, level) {

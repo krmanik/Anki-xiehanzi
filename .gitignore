@@ -1,33 +1,11 @@
 ```
-# Build artifacts
-dist/
-*.apkg
-build/
-
 # Dependencies
 node_modules/
-package-lock.json
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-venv/
-env/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
+# Build artifacts
+dist/
+build/
+target/
 
 # Logs
 *.log
@@ -35,33 +13,64 @@ coverage.xml
 # Environment
 .env
 .env.local
-.env.*
-.env~VERSION
+*.env.*
+
+# Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Temporary files
+*.tmp
+*.temp
+*~
+.DS_Store
+Thumbs.db
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
-.DS_Store
-Thumbs.db
 
 # Testing
+.coverage
 coverage/
 htmlcov/
-.coverage
-.pytest_cache/
+.nyc_output/
 .mypy_cache/
+.pytest_cache/
+.tox/
 
 # Distribution / packaging
-.Python
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-.installed.cfg
-lib/
-lib64/
-```dist/
+*.tar.gz
+*.whl
+*.egg-info/
+dist/
+build/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Compression
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+```

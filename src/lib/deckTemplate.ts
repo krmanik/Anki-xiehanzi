@@ -74,7 +74,6 @@ export type CardElementId =
 	| 'pinyin' // Pīnyīn romanization
 	| 'zhuyin' // ㄅㄆㄇㄈ phonetics
 	| 'partOfSpeech' // noun/verb chips
-	| 'simpleMeaning' // short English gloss
 	| 'definitions' // full dictionary entry block
 	| 'breakdown' // per-character breakdown (中→middle, 国→country)
 	| 'radical' // radical chips (国→囗)

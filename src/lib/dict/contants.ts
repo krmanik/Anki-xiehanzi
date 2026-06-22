@@ -19,9 +19,6 @@ const FIELDS = {
     PINYIN: 'Pinyin',
     ZHUYIN: 'Zhuyin',
     
-    // Direct Method: Chinese-to-Chinese definition (replaces SimpleMeaning/English)
-    DEFINITION_ZH: 'Definition_ZH',
-    
     // Part of Speech tag for dynamic coloring (e.g., "noun", "verb", "adj")
     POS_TAG: 'PoS_Tag',
     
@@ -29,11 +26,10 @@ const FIELDS = {
     MEDIA_URL: 'Media_URL',        // Primary image/GIF URL
     IMAGE_URL: 'Image_URL',        // Alternate/supplementary image
     AUDIO: 'Audio',
-    
     // Friction control for spaced revelation
     FRICTION_LEVEL: 'Friction_Level',  // 0=none, 1=definition, 2=radicals/synonyms, 3=external dict
     
-    // Conceptual scaffolding
+    // Conceptual scaffolding (Chinese only)
     RADICAL_INFO: 'Radical_Info',      // Radical breakdown with meanings
     SYNONYMS: 'Synonyms',              // Chinese synonyms for conceptual mapping
     ANTONYMS: 'Antonyms',              // Chinese antonyms for contrast
@@ -44,9 +40,12 @@ const FIELDS = {
     FREQUENCY: 'Frequency',
     BREAKDOWN: 'Breakdown',            // Character component breakdown
     
-    // Example sentences (Chinese only, no translation)
+    // Example sentences (Chinese only)
     EXAMPLES: 'Examples',
     EXAMPLE_SOURCE: 'Example_Source',  // e.g., "Tatoeba", "Zdic"
+    
+    // Chinese-to-Chinese definition (Direct Method core field)
+    DEFINITION_ZH: 'Definition_ZH',
 };
 
 // Persistence library, loaded from bundled media (works offline, one copy).
@@ -313,7 +312,7 @@ ${SIDEBAR_JS}
     buildToggles("sidebar-toggles", [
         ["text-pinyin", "Pinyin"], ["text-zhuyin", "Zhuyin"], ["text-sim", "Simplified"],
         ["text-trad", "Traditional"], ["text-pos", "Part of speech", "char_pos"],
-        ["text-simple", "Simple meaning", "char_simple"], ["text-meaning", "Meaning", "char_meaning"],
+        ["text-meaning", "Definitions", "char_meaning"],
         ["text-breakdown", "Breakdown", "char_breakdown"], ["text-radical", "Radical", "char_radical"],
         ["text-hsk", "HSK level", "char_hsk"], ["text-freq", "Frequency", "char_freq"],
         ["text-color-hanzi", "Color hanzi"], ["text-color-pinyin", "Color pinyin"]
@@ -519,7 +518,7 @@ ${CARD_JS}
     buildToggles("sidebar-toggles", [
         ["text-pinyin", "Pinyin"], ["text-zhuyin", "Zhuyin"], ["text-sim", "Simplified"],
         ["text-trad", "Traditional"], ["text-pos", "Part of speech", "char_pos"],
-        ["text-simple", "Simple meaning", "char_simple"], ["text-meaning", "Meaning", "char_meaning"],
+        ["text-meaning", "Definitions", "char_meaning"],
         ["text-breakdown", "Breakdown", "char_breakdown"], ["text-radical", "Radical", "char_radical"],
         ["text-hsk", "HSK level", "char_hsk"], ["text-freq", "Frequency", "char_freq"],
         ["text-color-hanzi", "Color hanzi"], ["text-color-pinyin", "Color pinyin"],

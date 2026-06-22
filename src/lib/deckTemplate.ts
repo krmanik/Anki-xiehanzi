@@ -132,6 +132,9 @@ export interface TemplateOpts {
 	elementStyles: CardElementStyles; // default per-element overrides for new cards
 	cardTheme: string;      // '' = none, else a CARD_THEME_GROUPS id
 	cardThemeMode: 'auto' | 'light' | 'dark';
+	// Visual representation toggles
+	showToneBadge: boolean; // show tone diacritic badge (border = tone symbol, bg = PoS color)
+	colorizeCharByPos: boolean; // apply PoS color directly to character text
 }
 
 export const DEFAULT_TEMPLATE: TemplateOpts = {
@@ -146,7 +149,9 @@ export const DEFAULT_TEMPLATE: TemplateOpts = {
 	exampleOptions: { ...DEFAULT_EXAMPLE_OPTIONS },
 	elementStyles: {},
 	cardTheme: '',
-	cardThemeMode: 'auto'
+	cardThemeMode: 'auto',
+	showToneBadge: false,
+	colorizeCharByPos: false
 };
 
 // ---------------------------------------------------------------------------
@@ -309,6 +314,42 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		'.pos-chip[data-pos="c"],.pos-chip[data-pos="cc"]{background:#fff3e0;color:#e65100;border-color:#ffcc80;}\n' +
 		'.pos-chip[data-pos="u"],.pos-chip[data-pos="y"]{background:#fafafa;color:#424242;border-color:#bdbdbd;}\n' +
 		'.pos-chip[data-pos="e"],.pos-chip[data-pos="o"]{background:#fce4ec;color:#c2185b;border-color:#f48fb1;}\n' +
+		// Tone diacritic badge: small rounded badge with tone symbol border pattern
+		// and PoS-colored background. Positioned top-right of character container.
+		'.tone-badge{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7em;font-weight:700;color:#fff;border-width:3px;border-style:solid;box-shadow:0 2px 4px rgba(0,0,0,0.2);z-index:10;}\n' +
+		'.tone-badge.tone-1{border-image:repeating-linear-gradient(90deg,#fff 0%,#fff 25%,transparent 25%,transparent 100%) 1;}\n' +
+		'.tone-badge.tone-2{border-image:repeating-linear-gradient(45deg,#fff 0%,#fff 25%,transparent 25%,transparent 100%) 1;}\n' +
+		'.tone-badge.tone-3{border-image:repeating-linear-gradient(135deg,#fff 0%,#fff 25%,transparent 25%,transparent 100%) 1;}\n' +
+		'.tone-badge.tone-4{border-image:repeating-linear-gradient(-45deg,#fff 0%,#fff 25%,transparent 25%,transparent 100%) 1;}\n' +
+		'.tone-badge.tone-5{border-style:dotted;}\n' +
+		// PoS colors for badge backgrounds\n' +
+		'.tone-badge.pos-n,.tone-badge.pos-nr,.tone-badge.pos-ns,.tone-badge.pos-nt,.tone-badge.pos-nz{background:#1565c0;}\n' +
+		'.tone-badge.pos-r{background:#0277bd;}\n' +
+		'.tone-badge.pos-v,.tone-badge.pos-vn{background:#2e7d32;}\n' +
+		'.tone-badge.pos-aux,.tone-badge.pos-mv{background:#00695c;}\n' +
+		'.tone-badge.pos-m,.tone-badge.pos-mg,.tone-badge.pos-mq{background:#c62828;}\n' +
+		'.tone-badge.pos-a,.tone-badge.pos-ad,.tone-badge.pos-an{background:#f9a825;}\n' +
+		'.tone-badge.pos-q,.tone-badge.pos-qt,.tone-badge.pos-qv{background:#6a1b9a;}\n' +
+		'.tone-badge.pos-d{background:#558b2f;}\n' +
+		'.tone-badge.pos-p{background:#006064;}\n' +
+		'.tone-badge.pos-c,.tone-badge.pos-cc{background:#e65100;}\n' +
+		'.tone-badge.pos-u,.tone-badge.pos-y{background:#424242;}\n' +
+		'.tone-badge.pos-e,.tone-badge.pos-o{background:#c2185b;}\n' +
+		// Character container needs relative positioning for absolute badge\n' +
+		'.char-card{position:relative;}\n' +
+		// PoS colorization on character text itself (alternative to badge)\n' +
+		'.colorize-char-by-pos #char_sim.pos-n,.colorize-char-by-pos #char_sim.pos-nr,.colorize-char-by-pos #char_sim.pos-ns,.colorize-char-by-pos #char_sim.pos-nt,.colorize-char-by-pos #char_sim.pos-nz{color:#1565c0;}\n' +
+		'.colorize-char-by-pos #char_sim.pos-r{color:#0277bd;}\n' +
+		'.colorize-char-by-pos #char_sim.pos-v,.colorize-char-by-pos #char_sim.pos-vn{color:#2e7d32;}\n' +
+		'.colorize-char-by-pos #char_sim.pos-aux,.colorize-char-by-pos #char_sim.pos-mv{color:#00695c;}\n' +
+		'.colorize-char-by-pos #char_sim.pos-m,.colorize-char-by-pos #char_sim.pos-mg,.colorize-char-by-pos #char_sim.pos-mq{color:#c62828;}\n' +
+		'.colorize-char-by-pos #char_sim.pos-a,.colorize-char-by-pos #char_sim.pos-ad,.colorize-char-by-pos #char_sim.pos-an{color:#f9a825;}\n' +
+		'.colorize-char-by-pos #char_sim.pos-q,.colorize-char-by-pos #char_sim.pos-qt,.colorize-char-by-pos #char_sim.pos-qv{color:#6a1b9a;}\n' +
+		'.colorize-char-by-pos #char_sim.pos-d{color:#558b2f;}\n' +
+		'.colorize-char-by-pos #char_sim.pos-p{color:#006064;}\n' +
+		'.colorize-char-by-pos #char_sim.pos-c,.colorize-char-by-pos #char_sim.pos-cc{color:#e65100;}\n' +
+		'.colorize-char-by-pos #char_sim.pos-u,.colorize-char-by-pos #char_sim.pos-y{color:#424242;}\n' +
+		'.colorize-char-by-pos #char_sim.pos-e,.colorize-char-by-pos #char_sim.pos-o{color:#c2185b;}\n' +
 		// Metadata badges (HSK level / frequency band) — distinct tinted pills that
 		// sit on the same row as the POS chips (matching box model for alignment).
 		'.meta-badge{display:inline-flex;align-items:center;line-height:1;font-size:0.66em;font-weight:600;letter-spacing:0.02em;padding:5px 11px;margin:0;border-radius:var(--chip-radius,999px);border:1px solid transparent;}\n' +
@@ -361,9 +402,12 @@ export function buildGlobalCss(t: TemplateOpts): string {
 	const palette = resolvePalette(t.tonePreset, t.toneColors ?? STANDARD_TONES);
 	const rootVars = TONE_KEYS.map((k) => `--tone-${k}:${palette[k]};`).join('');
 	css += `:root{${rootVars}}\n`;
-	css += TONE_KEYS.map((k) => `.tone${k}{color:${palette[k]};}`).join('') + '\n';
-	// Example-sentence tone palette (independent of the main card colors).
-	css += TONE_KEYS.map((k) => `.ex-tone${k}{color:${palette[k]};}`).join('') + '\n';
+	// Only emit tone color classes if not using diacritic badges
+	if (!t.showToneBadge) {
+		css += TONE_KEYS.map((k) => `.tone${k}{color:${palette[k]};}`).join('') + '\n';
+		// Example-sentence tone palette (independent of the main card colors).
+		css += TONE_KEYS.map((k) => `.ex-tone${k}{color:${palette[k]};}`).join('') + '\n';
+	}
 
 	// Card theme: emit CSS vars scoped to `.card`; auto mode also emits `.card.night_mode`.
 	if (t.cardTheme) {

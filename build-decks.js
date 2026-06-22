@@ -10,8 +10,8 @@ import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const genanki = require('genanki-js');
-const { Deck, Model, Package } = genanki;
+const ApkgExport = require('anki-apkg-export');
+const Exporter = ApkgExport.default;
 
 const OUTPUT_DIR = './dist';
 
@@ -101,23 +101,48 @@ function createNoteType() {
 
 async function generateDeckForLevel(level, outputPath) {
   const words = loadHSKWords(level);
-  const deck = new Deck(1748352064 + level, `HSK ${level}`, 'Chinese');
-  const model = createNoteType();
+  const deckName = `HSK ${level}`;
   
+  // Create exporter instance
+  const exporter = new Exporter(deckName, {
+    template: getAnkiTemplate(),
+    sql: require('@jlongster/sql.js')
+  });
+  
+  // Add cards
   for (const word of words) {
-    const note = model.newNote();
-    for (const [key, value] of Object.entries(word)) {
-      if (value !== undefined && value !== null) {
-        try { note.fields[key] = String(value); } catch (e) {}
-      }
-    }
-    deck.addNote(note);
+    const fields = [
+      word.Simplified || '',
+      word.Traditional || '',
+      word.Pinyin || '',
+      word.Zhuyin || '',
+      word.PartOfSpeech || '',
+      word.Definitions || '',
+      word.Breakdown || '',
+      word.RadicalInfo || '',
+      word.HskLevel || '',
+      word.Frequency || '',
+      word.ExampleSentences || '',
+      word.AudioUrl || '',
+      word.ImageUrl || '',
+      word.GifUrl || '',
+      word.VideoUrl || ''
+    ];
+    exporter.addCard(fields);
   }
   
-  const pkg = new Package([deck]);
-  const buffer = await pkg.writeToBuffer();
-  fs.writeFileSync(outputPath, buffer);
+  // Generate and save package
+  const buffer = await exporter.save();
+  fs.writeFileSync(outputPath, Buffer.from(buffer));
   return words.length;
+}
+
+function getAnkiTemplate() {
+  // Basic Anki template with all fields
+  return `CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, guid TEXT, mid INTEGER, mod INTEGER, usn INTEGER, tags TEXT, flds TEXT, sfld INTEGER, csum INTEGER, flags INTEGER, data TEXT);
+CREATE TABLE IF NOT EXISTS cards (id INTEGER PRIMARY KEY, guid TEXT, nid INTEGER, did INTEGER, ord INTEGER, mod INTEGER, usn INTEGER, type INTEGER, queue INTEGER, due INTEGER, ivl INTEGER, factor INTEGER, reps INTEGER, lapses INTEGER, left INTEGER, odue INTEGER, odid INTEGER, flags INTEGER, data TEXT);
+CREATE TABLE IF NOT EXISTS col (id INTEGER PRIMARY KEY, crt INTEGER, mod INTEGER, scm INTEGER, ver INTEGER, dty INTEGER, usn INTEGER, ls INTEGER, conf TEXT, models TEXT, decks TEXT, dconf TEXT, tags TEXT);
+INSERT INTO col VALUES(1,0,0,0,11,0,0,0,'{}','{}','{}','{}');`;
 }
 
 function createLandingPage(outputDir) {

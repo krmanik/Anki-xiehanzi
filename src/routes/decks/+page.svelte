@@ -59,8 +59,7 @@
 	<p class="mt-3 max-w-2xl text-neutral-600">
 		Download a ready-made <code class="rounded bg-neutral-100 px-1.5 py-0.5 text-sm">.apkg</code>,
 		then import it in Anki via <strong>File → Import</strong>. Back up your collection with
-		scheduling information first. Or
-		<a class="text-indigo-600 underline underline-offset-2" href="{base}/create">build your own</a>.
+		scheduling information first.
 	</p>
 
 	<div class="mt-10 flex items-baseline justify-between border-b border-neutral-200 pb-2">

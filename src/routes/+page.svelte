@@ -41,9 +41,8 @@
 	];
 
 	const cards = [
-		{ title: 'Import', icon: Download, link: `${base}/decks`, description: 'Download ready-made HSK 3.0 decks for Anki.' },
-		{ title: 'Create', icon: SquarePen, link: `${base}/create`, description: 'Build custom xiehanzi decks from your own words.' },
-		{ title: 'Guide', icon: Book, link: `${base}/docs`, description: 'See features and how to customize the decks.' }
+		{ title: 'Download', icon: Download, link: `${base}/decks`, description: 'Get ready-made HSK 1–9 decks for Anki.' },
+		{ title: 'Guide', icon: Book, link: `${base}/docs`, description: 'See features and how to use the decks.' }
 	];
 </script>
 
@@ -96,20 +95,20 @@
 	</div>
 </section>
 
-<!-- create banner -->
+<!-- download banner -->
 <section class="mx-auto max-w-6xl px-5 pb-16">
 	<div class="flex flex-col items-center gap-4 rounded-2xl bg-neutral-900 px-6 py-12 text-center">
 		<h2 class="max-w-xl text-2xl font-bold tracking-tight text-white sm:text-3xl">
-			Generate your own Anki xiehanzi decks
+			Download ready-made HSK decks
 		</h2>
 		<p class="max-w-md text-neutral-400">
-			Paste words or text, pick fields and card layout, export an <code class="text-neutral-200">.apkg</code>.
+			Get pre-built Anki decks covering HSK 1–9 with audio, pinyin, zhuyin and stroke order.
 		</p>
 		<a
-			href="{base}/create"
+			href="{base}/decks"
 			class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-neutral-900 transition hover:bg-neutral-200"
 		>
-			Create now <ArrowRight size={16} />
+			Browse decks <ArrowRight size={16} />
 		</a>
 	</div>
 </section>

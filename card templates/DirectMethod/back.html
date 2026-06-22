@@ -1,0 +1,302 @@
+<!-- 
+  DIRECT METHOD CARD - BACK TEMPLATE
+  Shows full answer with all context revealed
+-->
+
+<div class="char-container">
+  <div id="char_zhuyin">{{Zhuyin}}</div>
+  <div id="char_pinyin" class="char-pinyin">{{Pinyin}}</div>
+  <div id="char_sim" class="char-card">{{Simplified}}</div>
+  <div id="char_trad" class="char-card">{{Traditional}}</div>
+</div>
+
+<!-- Audio (hidden) -->
+<div id='audio' style='display:none'>{{Audio}}</div>
+
+<!-- Bottom Navigation (Icon Only) -->
+<div class="modal-footer1">
+  <a class="btn" id="btnShowMenu" onclick="openSidebar('sidebar')">
+    <div class="icon">
+      <!-- Menu icon -->
+      <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </div>
+  </a>
+  
+  <a class="btn" id='btnPlayAudio'>
+    <div class="icon">
+      <!-- Play icon -->
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </div>
+  </a>
+  
+  <a class="btn" id='btnMoreOptions' onclick="openSidebar('more-info-sidebar')">
+    <div class="icon">
+      <!-- More vert icon -->
+      <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+    </div>
+  </a>
+</div>
+
+<!-- All Content Revealed on Back -->
+<hr style="margin: var(--space-md) 0; border: none; border-top: 1px solid var(--surface4);">
+
+<!-- Zh-Zh Definition (Always shown on back) -->
+<div class="friction-layer active friction-layer-1" style="margin-bottom: var(--space-sm);">
+  <div class="friction-content">
+    <div class="zh-zh-definition" style="text-align:center;">{{Definition_ZH}}</div>
+  </div>
+</div>
+
+<!-- Example Sentence with PoS Coloring -->
+<div id="sentence-container-back" class="sentence-container">
+  <div class="sentence-label">
+    <!-- Speech bubble icon -->
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+  </div>
+  <div id="colored-sentence-back">{{ColoredSentence}}</div>
+</div>
+
+<!-- Media/Image -->
+<div id="media-container-back" class="media-container" style="display:none;">
+  <img src="{{Media_URL}}" alt="" onerror="this.style.display='none';"/>
+</div>
+
+<!-- Radical Info + Synonyms -->
+<div class="friction-layer active friction-layer-2" style="margin-top: var(--space-sm);">
+  <div class="friction-content">
+    <div class="radical-info">
+      <div class="radical-item">
+        <span class="radical-char">{{Radical_Char}}</span>
+        <span class="radical-label">部首</span>
+      </div>
+      <div class="radical-item">
+        <span class="radical-char">{{Stroke_Count}}</span>
+        <span class="radical-label">笔画</span>
+      </div>
+      <div class="radical-item">
+        <span class="radical-char">{{HSK_Level}}</span>
+        <span class="radical-label">HSK</span>
+      </div>
+    </div>
+    
+    <div style="margin-top: var(--space-sm); padding-top: var(--space-sm); border-top: 1px solid var(--surface4);">
+      <div style="color:var(--text2); font-size:14px; margin-bottom:8px;">近义词</div>
+      <div class="synonym-scale">
+        <span class="synonym-item">{{Synonym1}}</span>
+        <span class="synonym-arrow">→</span>
+        <span class="synonym-item">{{Synonym2}}</span>
+        <span class="synonym-arrow">→</span>
+        <span class="synonym-item">{{Synonym3}}</span>
+      </div>
+    </div>
+    
+    <div style="margin-top: var(--space-sm); padding-top: var(--space-sm); border-top: 1px solid var(--surface4);">
+      <div style="color:var(--text2); font-size:14px; margin-bottom:8px;">反义词</div>
+      <div class="synonym-scale">
+        <span class="synonym-item">{{Antonym1}}</span>
+        <span class="synonym-arrow">↔</span>
+        <span class="synonym-item">{{Antonym2}}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- External Dictionary Links -->
+<div class="friction-layer active friction-layer-3" style="margin-top: var(--space-sm);">
+  <div class="friction-content" style="text-align:center;">
+    <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <a href="{{Zdic_URL}}" target="_blank" class="external-link">
+        <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        汉典
+      </a>
+      <a href="{{Baidu_URL}}" target="_blank" class="external-link">
+        <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        百度
+      </a>
+      <a href="{{Tatoeba_URL}}" target="_blank" class="external-link">
+        <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        Tatoeba
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar Overlay -->
+<div id="sidebar-overlay" class="sidebar-overlay" onclick="closeAllSidebars()"></div>
+
+<!-- Main Sidebar -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <div>
+      <h3 class="brand-title" style="margin:0; color:white;">写汉字</h3>
+      <div class="brand-sub-title" style="color:var(--text2); font-size:14px;">xiě hànzì</div>
+    </div>
+    <button class="close-button" onclick="closeSidebar('sidebar')">✖</button>
+  </div>
+  
+  <section style="margin-bottom: 24px;">
+    <div style="display:flex; gap:12px; justify-content:center;">
+      <div id="text-front" class="input-stack front-back" onclick="setActive('text-front')"
+           style="padding:12px 24px; background:var(--surface1); border-radius:8px; cursor:pointer;">
+        Front
+      </div>
+      <div id="text-back" class="input-stack front-back" onclick="setActive('text-back')"
+           style="padding:12px 24px; background:var(--surface1); border-radius:8px; cursor:pointer;">
+        Back
+      </div>
+    </div>
+  </section>
+  
+  <section style="margin-bottom: 24px;">
+    <div style="text-align:center; margin-bottom:12px; color:var(--text2);">练习模式</div>
+    <select id="practice-select" onchange="setPrefs(this)"
+            style="width:100%; padding:12px; border-radius:8px; border:none; background:var(--surface1); color:var(--text1);">
+      <option value="简">简体 (Simplified)</option>
+      <option value="繁">繁體 (Traditional)</option>
+    </select>
+  </section>
+  
+  <section>
+    <div class="fieldset-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding:8px 0;">
+      <label for="text-pinyin" style="color:var(--text1);">拼音</label>
+      <input type="checkbox" id="text-pinyin" onchange="setPrefs(this)" style="width:20px; height:20px;">
+    </div>
+    
+    <div class="fieldset-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding:8px 0;">
+      <label for="text-sentence" style="color:var(--text1);">例句</label>
+      <input type="checkbox" id="text-sentence" onchange="setPrefs(this)" style="width:20px; height:20px;">
+    </div>
+    
+    <div class="fieldset-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding:8px 0;">
+      <label for="text-colored" style="color:var(--text1);">彩色词性</label>
+      <input type="checkbox" id="text-colored" onchange="setPrefs(this)" style="width:20px; height:20px;">
+    </div>
+    
+    <div class="fieldset-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding:8px 0;">
+      <label for="text-media" style="color:var(--text1);">图片</label>
+      <input type="checkbox" id="text-media" onchange="setPrefs(this)" style="width:20px; height:20px;">
+    </div>
+  </section>
+</div>
+
+<!-- More Info Sidebar -->
+<div id="more-info-sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <h3 style="margin:0; color:white;">更多信息</h3>
+    <button class="close-button" onclick="closeSidebar('more-info-sidebar')">✖</button>
+  </div>
+  
+  <div style="text-align:left; color:var(--text1); line-height:1.8;">
+    <div><strong>词性:</strong> {{PoS_Tag}}</div>
+    <div><strong>HSK:</strong> {{HSK_Level}}</div>
+    <div><strong>频率:</strong> {{Frequency}}</div>
+    <div><strong>词频等级:</strong> {{Frequency_Rank}}</div>
+    <div style="margin-top:16px;"><strong>组成词:</strong></div>
+    <div>{{Compound_Words}}</div>
+  </div>
+</div>
+
+<script>
+// =====================================================
+// DIRECT METHOD CARD LOGIC (BACK)
+// =====================================================
+
+let hanziWriterInstance = null;
+
+// Initialize on card load
+document.addEventListener('DOMContentLoaded', function() {
+  initSwitchPrefs();
+  setupEventListeners();
+});
+
+// Initialize display preferences from Persistence
+function initSwitchPrefs() {
+  const switches = ['text-pinyin', 'text-sentence', 'text-colored', 'text-media'];
+  
+  switches.forEach(id => {
+    const elem = document.getElementById(id.replace('text-', 'text-'));
+    const saved = Persistence.getItem('back-' + id);
+    
+    if (saved !== null) {
+      elem.checked = saved === 'true';
+    } else {
+      elem.checked = true;
+      Persistence.setItem('back-' + id, 'true');
+    }
+    
+    applyDisplaySetting(id, elem.checked);
+  });
+}
+
+// Apply display setting
+function applyDisplaySetting(id, isChecked) {
+  const elementMap = {
+    'text-pinyin': 'char_pinyin',
+    'text-sentence': 'sentence-container-back',
+    'text-colored': 'colored-sentence-back',
+    'text-media': 'media-container-back'
+  };
+  
+  const targetId = elementMap[id];
+  if (targetId) {
+    const elem = document.getElementById(targetId);
+    if (elem) {
+      elem.style.display = isChecked ? 'block' : 'none';
+    }
+  }
+}
+
+// Setup event listeners
+function setupEventListeners() {
+  // Play audio button
+  document.getElementById('btnPlayAudio').addEventListener('click', playAudio);
+}
+
+// Play audio
+function playAudio() {
+  const audioDiv = document.getElementById('audio');
+  const audio = audioDiv.getElementsByTagName('*');
+  if (audio[0] && audio[0].tagName === 'AUDIO') {
+    audio[0].play();
+  } else {
+    audio[0].click();
+  }
+}
+
+// Sidebar functions
+function openSidebar(id) {
+  document.getElementById(id).classList.add('open');
+  document.getElementById('sidebar-overlay').classList.add('active');
+}
+
+function closeSidebar(id) {
+  document.getElementById(id).classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('active');
+}
+
+function closeAllSidebars() {
+  document.querySelectorAll('.sidebar').forEach(sb => {
+    sb.classList.remove('open');
+  });
+  document.getElementById('sidebar-overlay').classList.remove('active');
+}
+
+// Set active front/back
+function setActive(id) {
+  document.querySelectorAll('.front-back').forEach(el => {
+    el.style.background = 'var(--surface1)';
+  });
+  document.getElementById(id).style.background = 'var(--brand-bg2)';
+}
+
+// Set preferences
+function setPrefs(e) {
+  const perId = 'back-' + e.id;
+  const value = e.type === 'checkbox' ? e.checked.toString() : e.value;
+  Persistence.setItem(perId, value);
+  
+  if (e.type === 'checkbox') {
+    applyDisplaySetting(e.id, e.checked);
+  }
+}
+</script>

@@ -1,0 +1,445 @@
+<!-- 
+  DIRECT METHOD CARD - FRONT TEMPLATE
+  Immersion-focused, icon-only UI
+  Features: Hanzi Writer, PoS coloring, 3-Strike Friction
+-->
+
+<div class="char-container">
+  <div id="char_pinyin" class="char-pinyin">{{Pinyin}}</div>
+  <div id="char_sim" class="char-card">{{Simplified}}</div>
+  <div id="char_trad" class="char-card">{{Traditional}}</div>
+</div>
+
+<!-- Hanzi Writer Canvas -->
+<div id="character-target-div" class="tappable"></div>
+<div id="ch_load_status" style="color:#ea2322; margin-top: -36px; display: none;">•</div>
+
+<!-- Audio (hidden) -->
+<div id='audio' style='display:none'>{{Audio}}</div>
+
+<!-- Example Sentence with PoS Coloring -->
+<div id="sentence-container" class="sentence-container" style="display:none;">
+  <div class="sentence-label">
+    <!-- Speech bubble icon -->
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+  </div>
+  <div id="colored-sentence">{{ColoredSentence}}</div>
+</div>
+
+<!-- Media/Image Container -->
+<div id="media-container" class="media-container" style="display:none;">
+  <img src="{{Media_URL}}" alt="" onerror="this.style.display='none'; document.querySelector('.media-placeholder').style.display='block';"/>
+  <div class="media-placeholder" style="display:none;">图片不可用</div>
+</div>
+
+<!-- 3-Strike Friction Reveal System -->
+<div class="friction-container">
+  <!-- Layer 1: Zh-Zh Definition + Image -->
+  <div id="friction-layer-1" class="friction-layer friction-layer-1">
+    <div class="friction-content">
+      <div class="zh-zh-definition">{{Definition_ZH}}</div>
+      <div id="layer1-image" style="margin-top:12px;"></div>
+    </div>
+  </div>
+  
+  <!-- Layer 2: Radical Info + Synonyms -->
+  <div id="friction-layer-2" class="friction-layer friction-layer-2">
+    <div class="friction-content">
+      <div class="radical-info">
+        <div class="radical-item">
+          <span class="radical-char">{{Radical_Char}}</span>
+          <span class="radical-label">部首</span>
+        </div>
+        <div class="radical-item">
+          <span class="radical-char">{{Stroke_Count}}</span>
+          <span class="radical-label">笔画</span>
+        </div>
+      </div>
+      <div class="synonym-scale">
+        <span class="synonym-item">{{Synonym1}}</span>
+        <span class="synonym-arrow">→</span>
+        <span class="synonym-item">{{Synonym2}}</span>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Layer 3: External Dictionary Link -->
+  <div id="friction-layer-3" class="friction-layer friction-layer-3">
+    <div class="friction-content">
+      <a href="{{Zdic_URL}}" target="_blank" class="external-link">
+        <!-- External link icon -->
+        <svg viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        查看词典
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Friction Toggle Button -->
+<button id="friction-toggle" class="friction-toggle" title="Toggle Help">
+  <!-- Lightbulb icon -->
+  <svg viewBox="0 0 24 24"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 017 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/></svg>
+</button>
+
+<!-- Bottom Navigation (Icon Only) -->
+<div class="modal-footer1">
+  <a class="btn" id="btnShowMenu" onclick="openSidebar('sidebar')">
+    <div class="icon">
+      <!-- Menu icon -->
+      <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </div>
+  </a>
+  
+  <a class="btn" id='btnPlayAudio'>
+    <div class="icon">
+      <!-- Play icon -->
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </div>
+  </a>
+  
+  <a class="btn" id='btnRevealChar'>
+    <div class="icon">
+      <!-- Gesture/Writing icon -->
+      <svg viewBox="0 0 24 24"><path d="M19.48 13.03a4.002 4.002 0 01-7.09 1.61l-1.42 1.42a6.002 6.002 0 0010.62-2.53l-2.11-.5zM16 2h-2.07c-.74 0-1.46.1-2.14.28L10.26 4H16v2h-7.27l-1.4 1.41L9 9.07V11H7v3h2v2H7v2h2v2H5v-2H3v-2h2v-2H3v-2h2V9.07l1.67-1.66L5.21 5.99 6.62 4.58 8.03 6l1.41-1.41L8.03 3.17C8.71 2.99 9.43 2 10.17 2H16v2z"/></svg>
+    </div>
+  </a>
+  
+  <a class="btn" id='btnReloadQuiz'>
+    <div class="icon">
+      <!-- Replay icon -->
+      <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+    </div>
+  </a>
+  
+  <a class="btn" id='btnGoNextCard'>
+    <div class="icon">
+      <!-- Next arrow icon -->
+      <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+    </div>
+  </a>
+  
+  <a class="btn" id='btnMoreOptions' onclick="openSidebar('more-info-sidebar')">
+    <div class="icon">
+      <!-- More vert icon -->
+      <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+    </div>
+  </a>
+</div>
+
+<!-- Sidebar Overlay -->
+<div id="sidebar-overlay" class="sidebar-overlay" onclick="closeAllSidebars()"></div>
+
+<!-- Main Sidebar -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <div>
+      <h3 class="brand-title" style="margin:0; color:white;">写汉字</h3>
+      <div class="brand-sub-title" style="color:var(--text2); font-size:14px;">xiě hànzì</div>
+    </div>
+    <button class="close-button" onclick="closeSidebar('sidebar')">✖</button>
+  </div>
+  
+  <section style="margin-bottom: 24px;">
+    <div style="display:flex; gap:12px; justify-content:center;">
+      <div id="text-front" class="input-stack front-back" onclick="setActive('text-front')" 
+           style="padding:12px 24px; background:var(--surface1); border-radius:8px; cursor:pointer;">
+        Front
+      </div>
+      <div id="text-back" class="input-stack front-back" onclick="setActive('text-back')"
+           style="padding:12px 24px; background:var(--surface1); border-radius:8px; cursor:pointer;">
+        Back
+      </div>
+    </div>
+  </section>
+  
+  <section style="margin-bottom: 24px;">
+    <div style="text-align:center; margin-bottom:12px; color:var(--text2);">练习模式</div>
+    <select id="practice-select" onchange="setPrefs(this)" 
+            style="width:100%; padding:12px; border-radius:8px; border:none; background:var(--surface1); color:var(--text1);">
+      <option value="简">简体 (Simplified)</option>
+      <option value="繁">繁體 (Traditional)</option>
+    </select>
+  </section>
+  
+  <section>
+    <div class="fieldset-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding:8px 0;">
+      <label for="text-pinyin" style="color:var(--text1);">拼音</label>
+      <input type="checkbox" id="text-pinyin" onchange="setPrefs(this)" style="width:20px; height:20px;">
+    </div>
+    
+    <div class="fieldset-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding:8px 0;">
+      <label for="text-sentence" style="color:var(--text1);">例句</label>
+      <input type="checkbox" id="text-sentence" onchange="setPrefs(this)" style="width:20px; height:20px;">
+    </div>
+    
+    <div class="fieldset-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding:8px 0;">
+      <label for="text-colored" style="color:var(--text1);">彩色词性</label>
+      <input type="checkbox" id="text-colored" onchange="setPrefs(this)" style="width:20px; height:20px;">
+    </div>
+    
+    <div class="fieldset-item" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding:8px 0;">
+      <label for="text-media" style="color:var(--text1);">图片</label>
+      <input type="checkbox" id="text-media" onchange="setPrefs(this)" style="width:20px; height:20px;">
+    </div>
+  </section>
+</div>
+
+<!-- More Info Sidebar -->
+<div id="more-info-sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <h3 style="margin:0; color:white;">更多信息</h3>
+    <button class="close-button" onclick="closeSidebar('more-info-sidebar')">✖</button>
+  </div>
+  
+  <div style="text-align:left; color:var(--text1); line-height:1.8;">
+    <div><strong>词性:</strong> {{PoS_Tag}}</div>
+    <div><strong>HSK:</strong> {{HSK_Level}}</div>
+    <div><strong>频率:</strong> {{Frequency}}</div>
+    <div style="margin-top:16px;"><strong>反义词:</strong></div>
+    <div>{{Antonym1}}, {{Antonym2}}</div>
+  </div>
+</div>
+
+<script>
+// =====================================================
+// DIRECT METHOD CARD LOGIC
+// =====================================================
+
+// State management
+let currentFrictionLevel = 0;
+let frictionEnabled = false;
+let hanziWriterInstance = null;
+
+// Initialize on card load
+document.addEventListener('DOMContentLoaded', function() {
+  initSwitchPrefs();
+  initHanziWriter();
+  initFrictionSystem();
+  setupEventListeners();
+});
+
+// Initialize display preferences from Persistence
+function initSwitchPrefs() {
+  const switches = ['text-pinyin', 'text-sentence', 'text-colored', 'text-media'];
+  
+  switches.forEach(id => {
+    const elem = document.getElementById(id);
+    const saved = Persistence.getItem('front-' + id);
+    
+    if (saved !== null) {
+      elem.checked = saved === 'true';
+    } else {
+      elem.checked = true; // Default to shown
+      Persistence.setItem('front-' + id, 'true');
+    }
+    
+    applyDisplaySetting(id, elem.checked);
+  });
+}
+
+// Apply display setting
+function applyDisplaySetting(id, isChecked) {
+  const elementMap = {
+    'text-pinyin': 'char_pinyin',
+    'text-sentence': 'sentence-container',
+    'text-colored': 'colored-sentence',
+    'text-media': 'media-container'
+  };
+  
+  const targetId = elementMap[id];
+  if (targetId) {
+    const elem = document.getElementById(targetId);
+    if (elem) {
+      elem.style.display = isChecked ? 'block' : 'none';
+    }
+  }
+}
+
+// Initialize Hanzi Writer
+function initHanziWriter() {
+  const targetDiv = document.getElementById('character-target-div');
+  const simplified = '{{Simplified}}';
+  
+  if (typeof HanziWriter !== 'undefined' && simplified) {
+    hanziWriterInstance = HanziWriter.create(targetDiv, simplified, {
+      width: 300,
+      height: 300,
+      padding: 5,
+      showOutline: true,
+      strokeAnimationSpeed: 1,
+      delayBetweenStrokes: 200,
+      radicalColor: '#d32f2f',
+      strokeColor: '#333'
+    });
+  }
+}
+
+// Initialize Friction System
+function initFrictionSystem() {
+  const toggle = document.getElementById('friction-toggle');
+  
+  // Load saved state
+  const savedState = Persistence.getItem('friction-enabled');
+  if (savedState === 'true') {
+    frictionEnabled = true;
+    toggle.classList.add('active');
+  }
+  
+  // Hide all layers initially
+  hideAllFrictionLayers();
+}
+
+// Setup event listeners
+function setupEventListeners() {
+  // Play audio button
+  document.getElementById('btnPlayAudio').addEventListener('click', playAudio);
+  
+  // Reveal character (Hanzi Writer quiz)
+  document.getElementById('btnRevealChar').addEventListener('click', revealCharacter);
+  
+  // Reload quiz
+  document.getElementById('btnReloadQuiz').addEventListener('click', reloadQuiz);
+  
+  // Next card
+  document.getElementById('btnGoNextCard').addEventListener('click', nextCard);
+  
+  // Friction toggle
+  document.getElementById('friction-toggle').addEventListener('click', toggleFriction);
+}
+
+// Play audio
+function playAudio() {
+  const audioDiv = document.getElementById('audio');
+  const audio = audioDiv.getElementsByTagName('*');
+  if (audio[0] && audio[0].tagName === 'AUDIO') {
+    audio[0].play();
+  } else {
+    audio[0].click();
+  }
+}
+
+// Reveal character for writing
+function revealCharacter() {
+  if (hanziWriterInstance) {
+    hanziWriterInstance.quiz({
+      onMistake: function(strokeData) {
+        // Optional: vibrate on mobile
+        if (navigator.vibrate) navigator.vibrate(50);
+      },
+      onCorrectStroke: function(strokeData) {
+        // Optional: success feedback
+      }
+    });
+  }
+}
+
+// Reload quiz
+function reloadQuiz() {
+  if (hanziWriterInstance) {
+    hanziWriterInstance.animateCharacter();
+    setTimeout(() => {
+      revealCharacter();
+    }, 1000);
+  }
+}
+
+// Next card (Anki default behavior)
+function nextCard() {
+  if (typeof pycmd === 'function') {
+    pycmd('answer');
+  }
+}
+
+// Toggle friction help system
+function toggleFriction() {
+  frictionEnabled = !frictionEnabled;
+  const toggle = document.getElementById('friction-toggle');
+  
+  if (frictionEnabled) {
+    toggle.classList.add('active');
+    currentFrictionLevel = 1;
+    showFrictionLayer(1);
+  } else {
+    toggle.classList.remove('active');
+    hideAllFrictionLayers();
+    currentFrictionLevel = 0;
+  }
+  
+  Persistence.setItem('friction-enabled', frictionEnabled.toString());
+}
+
+// Show friction layer
+function showFrictionLayer(level) {
+  hideAllFrictionLayers();
+  
+  if (level >= 1 && level <= 3) {
+    const layer = document.getElementById('friction-layer-' + level);
+    if (layer) {
+      layer.classList.add('active');
+    }
+  }
+}
+
+// Hide all friction layers
+function hideAllFrictionLayers() {
+  for (let i = 1; i <= 3; i++) {
+    const layer = document.getElementById('friction-layer-' + i);
+    if (layer) {
+      layer.classList.remove('active');
+    }
+  }
+}
+
+// Cycle through friction levels on click when enabled
+document.addEventListener('click', function(e) {
+  if (!frictionEnabled) return;
+  
+  // Don't cycle if clicking buttons or sidebar
+  if (e.target.closest('.btn') || 
+      e.target.closest('.sidebar') || 
+      e.target.closest('.friction-toggle') ||
+      e.target.closest('#character-target-div')) {
+    return;
+  }
+  
+  currentFrictionLevel = (currentFrictionLevel % 3) + 1;
+  showFrictionLayer(currentFrictionLevel);
+});
+
+// Sidebar functions
+function openSidebar(id) {
+  document.getElementById(id).classList.add('open');
+  document.getElementById('sidebar-overlay').classList.add('active');
+}
+
+function closeSidebar(id) {
+  document.getElementById(id).classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('active');
+}
+
+function closeAllSidebars() {
+  document.querySelectorAll('.sidebar').forEach(sb => {
+    sb.classList.remove('open');
+  });
+  document.getElementById('sidebar-overlay').classList.remove('active');
+}
+
+// Set active front/back
+function setActive(id) {
+  document.querySelectorAll('.front-back').forEach(el => {
+    el.style.background = 'var(--surface1)';
+  });
+  document.getElementById(id).style.background = 'var(--brand-bg2)';
+}
+
+// Set preferences
+function setPrefs(e) {
+  const perId = 'front-' + e.id;
+  const value = e.type === 'checkbox' ? e.checked.toString() : e.value;
+  Persistence.setItem(perId, value);
+  
+  if (e.type === 'checkbox') {
+    applyDisplaySetting(e.id, e.checked);
+  }
+}
+</script>

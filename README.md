@@ -1,46 +1,30 @@
 # Anki xiě hànzì (写汉字)
 
 > Learn, read, write and pronounce Mandarin by drawing stroke order in
-> [Anki](https://apps.ankiweb.net/) — with HSK 1–9 audio, pinyin tone colors and
-> a browser-based deck generator.
+> [Anki](https://apps.ankiweb.net/) — with pre-built HSK 1–9 decks featuring
+> audio, pinyin tone colors, and stroke order practice.
 
-🔗 **[krmanik.github.io/Anki-xiehanzi](https://krmanik.github.io/Anki-xiehanzi)**
+🔗 **[tzoalli.github.io/Anki-xiehanzi](https://tzoalli.github.io/Anki-xiehanzi)**
 
 Works in [Anki Desktop](https://apps.ankiweb.net/),
 [AnkiDroid](https://play.google.com/store/apps/details?id=com.ichi2.anki) and
 [AnkiMobile](https://apps.apple.com/us/app/ankimobile-flashcards/id373493387).
 
-<img src="https://raw.githubusercontent.com/krmanik/Anki-xiehanzi/main/static/img/xiehanzi_v2.0.gif" height="450px"></img>
+<img src="https://raw.githubusercontent.com/tzoalli/Anki-xiehanzi/main/static/img/xiehanzi_v2.0.gif" height="450px"></img>
 
-## Two ways to use it
+## Download the decks
 
-1. **Download a ready-made deck** — New HSK (2025) covering HSK 3.0 levels 1–9. See below.
-2. **Build your own** — the [Create](https://krmanik.github.io/Anki-xiehanzi/create)
-   tool turns any Chinese words into a custom `.apkg`, in your browser, no account or upload.
+Ready-made Anki decks for HSK 3.0 levels 1–9:
 
----
-
-## Download the deck — New HSK (2025-11)
-
-- [Anki-xiehanzi — New HSK (2025).apkg](https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.3/Anki-xiehanzi.-.New.HSK.2025.apkg)
-- [Anki-xiehanzi — New HSK (2025) with sentences.apkg](https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.3/Anki-xiehanzi.-.New.HSK.2025.with.sentences.apkg)
+- **HSK 1–9 Vocabulary** — Frequency-sorted characters with stroke order, audio, and definitions
+- **With Example Sentences** — Same vocabulary plus contextual example sentences
 
 Import via **File → Import** in Anki.
 
 > [!WARNING]
 > Make a backup of your collection (with scheduling information) before importing.
 
-## Build your own deck — Create tool
-
-[**krmanik.github.io/Anki-xiehanzi/create**](https://krmanik.github.io/Anki-xiehanzi/create)
-
-Generate a deck from typed words, pasted paragraphs, an uploaded file, or a full
-HSK / BCT / YCT level. The tool segments the text, looks up each word in
-CC-CEDICT, lets you customize card types, fields and appearance with a live
-preview, then exports a self-contained `.apkg` (audio, fonts and stroke data
-bundled — works offline once imported). Everything runs client-side.
-
-See [Export a Deck](https://krmanik.github.io/Anki-xiehanzi/docs/export-deck) for the walkthrough.
+---
 
 ## Features
 
@@ -48,23 +32,23 @@ See [Export a Deck](https://krmanik.github.io/Anki-xiehanzi/docs/export-deck) fo
 - Simplified **and** traditional characters
 - Pinyin (tone-marked) and Zhuyin (Bopomofo), with tone colors
 - Colored strokes and characters
-- HSK 1–9 audio plus text-to-speech
+- HSK 1–9 audio pronunciation
 - CC-CEDICT definitions, part of speech, radical, breakdown, HSK level and frequency
-- Smart example sentences
+- Smart example sentences (optional deck variant)
 - Night mode; adjustable character size and stroke width
 - Show / hide Simplified, Traditional, Pinyin or Meaning per card
 - Decks sorted in frequency order
 - External lookups: [Pleco](https://www.pleco.com/),
   [HanziCraft](https://hanzicraft.com/),
   [mnemonics](http://rtega.be/chmn/)
-- Load indicator at the bottom (`green = loaded, red = error / not loaded`)
+- Works offline once imported
 
 > Some setting changes take effect on the next card.
 
 ## Docs
 
-[View the docs](https://krmanik.github.io/Anki-xiehanzi/docs/intro) — features,
-studying tips, exporting a deck, and FAQ.
+[View the docs](https://tzoalli.github.io/Anki-xiehanzi/docs/intro) — features,
+studying tips, and FAQ.
 
 ---
 
@@ -122,20 +106,11 @@ library. Its character and stroke-order data is derived from
 
 This is a JavaScript implementation that works because Anki renders flashcards in
 a webview. It may not work on every device. Make backups (with scheduling
-information) before importing. Some audio files are missing; they can be
-regenerated with text-to-speech using
-[gtts-textToMp3](https://github.com/krmanik/gtts-textToMp3).
-
-## Build a word list
-
-- [Anki Chinese Vocabulary Generator](https://github.com/krmanik/Anki-Chinese-Vocabulary-Generator)
-- [Vocabulary](https://simplezhongwen.blogspot.com/search/label/vocabulary)
+information) before importing.
 
 ## Contribute
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) or the
-[Contributing](https://krmanik.github.io/Anki-xiehanzi/docs/contributing) docs
-page. Wrong word, pinyin or meaning? Those live in the
+Wrong word, pinyin or meaning? Those live in the
 [HSK-3.0-words-list](https://github.com/krmanik/HSK-3.0-words-list) submodule —
 fix them there.
 
@@ -144,7 +119,7 @@ More decks by the author: [AnkiWeb](https://ankiweb.net/shared/byauthor/11994382
 ## License
 
 Author: Mani (krmanik). MIT License and GPL 3.0.
-Third-party licenses: [License.md](https://github.com/krmanik/Anki-xiehanzi/blob/master/License.md).
+Third-party licenses: [License.md](https://github.com/tzoalli/Anki-xiehanzi/blob/master/License.md).
 
 ---
 

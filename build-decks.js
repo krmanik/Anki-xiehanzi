@@ -128,38 +128,41 @@ function loadHSKWords(level) {
 function parseCSVFormat(content, level) {
   const lines = content.trim().split('\n');
   const words = [];
-  const headers = lines[0].toLowerCase().split(/[,\t]/).map(h => h.trim());
-  
-  // Find column indices
+  const headers = lines[0].toLowerCase().split(/[,]/).map(h => h.trim());
+
+  // Find column indices - support Zhuyin column
   const idx = {
     simplified: headers.findIndex(h => h.includes('simplified') || h === 'word' || h === 'hanzi'),
     traditional: headers.findIndex(h => h.includes('traditional')),
     pinyin: headers.findIndex(h => h.includes('pinyin')),
+    zhuyin: headers.findIndex(h => h.includes('zhuyin') || h.includes('bopomofo')),
     definition: headers.findIndex(h => h.includes('definition') || h.includes('meaning')),
     pos: headers.findIndex(h => h.includes('pos') || h.includes('part of speech')),
     level: headers.findIndex(h => h.includes('level') || h === 'hsk')
   };
-  
+
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line || line.startsWith('#')) continue;
-    
-    const parts = line.split(/[,\t]/).map(p => p.trim());
+
+    const parts = line.split(/[,]/).map(p => p.trim());
     if (parts.length < 3) continue;
-    
+
     const simplified = parts[idx.simplified >= 0 ? idx.simplified : 0] || '';
     const traditional = parts[idx.traditional >= 0 ? idx.traditional : 1] || simplified;
     const pinyinRaw = parts[idx.pinyin >= 0 ? idx.pinyin : 2] || '';
+    // Use provided Zhuyin if available in CSV, otherwise auto-convert from Pinyin
+    const zhuyinRaw = idx.zhuyin >= 0 && parts[idx.zhuyin] ? parts[idx.zhuyin] : pinyinToZhuyin(pinyinRaw);
     const posRaw = parts[idx.pos >= 0 ? idx.pos : 3] || '';
     const definition = parts[idx.definition >= 0 ? idx.definition : 4] || '';
     const hskLevel = parts[idx.level >= 0 ? idx.level : 5] || level.toString();
-    
+
     words.push({
       Simplified: simplified,
       Traditional: traditional,
       Pinyin: convertPinyinNumToTone(pinyinRaw),
       PinyinRaw: pinyinRaw,
-      Zhuyin: pinyinToZhuyin(pinyinRaw),
+      Zhuyin: zhuyinRaw,
       PartOfSpeech: posRaw,
       PosLabel: getPosLabel(posRaw),
       SimpleMeaning: definition,
@@ -168,6 +171,7 @@ function parseCSVFormat(content, level) {
   }
   return words;
 }
+
 
 function parseOldHSKFormat(content, level) {
   const lines = content.trim().split('\n');

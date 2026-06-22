@@ -1,154 +1,98 @@
-# Anki xiě hànzì (写汉字)
+# 📚 Anki-xiehanzi (写汉字)
 
-> Master Mandarin with **9 specialized card types** for HSK 1–9: stroke order, production, cloze deletion, traditional recognition, and more — featuring audio, pinyin tone colors, part-of-speech color coding, and interactive stroke practice.
+**Pre-built HSK 1-6 Anki flashcard decks** with stroke order, audio, and part-of-speech color coding for learning Mandarin Chinese.
 
-🔗 **[tzoalli.github.io/Anki-xiehanzi](https://tzoalli.github.io/Anki-xiehanzi)**
+## Quick Start
 
-Works in [Anki Desktop](https://apps.ankiweb.net/),
-[AnkiDroid](https://play.google.com/store/apps/details?id=com.ichi2.anki) and
-[AnkiMobile](https://apps.apple.com/us/app/ankimobile-flashcards/id373493387).
+### Option 1: Download Pre-built Decks (Recommended)
 
-<img src="https://raw.githubusercontent.com/tzoalli/Anki-xiehanzi/main/static/img/xiehanzi_v2.0.gif" height="450px"></img>
+1. Visit the [GitHub Releases](https://github.com/tzoalli/Anki-xiehanzi/releases) page
+2. Download the HSK level you want (HSK_1.apkg through HSK_6.apkg)
+3. Import into Anki (File → Import, or double-click the .apkg file)
 
-## Download the decks
+### Option 2: Build Locally
 
-Pre-built Anki decks for HSK 3.0 levels 1–9 with **9 card type options**:
+```bash
+npm install
+npm run build
+```
 
-- **HSK 1–9 Vocabulary** — Choose your learning style: stroke order, meaning recognition, character production, cloze deletion, traditional/simplified conversion, or comprehensive exam prep
-- **With Example Sentences** — Same vocabulary plus contextual example sentences with media hints
+Decks will be generated in the `dist/` folder.
 
-All decks include:
-- ✅ Interactive stroke order practice (Hanzi Writer)
-- ✅ Simplified & Traditional characters
-- ✅ Pinyin (tone-colored) & Zhuyin (Bopomofo)
-- ✅ **Part-of-speech color coding** (12 categories: nouns, verbs, adjectives, etc.)
-- ✅ Native audio pronunciation
-- ✅ CC-CEDICT definitions, radicals, breakdown, HSK level & frequency
-- ✅ Smart example sentences with optional media hints
-- ✅ Customizable field visibility in Anki (toggle Simplified, Traditional, Pinyin, Zhuyin, etc.)
+## Card Types Included
 
-Import via **File → Import** in Anki. After importing, customize which fields appear using Anki's **Tools → Manage Note Types → Fields** (click the eye icon to show/hide).
+Each deck contains 9 different card presets for comprehensive learning:
 
-> [!WARNING]
-> Make a backup of your collection (with scheduling information) before importing.
+| Card Type | Front | Back | Purpose |
+|-----------|-------|------|---------|
+| **Beginner** | Simplified | Pinyin + Simple Meaning | Basic recognition |
+| **Intermediate** | Simplified | Traditional + Pinyin + Details | Character comparison |
+| **Reading** | Simplified + Pinyin | Simple Meaning | Reading comprehension |
+| **Writing** | Simple Meaning | Write Character + Stroke Order | Production practice |
+| **Example Sentences** | Simplified | All info + Examples + Audio | Context learning |
+| **HSK Exam** | Simplified | Complete information | Comprehensive review |
+| **Production** | Meaning + PoS | Character + All details | Active recall |
+| **Cloze Deletion** | Sentence with blank | Full sentence + Answer | Context mastery |
+| **Traditional Recognition** | Traditional | Simplified + Pinyin | Two-way recognition |
+| **Traditional Production** | Simplified + Meaning | Traditional | Writing practice |
 
----
+## Features
 
-## Card Types (9 Presets)
+### 🎨 Part-of-Speech Color Coding
 
-Choose the card type that matches your learning goal:
+Words are color-coded by grammatical category:
 
-| Card Type | Front → Back | Best For |
-|-----------|-------------|----------|
-| **Beginner** | Simplified → Pinyin + Meaning + Audio | Building foundational recognition |
-| **Intermediate** | Simplified → Traditional + Pinyin + Definitions | Connecting character variants |
-| **Reading** | Simplified + Pinyin → Meaning | Quick reading fluency |
-| **Writing** | Meaning → Write Character (stroke order) | Active character production |
-| **Production** *(new)* | Meaning → Write Character (no hints) | Testing recall without cues |
-| **Cloze Deletion** *(new)* | Sentence with blank + Media hint → Full sentence | Contextual learning with audio/visual hints |
-| **Traditional Recognition** *(new)* | Traditional → Simplified + Meaning | Reading traditional texts |
-| **Traditional Production** *(new)* | Simplified → Write Traditional | Writing traditional characters |
-| **Example Sentences** | Simplified → All info + Examples + Audio | Learning usage in context |
-| **HSK Exam** | Comprehensive review (all fields) | Exam preparation & mastery |
+- 🔵 **Nouns** (名词) - Blue
+- 🔷 **Pronouns** (代词) - Sky Blue  
+- 🟢 **Verbs** (动词) - Dark Green
+- 🟩 **Auxiliary Verbs** (助动词) - Mint
+- 🔴 **Numerals** (数词) - Red
+- 🟡 **Adjectives** (形容词) - Yellow
+- 🟣 **Measure Words** (量词) - Purple
+- 🟢 **Adverbs** (副词) - Lime
+- 🔷 **Prepositions** (介词) - Teal
+- 🟠 **Conjunctions** (连词) - Orange
+- ⚫ **Particles** (助词) - Grey
+- 🩷 **Interjections** (叹词) - Pink
 
-### Cloze Deletion Features
-- Fill-in-the-blank sentences with contextual hints
-- Optional audio/image hints for meaning support
-- Perfect for learning vocabulary in natural contexts
+### 🎯 Additional Features
 
-### Part-of-Speech Color Coding
-Words are color-coded by grammatical category for faster pattern recognition:
-- 🔵 **Nouns** (Blue) | 🔷 **Pronouns** (Sky Blue) | 🟢 **Verbs** (Dark Green)
-- 🌿 **Auxiliary Verbs** (Mint) | 🔴 **Numerals** (Red) | 🟡 **Adjectives** (Yellow)
-- 🟣 **Measure Words** (Purple) | 🟩 **Adverbs** (Lime) | 🔷 **Prepositions** (Teal)
-- 🟠 **Conjunctions** (Orange) | ⚫ **Particles** (Grey) | 🩷 **Interjections** (Pink)
+- ✅ Tone colorization (5 tone colors)
+- ✅ Stroke order animations (via Hanzi Writer)
+- ✅ Native audio pronunciation (Edge TTS)
+- ✅ Radical breakdowns
+- ✅ Synonyms & Antonyms
+- ✅ Frequency rankings
+- ✅ HSK level tagging
 
-> Customize field visibility after import: In Anki, go to **Tools → Manage Note Types → Fields** and toggle the eye icon next to any field (Simplified, Traditional, Pinyin, Zhuyin, etc.).
+## Customizing Cards in Anki
 
-## Docs
+All fields are included in every card. To customize what you see:
 
-[View the docs](https://tzoalli.github.io/Anki-xiehanzi/docs/intro) — features,
-studying tips, card type comparisons, and FAQ.
+1. In Anki, go to **Tools** → **Manage Note Types**
+2. Select **"xiehanzi-3.0"**
+3. Click **"Fields..."**
+4. Click the **eye icon** 👁️ next to any field to show/hide it
 
----
+This gives you complete control over card appearance without modifying the deck.
 
-<details>
-<summary><b>Previous decks (2021-03)</b> — five legacy types, click to view</summary>
+## Data Sources
 
-<br/>
-
-### Type 1 (Recommended)
-
-Separate decks for each type:
-1. Stroke order
-2. Meaning
-3. Pinyin / Zhuyin
-4. Pronunciation (audio + Pinyin / Zhuyin)
-
-> Sorted in frequency order. [Download](https://ankiweb.net/shared/info/1351435439)
-
-### Type 2 (Recommended)
-
-Five card types per HSK-level note: stroke order, meaning, pinyin/zhuyin,
-pronunciation, tone marks.
-
-> Sorted in frequency order. [Download](https://ankiweb.net/shared/info/239300382)
-
-### Type 3
-
-Same five card types as Type 2, but sorted in alphabetical pinyin order.
-
-> **Not** frequency-sorted. [Download](https://ankiweb.net/shared/info/1063372083)
-
-### Type 4
-
-Single note type — front: pinyin + meaning; back: writing component.
-
-> **Not** frequency-sorted. [Download](https://ankiweb.net/shared/info/536858343)
-
-### Type 5
-
-HSK 2.0 deck.
-
-> **Not** frequency-sorted. [Download](https://ankiweb.net/shared/info/119943820)
-
-</details>
-
----
-
-## Acknowledgements
-
-Stroke drawing uses the [Hanzi Writer](https://hanziwriter.org) JavaScript
-library. Its character and stroke-order data is derived from
-[Make Me a Hanzi](https://github.com/skishore/makemeahanzi).
-
-Word definitions, part-of-speech tags, and example sentences come from
-[CC-CEDICT](https://www.mdbg.net/chindict/chindict.php?page=cedict).
-
-HSK 3.0 vocabulary lists sourced from
-[HSK-3.0-words-list](https://github.com/tzoalli/HSK-3.0-words-list).
-
-## Disclaimer
-
-This is a JavaScript implementation that works because Anki renders flashcards in
-a webview. It may not work on every device. Make backups (with scheduling
-information) before importing.
-
-## Contribute
-
-Wrong word, pinyin or meaning? Those live in the
-[HSK-3.0-words-list](https://github.com/tzoalli/HSK-3.0-words-list) submodule —
-fix them there.
-
-Want to suggest new card types or report issues? Open an issue on this repo.
-
-More decks by the author: [AnkiWeb](https://ankiweb.net/shared/byauthor/119943820).
+- **CC-CEDICT** - Chinese dictionary (definitions, pronunciations)
+- **HSK Wordlists** - Official HSK 1-6 vocabulary lists
+- **Hanzi Writer** - Stroke order data
+- **Edge TTS** - Text-to-speech audio
 
 ## License
 
-Author: Mani (krmanik). MIT License and GPL 3.0.
-Third-party licenses: [License.md](https://github.com/tzoalli/Anki-xiehanzi/blob/master/License.md).
+GPL-3.0 License - See [License.md](License.md) for details.
 
----
+## Contributing
 
-> Part of the code in this project was generated with AI (Claude Opus 4.8).
+Contributions welcome! Suggestions for:
+- New card types
+- Improved templates
+- Additional HSK levels (7-9)
+- Better PoS tagging
+
+Open an issue or PR on [GitHub](https://github.com/tzoalli/Anki-xiehanzi).

@@ -28,18 +28,20 @@ Each deck contains 9 different card presets for comprehensive learning.
 > - Enable both phonetic systems to see Pinyin + Zhuyin together.
 > - Toggle any field on/off globally via Anki's "Manage Note Types" → "Fields" menu.
 
-| Card Type | Default Front | Default Back | Purpose |
-|-----------|-------|------|---------|
-| **Beginner** | Simplified | Pinyin + Simple Meaning | Basic recognition |
-| **Intermediate** | Simplified | Traditional + Pinyin + Details | Character comparison |
-| **Reading** | Simplified + Pinyin | Simple Meaning | Reading comprehension |
-| **Writing** | Simple Meaning | Write Character + Stroke Order | Production practice |
-| **Example Sentences** | Simplified | All info + Examples + Audio | Context learning |
-| **HSK Exam** | Simplified | Complete information | Comprehensive review |
-| **Production** | Meaning + PoS | Character + All details | Active recall |
-| **Cloze Deletion** | Sentence with blank | Full sentence + Answer | Context mastery |
-| **Traditional Recognition** | Traditional | Simplified + Pinyin | Two-way recognition |
-| **Traditional Production** | Simplified + Meaning | Traditional | Writing practice |
+| Card Type | Character Script (Default) | Phonetic System (Default) | Default Front | Default Back | Purpose |
+|-----------|-------------------|------------------|-------|------|---------|
+| **Beginner** | Simplified | Pinyin | Simplified | Pinyin + Simple Meaning | Basic recognition |
+| **Intermediate** | Simplified | Pinyin | Simplified | Traditional + Pinyin + Details | Character comparison |
+| **Reading** | Simplified | Pinyin | Simplified + Pinyin | Simple Meaning | Reading comprehension |
+| **Writing** | Simplified | None | Simple Meaning | Write Character + Stroke Order | Production practice |
+| **Example Sentences** | Simplified | Pinyin | Simplified | All info + Examples + Audio | Context learning |
+| **HSK Exam** | Simplified | Pinyin | Simplified | Complete information | Comprehensive review |
+| **Production** | Simplified | None | Meaning + PoS | Character + All details | Active recall |
+| **Cloze Deletion** | Simplified | Pinyin | Sentence with blank | Full sentence + Answer | Context mastery |
+| **Traditional Recognition** | Traditional | Pinyin | Traditional | Simplified + Pinyin | Two-way recognition |
+| **Traditional Production** | Simplified | None | Simplified + Meaning | Traditional | Writing practice |
+
+> 💡 **Customization Tip:** You can change any row above! For example, set **Beginner** to show **Both** scripts (Simplified + Traditional) and **Both** phonetic systems (Pinyin + Zhuyin) simultaneously by enabling those fields in Anki.
 
 ## Features
 

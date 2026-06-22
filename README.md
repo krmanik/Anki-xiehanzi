@@ -4,7 +4,7 @@
 1. stroke order animations
 2. audio pronunciation
 3. part-of-speech color coding
-4. 9 card types for comprehensive Mandarin Chinese learning.
+4. card types for comprehensive Mandarin Chinese learning.
 
 ## Quick Start
 
@@ -43,8 +43,7 @@ Each deck contains **9 different card presets** for comprehensive learning.
 
 ## Features
 
-
-### 🎨 Part-of-Speech Color Logic (15 Categories)
+### Part-of-Speech Color Logic (15 Categories)
 
 Words are color-coded by grammatical category following a logical color system:
 
@@ -70,15 +69,24 @@ Words are color-coded by grammatical category following a logical color system:
 
 ### Additional Features
 
-- ✅ **Tone diacritic borders** - Visual tone indicators on characters
-- ✅ **Stroke order animations** - Interactive Hanzi Writer integration with animate & quiz modes
-- ✅ **Audio pronunciation** - Built-in audio player using Youdao TTS
-- ✅ **Pinyin & Zhuyin** - Both phonetic systems included
-- ✅ **Traditional & Simplified** - Both character sets included
-- ✅ **Field toggle buttons** - Monochrome and no-diacritics modes
-- ✅ **Example sentences** - Context learning support
-- ✅ **Cloze deletion** - Fill-in-the-blank cards
-- ✅ **Night mode optimized** - Colors adjusted for dark theme
+- **Tone diacritic borders** - Visual tone indicators on characters
+- **Stroke order animations** - Interactive Hanzi Writer integration with animate & quiz modes
+- **Audio pronunciation** - Built-in audio player using Youdao TTS
+- **Pinyin & Zhuyin** - Both phonetic systems included
+- **Traditional & Simplified** - Both character sets included
+- **Field toggle buttons** - Monochrome and no-diacritics modes
+- **Example sentences** - Context learning support
+- **Cloze deletion** - Fill-in-the-blank cards
+
+
+## Incomplete Features (in development)
+
+The following features mentioned in comments are NOT yet implemented:
+- ❌ Animated stroke order (mentioned in CSS but no Hanzi Writer integration)
+- ❌ Audio pronunciation (fields exist but no TTS generation)
+- ❌ Example sentences (field exists but not populated)
+- ❌ Detailed definitions (separate from SimpleMeaning but not used)
+- ❌ Card types (only basic card generation, templates not defined)
 
 
 ### Toggle Buttons on Cards
@@ -90,6 +98,11 @@ Each card includes toggles to Show/Hide:
 - **Diacritics** - Tone marks
 - **Monochrome** - Part of speech coloring, when on characters willl render according to light or dark mode
 
+#### Supported File Names for wordlists:
+The build script searches for these patterns (in order):
+- `HSK_1.csv`, `HSK_2.csv`, etxc. (preferred)
+- `HSK1.csv`, `HSK2.csv`
+- `hsk1.csv`, `hsk2.csv`
 
 ## CSV Format Specification
 
@@ -102,19 +115,41 @@ Simplified,Traditional,Pinyin,Zhuyin,Definition,PartOfSpeech,HSKLevel
 ```
 
 **Required columns:**
-- `Simplified` - Simplified Chinese characters
-- `Traditional` - Traditional Chinese characters (can be same as Simplified)
-- `Pinyin` - Pinyin with tone numbers (e.g., `ni3`, `hao3`)
-- `Zhuyin` - 
-- `Definition` - English meaning(s), semicolon-separated
-- `PartOfSpeech` - One of 15 categories (English or Chinese):
-  - `n`/`noun`/`名词`, `pron`/`pronoun`/`代词`, `v`/`verb`/`动词`, `aux`/`auxiliary`/`助动词`, 
-  - `num`/`numeral`/`数词`, `adj`/`adjective`/`形容词`, `mw`/`measure`/`量词`, 
-  - `adv`/`adverb`/`副词`, `prep`/`preposition`/`介词`, `conj`/`conjunction`/`连词`, 
-  - `part`/`particle`/`助词`, `int`/`interjection`/`叹词`, `onom`/`onomatopoeia`/`拟声词`, 
-  - `pref`/`prefix`/`前缀`, `suff`/`suffix`/`后缀`
-- `HSKLevel` - HSK level 1-9 (updated for HSK 3.0)
 
+| Column | Required | Description |
+| `HSKLevel` | Yes |HSK 3.0 level 1-9
+| `Simplified` | Yes | Simplified Chinese characters |
+| `Traditional` | Yes | Traditional characters with equivalence mapped to Simplified |
+| `Pinyin` | Yes | Pinyin with tone numbers (e.g., `ni3`) |
+| `Zhuyin` | Yes | Zhuyin with tone markers
+| `PartOfSpeechGeneral` | Yes | One of 15 supported Part of Speech codes for color coding:
+| `PartOfSpeechSpecific` | No | One of 15 supported Part of Speech codes for color coding:
+| `Definition` | No | English definition
+
+***Part of speech supported codes:***
+
+| Code | Equivalence | Description |
+|`noun` | Noun (名词)| 
+|`pronoun` | Pronoun (代词)
+|`verb` | Verb (深绿色)
+| `auxverb` | Auxiliary Verb (薄荷绿)
+| `num` | Numeral (红色)
+| `adj` | Adjective (黄色)
+| `mw` | Measure Word (紫色)
+| `adv` | Adverb (酸橙色)
+| `prep` | Preposition (青色)
+| `conj` | Conjunction (橙色)
+| `part` | Particle (灰色)
+| `int` |  Interjection (粉色)
+
+## Tests 
+
+Build succeeds with sample HSK 1-6 data
+All levels generate .apkg files successfully
+CSV parser correctly processes all fields
+Part-of-speech color coding works
+Pinyin tone conversion works
+Zhuyin conversion works
 
 ## Data Sources
 

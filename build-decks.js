@@ -73,20 +73,58 @@ const CARD_TYPES = {
   }
 };
 
-// Part-of-Speech color mapping (optimized for light and night mode)
+// Part-of-Speech color mapping (15 categories for HSK 3.0)
+// Fallback for unknown POS: black (light mode) / white (dark mode) - NO background
 const POS_COLORS = {
-  'n': '#0066CC',      // Nouns - Blue
-  'pron': '#87CEEB',   // Pronouns - Sky Blue  
-  'v': '#006400',      // Verbs - Dark Green
-  'aux': '#98FF98',    // Auxiliary Verbs - Mint
-  'num': '#DC143C',    // Numerals - Red
-  'adj': '#FFD700',    // Adjectives - Yellow
-  'mw': '#800080',     // Measure Words - Purple
-  'adv': '#32CD32',    // Adverbs - Lime
-  'prep': '#008080',   // Prepositions - Teal
-  'conj': '#FFA500',   // Conjunctions - Orange
-  'part': '#808080',   // Particles - Grey
-  'int': '#FFC0CB'     // Interjections - Pink
+  'n': '#0066CC',      // 名词 Nouns - Blue
+  'pron': '#87CEEB',   // 代词 Pronouns - Sky Blue  
+  'v': '#006400',      // 动词 Verbs - Dark Green
+  'aux': '#98FF98',    // 助动词 Auxiliary Verbs - Mint
+  'num': '#DC143C',    // 数词 Numerals - Red
+  'adj': '#FFD700',    // 形容词 Adjectives - Yellow
+  'mw': '#800080',     // 量词 Measure Words - Purple
+  'adv': '#32CD32',    // 副词 Adverbs - Lime
+  'prep': '#008080',   // 介词 Prepositions - Teal
+  'conj': '#FFA500',   // 连词 Conjunctions - Orange
+  'part': '#808080',   // 助词 Particles - Grey
+  'int': '#FFC0CB',    // 叹词 Interjections - Pink
+  'onom': '#FF00FF',   // 拟声词 Onomatopoeia - Magenta
+  'pref': '#D2B48C',   // 前缀 Prefixes - Tan
+  'suff': '#8B4513'    // 后缀 Suffixes - Brown
+};
+
+// Mapping from Chinese/English POS labels to short codes
+const POS_MAPPING = {
+  // Nouns
+  'noun': 'n', '名词': 'n',
+  // Pronouns
+  'pronoun': 'pron', '代词': 'pron',
+  // Verbs
+  'verb': 'v', '动词': 'v',
+  // Auxiliary Verbs
+  'auxiliary': 'aux', 'aux': 'aux', '助动词': 'aux',
+  // Numerals
+  'numeral': 'num', 'number': 'num', '数词': 'num',
+  // Adjectives
+  'adjective': 'adj', 'adj': 'adj', '形容词': 'adj',
+  // Measure Words
+  'measure': 'mw', 'measure word': 'mw', '量词': 'mw',
+  // Adverbs
+  'adverb': 'adv', 'adv': 'adv', '副词': 'adv',
+  // Prepositions
+  'preposition': 'prep', 'prep': 'prep', '介词': 'prep',
+  // Conjunctions
+  'conjunction': 'conj', 'conj': 'conj', '连词': 'conj',
+  // Particles
+  'particle': 'part', 'part': 'part', '助词': 'part',
+  // Interjections
+  'interjection': 'int', 'int': 'int', '叹词': 'int',
+  // Onomatopoeia
+  'onomatopoeia': 'onom', 'onom': 'onom', '拟声词': 'onom',
+  // Prefixes
+  'prefix': 'pref', 'pref': 'pref', '前缀': 'pref',
+  // Suffixes
+  'suffix': 'suff', 'suff': 'suff', '后缀': 'suff'
 };
 
 // Tone diacritic symbols for borders
@@ -226,17 +264,29 @@ function getToneNumber(pinyin) {
 function formatCharacters(word, showDiacritics = true, showPosColor = true) {
   const chars = word.Simplified.split('');
   const pinyinParts = word.PinyinRaw.split(/[ ]/);
-  const posCode = word.PartOfSpeech;
+  const posRaw = word.PartOfSpeech || '';
+  
+  // Map POS label to short code using POS_MAPPING
+  let posCode = POS_MAPPING[posRaw.toLowerCase().trim()] || null;
   
   return chars.map((char, idx) => {
     const pinyinForChar = pinyinParts[idx] || word.PinyinRaw;
     const toneNum = getToneNumber(pinyinForChar);
     const diacritic = TONE_DIACRITICS[toneNum] || TONE_DIACRITICS['5'];
-    const color = POS_COLORS[posCode] || '#000000';
+    
+    // Get color: use mapped POS code, or fallback to null (no background)
+    const color = posCode ? (POS_COLORS[posCode] || '#000000') : '#000000';
+    const hasBgColor = posCode && POS_COLORS[posCode];
     
     // Build style attributes for character
     const styleParts = [];
-    if (showPosColor) styleParts.push(`color: ${color}`);
+    if (showPosColor && hasBgColor) {
+      styleParts.push(`color: ${color}`);
+      styleParts.push(`background-color: ${color}20`); // 20 = ~12% opacity for subtle bg
+    } else if (showPosColor) {
+      // Fallback: just text color, no background
+      styleParts.push(`color: ${color}`);
+    }
     // Diacritic border applied via CSS class to avoid inline complexity
     const diacriticClass = showDiacritics ? `diacritic-${toneNum}` : '';
     

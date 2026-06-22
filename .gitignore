@@ -64,4 +64,4 @@ venv.bak/
 .installed.cfg
 lib/
 lib64/
-```
+```dist/

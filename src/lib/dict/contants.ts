@@ -48,6 +48,10 @@ const FIELDS = {
     
     // Chinese-to-Chinese definition (Direct Method core field)
     DEFINITION_ZH: 'Definition_ZH',
+    
+    // Cloze deletion fields
+    CLOZE_TEXT: 'ClozeText',           // Sentence with {{c1::word}} cloze markup
+    CLOZE_HINT: 'ClozeHint',           // Optional hint for the cloze (image description, etc.)
 };
 
 // Persistence library, loaded from bundled media (works offline, one copy).

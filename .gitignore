@@ -1,1 +1,0 @@
-Nothing should be ignored based on the provided file changes. The changes consist only of TypeScript/JavaScript source files (.ts, .svelte) and no build artifacts, dependencies, or temporary files that would warrant adding ignore rules.

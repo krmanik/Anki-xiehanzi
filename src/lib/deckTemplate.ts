@@ -293,6 +293,22 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		// HSK / frequency badges on the same row.
 		'.pos-chip{display:inline-flex;align-items:center;line-height:1;font-size:0.66em;font-weight:600;letter-spacing:0.02em;text-transform:var(--pos-chip-transform,none);padding:var(--pos-chip-pad,5px 11px);margin-left:2px;border-radius:var(--chip-radius,999px);background:var(--pos-chip-bg,var(--surface3));color:var(--pos-chip-fg,var(--text2));border:var(--pos-chip-border,1px solid var(--surface4));}\n' +
 		'.pos-chip.pos-dominant{background:var(--chip-bg,var(--text1));color:var(--chip-fg,var(--surface2));border:var(--chip-border,1px solid transparent);border-bottom:var(--pos-dominant-underline,0 solid transparent);}\n' +
+// PoS color coding: nouns (blue), pronouns (sky blue), verbs (dark green),
+		// auxiliary verbs (mint), numerals (red), adjectives (yellow), measure words (purple),
+		// adverbs (lime), prepositions (teal), conjunctions (orange), particles (grey),
+		// interjections (pink). Uses data-pos attribute for dynamic coloring.
+		'.pos-chip[data-pos="n"],.pos-chip[data-pos="nr"],.pos-chip[data-pos="ns"],.pos-chip[data-pos="nt"],.pos-chip[data-pos="nz"]{background:#e3f2fd;color:#1565c0;border-color:#90caf9;}\n' +
+		'.pos-chip[data-pos="r"]{background:#e1f5fe;color:#0277bd;border-color:#81d4fa;}\n' +
+		'.pos-chip[data-pos="v"],.pos-chip[data-pos="vn"]{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7;}\n' +
+		'.pos-chip[data-pos="aux"],.pos-chip[data-pos="mv"]{background:#e0f2f1;color:#00695c;border-color:#80cbc4;}\n' +
+		'.pos-chip[data-pos="m"],.pos-chip[data-pos="mg"],.pos-chip[data-pos="mq"]{background:#ffebee;color:#c62828;border-color:#ef9a9a;}\n' +
+		'.pos-chip[data-pos="a"],.pos-chip[data-pos="ad"],.pos-chip[data-pos="an"]{background:#fffde7;color:#f9a825;border-color:#fff59d;}\n' +
+		'.pos-chip[data-pos="q"],.pos-chip[data-pos="qt"],.pos-chip[data-pos="qv"]{background:#f3e5f5;color:#6a1b9a;border-color:#ce93d8;}\n' +
+		'.pos-chip[data-pos="d"]{background:#f1f8e9;color:#558b2f;border-color:#c5e1a5;}\n' +
+		'.pos-chip[data-pos="p"]{background:#e0f7fa;color:#006064;border-color:#80deea;}\n' +
+		'.pos-chip[data-pos="c"],.pos-chip[data-pos="cc"]{background:#fff3e0;color:#e65100;border-color:#ffcc80;}\n' +
+		'.pos-chip[data-pos="u"],.pos-chip[data-pos="y"]{background:#fafafa;color:#424242;border-color:#bdbdbd;}\n' +
+		'.pos-chip[data-pos="e"],.pos-chip[data-pos="o"]{background:#fce4ec;color:#c2185b;border-color:#f48fb1;}\n' +
 		// Metadata badges (HSK level / frequency band) — distinct tinted pills that
 		// sit on the same row as the POS chips (matching box model for alignment).
 		'.meta-badge{display:inline-flex;align-items:center;line-height:1;font-size:0.66em;font-weight:600;letter-spacing:0.02em;padding:5px 11px;margin:0;border-radius:var(--chip-radius,999px);border:1px solid transparent;}\n' +

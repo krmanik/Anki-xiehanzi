@@ -62,6 +62,34 @@ export const CARD_PRESETS: CardPreset[] = [
 		back: [F.SIMPLIFIED, WRITING, ...CHROME]
 	},
 	{
+		id: 'production',
+		name: 'Production',
+		description: 'Meaning → produce the character (no hints)',
+		front: [F.SIMPLE_MEANING, F.PART_OF_SPEECH],
+		back: [F.SIMPLIFIED, F.TRADITIONAL, F.PINYIN, F.AUDIO, ...CHROME]
+	},
+	{
+		id: 'cloze',
+		name: 'Cloze Deletion',
+		description: 'Fill in the missing character with media hint',
+		front: [F.CLOZE_TEXT, F.CLOZE_HINT],
+		back: [F.CLOZE_TEXT, F.SIMPLIFIED, F.PINYIN, F.SIMPLE_MEANING, F.AUDIO, ...CHROME]
+	},
+	{
+		id: 'traditional-recognition',
+		name: 'Traditional Recognition',
+		description: 'Traditional → Simplified (or vice versa)',
+		front: [F.TRADITIONAL],
+		back: [F.SIMPLIFIED, F.PINYIN, F.SIMPLE_MEANING, ...CHROME]
+	},
+	{
+		id: 'traditional-production',
+		name: 'Traditional Production',
+		description: 'Simplified → write Traditional form',
+		front: [F.SIMPLIFIED],
+		back: [F.TRADITIONAL, F.PINYIN, F.SIMPLE_MEANING, ...CHROME]
+	},
+	{
 		id: 'examples',
 		name: 'Example Sentences',
 		description: 'Hanzi on the front, meaning + example sentences on the back',

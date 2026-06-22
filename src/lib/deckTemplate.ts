@@ -83,7 +83,10 @@ export type CardElementId =
 	| 'exampleSimplified' // sentence simplified line
 	| 'exampleTraditional' // sentence traditional line
 	| 'examplePinyin' // sentence pinyin line
-	| 'exampleTranslation' // sentence translation line
+	| 'wordImage' // static image for word meaning (Unsplash/Pexels)
+	| 'wordGif' // animated GIF for action verbs (Giphy/Tenor)
+	| 'wordVideo' // short video for abstract concepts
+	| 'sentenceVideo' // video of sentence being spoken
 	| 'audio' // audio play button
 	| 'hr' // horizontal rule separators
 	| 'controlButtons'; // sidebar-toggle footer buttons
@@ -158,7 +161,6 @@ const SCOPED_SELECTORS: Record<CardElementId, string> = {
 	pinyin: '#char_pinyin',
 	zhuyin: '#char_zhuyin',
 	partOfSpeech: '#char_pos',
-	simpleMeaning: '#char_simple',
 	definitions: '#char_meaning',
 	breakdown: '#char_breakdown',
 	radical: '#char_radical',
@@ -168,7 +170,10 @@ const SCOPED_SELECTORS: Record<CardElementId, string> = {
 	exampleSimplified: '.example-sim',
 	exampleTraditional: '.example-trad',
 	examplePinyin: '.example-pinyin',
-	exampleTranslation: '.example-translation',
+	wordImage: '.word-image-container',
+	wordGif: '.word-gif-container',
+	wordVideo: '.word-video-container',
+	sentenceVideo: '.sentence-video-container',
 	audio: '#btnPlayAudio',
 	hr: 'hr',
 	controlButtons: '.modal-footer1'
@@ -185,13 +190,16 @@ export const DEFAULT_BODY_ORDER: CardElementId[] = [
 	'pinyin',
 	'zhuyin',
 	'partOfSpeech',
-	'simpleMeaning',
 	'definitions',
+	'wordImage',
+	'wordGif',
+	'wordVideo',
 	'breakdown',
 	'radical',
 	'hskLevel',
 	'frequency',
 	'examples',
+	'sentenceVideo',
 	'audio'
 ];
 
@@ -315,7 +323,10 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		'.example-item{font-size:0.85em;line-height:1.5;padding:var(--example-item-pad,10px 14px);background:var(--example-item-bg,transparent);border:var(--example-item-border,none);border-left:var(--example-item-left,var(--example-item-border,none));border-radius:var(--container-radius,16px);}\n' +
 		'.example-trad,.example-sim{font-size:1em;}\n' +
 		'.example-pinyin{font-size:0.85em;color:var(--text2);margin-top:2px;}\n' +
-		'.example-translation{font-size:0.85em;color:var(--text2);margin-top:1px;}\n' +
+		// Media containers for immersion (Direct Method - no English translations)
+		'.word-image-container,.word-gif-container,.word-video-container,.sentence-video-container{margin:8px auto;width:var(--card-w);max-width:var(--card-w);border-radius:var(--container-radius,12px);overflow:hidden;}\n' +
+		'.word-image-container img,.word-gif-container img{width:100%;height:auto;display:block;border-radius:var(--container-radius,12px);}\n' +
+		'.word-video-container video,.sentence-video-container video{width:100%;height:auto;display:block;border-radius:var(--container-radius,12px);max-height:300px;}\n' +
 		// Example hanzi/pinyin are tone-colored with their OWN `ex-tone*` classes so
 		// the "Example sentences" sidebar section can turn them on/off independently
 		// of the main card. `no-ex-hanzi-color` / `no-ex-pinyin-color` neutralise them.
@@ -516,8 +527,11 @@ export const FIELD_TO_ELEMENT: Record<string, CardElementId> = {
 	Pinyin: 'pinyin',
 	Zhuyin: 'zhuyin',
 	PartOfSpeech: 'partOfSpeech',
-	SimpleMeaning: 'simpleMeaning',
 	Definitions: 'definitions',
+	ImageURL: 'wordImage',
+	GifURL: 'wordGif',
+	VideoURL: 'wordVideo',
+	SentenceVideoURL: 'sentenceVideo',
 	Breakdown: 'breakdown',
 	Radical: 'radical',
 	HskLevel: 'hskLevel',

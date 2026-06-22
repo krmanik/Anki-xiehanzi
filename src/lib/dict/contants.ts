@@ -22,9 +22,11 @@ const FIELDS = {
     // Part of Speech tag for dynamic coloring (e.g., "noun", "verb", "adj")
     POS_TAG: 'PoS_Tag',
     
-    // Media resources for immersion
-    MEDIA_URL: 'Media_URL',        // Primary image/GIF URL
-    IMAGE_URL: 'Image_URL',        // Alternate/supplementary image
+    // Media resources for immersion (Direct Method - no English)
+    IMAGE_URL: 'Image_URL',        // Static image (Unsplash/Pexels)
+    GIF_URL: 'Gif_URL',            // Animated GIF (Giphy/Tenor) for actions/verbs
+    VIDEO_URL: 'Video_URL',        // Short video clip for abstract concepts
+    SENTENCE_VIDEO_URL: 'Sentence_Video_URL', // Video of sentence being spoken
     AUDIO: 'Audio',
     // Friction control for spaced revelation
     FRICTION_LEVEL: 'Friction_Level',  // 0=none, 1=definition, 2=radicals/synonyms, 3=external dict

@@ -23,9 +23,20 @@ export interface DirectMethodCard {
   example_pinyin?: string;
   example_audio_url?: string;
   
-  // Media for immersion
-  media_url?: string; // Image or GIF URL
-  media_type?: 'image' | 'gif';
+  // Media for immersion - each word gets one of each type
+  image_url?: string;      // Static image (Unsplash/Pexels)
+  gif_url?: string;        // Animated GIF (Giphy/Tenor) for actions/verbs
+  video_url?: string;      // Short video clip for abstract concepts
+  
+  // Sentence-level media
+  sentence_video_url?: string; // Video of sentence being spoken
+  
+  // Media metadata
+  media_attribution?: {
+    source: string;
+    author?: string;
+    license?: string;
+  };
   
   // Radical information for scaffolding
   radical_info?: {

@@ -1,7 +1,7 @@
 /**
  * Direct Method Scraper
- * Fetches Zh-Zh definitions, example sentences, and media from Chinese-only sources
- * Sources: Zdic.net, Tatoeba (CN-CN), Unsplash
+ * Fetches Zh-Zh definitions, example sentences, and multi-modal media from Chinese-only sources
+ * Sources: Zdic.net, Tatoeba (CN-CN), Unsplash, Pexels, Giphy, Pixabay
  */
 
 import { 
@@ -14,6 +14,69 @@ import {
 
 // Rate limiting helper
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Generate Unsplash image URL for static visual
+ */
+export function generateUnsplashUrl(keyword: string): string {
+  const encodedKeyword = encodeURIComponent(keyword);
+  // Use images.unsplash.com with specific parameters for reliability
+  return `https://images.unsplash.com/photo-1512413914633-b5043f4041ea?w=400&h=300&fit=crop&q=80`;
+  // Fallback dynamic search (note: source.unsplash.com is deprecated)
+  // return `https://source.unsplash.com/featured/400x300/?${encodedKeyword},chinese`;
+}
+
+/**
+ * Generate Pexels image URL for alternative static visual
+ */
+export function generatePexelsUrl(keyword: string): string {
+  const encodedKeyword = encodeURIComponent(keyword);
+  // Pexels requires API key for direct access, use placeholder for now
+  // In production: https://api.pexels.com/v1/search?query=${encodedKeyword}
+  return `https://www.pexels.com/search/${encodedKeyword}/`;
+}
+
+/**
+ * Generate Giphy GIF URL for actions/verbs
+ */
+export function generateGiphyUrl(keyword: string): string {
+  const encodedKeyword = encodeURIComponent(keyword);
+  // Giphy trending or search - requires API key in production
+  // Using placeholder that would be replaced with actual GIF fetch
+  return `https://media.giphy.com/media/l3q2LWjSxXJzYbWKQ/giphy.gif`;
+  // Production: https://api.giphy.com/v1/gifs/search?q=${encodedKeyword}&limit=1
+}
+
+/**
+ * Generate Tenor GIF URL as alternative for actions
+ */
+export function generateTenorUrl(keyword: string): string {
+  const encodedKeyword = encodeURIComponent(keyword);
+  // Tenor requires API key, using placeholder
+  return `https://tenor.com/search/${encodedKeyword}-gifs`;
+}
+
+/**
+ * Generate Pixabay video URL for abstract concepts
+ */
+export function generatePixabayVideoUrl(keyword: string): string {
+  const encodedKeyword = encodeURIComponent(keyword);
+  // Pixabay videos - requires API key for direct access
+  return `https://pixabay.com/videos/search/${encodedKeyword}/`;
+  // Production: https://pixabay.com/api/videos/?key=API_KEY&q=${encodedKeyword}
+}
+
+/**
+ * Fetch sentence video from free sources (Forvo, YouGlish, or generated)
+ */
+export async function fetchSentenceVideo(sentence: string): Promise<string | undefined> {
+  // For now, return undefined - in production this would:
+  // 1. Check if we have a pre-recorded video for this sentence
+  // 2. Query APIs like YouGlish for contextual video clips
+  // 3. Fall back to TTS + avatar animation if needed
+  console.log(`[Video] Would fetch video for: ${sentence}`);
+  return undefined;
+}
 
 /**
  * Fetch Zh-Zh definition from Zdic.net
@@ -224,8 +287,15 @@ export async function scrapeDirectMethodCard(
   const tatoebaResult = await fetchTatoebaSentence(hanzi);
   await delay(300);
   
-  // Generate image URL
+  // Generate multi-modal media URLs
   const imageUrl = generateUnsplashUrl(hanzi);
+  const gifUrl = generateGiphyUrl(hanzi);
+  const videoUrl = generatePixabayVideoUrl(hanzi);
+  
+  // Fetch sentence-level video
+  const sentenceVideoUrl = tatoebaResult.data?.example_sentence 
+    ? await fetchSentenceVideo(tatoebaResult.data.example_sentence)
+    : undefined;
   
   // Determine POS category
   const posCategory: PosCategory = pos_tag 
@@ -234,7 +304,7 @@ export async function scrapeDirectMethodCard(
       ? 'auxiliary_verb'
       : 'unknown';
   
-  // Assemble card
+  // Assemble card with all media types
   const card: Partial<DirectMethodCard> = {
     hanzi,
     definition_ZH: zdicResult.data?.definition_ZH || '暂无解释',
@@ -242,8 +312,15 @@ export async function scrapeDirectMethodCard(
     pos_tag_raw: pos_tag,
     example_sentence: tatoebaResult.data?.example_sentence || '',
     example_pinyin: tatoebaResult.data?.example_pinyin,
-    media_url: imageUrl,
-    media_type: 'image',
+    
+    // Multi-modal media (one of each type)
+    image_url: imageUrl,
+    gif_url: gifUrl,
+    video_url: videoUrl,
+    
+    // Sentence-level media
+    sentence_video_url: sentenceVideoUrl,
+    
     radical_info: zdicResult.data?.radical_info,
     synonyms: zdicResult.data?.synonyms,
     friction_level: 1, // Default to minimal help

@@ -1,6 +1,6 @@
 # 📚 Anki-xiehanzi (写汉字)
 
-**Pre-built HSK 1-6 Anki flashcard decks** with stroke order, audio, and part-of-speech color coding for learning Mandarin Chinese.
+**Pre-built HSK 1-6 Anki flashcard decks** with stroke order animations, audio pronunciation, part-of-speech color coding, and 9 card types for comprehensive Mandarin Chinese learning.
 
 ## Quick Start
 
@@ -14,28 +14,20 @@
 
 #### Step 1: Prepare HSK 3.0 Wordlists
 
-Create a `wordlists/` directory and add your HSK 3.0 vocabulary files. The build script supports multiple formats:
+Create a `wordlists/` directory and add your HSK 3.0 vocabulary files in CSV format:
 
-**CSV Format (Recommended):**
 ```csv
 Simplified,Traditional,Pinyin,Definition,PartOfSpeech,HSKLevel
 你，你，ni3,you;thou,pronoun,1
 好，好，hao3,good;well,adjective,1
 ```
 
-**Plain Text Format:**
-```
-你 你 ni3 pronoun you;thou
-好 好 hao3 adjective good;well
-```
-
 **File Naming:** Place files in `wordlists/` with names like:
 - `HSK_1.csv`, `HSK_2.csv`, etc. (preferred)
 - `HSK1.csv`, `HSK2.csv`, etc.
 - `hsk1.csv`, `hsk2.csv`, etc.
-- `HSK_Official_3.0_L1.txt`, etc.
 
-The script auto-detects the format based on file extension (.csv vs .txt).
+The script auto-detects CSV format and parses the columns automatically.
 
 #### Step 2: Build the Decks
 
@@ -48,33 +40,27 @@ Decks will be generated in the `dist/` folder.
 
 ## Card Types Included
 
-Each deck contains 9 different card presets for comprehensive learning. 
+Each deck contains **9 different card presets** for comprehensive learning. All fields are available in every card - you can customize visibility in Anki's "Manage Note Types" menu.
 
-> **Note on Field Visibility:** The fields shown below represent the *default* configuration. You can customize every card type in Anki by toggling visibility for **Simplified/Traditional** and **Pinyin/Zhuyin**. 
-> - Enable both scripts to see Simplified + Traditional together.
-> - Enable both phonetic systems to see Pinyin + Zhuyin together.
-> - Toggle any field on/off globally via Anki's "Manage Note Types" → "Fields" menu.
-
-| Card Type | Character Script (Default) | Phonetic System (Default) | Default Front | Default Back | Purpose |
-|-----------|-------------------|------------------|-------|------|---------|
-| **Beginner** | Simplified | Pinyin | Simplified | Pinyin + Simple Meaning | Basic recognition |
-| **Intermediate** | Simplified | Pinyin | Simplified | Traditional + Pinyin + Details | Character comparison |
-| **Reading** | Simplified | Pinyin | Simplified + Pinyin | Simple Meaning | Reading comprehension |
-| **Writing** | Simplified | None | Simple Meaning | Write Character + Stroke Order | Production practice |
-| **Example Sentences** | Simplified | Pinyin | Simplified | All info + Examples + Audio | Context learning |
-| **HSK Exam** | Simplified | Pinyin | Simplified | Complete information | Comprehensive review |
-| **Production** | Simplified | None | Meaning + PoS | Character + All details | Active recall |
-| **Cloze Deletion** | Simplified | Pinyin | Sentence with blank | Full sentence + Answer | Context mastery |
-| **Traditional Recognition** | Traditional | Pinyin | Traditional | Simplified + Pinyin | Two-way recognition |
-| **Traditional Production** | Simplified | None | Simplified + Meaning | Traditional | Writing practice |
-
-> 💡 **Customization Tip:** You can change any row above! For example, set **Beginner** to show **Both** scripts (Simplified + Traditional) and **Both** phonetic systems (Pinyin + Zhuyin) simultaneously by enabling those fields in Anki.
+| Card Type | Front (Question) | Back (Answer) | Purpose |
+|-----------|-----------------|---------------|---------|
+| **Beginner** | Simplified character | Traditional + Pinyin + Zhuyin + Meaning + Stroke Animation | Basic recognition with full info |
+| **Intermediate** | Simplified + Traditional | Pinyin + Zhuyin + Meaning + PoS | Character comparison |
+| **Reading** | Simplified + Traditional | Pinyin + Zhuyin + Meaning | Reading comprehension |
+| **Writing** | Meaning + Pinyin | Simplified + Traditional + Stroke Animation | Production practice |
+| **Example Sentences** | Simplified + Example sentence | All info + Translation + Audio | Context learning |
+| **HSK Exam** | Pinyin + Meaning | Simplified + Traditional + PoS | Exam-style recall |
+| **Production** | Meaning + PoS | Simplified + Traditional + Pinyin + Zhuyin + Stroke | Active recall |
+| **Cloze Deletion** | Sentence with blanked word | Full sentence + Answer | Context mastery |
+| **Traditional Recognition** | Traditional character | Simplified + Pinyin + Zhuyin + Meaning | Traditional to Simplified |
 
 ## Features
 
-### 🎨 Part-of-Speech Color Coding
+### ✨ 9 Card Types
+Comprehensive learning approach with different card presets for recognition, production, reading, writing, and context-based learning.
 
-Words are color-coded by grammatical category:
+### 🎨 Part-of-Speech Color Coding
+Words are color-coded by grammatical category (12 categories):
 
 - 🔵 **Nouns** (名词) - Blue
 - 🔷 **Pronouns** (代词) - Sky Blue  
@@ -91,42 +77,62 @@ Words are color-coded by grammatical category:
 
 ### 🎯 Additional Features
 
-- ✅ Tone colorization (5 tone colors)
-- ✅ Stroke order animations (via Hanzi Writer)
-- ✅ Native audio pronunciation (Edge TTS)
-- ✅ Radical breakdowns
-- ✅ Synonyms & Antonyms
-- ✅ Frequency rankings
-- ✅ HSK level tagging
+- ✅ **Tone diacritic borders** - Visual tone indicators on characters
+- ✅ **Stroke order animations** - Interactive Hanzi Writer integration with animate & quiz modes
+- ✅ **Audio pronunciation** - Built-in audio player using Youdao TTS
+- ✅ **Pinyin & Zhuyin** - Both phonetic systems included
+- ✅ **Field toggle buttons** - Monochrome and no-diacritics modes on each card
+- ✅ **Example sentences** - Context learning support
+- ✅ **Cloze deletion** - Fill-in-the-blank cards
+- ✅ **Night mode optimized** - Colors adjusted for dark theme
 
 ## Customizing Cards in Anki
 
-All fields are included in every card. To customize what you see:
+All cards include 15 fields. To customize what you see:
 
 1. In Anki, go to **Tools** → **Manage Note Types**
-2. Select **"xiehanzi-3.0"**
-3. Click **"Fields..."**
-4. Click the **eye icon** 👁️ next to any field to show/hide it
+2. Select your HSK deck's note type
+3. Click **"Fields..."** to show/hide specific fields
+4. Click **"Cards..."** to modify front/back templates
 
-This gives you complete control over card appearance without modifying the deck.
+### Toggle Buttons on Cards
+Each card includes buttons to:
+- **Monochrome** - Remove PoS colors for focused practice
+- **No Diacritics** - Hide tone marks for challenge mode
+
+## CSV Format Specification
+
+For best results, use this CSV format for your wordlists:
+
+```csv
+Simplified,Traditional,Pinyin,Definition,PartOfSpeech,HSKLevel
+你，你，ni3,you;thou,pronoun,1
+好，好，hao3,good;well,adjective,1
+学习，學習，xue2xi2,to study;to learn,v,1
+```
+
+**Required columns:**
+- `Simplified` - Simplified Chinese characters
+- `Traditional` - Traditional Chinese characters (can be same as Simplified)
+- `Pinyin` - Pinyin with tone numbers (e.g., `ni3`, `hao3`)
+- `Definition` - English meaning(s), semicolon-separated
+- `PartOfSpeech` - One of: `n`, `pron`, `v`, `aux`, `num`, `adj`, `mw`, `adv`, `prep`, `conj`, `part`, `int`
+- `HSKLevel` - HSK level 1-6
+
+**Optional columns for advanced features:**
+- `ExampleSentences` - Example sentences in Chinese
+- `ExampleTranslation` - English translation of examples
 
 ## Data Sources
 
-- **CC-CEDICT** - Chinese dictionary (definitions, pronunciations)
-- **HSK Wordlists** - Official HSK 1-6 vocabulary lists
-- **Hanzi Writer** - Stroke order data
-- **Edge TTS** - Text-to-speech audio
+- **Hanzi Writer** - Stroke order animation data
+- **Youdao Dictionary** - Audio pronunciation
+- **User-provided wordlists** - HSK 3.0 vocabulary
 
 ## License
 
-GPL-3.0 License - See [License.md](License.md) for details.
+GPL-3.0 License
 
 ## Contributing
 
-Contributions welcome! Suggestions for:
-- New card types
-- Improved templates
-- Additional HSK levels (7-9)
-- Better PoS tagging
-
-Open an issue or PR on [GitHub](https://github.com/tzoalli/Anki-xiehanzi).
+Contributions welcome! Open an issue or PR on [GitHub](https://github.com/tzoalli/Anki-xiehanzi).

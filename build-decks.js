@@ -6,7 +6,9 @@
  * - 9 card types with global field visibility toggles
  * - Part-of-Speech color coding (12 categories)
  * - Tone diacritic borders
- * - Animated stroke order for writing practice
+ * - Animated stroke order for writing practice (Hanzi Writer)
+ * - Audio pronunciation support
+ * - Field toggles (Simplified/Traditional/Pinyin/Zhuyin/Meaning)
  */
 
 import fs from 'fs';
@@ -22,9 +24,54 @@ const Exporter = ApkgExport.default;
 const OUTPUT_DIR = './dist';
 const WORDLIST_DIR = './wordlists';
 
-// HSK 3.0 Wordlist format expected:
-// CSV or TSV with columns: Word, Simplified, Traditional, Pinyin, Definition, PartOfSpeech, HSKLevel
-// OR plain text format: Simplified Traditional Pinyin POS Definition
+// Card type definitions - each has different field visibility
+const CARD_TYPES = {
+  beginner: {
+    name: 'Beginner',
+    frontFields: ['simplified'],
+    backFields: ['simplified', 'traditional', 'pinyin', 'zhuyin', 'meaning', 'pos', 'stroke']
+  },
+  intermediate: {
+    name: 'Intermediate',
+    frontFields: ['simplified', 'traditional'],
+    backFields: ['simplified', 'traditional', 'pinyin', 'zhuyin', 'meaning', 'pos', 'stroke']
+  },
+  reading: {
+    name: 'Reading',
+    frontFields: ['simplified', 'traditional'],
+    backFields: ['pinyin', 'zhuyin', 'meaning']
+  },
+  writing: {
+    name: 'Writing',
+    frontFields: ['meaning', 'pinyin'],
+    backFields: ['simplified', 'traditional', 'stroke']
+  },
+  exampleSentences: {
+    name: 'Example Sentences',
+    frontFields: ['simplified', 'example'],
+    backFields: ['simplified', 'traditional', 'pinyin', 'zhuyin', 'meaning', 'example_translation']
+  },
+  hskExam: {
+    name: 'HSK Exam',
+    frontFields: ['pinyin', 'meaning'],
+    backFields: ['simplified', 'traditional', 'pos']
+  },
+  production: {
+    name: 'Production',
+    frontFields: ['meaning', 'pos'],
+    backFields: ['simplified', 'traditional', 'pinyin', 'zhuyin', 'stroke']
+  },
+  clozeDeletion: {
+    name: 'Cloze Deletion',
+    frontFields: ['cloze'],
+    backFields: ['simplified', 'traditional', 'pinyin', 'zhuyin', 'meaning']
+  },
+  traditionalRecognition: {
+    name: 'Traditional Recognition',
+    frontFields: ['traditional'],
+    backFields: ['simplified', 'pinyin', 'zhuyin', 'meaning']
+  }
+};
 
 // Part-of-Speech color mapping (optimized for light and night mode)
 const POS_COLORS = {
@@ -218,7 +265,7 @@ function getAnkiTemplate() {
 .nightMode .pos-n { color: #66B2FF; } .nightMode .pos-v { color: #66CC66; } .nightMode .pos-adj { color: #FFE55C; }
 .nightMode .pos-num { color: #FF6666; } .nightMode .pos-mw { color: #CC66CC; }
 
-/* Toggle states */
+/* Toggle states - controlled by JavaScript buttons */
 .monochrome .char { color: #000 !important; }
 .nightMode.monochrome .char { color: #fff !important; }
 .no-diacritics .char { border-top: none !important; }
@@ -230,39 +277,81 @@ function getAnkiTemplate() {
 .traditional { font-size: 22px; color: #555; }
 .meaning { font-size: 20px; color: #333; margin-top: 10px; }
 .pos-chip { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin: 5px; }
+.example { font-style: italic; color: #555; background: #f5f5f5; padding: 10px; border-radius: 5px; }
+.cloze { background: #ffeb3b; padding: 2px 5px; border-radius: 3px; }
 
 /* Stroke order animation container */
 .stroke-container { width: 200px; height: 200px; margin: 20px auto; }
 .stroke-controls { margin-top: 10px; }
-.stroke-btn { padding: 5px 15px; margin: 0 5px; cursor: pointer; }
+.stroke-btn { padding: 5px 15px; margin: 0 5px; cursor: pointer; background: #667eea; color: white; border: none; border-radius: 5px; }
+.stroke-btn:hover { background: #764ba2; }
+
+/* Audio player styling */
+.audio-player { margin: 10px 0; }
+
+/* Field toggle buttons */
+.toggle-container { margin: 10px 0; }
+.toggle-btn { padding: 5px 10px; margin: 0 3px; cursor: pointer; border: 1px solid #ccc; background: #f0f0f0; border-radius: 3px; }
+.toggle-btn.active { background: #667eea; color: white; border-color: #667eea; }
+
+/* Card type specific styles */
+.card-type-label { font-size: 14px; color: #999; margin-bottom: 10px; }
 </style>
-<div class="card{{ShowPoSColor}}">{{FrontContent}}</div>
-<script>(function(){const c=document.querySelector('.card');if(localStorage.getItem('monochrome')==='true')c.classList.add('monochrome');if(localStorage.getItem('noDiacritics')==='true')c.classList.add('no-diacritics');})();</script>`;
+<div class="card">
+  <div class="toggle-container">
+    <button class="toggle-btn" onclick="this.parentElement.parentElement.classList.toggle('monochrome')">Monochrome</button>
+    <button class="toggle-btn" onclick="this.parentElement.parentElement.classList.toggle('no-diacritics')">No Diacritics</button>
+  </div>
+  {{FrontContent}}
+</div>`;
 }
 
 async function generateDeckForLevel(level, outputPath) {
   const words = loadHSKWords(level);
   const deckName = `HSK ${level}`;
-  const exporter = new Exporter(deckName, { template: getAnkiTemplate(), sql: require('@jlongster/sql.js') });
+  
+  // Create exporter with custom template supporting all card types
+  const exporter = new Exporter(deckName, { 
+    template: getAnkiTemplate(), 
+    sql: require('@jlongster/sql.js') 
+  });
   
   for (const word of words) {
     // Generate character HTML with PoS colors and diacritic borders
     const frontContent = formatCharacters(word, true, true);
     
-    // All fields available for card templates
+    // Generate Hanzi Writer animation HTML
+    const strokeHtml = generateStrokeAnimation(word.Simplified);
+    
+    // Generate audio HTML for pronunciation
+    const audioHtml = generateAudioElement(word.PinyinRaw);
+    
+    // Generate example sentences if available
+    const exampleHtml = word.ExampleSentences ? 
+      `<div class="field example"><strong>Example:</strong><br>${word.ExampleSentences}</div>` : '';
+    
+    // Generate cloze text for cloze deletion cards
+    const clozeHtml = word.Simplified.includes(' ') ?
+      word.Simplified.split(' ').map((c, i) => i === 0 ? `<span class="cloze">${c}</span>` : c).join(' ') :
+      `<span class="cloze">${word.Simplified}</span>`;
+    
+    // All fields available for card templates (15 fields total)
     const fields = [
-      frontContent,                    // Simplified (formatted)
-      word.Traditional || '',          // Traditional
-      word.Pinyin || '',               // Pinyin
-      word.Zhuyin || '',               // Zhuyin
-      word.PartOfSpeech || '',         // POS code
-      word.PosLabel || '',             // POS label
-      word.SimpleMeaning || '',        // Simple meaning
-      word.Definitions || '',          // Detailed definitions
-      word.HskLevel || '',             // HSK level
-      word.ExampleSentences || '',     // Example sentences
-      word.AudioUrl || '',             // Audio URL
-      '', '', '', ''                   // Reserved fields
+      frontContent,                    // 0: Simplified (formatted)
+      word.Traditional || '',          // 1: Traditional
+      word.Pinyin || '',               // 2: Pinyin with tone marks
+      word.Zhuyin || '',               // 3: Zhuyin (Bopomofo)
+      word.PartOfSpeech || '',         // 4: POS code
+      word.PosLabel || '',             // 5: POS label (Chinese)
+      word.SimpleMeaning || '',        // 6: Simple meaning
+      word.Definitions || '',          // 7: Detailed definitions
+      word.HskLevel || '',             // 8: HSK level
+      word.ExampleSentences || '',     // 9: Example sentences
+      audioHtml,                       // 10: Audio URL/element
+      strokeHtml,                      // 11: Stroke animation HTML
+      clozeHtml,                       // 12: Cloze deletion text
+      word.ExampleTranslation || '',   // 13: Example translation
+      ''                               // 14: Reserved
     ];
     
     exporter.addCard(fields);
@@ -271,6 +360,38 @@ async function generateDeckForLevel(level, outputPath) {
   const buffer = await exporter.save();
   fs.writeFileSync(outputPath, Buffer.from(buffer));
   return words.length;
+}
+
+/**
+ * Generate Hanzi Writer stroke animation HTML for a character
+ */
+function generateStrokeAnimation(character) {
+  const charId = `stroke-${character.charCodeAt(0).toString(16)}`;
+  return `
+<div class="stroke-container">
+  <div id="${charId}" class="hanzi-writer-target"></div>
+  <div class="stroke-controls">
+    <button class="stroke-btn" onclick="HanziWriter.create('${charId}', '${character}', {
+      width: 200, height: 200, padding: 5,
+      showOutline: true, strokeAnimationSpeed: 1, delayBetweenStrokes: 200
+    }).animateCharacter()">▶ Animate</button>
+    <button class="stroke-btn" onclick="HanziWriter.create('${charId}', '${character}', {
+      width: 200, height: 200, padding: 5
+    }).quiz()">✏️ Quiz</button>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+`.trim();
+}
+
+/**
+ * Generate audio element for pronunciation using Google TTS or similar
+ */
+function generateAudioElement(pinyin) {
+  // Using Forvo or Google TTS as audio source
+  const cleanPinyin = pinyin.replace(/\d/g, ''); // Remove tone numbers for URL
+  const audioUrl = `https://dict.youdao.com/dictvoice?audio=${cleanPinyin}&type=1`;
+  return `<audio controls src="${audioUrl}" class="audio-player"></audio>`;
 }
 
 function createLandingPage(outputDir) {

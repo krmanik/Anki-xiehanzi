@@ -21,9 +21,14 @@ Decks will be generated in the `dist/` folder.
 
 ## Card Types Included
 
-Each deck contains 9 different card presets for comprehensive learning:
+Each deck contains 9 different card presets for comprehensive learning. 
 
-| Card Type | Front | Back | Purpose |
+> **Note on Field Visibility:** The fields shown below represent the *default* configuration. You can customize every card type in Anki by toggling visibility for **Simplified/Traditional** and **Pinyin/Zhuyin**. 
+> - Enable both scripts to see Simplified + Traditional together.
+> - Enable both phonetic systems to see Pinyin + Zhuyin together.
+> - Toggle any field on/off globally via Anki's "Manage Note Types" → "Fields" menu.
+
+| Card Type | Default Front | Default Back | Purpose |
 |-----------|-------|------|---------|
 | **Beginner** | Simplified | Pinyin + Simple Meaning | Basic recognition |
 | **Intermediate** | Simplified | Traditional + Pinyin + Details | Character comparison |

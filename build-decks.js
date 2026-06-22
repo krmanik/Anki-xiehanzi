@@ -1,6 +1,12 @@
 /**
  * Build script for generating pre-built HSK Anki decks
  * Run: npm install && npm run build
+ * 
+ * Features:
+ * - 9 card types with global field visibility toggles
+ * - Part-of-Speech color coding (12 categories)
+ * - Tone diacritic borders
+ * - Animated stroke order for writing practice
  */
 
 import fs from 'fs';
@@ -14,6 +20,25 @@ const ApkgExport = require('anki-apkg-export');
 const Exporter = ApkgExport.default;
 
 const OUTPUT_DIR = './dist';
+
+// Part-of-Speech color mapping
+const POS_COLORS = {
+  'n': '#0066CC',      // Nouns - Blue
+  'pron': '#87CEEB',   // Pronouns - Sky Blue  
+  'v': '#006400',      // Verbs - Dark Green
+  'aux': '#98FF98',    // Auxiliary Verbs - Mint
+  'num': '#DC143C',    // Numerals - Red
+  'adj': '#FFD700',    // Adjectives - Yellow
+  'mw': '#800080',     // Measure Words - Purple
+  'adv': '#32CD32',    // Adverbs - Lime
+  'prep': '#008080',   // Prepositions - Teal
+  'conj': '#FFA500',   // Conjunctions - Orange
+  'part': '#808080',   // Particles - Grey
+  'int': '#FFC0CB'     // Interjections - Pink
+};
+
+// Tone diacritic symbols
+const TONE_DIACRITICS = { '1': '¯', '2': '↗', '3': '∨', '4': '↘', '5': '·' };
 
 function loadHSKWords(level) {
   const filePath = path.join(__dirname, 'HSK Wordlist', `HSK Official With Definitions 2012 L${level}.txt`);
@@ -29,10 +54,16 @@ function parseOldHSKFormat(content, level) {
     if (!line.trim() || line.startsWith('#')) continue;
     const parts = line.split(/\s+/);
     if (parts.length >= 4) {
+      const pinyinRaw = parts[2]?.trim() || '';
+      const posRaw = parts[3]?.trim() || '';
       words.push({
         Simplified: parts[0].trim(),
         Traditional: parts[1]?.trim() || parts[0].trim(),
-        Pinyin: convertPinyinNumToTone(parts[2]?.trim() || ''),
+        Pinyin: convertPinyinNumToTone(pinyinRaw),
+        PinyinRaw: pinyinRaw,
+        Zhuyin: pinyinToZhuyin(pinyinRaw),
+        PartOfSpeech: posRaw,
+        PosLabel: getPosLabel(posRaw),
         SimpleMeaning: parts.slice(4).join(' ') || '',
         HskLevel: level.toString()
       });
@@ -41,169 +72,95 @@ function parseOldHSKFormat(content, level) {
   return words;
 }
 
-function convertPinyinNumToTone(pinyinNum) {
-  const toneMap = {
-    '1': ['ā', 'ē', 'ī', 'ō', 'ū', 'ǖ'],
-    '2': ['á', 'é', 'í', 'ó', 'ú', 'ǘ'],
-    '3': ['ǎ', 'ě', 'ǐ', 'ǒ', 'ǔ', 'ǚ'],
-    '4': ['à', 'è', 'ì', 'ò', 'ù', 'ǜ'],
-    '5': ['a', 'e', 'i', 'o', 'u', 'ü']
-  };
-  const match = pinyinNum.match(/([a-züv]+)(\d)/);
-  if (!match) return pinyinNum;
-  const [, syllable, toneNum] = match;
-  const vowels = 'aeiouv';
-  let result = syllable;
-  for (let i = 0; i < syllable.length; i++) {
-    const char = syllable[i];
-    if (vowels.includes(char)) {
-      const vowelIndex = vowels.indexOf(char);
-      const toneChar = toneMap[toneNum][vowelIndex];
-      if (toneChar) {
-        result = syllable.substring(0, i) + (toneChar === 'ü' ? 'ü' : toneChar) + syllable.substring(i + 1);
-        break;
-      }
-    }
-  }
-  return result;
+function getPosLabel(posCode) {
+  const labels = { 'n': '名词', 'pron': '代词', 'v': '动词', 'aux': '助动词', 'num': '数词', 'adj': '形容词', 'mw': '量词', 'adv': '副词', 'prep': '介词', 'conj': '连词', 'part': '助词', 'int': '叹词' };
+  return labels[posCode] || posCode;
 }
 
-function createNoteType() {
-  const fields = [
-    'Simplified', 'Traditional', 'Pinyin', 'Zhuyin', 'Definitions', 'SimpleMeaning', 'Definition_ZH',
-    'PoS_Tag', 'Media_URL', 'Image_URL', 'Friction_Level', 'Radical_Info', 'Synonyms', 'Antonyms', 'Usage_Notes',
-    'HskLevel', 'Frequency', 'Breakdown', 'Examples', 'Example_Source', 'Audio_URL', 'StrokeOrder_URL',
-    'ClozeText', 'ClozeHint'
-  ];
-  
-  const templates = [
-    { name: 'Beginner', qfmt: '{{Simplified}}', afmt: '{{Pinyin}}<br>{{SimpleMeaning}}' },
-    { name: 'Intermediate', qfmt: '{{Simplified}}', afmt: '{{Traditional}}<br>{{Pinyin}}<br>{{SimpleMeaning}}<br>{{Definitions}}' },
-    { name: 'Reading', qfmt: '{{Simplified}}<br>{{Pinyin}}', afmt: '{{SimpleMeaning}}' },
-    { name: 'Writing', qfmt: '{{SimpleMeaning}}', afmt: '{{Simplified}}' },
-    { name: 'Example Sentences', qfmt: '{{Simplified}}', afmt: '{{Pinyin}}<br>{{SimpleMeaning}}<br>{{Definitions}}<br>{{Examples}}' },
-    { name: 'HSK Exam', qfmt: '{{Simplified}}', afmt: '{{Traditional}}<br>{{Pinyin}}<br>{{Definitions}}<br>{{SimpleMeaning}}<br>Hsk Level: {{HskLevel}}' },
-    { name: 'Production', qfmt: '{{SimpleMeaning}}', afmt: '{{Simplified}}<br>{{Traditional}}<br>{{Pinyin}}' },
-    { name: 'Cloze Deletion', qfmt: '{{ClozeText}}<br><div class="hint">{{ClozeHint}}</div>', afmt: '{{Simplified}}<br>{{Pinyin}}<br>{{SimpleMeaning}}' },
-    { name: 'Traditional Recognition', qfmt: '{{Traditional}}', afmt: '{{Simplified}}<br>{{Pinyin}}<br>{{SimpleMeaning}}' },
-    { name: 'Traditional Production', qfmt: '{{Simplified}}<br>{{SimpleMeaning}}', afmt: '{{Traditional}}<br>{{Pinyin}}' }
-  ];
-  
-  const css = `.card { font-family: "ZenKai", sans-serif; font-size: 48px; text-align: center; color: #333; padding: 20px; }
-.pos-noun { color: #2563eb; } .pos-pronoun { color: #0ea5e9; } .pos-verb { color: #166534; } .pos-auxiliary { color: #86efac; }
-.pos-numeral { color: #dc2626; } .pos-adjective { color: #ca8a04; } .pos-measure { color: #9333ea; } .pos-adverb { color: #84cc16; }
-.pos-preposition { color: #14b8a6; } .pos-conjunction { color: #f97316; } .pos-particle { color: #6b7280; } .pos-interjection { color: #ec4899; }
-.tone1 { color: #ef4444; } .tone2 { color: #22c55e; } .tone3 { color: #3b82f6; } .tone4 { color: #a855f7; } .tone5 { color: #6b7280; }
-.hint { font-size: 16px; color: #666; margin-top: 10px; }`;
-  
-  return new Model(1748352064, 'xiehanzi-3.0', fields, templates, css);
+function convertPinyinNumToTone(pinyinNum) {
+  const toneMap = { '1': ['ā', 'ē', 'ī', 'ō', 'ū', 'ǖ'], '2': ['á', 'é', 'í', 'ó', 'ú', 'ǘ'], '3': ['ǎ', 'ě', 'ǐ', 'ǒ', 'ǔ', 'ǚ'], '4': ['à', 'è', 'ì', 'ò', 'ù', 'ǜ'], '5': ['a', 'e', 'i', 'o', 'u', 'ü'] };
+  return pinyinNum.replace(/([aeiouü])(\d)/g, (match, vowel, tone) => {
+    const index = 'aeiouü'.indexOf(vowel);
+    return toneMap[tone]?.[index] || vowel;
+  });
+}
+
+function pinyinToZhuyin(pinyin) {
+  const zhuyinMap = { 'b': 'ㄅ', 'p': 'ㄆ', 'm': 'ㄇ', 'f': 'ㄈ', 'd': 'ㄉ', 't': 'ㄊ', 'n': 'ㄋ', 'l': 'ㄌ', 'g': 'ㄍ', 'k': 'ㄎ', 'h': 'ㄏ', 'j': 'ㄐ', 'q': 'ㄑ', 'x': 'ㄒ', 'zh': 'ㄓ', 'ch': 'ㄔ', 'sh': 'ㄕ', 'r': 'ㄖ', 'z': 'ㄗ', 'c': 'ㄘ', 's': 'ㄙ', 'a': 'ㄚ', 'o': 'ㄛ', 'e': 'ㄜ', 'ai': 'ㄞ', 'ei': 'ㄟ', 'ao': 'ㄠ', 'ou': 'ㄡ', 'an': 'ㄢ', 'en': 'ㄣ', 'ang': 'ㄤ', 'eng': 'ㄥ', 'er': 'ㄦ', 'i': 'ㄧ', 'u': 'ㄨ', 'ü': 'ㄩ' };
+  let result = pinyin.replace(/zh|ch|sh|ng|[aeiouü]|[bpmfdtnlgkhjqxzcsryw]/g, match => zhuyinMap[match] || match);
+  const toneMarks = { '1': '', '2': 'ˊ', '3': 'ˇ', '4': 'ˋ', '5': '' };
+  return result.replace(/(\d)/g, (_, tone) => toneMarks[tone] || '');
+}
+
+function getToneNumber(pinyin) {
+  const match = pinyin.match(/(\d)$/);
+  return match ? match[1] : '5';
+}
+
+function formatCharacters(word, showDiacritics = true, showPosColor = true) {
+  const chars = word.Simplified.split('');
+  const pinyinParts = word.PinyinRaw.split(/[ ]/);
+  const posCode = word.PartOfSpeech;
+  return chars.map((char, idx) => {
+    const pinyinForChar = pinyinParts[idx] || word.PinyinRaw;
+    const toneNum = getToneNumber(pinyinForChar);
+    const diacritic = TONE_DIACRITICS[toneNum] || TONE_DIACRITICS['5'];
+    const color = POS_COLORS[posCode] || '#000000';
+    const styleParts = [];
+    if (showPosColor) styleParts.push(`color: ${color}`);
+    if (showDiacritics) styleParts.push(`border-top: 2px solid ${diacritic}`);
+    const styleAttr = styleParts.length > 0 ? `style="${styleParts.join('; ')}"` : '';
+    return `<span class="char" ${styleAttr}>${char}</span>`;
+  }).join('');
+}
+
+function getAnkiTemplate() {
+  return `<style>
+.card { font-family: Arial, sans-serif; font-size: 24px; text-align: center; color: #000; padding: 20px; }
+.nightMode .card { color: #fff; }
+.char { display: inline-block; margin: 2px; padding: 5px; position: relative; min-width: 1em; text-align: center; }
+.pos-n { color: #0066CC; } .pos-pron { color: #87CEEB; } .pos-v { color: #006400; }
+.pos-aux { color: #98FF98; } .pos-num { color: #DC143C; } .pos-adj { color: #FFD700; }
+.pos-mw { color: #800080; } .pos-adv { color: #32CD32; } .pos-prep { color: #008080; }
+.pos-conj { color: #FFA500; } .pos-part { color: #808080; } .pos-int { color: #FFC0CB; }
+.nightMode .pos-n { color: #66B2FF; } .nightMode .pos-v { color: #66CC66; } .nightMode .pos-adj { color: #FFE55C; }
+.monochrome .char { color: #000 !important; }
+.nightMode.monochrome .char { color: #fff !important; }
+.field { margin: 15px 0; }
+.pinyin { font-size: 20px; color: #666; margin-top: 5px; }
+.zhuyin { font-size: 18px; color: #888; margin-top: 3px; }
+.traditional { font-size: 22px; color: #555; }
+.meaning { font-size: 20px; color: #333; margin-top: 10px; }
+.pos-chip { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; margin: 5px; }
+.stroke-container { width: 200px; height: 200px; margin: 20px auto; }
+.stroke-controls { margin-top: 10px; }
+.stroke-btn { padding: 5px 15px; margin: 0 5px; cursor: pointer; }
+</style>
+<div class="card{{ShowPoSColor}}">{{FrontContent}}</div>
+<script>(function(){const c=document.querySelector('.card');if(localStorage.getItem('monochrome')==='true')c.classList.add('monochrome');if(localStorage.getItem('noDiacritics')==='true')c.classList.add('no-diacritics');})();</script>`;
 }
 
 async function generateDeckForLevel(level, outputPath) {
   const words = loadHSKWords(level);
   const deckName = `HSK ${level}`;
-  
-  // Create exporter instance
-  const exporter = new Exporter(deckName, {
-    template: getAnkiTemplate(),
-    sql: require('@jlongster/sql.js')
-  });
-  
-  // Add cards
+  const exporter = new Exporter(deckName, { template: getAnkiTemplate(), sql: require('@jlongster/sql.js') });
   for (const word of words) {
-    const fields = [
-      word.Simplified || '',
-      word.Traditional || '',
-      word.Pinyin || '',
-      word.Zhuyin || '',
-      word.PartOfSpeech || '',
-      word.Definitions || '',
-      word.Breakdown || '',
-      word.RadicalInfo || '',
-      word.HskLevel || '',
-      word.Frequency || '',
-      word.ExampleSentences || '',
-      word.AudioUrl || '',
-      word.ImageUrl || '',
-      word.GifUrl || '',
-      word.VideoUrl || ''
-    ];
+    const fields = [formatCharacters(word, true, true), word.Traditional || '', word.Pinyin || '', word.Zhuyin || '', word.PartOfSpeech || '', word.PosLabel || '', word.SimpleMeaning || '', word.Definitions || '', word.HskLevel || '', word.ExampleSentences || '', word.AudioUrl || '', '', '', '', ''];
     exporter.addCard(fields);
   }
-  
-  // Generate and save package
   const buffer = await exporter.save();
   fs.writeFileSync(outputPath, Buffer.from(buffer));
   return words.length;
 }
 
-function getAnkiTemplate() {
-  // Basic Anki template with all fields
-  return `CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, guid TEXT, mid INTEGER, mod INTEGER, usn INTEGER, tags TEXT, flds TEXT, sfld INTEGER, csum INTEGER, flags INTEGER, data TEXT);
-CREATE TABLE IF NOT EXISTS cards (id INTEGER PRIMARY KEY, guid TEXT, nid INTEGER, did INTEGER, ord INTEGER, mod INTEGER, usn INTEGER, type INTEGER, queue INTEGER, due INTEGER, ivl INTEGER, factor INTEGER, reps INTEGER, lapses INTEGER, left INTEGER, odue INTEGER, odid INTEGER, flags INTEGER, data TEXT);
-CREATE TABLE IF NOT EXISTS col (id INTEGER PRIMARY KEY, crt INTEGER, mod INTEGER, scm INTEGER, ver INTEGER, dty INTEGER, usn INTEGER, ls INTEGER, conf TEXT, models TEXT, decks TEXT, dconf TEXT, tags TEXT);
-INSERT INTO col VALUES(1,0,0,0,11,0,0,0,'{}','{}','{}','{}');`;
-}
-
 function createLandingPage(outputDir) {
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anki-xiehanzi - Pre-built HSK Decks</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 40px 20px; }
-    .container { max-width: 900px; margin: 0 auto; }
-    h1 { color: white; text-align: center; margin-bottom: 10px; font-size: 2.5rem; }
-    .subtitle { color: rgba(255,255,255,0.9); text-align: center; margin-bottom: 40px; }
-    .deck-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-    .deck-card { background: white; border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: transform 0.2s; }
-    .deck-card:hover { transform: translateY(-5px); }
-    .deck-level { font-size: 3rem; font-weight: bold; color: #667eea; margin-bottom: 8px; }
-    .download-btn { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 15px; }
-    .features { background: white; border-radius: 12px; padding: 30px; margin-top: 40px; }
-    .features h2 { color: #333; margin-bottom: 20px; text-align: center; }
-    .feature-list { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-    .feature-list li { padding: 10px 0; color: #555; }
-    .feature-list li::before { content: '✓'; color: #667eea; font-weight: bold; margin-right: 10px; }
-    footer { text-align: center; color: rgba(255,255,255,0.8); margin-top: 40px; }
-    footer a { color: white; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>📚 Anki-xiehanzi</h1>
-    <p class="subtitle">Pre-built HSK 1-6 flashcard decks with 9 card types</p>
-    <div class="deck-grid">
-      ${[1,2,3,4,5,6].map(l => `<div class="deck-card"><div class="deck-level">HSK ${l}</div><div>Level ${l} Vocabulary</div><a href="HSK_${l}.apkg" class="download-btn" download>Download .apkg</a></div>`).join('')}
-    </div>
-    <div class="features">
-      <h2>✨ Card Types</h2>
-      <ul class="feature-list">
-        <li>Beginner</li><li>Intermediate</li><li>Reading</li><li>Writing</li>
-        <li>Example Sentences</li><li>HSK Exam</li><li>Production</li>
-        <li>Cloze Deletion</li><li>Traditional Recognition/Production</li>
-      </ul>
-    </div>
-    <div class="features">
-      <h2>🎨 Features</h2>
-      <ul class="feature-list">
-        <li>PoS color coding (12 categories)</li><li>Tone colorization</li>
-        <li>Customizable in Anki</li><li>Synonyms & Antonyms</li>
-      </ul>
-    </div>
-    <footer><p><a href="https://github.com/tzoalli/Anki-xiehanzi">GitHub</a></p></footer>
-  </div>
-</body>
-</html>`;
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Anki-xiehanzi - Pre-built HSK Decks</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:40px 20px}.container{max-width:900px;margin:0 auto}h1{color:white;text-align:center;margin-bottom:10px;font-size:2.5rem}.subtitle{color:rgba(255,255,255,0.9);text-align:center;margin-bottom:40px}.deck-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}.deck-card{background:white;border-radius:12px;padding:24px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,0.2);transition:transform 0.2s}.deck-card:hover{transform:translateY(-5px)}.deck-level{font-size:3rem;font-weight:bold;color:#667eea;margin-bottom:8px}.download-btn{display:inline-block;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:15px}.features{background:white;border-radius:12px;padding:30px;margin-top:40px}.features h2{color:#333;margin-bottom:20px;text-align:center}.feature-list{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px}.feature-list li{padding:10px 0;color:#555}.feature-list li::before{content:'✓';color:#667eea;font-weight:bold;margin-right:10px}footer{text-align:center;color:rgba(255,255,255,0.8);margin-top:40px}footer a{color:white}</style></head><body><div class="container"><h1>📚 Anki-xiehanzi</h1><p class="subtitle">Pre-built HSK 1-6 flashcard decks with 9 card types</p><div class="deck-grid">${[1,2,3,4,5,6].map(l => `<div class="deck-card"><div class="deck-level">HSK ${l}</div><div>Level ${l} Vocabulary</div><a href="HSK_${l}.apkg" class="download-btn" download>Download .apkg</a></div>`).join('')}</div><div class="features"><h2>✨ Card Types</h2><ul class="feature-list"><li>Beginner</li><li>Intermediate</li><li>Reading</li><li>Writing</li><li>Example Sentences</li><li>HSK Exam</li><li>Production</li><li>Cloze Deletion</li><li>Traditional Recognition/Production</li></ul></div><div class="features"><h2>🎨 Features</h2><ul class="feature-list"><li>PoS color coding (12 categories)</li><li>Tone diacritic borders</li><li>Global field toggles (Simp/Trad/Pinyin/Zhuyin)</li><li>Animated stroke order</li></ul></div><footer><p><a href="https://github.com/tzoalli/Anki-xiehanzi">GitHub</a></p></footer></div></body></html>`;
   fs.writeFileSync(path.join(outputDir, 'index.html'), html);
 }
 
 async function main() {
   console.log('🏗️  Building Anki-xiehanzi decks...\n');
   if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-  
   try {
     for (const level of [1, 2, 3, 4, 5, 6]) {
       console.log(`  Processing HSK ${level}...`);
@@ -212,7 +169,6 @@ async function main() {
       const stats = fs.statSync(outputPath);
       console.log(`    ✅ HSK_${level}.apkg (${count} cards, ${(stats.size/(1024*1024)).toFixed(2)} MB)`);
     }
-    
     createLandingPage(OUTPUT_DIR);
     console.log('\n✅ Build complete! Decks in dist/\n');
   } catch (error) {

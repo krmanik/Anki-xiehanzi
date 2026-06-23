@@ -1,12 +1,14 @@
 # Zhōngwén de zhōngwén (中文的中文)
 
-**Pre-built HSK 1-9 Anki flashcard decks** 
+**Pre-built HSK 3.0 1-9 Anki flashcard decks** 
+
+## Features
 - **Traditional & Simplified** - Both character sets included
 - **Stroke order animations** - Interactive Hanzi Writer integration with animate & quiz modes
 - **Pinyin & Zhuyin** - Both phonetic systems included
 - **Audio pronunciation** - Built-in audio player using Youdao TTS
-- **Tone diacritic borders** - Visual tone indicators on characters
-- **Part of speech indicators** - Visual representations of part of speech
+- **Diacritic borders** - Visual tone indicators on characters
+- **Part of speech indicators** - Visual representations of part of speech (General & Specific)
 - **Field toggle buttons** - Each card includes toggles to Show/Hide categories
 - **Example sentences** - Context learning support
 - **Cloze deletion** - Fill-in-the-blank cards
@@ -17,10 +19,11 @@ Each card includes toggles to Show/Hide:
 - **Stroke Order** - Animation of strokes, 1 by 1 in order
 - **Pinyin** - Pinyin pronunciation guide
 - **Zhuyin** - Zhuyin/Bopomofo pronunciation guide
-- **Diacritics** - Tone diacritic borders on characters
-- **Part of Speech** - Part of speech indicators with coloring for general categories and icons for specific subcategories, if off characters render according to light or dark mode without icons
+- **Diacritic Guide** - Tone diacritic borders on characters
+- **Part of Speech** - General and Specific Part of Speech indicators, if off characters render according to light or dark mode without icons
 - **Grid** - Visual guide for writing exercises, style selectable: 田/米/井/回)
-- **Radical** - Radical indicator, when on radical will render bolder
+- **Radical** - Radical indicator, when on radical will render on default light or dark mode
+- **Hint** - After (User selected) failed strokes on writing box, the correct stroke is shown briefly, default is 2
 
 ## Incomplete Features (in development)
 
@@ -48,55 +51,74 @@ npm install
 npm run build
 ```
 
-Decks will be generated in the `dist/` folder according to the content in `wordlists/`
+Decks will be generated in the `decks/` folder according to the content in `wordlists/` and `charlists/`
 
 ## Card Types Included
 
 Each deck contains **9 different card presets** for comprehensive learning. 
 
-| Card Type | Front (Question) | Back (Answer) | Purpose |
+| Card Type | Front | Back |
 |-----------|-----------------|---------------|---------|
-| **Beginner** | Simplified character | Traditional + Pinyin + Zhuyin + Meaning + Stroke Animation | Basic recognition with full info |
-| **Intermediate** | Simplified + Traditional | Pinyin + Zhuyin + Meaning + PoS | Character comparison |
-| **Reading** | Simplified + Traditional | Pinyin + Zhuyin + Meaning | Reading comprehension |
-| **Writing** | Meaning + Pinyin | Simplified + Traditional + Stroke Animation | Production practice |
-| **Example Sentences** | Simplified + Example sentence | All info + Translation + Audio | Context learning |
-| **HSK Exam** | Pinyin + Meaning | Simplified + Traditional + PoS | Exam-style recall |
-| **Production** | Meaning + PoS | Simplified + Traditional + Pinyin + Zhuyin + Stroke | Active recall |
-| **Cloze Deletion** | Sentence with blanked word | Full sentence + Answer | Context mastery |
-| **Traditional Recognition** | Traditional character | Simplified + Pinyin + Zhuyin + Meaning | Traditional to Simplified |
+| **Character Equivalence A** | Simplified | Traditional |
+| **Character Equivalence B** | Traditional | Simplified |
+| **Character writing practice** | Simplified + Traditional + Stroke Animation + Writing Practice Box| ... |
+| **Word writing practice** | Simplified + Traditional + Pinyin + Zhuyin + Stroke Animation + Writing Practice Box| ... |
+| **Word recall A** | Simplified + Traditional + Stroke Animation + General Part of Speech + Specific Part of Speech + Diacritic Border | Meaning + Pinyin + Zhuyin |
+| **Word recall B** |  Meaning + Pinyin + Zhuyin + Writing Practice Box | Simplified + Traditional + Stroke Animation + General Part of Speech + Specific Part of Speech + Diacritic Border |
+| **Sentence Listening** | Audio + Writing Practice Box| ... |
+| **Cloze Deletion** | Sentence with blanked word (Simplified + Traditional) + Audio + Writing Practice Box | Solved sentence (Simplified + Traditional) + Pinyin + Zhuyin |
 
-## Features
+### Part-of-Speech Representation Logic
 
-### Part-of-Speech Color Logic (15 Categories)
+| Type of Word | General Part of Speech | Description | Format | Tag |
+|---|---|---|---|
+| Content | 名词<br>Noun | People, places, things, concepts | Blue | `noun` |
+| Content | 代词<br>Pronoun | Placeholders for nouns to avoid repetition | Blue Outline | `pronoun` |
+| Content | 动词<br>Verb | Actions, states | Green | `verb` |
+| Content | 形容词<br>Adjective | Descriptive words | Yellow | `adjective` |
+| Content | 副词<br>Adverb | Verb modifiers / Adjective modifiers | Lime | `adverb` |
+| Content | 数词<br>Numeral | Numbers, quantities, order | Cardinal: Red<br>Ordinal: Red + 🎯 | `numeral` |
+| Content | 像词<br>Sounds as Words | Representations of a sound | Magenta | `sound` |
+| Function | 连词<br>Conjunction | Connectors | Orange | `conjunction` |
+| Function | 分类词<br>Measure Word | Counting units | Purple | `measure` |
+| Function | 介<br>Preposition | Relate to location or object | Teal | `preposition` |
+| Function | 助词<br>Particle | Sentence modifiers | Brown | `particle` |
+| Function | 缀词<br>Affix | Word modifiers at the start or ends of words | Grey | `affix` |
 
-Words are color-coded by grammatical category following a logical color system:
+| General Part of Speech | Specific Part Of Speech | Use | Format | Tag |
+|---|---|---|---|
+| 名词<br>Noun | 专名<br>Proper Noun | Names of specific people, places or things | Blue + 🎯 | `noun-p` |
+| 名词<br>Noun | 方位 / 处所 词<br>Locational/Spatial Noun | Relative directions / Cardinal directions / Spatial References (destination, origin, physical space) | Blue + 🧭 | `noun-l` |
+| 名词<br>Noun | 时间词<br>Time Noun | When an action takes place / Duration / Specific points in time. | Blue + ⏳ | `noun-t` |
+| 代词<br>Pronoun | 人称代词<br>Personal Pronoun | Substitute for specific people or things | Blue Outline + 🎯 | `pronoun-p` |
+| 代词<br>Pronoun | 指示代词<br>Demonstrative Pronoun | Point to specific objects, people, or locations | Blue Outline + 👉 | `pronoun-d` |
+| 代词<br>Pronoun | 疑问代词<br>Interrogative Pronoun | Ask questions / represent unknowns | Blue Outline + ? | `pronoun-i` |
+| 动词<br>Verb | 能愿 动词<br>Auxiliary Verb | Helper verbs to express capability / possibility / necessity / obligation / willingness | Green Outline | `verb-a` |
+| 动词<br>Verb | 存现 动词<br>Existential Verb | Static or instantaneous state of being in a space. | Green + ⏹️ | `verb-e` |
+| 动词<br>Verb | 趋向 动词<br>Directional Verb | Dynamic or continuous trajectory of motion through space | Green + ⏩ | `verb-d` |
+| 动词<br>Verb | 可分动词<br>Separable Verb | Verb-object compounds that can split apart to insert other words in the middle | Green + ✂️ | `verb-s` |
+| 动词<br>Verb | 心理动词<br>Psychological Verb | Internal mental states | Green + ➡️👤 | `verb-p` |
+| 动词<br>Verb | 使令动词<br>Causative Verb | Induction of a state of mind, action, or change in another entity | Green + 👤➡️ | `verb-c` |
+| 形容词<br>Adjective | 区别词<br>Distinguishing Words | Cannot be preceded by 很 / Cannot serve as predicates | Yellow + 📄 | `adjective-d` |
+| 形容词<br>Adjective | 性质形容词<br>Qualitative Adjective | Describe core traits / Adjective acting as noun | Core traits: Yellow + ✨<br>Adjective acting as a noun : Blue Outline Yellow filling | `adjective-q` |
+| 像词<br>Sounds as Words | 叹词<br>Interjection | Sudden emotions | Magenta + ! | `sound-i` |
+| 像词<br>Sounds as Words | 拟声词<br>Onomatopoeia | Physical sounds | Magenta + 🔊 | `sound-o` |
+| 分类词<br>Measure Word | 名分类词<br>Noun Measure Word | To count nouns | Purple outline, blue filling | `measure-n` |
+| 分类词<br>Measure Word | 动分类词<br>Verb Measure Word | To count actions | Purple outline, green filling | `measure-v` |
+| 助词<br>Particle | 动态助词<br>Aspectual Particle | Status of an action (Completion, Experience, Duration...) | Brown + 📈 | `particle-a` |
+| 助词<br>Particle | 语气助词<br>Modal Particle | Tone / Mood / attitude | Brown + 🎭 | `particle-m` |
+| 助词<br>Particle | 结构助词<br>Structural Particle | Connect words and indicate grammatical relationships within a phrase | Brown + 🔗 | `particle-s` |
+| 缀词<br>(Affix) | 前缀<br>(Prefix) | Modifier at the beginning of a word | Grey + ➡️ | `affix-p` |
+| 缀词<br>(Affix) | 后缀<br>(Suffix) | Modifier at the end of a word | Grey + ⬅️ | `affix-s` |
 
-| # | Color | Chinese | English | Description | Relational Logic |
-|---|-------|---------|---------|-------------|------------------|
-| 1 |  Blue | 名词 | Nouns | People, places, things, or concepts | **Primary Pillar (Matter)**: The solid, foundational objects of language |
-| 2 |  Sky Blue | 代词 | Pronouns | Placeholders like 我 (I) or 这 (this) | **Saturation Shift**: A "lighter," placeholder version of the Noun-Blue |
-| 3 |  Dark Green | 动词 | Verbs | Actions or states (e.g., 爱，到) | **Primary Pillar (Energy)**: Movement and the flow of the sentence |
-| 4 |  Mint | 助动词 | Auxiliary Verbs | Helpers like 会 (can) or 要 (want) | **Saturation Shift**: Supports main actions; a lighter, secondary Green |
-| 5 |  Red | 数词 | Numerals | Numbers and quantities (e.g., 八，千) | **Primary Pillar (Quantity)**: Standalone symbols of pure logic |
-| 6 |  Yellow | 形容词 | Adjectives | Descriptive words (e.g., 大，漂亮) | **Primary Pillar (Quality)**: A bright highlight reflecting a noun's state |
-| 7 |  Purple | 量词 | Measure Words | Counting units (e.g., 本，个) | **Mix (Red + Blue)**: The bridge connecting a Numeral to a Noun |
-| 8 |  Lime | 副词 | Adverbs | Modifiers like 不 (not) or 很 (very) | **Mix (Yellow + Green)**: Sits between Quality and Action |
-| 9 |  Teal | 介词 | Prepositions | Relate to location or object (e.g., 对，往) | **Mix (Green + Blue)**: Connects Action to an Object/Location |
-| 10 |  Orange | 连词 | Conjunctions | Connectors like 和 (and) or 但是 (but) | **Mix (Red + Yellow)**: The logic (Red) linking Qualities or ideas (Yellow) |
-| 11 |  Grey | 助词 | Particles | Grammatical context (e.g., 的，了，吧) | **The Skeleton**: Neutral and colorless; carries no independent meaning |
-| 12 |  Pink | 叹词 | Interjections | Sudden emotions like 喂 (hey) or 啊 (ah) | **The Outlier (Emotion)**: Extra-spectral color for words outside logical syntax |
-| 13 |  Magenta | 拟声词 | Onomatopoeia | Physical sounds like 哈 (ha) or 哇 (wow) | **The Outlier (Sound)**: Intense extra-spectral color for raw physical sound |
-| 14 |  Tan | 前缀 | Prefixes | Structural starts like 第 (No.) or 老 (old) | **The Clay (Raw Material)**: Foundational bits used to shape a word's "Matter" |
-| 15 |  Brown | 后缀 | Suffixes | Structural ends like 子，们，or 性 | **The Foundation (Hardened Clay)**: Stabilizing base that anchors a word's category |
-
-**Fallback:** Unknown POS tags display with black text (light mode) or white text (dark mode) with **no background color**.
+**Fallback:** Unknown tags display with black text (light mode) or white text (dark mode), no icon
 
 #### Supported File Names for wordlists:
-The build script searches for these patterns (in order):
-- `HSK_1.csv`, `HSK_2.csv`, etxc. (preferred)
-- `HSK1.csv`, `HSK2.csv`
-- `hsk1.csv`, `hsk2.csv`
+The build script searches for these specific files (mind case sensitivity)
+For character lists
+- `HSK1C.csv`, `HSK2C.csv`, `HSK3C.csv`, `HSK4C.csv`, `HSK5C.csv`,`HSK6C.csv`, `HSK789C.csv`
+For word lists
+- `HSK1W.csv`, `HSK2W.csv`, `HSK3W.csv`, `HSK4W.csv`, `HSK5w.csv`,`HSK6W.csv`, `HSK789W.csv`
 
 ## CSV Format Specification
 
@@ -116,34 +138,19 @@ Simplified,Traditional,Pinyin,Zhuyin,Definition,PartOfSpeech,HSKLevel
 | `Traditional` | Yes | Traditional characters with equivalence mapped to Simplified |
 | `Pinyin` | Yes | Pinyin with tone numbers (e.g., `ni3`) |
 | `Zhuyin` | Yes | Zhuyin with tone markers
-| `PartOfSpeechGeneral` | Yes | One of 15 supported Part of Speech codes for color coding:
-| `PartOfSpeechSpecific` | No | One of 15 supported Part of Speech codes for color coding:
+| `PartOfSpeechGeneral` | Yes | General Part of Speech tag
+| `PartOfSpeechSpecific` | No | Specific Part of Speech tag
 | `Definition` | No | English definition
 
-***Part of speech supported codes:***
+## Tests before production
 
-| Code | Equivalence | Description |
-|`noun` | Noun (名词)| 
-|`pronoun` | Pronoun (代词)
-|`verb` | Verb (深绿色)
-| `auxverb` | Auxiliary Verb (薄荷绿)
-| `num` | Numeral (红色)
-| `adj` | Adjective (黄色)
-| `mw` | Measure Word (紫色)
-| `adv` | Adverb (酸橙色)
-| `prep` | Preposition (青色)
-| `conj` | Conjunction (橙色)
-| `part` | Particle (灰色)
-| `int` |  Interjection (粉色)
-
-## Tests 
-
-Build succeeds with sample HSK 1-6 data
-All levels generate .apkg files successfully
+Build succeeds with sample data
+.apkg files are generated succesfully
 CSV parser correctly processes all fields
-Part-of-speech color coding works
-Pinyin tone conversion works
-Zhuyin conversion works
+Visual coding works for all General and Specific Parts of Speech
+Diacritic border shows the right tone
+User selected griid is rendered
+All toggles produce their intended effect
 
 ## Data Sources
 

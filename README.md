@@ -1,10 +1,35 @@
 # Zhōngwén de zhōngwén (中文的中文)
 
 **Pre-built HSK 1-9 Anki flashcard decks** 
-1. stroke order animations
-2. audio pronunciation
-3. part-of-speech color coding
-4. card types for comprehensive Mandarin Chinese learning.
+- **Traditional & Simplified** - Both character sets included
+- **Stroke order animations** - Interactive Hanzi Writer integration with animate & quiz modes
+- **Pinyin & Zhuyin** - Both phonetic systems included
+- **Audio pronunciation** - Built-in audio player using Youdao TTS
+- **Tone diacritic borders** - Visual tone indicators on characters
+- **Part of speech indicators** - Visual representations of part of speech
+- **Field toggle buttons** - Each card includes toggles to Show/Hide categories
+- **Example sentences** - Context learning support
+- **Cloze deletion** - Fill-in-the-blank cards
+
+**Toggle Buttons on Cards** 
+Each card includes toggles to Show/Hide:
+- **Traditional** - Traditional character set 
+- **Stroke Order** - Animation of strokes, 1 by 1 in order
+- **Pinyin** - Pinyin pronunciation guide
+- **Zhuyin** - Zhuyin/Bopomofo pronunciation guide
+- **Diacritics** - Tone diacritic borders on characters
+- **Part of Speech** - Part of speech indicators with coloring for general categories and icons for specific subcategories, if off characters render according to light or dark mode without icons
+- **Grid** - Visual guide for writing exercises, style selectable: 田/米/井/回)
+- **Radical** - Radical indicator, when on radical will render bolder
+
+## Incomplete Features (in development)
+
+The following features mentioned in comments are NOT yet implemented:
+- ❌ Animated stroke order (mentioned in CSS but no Hanzi Writer integration)
+- ❌ Audio pronunciation (fields exist but no TTS generation)
+- ❌ Example sentences (field exists but not populated)
+- ❌ Detailed definitions (separate from SimpleMeaning but not used)
+- ❌ Card types (only basic card generation, templates not defined)
 
 ## Quick Start
 
@@ -66,37 +91,6 @@ Words are color-coded by grammatical category following a logical color system:
 | 15 |  Brown | 后缀 | Suffixes | Structural ends like 子，们，or 性 | **The Foundation (Hardened Clay)**: Stabilizing base that anchors a word's category |
 
 **Fallback:** Unknown POS tags display with black text (light mode) or white text (dark mode) with **no background color**.
-
-### Additional Features
-
-- **Tone diacritic borders** - Visual tone indicators on characters
-- **Stroke order animations** - Interactive Hanzi Writer integration with animate & quiz modes
-- **Audio pronunciation** - Built-in audio player using Youdao TTS
-- **Pinyin & Zhuyin** - Both phonetic systems included
-- **Traditional & Simplified** - Both character sets included
-- **Field toggle buttons** - Monochrome and no-diacritics modes
-- **Example sentences** - Context learning support
-- **Cloze deletion** - Fill-in-the-blank cards
-
-
-## Incomplete Features (in development)
-
-The following features mentioned in comments are NOT yet implemented:
-- ❌ Animated stroke order (mentioned in CSS but no Hanzi Writer integration)
-- ❌ Audio pronunciation (fields exist but no TTS generation)
-- ❌ Example sentences (field exists but not populated)
-- ❌ Detailed definitions (separate from SimpleMeaning but not used)
-- ❌ Card types (only basic card generation, templates not defined)
-
-
-### Toggle Buttons on Cards
-Each card includes toggles to Show/Hide:
-
-- **Traditional** - Traditional character set
-- **Pinyin** - Pinyin pronunciation guide
-- **Zhuyin** - Zhuyin/Bopomofo pronunciation guide
-- **Diacritics** - Tone marks
-- **Monochrome** - Part of speech coloring, when on characters willl render according to light or dark mode
 
 #### Supported File Names for wordlists:
 The build script searches for these patterns (in order):

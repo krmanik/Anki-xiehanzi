@@ -125,22 +125,52 @@ For word lists
 For best results, use this CSV format for your wordlists:
 
 ```csv
-Simplified,Traditional,Pinyin,Zhuyin,Definition,PartOfSpeech,HSKLevel
-你，你，ni3,you;thou,pronoun,1
-学习，學習，xue2xi2,to study;to learn,v,1
+Simplified,Traditional,Pinyin,Zhuyin,Definition,PartOfSpeechGeneral,PartOfSpeechSpecific,HSKLevel
+你，你，ni3,ㄋㄧˇ,you;thou,代词，疑问代词，1
+学习，學習，xue2xi2,ㄒㄩㄝˊ ㄒㄧˊ,to study;to learn,动词，心理动词，1
+书，書，shu1,ㄕㄨ,book,名词，普通名词，1
+这，這，zhe4,ㄓㄜˋ,this,代词，指示代词，1
+在，在，zai4,ㄗㄞˋ,at;in;on,介词，处所介词，1
+了，了，le5,ㄌㄜ˙,(completed action),助词，动态助词，1
+和，和，he2,ㄏㄜˊ,and;with,连词，并列连词，1
+本，本，ben3,ㄅㄣˇ,classifier for books,分类词，名分类词，1
+很，很，hen3,ㄏㄣˇ,very,副词，程度副词，1
+三，三，san1,ㄙㄢ,said,数词，基数词，1
+第一，第一，di4yi1,ㄉ一ˋ 一，first,数词，序数词，1
+北京，北京，Bei3jing1,ㄅㄟˇ ㄐㄧㄥ,Beijing,名词，专名，1
+上面，上面，shang4mian5,ㄕㄤˋ ㄇ一ㄢ˙,above,名词，方位词，1
+现在，現在，xian4zai4,ㄒ一ㄢˋ ㄗㄞˋ,now,名词，时间词，1
+我，我，wo3,ㄨㄛˇ,I;me,代词，人称代词，1
+哪，哪，na3,ㄋㄚˇ,which,代词，疑问代词，1
+能，能，neng2,ㄋㄥˊ,can;able to,动词，能愿动词，1
+有，有，you3,ㄧㄡˇ,have;there is,动词，存现动词，1
+来，来，lai2,ㄌㄞˊ,come,动词，趋向动词，1
+分开，分開，fen1kai1,ㄈㄣ ㄎㄞ,separate,动词，可分动词，1
+爱，愛，ai4,ㄞˋ,love,动词，心理动词，1
+让，讓，rang4,ㄖㄤˋ,let;allow,动词，使令动词，1
+男，男，nan2,ㄋㄢˊ,male,形容词，区别词，1
+漂亮，漂亮，piao4liang5,ㄆ一ㄠˋ ㄌ一ㄤˋ,beautiful,形容词，性质形容词，1
+哗啦，嘩啦，hua1la1,ㄏㄨㄚ ㄌㄚ，splash,像词，拟声词，1
+啊，啊，a5,ㄚ，ah!,像词，叹词，1
+的，的，de5,ㄉㄜ˙,(possessive particle),助词，结构助词，1
+吗，嗎，ma5,ㄇㄚ，(question particle),助词，语气助词，1
+过，過，guo4,ㄍㄨㄛˋ,(experiential aspect),助词，动态助词，1
+老-，老-，lao3-,old-(prefix),缀词，前缀，1
+-子，-子，-zi5,-(suffix),缀词，后缀，1
 ```
 
 **Required columns:**
 
 | Column | Required | Description |
-| `HSKLevel` | Yes |HSK 3.0 level 1-9
+|--------|----------|-------------|
 | `Simplified` | Yes | Simplified Chinese characters |
 | `Traditional` | Yes | Traditional characters with equivalence mapped to Simplified |
 | `Pinyin` | Yes | Pinyin with tone numbers (e.g., `ni3`) |
-| `Zhuyin` | Yes | Zhuyin with tone markers
-| `PartOfSpeechGeneral` | Yes | General Part of Speech tag
-| `PartOfSpeechSpecific` | No | Specific Part of Speech tag
-| `Definition` | No | English definition
+| `Zhuyin` | Yes | Zhuyin with tone markers (e.g., `ㄋㄧˇ`) |
+| `Definition` | No | English definition |
+| `PartOfSpeechGeneral` | Yes | General Part of Speech tag (see table below) |
+| `PartOfSpeechSpecific` | No | Specific Part of Speech tag (see table below) |
+| `HSKLevel` | Yes | HSK 3.0 level 1-9 |
 
 ## Tests before production
 

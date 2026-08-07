@@ -20,7 +20,7 @@ vi.mock('$lib/deck', async () => {
 			Simplified: w, Traditional: w, Pinyin: 'pin', Zhuyin: 'zhu',
 			Definitions: 'def', Syllable: 'syl', SimpleMeaning: 'mean',
 			commonMeaning: 'mean', pos: ['n'], dominantPos: 'n', classifiers: [],
-			level: null, rank: null, readings: []
+			level: null, rank: null, readings: [], breakdown: []
 		})),
 		playWordAudio: vi.fn(async () => true),
 		setupSql: vi.fn(async () => ({})),
@@ -89,6 +89,12 @@ describe('Create page — example sentence options', () => {
 });
 
 describe('Create page — presets', () => {
+	// Presets live behind a picker modal ("Add a ready-made card type").
+	const pickPreset = async (user: ReturnType<typeof userEvent.setup>, name: RegExp) => {
+		await user.click(screen.getByRole('button', { name: /Add a ready-made card type/ }));
+		await user.click(screen.getByRole('button', { name }));
+	};
+
 	it('replaces the lone default card with a one-click preset and enables audio', async () => {
 		const user = userEvent.setup();
 		render(Page);
@@ -97,23 +103,24 @@ describe('Create page — presets', () => {
 		const audio = screen.getByLabelText('Include Audio (Text-to-Speech)') as HTMLInputElement;
 		expect(audio.checked).toBe(false);
 
-		await user.click(screen.getByRole('button', { name: /Beginner/ }));
+		await pickPreset(user, /Beginner/);
 
 		// The empty default "Card 1" is replaced by a "Beginner" tab.
 		expect(screen.queryByText('Card 1')).toBeNull();
-		// Preset button + new tab both read "Beginner".
-		expect(screen.getAllByText('Beginner').length).toBeGreaterThanOrEqual(2);
+		expect(screen.getByText('Beginner')).toBeInTheDocument();
 		expect(audio.checked).toBe(true);
 	});
 
 	it('appends a second preset as a new card type', async () => {
 		const user = userEvent.setup();
 		render(Page);
-		await user.click(screen.getByRole('button', { name: /Beginner/ }));
-		await user.click(screen.getByRole('button', { name: /Reading/ }));
-		// Two distinct card-type tabs now exist alongside the preset buttons.
-		expect(screen.getAllByText('Beginner').length).toBeGreaterThanOrEqual(2);
-		expect(screen.getAllByText('Reading').length).toBeGreaterThanOrEqual(2);
+		await pickPreset(user, /Beginner/);
+		// The card type is no longer pristine → the second preset asks first.
+		await pickPreset(user, /Reading/);
+		await user.click(screen.getByRole('button', { name: 'Add new' }));
+		// Two distinct card-type tabs now exist.
+		expect(screen.getByText('Beginner')).toBeInTheDocument();
+		expect(screen.getByText('Reading')).toBeInTheDocument();
 	});
 });
 

@@ -149,7 +149,7 @@ More decks by the author: [AnkiWeb](https://ankiweb.net/shared/byauthor/11994382
 ## License
 
 Author: Mani (krmanik). MIT License and GPL 3.0.
-Third-party licenses: [License.md](https://github.com/krmanik/Anki-xiehanzi/blob/master/License.md).
+Third-party licenses: [License.md](https://github.com/krmanik/Anki-xiehanzi/blob/main/License.md).
 
 ---
 

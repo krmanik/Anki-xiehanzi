@@ -259,6 +259,29 @@ export function elementStyleToCSS(style: ElementStyle, fontStacks: Record<string
 	return r.join(';');
 }
 
+/**
+ * Hanzi-writer guide-line color for a theme. The surface ramp (`--surface4`) is
+ * tuned for borders on `--surface2`; on the practice cell (`--surface3`, often
+ * translucent) those steps vanish, which is why the grid only showed with no
+ * theme. Derive a low-alpha tint from the theme's text color instead — always
+ * contrasts with the card, and is resolved here (not with runtime `color-mix`)
+ * so old Anki webviews render it too.
+ */
+export function themeGridLine(cssVars: Record<string, string>): string | undefined {
+	const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec((cssVars['--text1'] ?? '').trim());
+	if (!m) return undefined;
+	const h = m[1].length === 3 ? m[1].replace(/./g, (c) => c + c) : m[1];
+	const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
+	return `rgba(${r},${g},${b},0.3)`;
+}
+
+/** Theme CSS vars as a declaration string, plus the derived `--grid-line`. */
+function themeVarsCss(cssVars: Record<string, string>): string {
+	const vars = Object.entries(cssVars).map(([k, v]) => `${k}:${v}`).join(';');
+	const grid = cssVars['--grid-line'] ? undefined : themeGridLine(cssVars);
+	return grid ? `${vars};--grid-line:${grid}` : vars;
+}
+
 /** Deck-wide CSS: base cards + global hanzi font + the flex card-body container. */
 export function buildGlobalCss(t: TemplateOpts): string {
 	let css =
@@ -348,7 +371,7 @@ export function buildGlobalCss(t: TemplateOpts): string {
 			const darkTheme  = group.darkId  ? CARD_THEME_MAP.get(group.darkId)  : undefined;
 			const baseTheme  = mode === 'dark' ? (darkTheme ?? lightTheme) : (lightTheme ?? darkTheme);
 			if (baseTheme) {
-				const vars = Object.entries(baseTheme.cssVars).map(([k, v]) => `${k}:${v}`).join(';');
+				const vars = themeVarsCss(baseTheme.cssVars);
 				// Define vars on body too so body{background-color:var(...)} can resolve them.
 				css += `body,.card{${vars};}\n`;
 				css += `body{background-color:var(--body-bg,var(--surface2));background-image:var(--body-bg-image,none);background-attachment:fixed;}\n`;
@@ -359,7 +382,7 @@ export function buildGlobalCss(t: TemplateOpts): string {
 			}
 			// Auto + both variants: dark vars activate under Anki night mode.
 			if (mode === 'auto' && lightTheme && darkTheme) {
-				const dv = Object.entries(darkTheme.cssVars).map(([k, v]) => `${k}:${v}`).join(';');
+				const dv = themeVarsCss(darkTheme.cssVars);
 				css += `body.night_mode,.card.night_mode{${dv};}\n`;
 				css += `body.night_mode{background-color:var(--body-bg,var(--surface2)) !important;background-image:var(--body-bg-image,none) !important;}\n`;
 			}
@@ -509,6 +532,83 @@ export const FIELD_TOGGLE: Record<string, string> = {
 	Frequency: 'text-freq',
 	Examples: 'text-examples'
 };
+
+// Field name → sidebar row label (the deck's review sidebar, not the create page).
+export const TOGGLE_LABEL: Record<string, string> = {
+	Simplified: 'Simplified',
+	Traditional: 'Traditional',
+	Pinyin: 'Pinyin',
+	Zhuyin: 'Zhuyin',
+	PartOfSpeech: 'Part of speech',
+	SimpleMeaning: 'Simple meaning',
+	Definitions: 'Meaning',
+	Breakdown: 'Breakdown',
+	Radical: 'Radical',
+	HskLevel: 'HSK level',
+	Frequency: 'Frequency',
+	Examples: 'Examples'
+};
+
+/** A row in the review sidebar, as the card template's `buildSections` reads it. */
+export type SidebarRow =
+	| ['toggle', string, string]
+	| ['number', string, string, number, number, number]
+	| ['select', string, string, string[]];
+
+/** `[section title ('' = untitled), rows]`. */
+export type SidebarSection = [string, SidebarRow[]];
+
+// The writing component's own controls. Rendered only in the sidebar of the side
+// the component was placed on — the other side has no writer to configure.
+const WRITING_ROWS: SidebarRow[] = [
+	['select', 'practice-select', 'Practice', ['简', '繁']],
+	['toggle', 'text-grid', 'Grid'],
+	['toggle', 'text-outline', 'Outline'],
+	['toggle', 'text-stroke-color', 'Stroke tone color'],
+	['number', 'draw-size', 'Grid size', 250, 100, 1000],
+	['number', 'stroke-size', 'Stroke width', 6, 2, 50],
+	['number', 'hint-miss', 'Hint after misses', 3, 1, 10]
+];
+
+/**
+ * The review sidebar for ONE side of a card type: the display fields that side
+ * shows (in the deck's field order), its colour switches, the writing controls
+ * when the component sits on this side, and the example-sentence section.
+ *
+ * Rows are derived per side on purpose — a sidebar that also listed the other
+ * side's fields is what made the front offer a page of switches for things it
+ * never displays.
+ */
+export function sidebarSections(
+	fields: string[],
+	sel: string[],
+	prefix: 'front' | 'back',
+	hasWriter: boolean
+): SidebarSection[] {
+	const shown = fields.filter((f) => FIELD_TOGGLE[f] && sel.includes(`${prefix}${f}`));
+	const main: SidebarRow[] = shown
+		.filter((f) => f !== 'Examples')
+		.map((f) => ['toggle', FIELD_TOGGLE[f], TOGGLE_LABEL[f]]);
+	if (shown.includes('Simplified') || shown.includes('Traditional'))
+		main.push(['toggle', 'text-color-hanzi', 'Color hanzi']);
+	if (shown.includes('Pinyin')) main.push(['toggle', 'text-color-pinyin', 'Color pinyin']);
+
+	// Every section is titled, so the sidebar reads as a short labelled list rather
+	// than one long run of switches.
+	const sections: SidebarSection[] = [];
+	if (main.length) sections.push(['Fields', main]);
+	if (hasWriter) sections.push(['Writing', WRITING_ROWS]);
+	if (shown.includes('Examples'))
+		sections.push([
+			'Example sentences',
+			[
+				['toggle', 'text-examples', 'Examples'],
+				['toggle', 'text-ex-color-hanzi', 'Color hanzi'],
+				['toggle', 'text-ex-color-pinyin', 'Color pinyin']
+			]
+		]);
+	return sections;
+}
 
 // Field name → body element id, for resolving group membership during assembly.
 export const FIELD_TO_ELEMENT: Record<string, CardElementId> = {
@@ -882,7 +982,7 @@ for (var _hide of hideList) {
 		// pinyin/zhuyin (e.g. Zhuyin deselected → the reading's zhuyin row hides via
 		// showHide('.zhuyin')). Applied after the writer block below so it reaches the
 		// final QFMT/AFMT (front-with-chrome and the writer template carry their own
-		// `var defaultOff = []`, not just the back).
+		// `var defaultOffFront/Back = []`, not just the back).
 		const defaultOffFor = (sel: string[], prefix: 'front' | 'back') =>
 			fields
 				.filter((f) => FIELD_DIV[f] && !sel.includes(`${prefix}${f}`))
@@ -963,16 +1063,25 @@ for (var _hide of hideList) {
 			};
 			if (writingFront) QFMT = writerFor(frontSel, 'front');
 			if (writingBack)
+				// Writer on both sides: the back stays the "already practised" view
+				// (`#back` puts the writer in finished-glyph mode) but is built from
+				// the BACK selection — reusing {{FrontSide}} collapsed the two sides
+				// into one and silently dropped the back's own fields.
 				AFMT = writingFront
-					? `<div class="${ct}"><div id="back">{{FrontSide}}</div></div>`
+					? `<div id="back">\n${writerFor(backSel, 'back')}\n</div>`
 					: writerFor(backSel, 'back');
 		}
 
-		// Seed each side's sidebar defaults on the finalised templates (front-chrome
-		// and writer carry their own `var defaultOff = []`; the back's is in
-		// DECK_HTML_BACK). The plain front has no such var — the replace is a no-op.
-		QFMT = QFMT.replace('var defaultOff = [];', `var defaultOff = ${JSON.stringify(frontDefaultOff)};`);
-		AFMT = AFMT.replace('var defaultOff = [];', `var defaultOff = ${JSON.stringify(backDefaultOff)};`);
+		// Each side gets its own sidebar, listing only what that side shows: the
+		// fields selected for it, its colour switches, and — on the side the writing
+		// component sits on — the writing controls. Nothing about the other side
+		// appears, so the front sidebar configures the front and the back's the back.
+		const seedSide = (t: string, sections: SidebarSection[], off: string[]) =>
+			t
+				.replace('var SIDEBAR_SECTIONS = [];', `var SIDEBAR_SECTIONS = ${JSON.stringify(sections)};`)
+				.replace('var defaultOff = [];', `var defaultOff = ${JSON.stringify(off)};`);
+		QFMT = seedSide(QFMT, sidebarSections(fields, frontSel, 'front', writingFront), frontDefaultOff);
+		AFMT = seedSide(AFMT, sidebarSections(fields, backSel, 'back', writingBack), backDefaultOff);
 
 		// When Simplified and Traditional are identical, hide the redundant
 		// traditional display so the card shows a single hanzi (runtime check).

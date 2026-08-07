@@ -81,31 +81,46 @@ const SIDEBAR_JS =
         if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn, false);
         else fn();
     }
-    function buildToggles(targetId, toggles, numbers, title) {
-        function fsToggle(id, label) {
-            return '<div class="fieldset-item fs-item-1"><div class="input-stack"><label for="' + id + '">' + label + '</label></div><input class="tappable" type="checkbox" id="' + id + '" name="' + id + '" onchange="setPrefs(this)"></div>';
+    // Sidebar rows. The deck assembler decides which sections THIS side gets and
+    // what is in them (see SIDEBAR_SECTIONS) — the sidebar only ever lists what the
+    // side it belongs to actually shows. Row shapes:
+    //   ["toggle", id, label]
+    //   ["number", id, label, value, min, max]
+    //   ["select", id, label, [option, ...]]
+    function buildSections(targetId, sections) {
+        function fsToggle(r) {
+            return '<div class="fieldset-item fs-item-1"><div class="input-stack"><label for="' + r[1] + '">' + r[2] + '</label></div><input class="tappable" type="checkbox" id="' + r[1] + '" name="' + r[1] + '" onchange="setPrefs(this)"></div>';
         }
-        function fsNumber(n) {
-            return '<div class="fieldset-item fs-item-1"><div class="input-stack"><label for="' + n[0] + '"><small>' + n[1] + '</small></label></div><input class="tappable" type="number" id="' + n[0] + '" name="' + n[0] + '" value="' + n[2] + '" min="' + n[3] + '" max="' + n[4] + '" oninput="setPrefs(this)"></div>';
+        function fsNumber(r) {
+            return '<div class="fieldset-item fs-item-1"><div class="input-stack"><label for="' + r[1] + '"><small>' + r[2] + '</small></label></div><input class="tappable" type="number" id="' + r[1] + '" name="' + r[1] + '" value="' + r[3] + '" min="' + r[4] + '" max="' + r[5] + '" oninput="setPrefs(this)"></div>';
         }
-        var rows = '';
-        toggles.forEach(function (t) {
-            // t[2] = id of the div this toggle controls; skip if not on this card.
-            if (t[2] && !document.getElementById(t[2])) return;
-            rows += fsToggle(t[0], t[1]);
-        });
+        function fsSelect(r) {
+            var opts = '';
+            r[3].forEach(function (o) { opts += '<option>' + o + '</option>'; });
+            return '<div class="fieldset-item fs-item-1 practice"><div class="input-stack"><label for="' + r[1] + '">' + r[2] + '</label></div><select id="' + r[1] + '" name="' + r[1] + '" onchange="setPrefs(this)">' + opts + '</select></div>';
+        }
+        var target = document.getElementById(targetId);
+        if (!target) return;
         var html = '';
-        if (rows) {
-            // Optional titled section (e.g. "Example sentences"); skipped when no rows.
+        sections.forEach(function (s) {
+            var title = s[0], rows = s[1];
+            if (!rows || !rows.length) return;
+            var body = '';
+            rows.forEach(function (r) {
+                body += r[0] == "number" ? fsNumber(r) : r[0] == "select" ? fsSelect(r) : fsToggle(r);
+            });
             if (title) html += '<div class="sidebar-section-title">' + title + '</div>';
-            html += '<fieldset>' + rows + '</fieldset>';
-        }
-        if (numbers && numbers.length) {
-            html += '<fieldset>';
-            numbers.forEach(function (n) { html += fsNumber(n); });
-            html += '</fieldset>';
-        }
-        if (html) document.getElementById(targetId).insertAdjacentHTML('beforeend', html);
+            html += '<fieldset>' + body + '</fieldset>';
+        });
+        if (html) target.insertAdjacentHTML('beforeend', html);
+    }
+    // Ids of every checkbox row in the sections (the persisted show/hide switches).
+    function toggleIdsOf(sections) {
+        var ids = [];
+        sections.forEach(function (s) {
+            (s[1] || []).forEach(function (r) { if (r[0] != "number" && r[0] != "select") ids.push(r[1]); });
+        });
+        return ids;
     }
     document.addEventListener('click', function (event) {
         var sb = document.getElementById("sidebar"), mb = document.getElementById("more-info-sidebar");
@@ -117,7 +132,10 @@ const SIDEBAR_JS =
         if (more && more.contains(event.target)) openSidebar("more-info-sidebar");
     });`;
 
-// Sidebar shell: brand header + a target section for JS-built toggles + footer.
+// Sidebar shell: brand header + a target section for JS-built rows + footer. Each
+// side of a card gets its own sidebar listing only that side's contents, so there
+// is no side picker here — the front sidebar configures the front, the back's the
+// back.
 const sidebarShell = (togglesId: string) =>
 `<div id="sidebar" class="sidebar">
     <section>
@@ -285,9 +303,14 @@ ${MORE_INFO_SIDEBAR}
 // the persistence side so the same chrome works on the front and the back.
 const sideScript = (frontBack: 'front' | 'back') =>
 `<script>
+    // This sidebar belongs to one side of the card and configures only that side;
+    // preferences are namespaced by side so the two never overwrite each other.
     var frontBack = "${frontBack}";
-    var switchIdList = ["text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-breakdown", "text-radical", "text-hsk", "text-freq", "text-examples", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin", "text-ex-color-hanzi", "text-ex-color-pinyin"];
     var colorIds = ["text-color-hanzi", "text-color-pinyin", "text-ex-color-hanzi", "text-ex-color-pinyin"];
+    // Sidebar contents for THIS side, seeded by the deck assembler from the fields
+    // the side actually shows.
+    var SIDEBAR_SECTIONS = [];
+    // Fields shipped but deselected for this side; they start hidden.
     var defaultOff = [];
     function colorClassOf(id) {
         if (id == "text-color-hanzi") return "no-hanzi-color";
@@ -298,23 +321,8 @@ const sideScript = (frontBack: 'front' | 'back') =>
 
 ${SIDEBAR_JS}
 
-    buildToggles("sidebar-toggles", [
-        ["text-pinyin", "Pinyin"], ["text-zhuyin", "Zhuyin"], ["text-sim", "Simplified"],
-        ["text-trad", "Traditional"], ["text-pos", "Part of speech", "char_pos"],
-        ["text-simple", "Simple meaning", "char_simple"], ["text-meaning", "Meaning", "char_meaning"],
-        ["text-breakdown", "Breakdown", "char_breakdown"], ["text-radical", "Radical", "char_radical"],
-        ["text-hsk", "HSK level", "char_hsk"], ["text-freq", "Frequency", "char_freq"],
-        ["text-color-hanzi", "Color hanzi"], ["text-color-pinyin", "Color pinyin"]
-    ]);
-
-    // Separate "Example sentences" section: show/hide examples and control their
-    // hanzi / pinyin colour independently of the main card. Only shown when the
-    // card actually has examples.
-    buildToggles("sidebar-toggles", [
-        ["text-examples", "Examples", "char_examples"],
-        ["text-ex-color-hanzi", "Color hanzi", "char_examples"],
-        ["text-ex-color-pinyin", "Color pinyin", "char_examples"]
-    ], null, "Example sentences");
+    buildSections("sidebar-toggles", SIDEBAR_SECTIONS);
+    var switchIdList = toggleIdsOf(SIDEBAR_SECTIONS);
 
     function applyField(id, isShow) {
         if (id == "text-pinyin") showHide(".pinyin", isShow);
@@ -344,6 +352,14 @@ ${CARD_JS}
             if (on) Persistence.setItem(frontBack + _id, "true");
             if (dv) dv.style.display = on ? "block" : "none";
             applyField(_id, on);
+        }
+        // Deselected fields have no row (the sidebar lists only what this side
+        // shows), so hide them here — they ship because another card type uses them.
+        for (var _off of defaultOff) {
+            if (document.getElementById(_off)) continue;
+            var offDv = document.getElementById(_off.replace("text-", "char_"));
+            if (offDv) offDv.style.display = "none";
+            applyField(_off, false);
         }
     }
 
@@ -432,60 +448,17 @@ const DECK_HTML_WITH_HANZI_WRITER =
 
 ${MEANING_CARD}
 
-<!--sidebar-->
-<div id="sidebar" class="sidebar">
-    <section>
-        <fieldset style="border:none;">
-            <div class="fieldset-item tappable">
-                <div class="input-stack" style="text-align:center; color: var(--text2);">
-                    <label for="deck-title">
-                        <h3 class="brand-title">写汉字</h3>
-                        <div class="brand-sub-title">xiě hànzì</div>
-                    </label>
-                    <a onclick="closeSidebar('sidebar')" class="close-button">✖</a>
-                </div>
-            </div>
-        </fieldset>
-    </section>
-    <section>
-        <fieldset>
-            <div class="fieldset-item fs-item-3 practice fs-item-front-back">
-                <div id="text-front" class="input-stack front-back" onclick="setActive('text-front')">Front</div>
-                <div id="text-back" class="input-stack front-back" onclick="setActive('text-back')">Back</div>
-            </div>
-        </fieldset>
-    </section>
-    <section>
-        <fieldset>
-            <div class="fieldset-item fs-item-1 practice">
-                <div class="input-stack"><label for="practice-select">Practice</label></div>
-                <select name="practice" id="practice-select" onchange="setPrefs(this)">
-                    <option>简</option>
-                    <option>繁</option>
-                </select>
-            </div>
-        </fieldset>
-    </section>
-    <section id="sidebar-toggles"></section>
-    <section>
-        <fieldset>
-            <a href="https://github.com/krmanik/Anki-xiehanzi">
-                <div class="fieldset-item tappable">
-                    <span style="font-size:14px; text-align:center;">View it on GitHub</span>
-                </div>
-            </a>
-        </fieldset>
-    </section>
-</div>
-${MORE_INFO_SIDEBAR}
-<!-----sidebar------>
+${SIDEBAR_BLOCK}
 
 ${PERSISTENCE}
 
 <script>
     var charClass = document.getElementById("char-sim-id").children;
-    var switchIdList = ["text-grid", "text-pinyin", "text-zhuyin", "text-pos", "text-simple", "text-meaning", "text-breakdown", "text-radical", "text-hsk", "text-freq", "text-examples", "text-sim", "text-trad", "text-color-hanzi", "text-color-pinyin", "text-ex-color-hanzi", "text-ex-color-pinyin", "text-stroke-color", "text-outline"];
     var colorIds = ["text-color-hanzi", "text-color-pinyin", "text-ex-color-hanzi", "text-ex-color-pinyin"];
+    // Sidebar contents, seeded by the deck assembler from the card type's fields —
+    // the same list on both sides, so the sidebar never changes shape.
+    var SIDEBAR_SECTIONS = [];
+    // Fields shipped but deselected for this side; they start hidden.
     var defaultOff = [];
     function colorClassOf(id) {
         if (id == "text-color-hanzi") return "no-hanzi-color";
@@ -498,43 +471,20 @@ ${SIDEBAR_JS}
 
 ${CARD_JS}
 
-    buildToggles("sidebar-toggles", [
-        ["text-pinyin", "Pinyin"], ["text-zhuyin", "Zhuyin"], ["text-sim", "Simplified"],
-        ["text-trad", "Traditional"], ["text-pos", "Part of speech", "char_pos"],
-        ["text-simple", "Simple meaning", "char_simple"], ["text-meaning", "Meaning", "char_meaning"],
-        ["text-breakdown", "Breakdown", "char_breakdown"], ["text-radical", "Radical", "char_radical"],
-        ["text-hsk", "HSK level", "char_hsk"], ["text-freq", "Frequency", "char_freq"],
-        ["text-color-hanzi", "Color hanzi"], ["text-color-pinyin", "Color pinyin"],
-        ["text-grid", "Grid"], ["text-outline", "Outline"], ["text-stroke-color", "Stroke tone color"]
-    ], [
-        ["draw-size", "Grid size", 250, 100, 1000],
-        ["stroke-size", "Stroke width", 6, 2, 50],
-        ["hint-miss", "Hint after misses", 3, 1, 10]
-    ]);
+    buildSections("sidebar-toggles", SIDEBAR_SECTIONS);
+    var switchIdList = toggleIdsOf(SIDEBAR_SECTIONS);
 
-    // Separate "Example sentences" section (matches the non-writer cards): show/hide
-    // examples and control their hanzi / pinyin colour independently. Only rendered
-    // when the card actually has examples (char_examples present).
-    buildToggles("sidebar-toggles", [
-        ["text-examples", "Examples", "char_examples"],
-        ["text-ex-color-hanzi", "Color hanzi", "char_examples"],
-        ["text-ex-color-pinyin", "Color pinyin", "char_examples"]
-    ], null, "Example sentences");
-
-    var frontBack = "front";
-    function setActive(side) {
-        frontBack = side == "text-back" ? "back" : "front";
-        document.getElementById("text-front").classList.toggle("btn-active", frontBack == "front");
-        document.getElementById("text-back").classList.toggle("btn-active", frontBack == "back");
-        initSwitchPrefs();
-    }
-    setActive(document.getElementById("back") ? "text-back" : "text-front");
+    // The writer only ever runs on the side it was placed on, so this sidebar and
+    // these preferences belong to that side alone.
+    var frontBack = document.getElementById("back") ? "back" : "front";
 
     function initPractice() {
         var _id = frontBack + "practice-select";
         var store = Persistence.getItem(_id);
         var idx = store == undefined ? 0 : store;
-        document.getElementById("practice-select").selectedIndex = idx;
+        var sel = document.getElementById("practice-select");
+        if (!sel) return;
+        sel.selectedIndex = idx;
         Persistence.setItem(_id, idx);
     }
 
@@ -568,6 +518,14 @@ ${CARD_JS}
             }
             applyField(_id, on);
         }
+        // Deselected fields get no row (the sidebar lists only what this side
+        // shows), so hide them here — the writer page renders them regardless.
+        for (var _off of defaultOff) {
+            if (document.getElementById(_off)) continue;
+            var offDv = document.getElementById(_off.replace("text-", "char_"));
+            if (offDv) offDv.style.display = "none";
+            applyField(_off, false);
+        }
         showTraditionalChar();
     }
 
@@ -584,17 +542,20 @@ ${CARD_JS}
     function initDrawPrefs() {
         var defaults = { "draw-size": 400, "stroke-size": 64, "hint-miss": 5 };
         for (var _id in defaults) {
+            var el = document.getElementById(_id);
+            if (!el) continue;
             var perId = frontBack + _id;
             var store = Persistence.getItem(perId);
             if (store) {
-                document.getElementById(_id).value = store;
+                el.value = store;
             } else {
-                document.getElementById(_id).value = defaults[_id];
+                el.value = defaults[_id];
                 Persistence.setItem(perId, defaults[_id]);
             }
         }
         var perIndex = Persistence.getItem(frontBack + "practice-select");
-        document.getElementById("practice-select").selectedIndex = perIndex ? 1 : 0;
+        var sel = document.getElementById("practice-select");
+        if (sel) sel.selectedIndex = perIndex ? 1 : 0;
         characters = document.getElementById(perIndex ? 'char_trad' : 'char_sim').textContent;
     }
 
@@ -658,7 +619,10 @@ ${CARD_JS}
     var btnAudio = document.getElementById("btnPlayAudio");
     if (btnAudio) btnAudio.onclick = playAudio;
 
-    var grid_data = \`<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' class='grid-color' id='grid-background-target'><g id="char_grid" class="char-grid"><line x1='0' y1='0' x2='100%' y2='100%' stroke='var(--surface4)' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='100%' y1='0' x2='0' y2='100%' stroke='var(--surface4)' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='50%' y1='0' x2='50%' y2='100%' stroke='var(--surface4)' stroke-width='0.7' stroke-dasharray='3 4'/><line x1='0' y1='50%' x2='100%' y2='50%' stroke='var(--surface4)' stroke-width='0.7' stroke-dasharray='3 4'/></g></svg>\`;
+    // Guide lines get their color from CSS (.char-grid line { stroke: var(--grid-line) }),
+    // not from a stroke="" presentation attribute: var() in a presentation attribute is
+    // unreliable across webviews, and the CSS rule lets card themes repoint --grid-line.
+    var grid_data = \`<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' class='grid-color' id='grid-background-target'><g id="char_grid" class="char-grid"><line x1='0' y1='0' x2='100%' y2='100%' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='100%' y1='0' x2='0' y2='100%' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='50%' y1='0' x2='50%' y2='100%' stroke-width='0.7' stroke-dasharray='3 4'/><line x1='0' y1='50%' x2='100%' y2='50%' stroke-width='0.7' stroke-dasharray='3 4'/></g></svg>\`;
 
     var characters = document.getElementById("practice-select").selectedIndex == "0"
         ? document.getElementById('char_sim').textContent
@@ -777,12 +741,16 @@ ${CARD_JS}
             generateHanziOnFinishQuiz("none");
         }
 
-        document.getElementById("ch_load_status").innerHTML = "&#8226;";
-        document.getElementById("ch_load_status").style.marginBottom = "0px";
-        document.getElementById("ch_load_status").style.display = "block";
+        // The stroke-data fetch resolves asynchronously; by then the reviewer may
+        // already have swapped this card out, leaving nothing to draw into.
+        var loadStatus = document.getElementById("ch_load_status");
+        var drawGrid = document.getElementById('character-target-div');
+        if (!loadStatus || !drawGrid) return;
+        loadStatus.innerHTML = "&#8226;";
+        loadStatus.style.marginBottom = "0px";
+        loadStatus.style.display = "block";
 
         var hanziWriterList = [];
-        var drawGrid = document.getElementById('character-target-div');
         drawGrid.innerHTML = "";
 
         for (i = 0; i < characters.length; i++) {
@@ -798,10 +766,10 @@ ${CARD_JS}
             var writer = HanziWriter.create('grid-background-target' + i, hanzi, {
                 charDataLoader: hwCharDataLoader,
                 onLoadCharDataSuccess: function (data) {
-                    document.getElementById("ch_load_status").style.color = "#4caf50";
+                    if (loadStatus) loadStatus.style.color = "#4caf50";
                 },
                 onLoadCharDataError: function (reason) {
-                    document.getElementById("ch_load_status").style.color = "#ea2322";
+                    if (loadStatus) loadStatus.style.color = "#ea2322";
                 },
 
                 width: charWidth,
@@ -838,10 +806,10 @@ ${CARD_JS}
                 }, 1000);
             };
 
-            document.getElementById("text-outline").onclick = function () {
+            var outlineCb = document.getElementById("text-outline");
+            if (outlineCb) outlineCb.onclick = function () {
                 btnTapAudio();
-                document.getElementById("text-outline").checked ?
-                    writer.showOutline() : writer.hideOutline();
+                outlineCb.checked ? writer.showOutline() : writer.hideOutline();
             };
 
             document.getElementById("btnRevealChar").onclick = function () {
@@ -903,6 +871,7 @@ ${CARD_JS}
     }
 
     function setStrokeColor(i) {
+        if (!charClass[i]) return; // no colored span for this position (punctuation, etc.)
         if (Persistence.getItem(frontBack + "text-stroke-color") == "true") {
             var toneColor = getToneColor(charClass[i].className);
             drawing_color = toneColor;
@@ -932,8 +901,10 @@ ${CARD_JS}
         }
 
         if (i + 1 == len) {
-            document.querySelector('#character-target-div').innerHTML = "";
-            document.getElementById("ch_load_status").style.display = "none";
+            var target = document.querySelector('#character-target-div');
+            if (target) target.innerHTML = "";
+            var status = document.getElementById("ch_load_status");
+            if (status) status.style.display = "none";
             generateHanziOnFinishQuiz("unset", true);
         }
 
@@ -941,12 +912,11 @@ ${CARD_JS}
         showHide("#char_sim", true);
         showTraditionalChar();
         showHide("#char_meaning", true, "block");
-        if (document.getElementById("text-pinyin").checked) {
-            showHide(".pinyin", true);
-        }
-        if (document.getElementById("text-zhuyin").checked) {
-            showHide(".zhuyin", true);
-        }
+        // Rows exist only for fields this card type uses — treat a missing row as off.
+        var pinyinCb = document.getElementById("text-pinyin");
+        if (pinyinCb && pinyinCb.checked) showHide(".pinyin", true);
+        var zhuyinCb = document.getElementById("text-zhuyin");
+        if (zhuyinCb && zhuyinCb.checked) showHide(".zhuyin", true);
         showNextAndRevealBtn(false);
     }
 
@@ -995,6 +965,7 @@ const DECK_CSS =
   --title-color: var(--text2, grey);
   --time-left-color: var(--accent, teal);
   --hanzi-grid: var(--surface3, #fafafa);
+  --grid-line: var(--surface4, #d4d4d4);
   --stroke: var(--text1, #555);
   --outline: var(--surface4, #ddd);
   --drawing: var(--text1, #333);
@@ -1029,6 +1000,7 @@ const DECK_CSS =
   --title-color: var(--text2, #00bcd4);
   --time-left-color: var(--accent, #fff);
   --hanzi-grid: var(--surface3, #262626);
+  --grid-line: var(--surface4, #3b3b3b);
   --stroke: var(--text1, #ffffff);
   --outline: var(--surface4, #5b5b5b);
   --drawing: var(--text1, #fff);
@@ -1100,6 +1072,12 @@ const DECK_CSS =
   background-color: var(--hanzi-grid);
   padding: 2px;
   box-shadow: 0px 0px 10px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* Guide lines. --grid-line defaults to --surface4; card themes repoint it to a
+   text-derived tint so the lines stay visible on every theme surface. */
+.char-grid line {
+  stroke: var(--grid-line, var(--surface4, #d4d4d4));
 }
 
 /* "Grid" toggle hides the dashed guide lines; the writing cell stays. */
@@ -1543,27 +1521,6 @@ input[type="number"] {
 
 .fs-item-3 {
   grid-template-columns: 1fr 1fr;
-}
-
-.fs-item-front-back {
-  padding: unset;
-  text-align: center;
-  gap: unset;
-  cursor: pointer;
-}
-
-.front-back {
-  padding: var(--space-xs);
-  color: var(--text1);
-  background: var(--surface2);
-  border: 1px solid var(--surface4);
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.btn-active {
-  color: var(--on-accent, var(--chip-fg, white));
-  background: var(--brand-bg2);
-  border-color: transparent;
 }
 
 .fieldset-item:focus-within {

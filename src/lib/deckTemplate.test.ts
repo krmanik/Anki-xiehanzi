@@ -121,6 +121,17 @@ describe('buildGlobalCss', () => {
 		expect(css).toContain('--tone-1:#111111;');
 		expect(css).toContain('.tone4{color:#444444;}');
 	});
+
+	it('derives a --grid-line tint for both variants of a themed deck', () => {
+		const css = buildGlobalCss(tpl({ cardTheme: 'minimal', cardThemeMode: 'auto' }));
+		// light variant text1 #17171c, dark variant text1 #f3f3f7
+		expect(css).toContain('--grid-line:rgba(23,23,28,0.3)');
+		expect(css).toContain('--grid-line:rgba(243,243,247,0.3)');
+	});
+
+	it('emits no --grid-line without a card theme (deck CSS default stands)', () => {
+		expect(buildGlobalCss(tpl())).not.toContain('--grid-line');
+	});
 });
 
 // ───────────────────────────── buildCardCss ─────────────────────────────────
@@ -389,8 +400,8 @@ describe('buildNoteTemplates — colour defaults', () => {
 		const afmt = tmpls[0].afmt;
 		expect(afmt).toContain('HanziWriter'); // writer card path
 		expect(afmt).toContain('id="char_examples"');
-		expect(afmt).toContain('null, "Example sentences"');
-		expect(afmt).toContain('"text-ex-color-hanzi", "Color hanzi", "char_examples"');
+		expect(afmt).toContain('["Example sentences",[["toggle","text-examples","Examples"]');
+		expect(afmt).toContain('["toggle","text-ex-color-hanzi","Color hanzi"]');
 		expect(afmt).toContain('"no-ex-hanzi-color", !isShow');
 	});
 

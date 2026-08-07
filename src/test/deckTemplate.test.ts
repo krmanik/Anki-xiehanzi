@@ -87,15 +87,53 @@ describe('buildNoteTemplates — field selection', () => {
 		}
 	});
 
-	it('writer card on the front: extras follow the front selection, back re-shows it', () => {
+	it('writer on both sides: each side keeps its own selection, back stays the review view', () => {
+		// Regression: the back used to be {{FrontSide}}, so the two sides collapsed
+		// into one and the back's own field selection was dropped.
 		const tc = card(
-			['frontSimplified', 'frontHskLevel', 'frontwritingComponent'],
-			['backSimplified', 'backwritingComponent']
+			['frontSimplified', 'frontwritingComponent'],
+			['backSimplified', 'backFrequency', 'backwritingComponent']
 		);
 		const { tmpls } = build(tc);
 		expect(tmpls[0].qfmt).toContain('character-target-div');
-		expect(tmpls[0].qfmt).toContain('{{HskLevel}}');
 		expect(tmpls[0].qfmt).not.toContain('{{Frequency}}');
-		expect(tmpls[0].afmt).toContain('{{FrontSide}}');
+		expect(tmpls[0].afmt).not.toContain('{{FrontSide}}');
+		expect(tmpls[0].afmt).toContain('character-target-div');
+		expect(tmpls[0].afmt).toContain('{{Frequency}}');
+		expect(tmpls[0].afmt).toContain('<div id="back">'); // finished-glyph mode
+	});
+
+	it('no side picker anywhere — each sidebar configures its own side', () => {
+		const tc = card(
+			['frontSimplified', 'frontwritingComponent', 'frontControlButtons'],
+			['backSimplified', 'backDefinitions', 'backwritingComponent']
+		);
+		const { tmpls } = build(tc);
+		for (const side of [tmpls[0].qfmt, tmpls[0].afmt]) {
+			expect(side).not.toContain('setActive');
+			expect(side).not.toContain('id="text-front"');
+			expect(side).not.toContain('id="text-back"');
+		}
+	});
+
+	it('sidebar rows follow the side that owns them', () => {
+		const tc = card(
+			['frontSimplified', 'frontwritingComponent', 'frontControlButtons'],
+			['backSimplified', 'backPinyin', 'backDefinitions', 'backRadical']
+		);
+		const { tmpls } = build(tc);
+		const sections = (t: string) => /var SIDEBAR_SECTIONS = (\[.*?\]);/.exec(t)?.[1] ?? '';
+		const front = sections(tmpls[0].qfmt);
+		const back = sections(tmpls[0].afmt);
+		// Front shows only the hanzi + the writer: no Meaning/Radical/Pinyin rows.
+		expect(front).toContain('["toggle","text-sim","Simplified"]');
+		expect(front).not.toContain('text-radical');
+		expect(front).not.toContain('text-meaning');
+		expect(front).toContain('"Writing"'); // writer sits on the front
+		// Back shows the dictionary card: its rows, and no writing section.
+		expect(back).toContain('["toggle","text-radical","Radical"]');
+		expect(back).toContain('["toggle","text-meaning","Meaning"]');
+		expect(back).not.toContain('Writing');
+		expect(back).not.toContain('practice-select');
 	});
 });

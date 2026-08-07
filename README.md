@@ -66,6 +66,11 @@ See [Export a Deck](https://krmanik.github.io/Anki-xiehanzi/docs/export-deck) fo
 [View the docs](https://krmanik.github.io/Anki-xiehanzi/docs/intro) — features,
 studying tips, exporting a deck, and FAQ.
 
+> [!NOTE]
+> The old (v1) version of the site is still available at
+> [krmanik.github.io/Anki-xiehanzi/v1](https://krmanik.github.io/Anki-xiehanzi/v1/).
+> It is archived for reference and no longer updated.
+
 ---
 
 <details>

@@ -42,6 +42,12 @@ Coverage spans **HSK 3.0 levels 1–9** (New HSK 2025), plus BCT and YCT word li
 - <a href="{base}/docs/faq">FAQ</a> — common questions.
 - <a href="{base}/docs/contributing">Contributing</a> — report bugs and fix word data.
 
+## Old site (v1)
+
+The previous version of this site is still online at
+[krmanik.github.io/Anki-xiehanzi/v1](https://krmanik.github.io/Anki-xiehanzi/v1/).
+It is kept for reference only and is no longer updated — use these docs for anything current.
+
 ## Requirements
 
 - [Anki](https://apps.ankiweb.net/) desktop (any recent version)

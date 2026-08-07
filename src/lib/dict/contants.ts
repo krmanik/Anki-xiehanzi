@@ -26,7 +26,18 @@ const FIELDS = {
 };
 
 // Persistence library, loaded from bundled media (works offline, one copy).
-const PERSISTENCE = `<script src="_anki-persistence.js"></script>`;
+// anki-persistence only upgrades to localStorage when the UA contains "Mobile",
+// which iPadOS 13+ does not send (its WKWebView reports a Macintosh UA). The
+// sessionStorage fallback is wiped between cards in the mobile reviewers, so
+// force localStorage on every non-desktop client where it actually works.
+const PERSISTENCE =
+`<script src="_anki-persistence.js"></script>
+<script>
+    if (window.ankiPlatform != "desktop" && window.Persistence_localStorage) {
+        var _p = new Persistence_localStorage();
+        if (_p.isAvailable()) window.Persistence = _p;
+    }
+</script>`;
 
 // Right-side dictionary links. Identical on every template; {{Simplified}} only.
 const MORE_INFO_SIDEBAR =
@@ -61,10 +72,14 @@ const SIDEBAR_JS =
     function closeSidebar(id) {
         document.getElementById(id).style.width = "0";
     }
-    function isInWebView() {
-        var UA = navigator.userAgent;
-        if (/iPhone|iPod|iPad/.test(UA) && /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(UA)) return true;
-        return window.location.href.includes("ankiuser.net");
+    // Run init as soon as the DOM this script sits under exists. Never wait on
+    // window "load": Anki reviewers (desktop, AnkiDroid, AnkiMobile) swap card
+    // HTML into an already-loaded page, so "load" has fired long before and a
+    // listener added here would never run. UA sniffing used to stand in for
+    // this and broke on iPadOS 13+, whose WKWebView reports a Macintosh UA.
+    function ankiWhenReady(fn) {
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn, false);
+        else fn();
     }
     function buildToggles(targetId, toggles, numbers, title) {
         function fsToggle(id, label) {
@@ -226,22 +241,16 @@ ${PERSISTENCE}
             }
         }
     }
-    function isInWebView() {
-        var UA = navigator.userAgent;
-        if (/iPhone|iPod|iPad/.test(UA) && /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(UA)) return true;
-        return window.location.href.includes("ankiuser.net");
+    // See ankiWhenReady in SIDEBAR_JS; the plain front card does not include it.
+    function ankiWhenReady(fn) {
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fn, false);
+        else fn();
     }
 
 ${CARD_JS}
 
     function initFront() { initSwitchPrefs(); colorChars(); colorPinyin(); initMeaning(); }
-    if (Persistence.isAvailable()) {
-        if (window.ankiPlatform == "desktop" || isInWebView()) {
-            initFront();
-        } else {
-            window.addEventListener("load", initFront, false);
-        }
-    }
+    if (Persistence.isAvailable()) ankiWhenReady(initFront);
 </script>
 `;
 
@@ -356,13 +365,7 @@ ${CARD_JS}
     if (btnAudio) btnAudio.onclick = playAudio;
 
     function initSide() { initSwitchPrefs(); colorChars(); colorPinyin(); initMeaning(); }
-    if (Persistence.isAvailable()) {
-        if (window.ankiPlatform == "desktop" || isInWebView()) {
-            initSide();
-        } else {
-            window.addEventListener("load", initSide, false);
-        }
-    }
+    if (Persistence.isAvailable()) ankiWhenReady(initSide);
 </script>
 `;
 
@@ -618,17 +621,12 @@ ${CARD_JS}
     // safe to tone-color the displayed big hanzi as well as the pinyin.
     function initWriterCard() { colorChars(); colorPinyin(); initMeaning(); }
     if (Persistence.isAvailable()) {
-        if (window.ankiPlatform == "desktop" || isInWebView()) {
+        ankiWhenReady(function () {
             initPractice();
             initSwitchPrefs();
             initDrawPrefs();
             initWriterCard();
-        } else {
-            window.addEventListener("load", initPractice, false);
-            window.addEventListener("load", initSwitchPrefs, false);
-            window.addEventListener("load", initDrawPrefs, false);
-            window.addEventListener("load", initWriterCard, false);
-        }
+        });
     }
 </script>
 <script src="_hanzi-writer.min.js"></script>

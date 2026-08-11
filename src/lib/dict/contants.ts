@@ -67,7 +67,9 @@ const SIDEBAR_JS =
         });
     }
     function openSidebar(id) {
-        document.getElementById(id).style.width = id == "sidebar" ? "250px" : "160px";
+        // 200px, not 160: the widest label in the links sidebar is "CharacterPop",
+        // which was being clipped mid-word at the old width.
+        document.getElementById(id).style.width = id == "sidebar" ? "250px" : "200px";
     }
     function closeSidebar(id) {
         document.getElementById(id).style.width = "0";
@@ -121,6 +123,21 @@ const SIDEBAR_JS =
             (s[1] || []).forEach(function (r) { if (r[0] != "number" && r[0] != "select") ids.push(r[1]); });
         });
         return ids;
+    }
+    // Rows that only make sense while their owner is on. With examples switched
+    // off there are no sentences to colour, so their two colour rows would be
+    // dead switches — hide them (and the section title, when nothing is left).
+    var DEPENDENT_ROWS = { "text-examples": ["text-ex-color-hanzi", "text-ex-color-pinyin"] };
+    function syncDependentRows() {
+        for (var owner in DEPENDENT_ROWS) {
+            var master = document.getElementById(owner);
+            if (!master) continue;
+            var on = master.checked;
+            DEPENDENT_ROWS[owner].forEach(function (id) {
+                var el = document.getElementById(id);
+                if (el && el.parentElement) el.parentElement.style.display = on ? "" : "none";
+            });
+        }
     }
     document.addEventListener('click', function (event) {
         var sb = document.getElementById("sidebar"), mb = document.getElementById("more-info-sidebar");
@@ -361,6 +378,7 @@ ${CARD_JS}
             if (offDv) offDv.style.display = "none";
             applyField(_off, false);
         }
+        syncDependentRows();
     }
 
     function setPrefs(e) {
@@ -369,6 +387,7 @@ ${CARD_JS}
         var dv = document.getElementById(e.id.replace("text-", "char_"));
         if (dv) dv.style.display = e.checked ? "block" : "none";
         applyField(e.id, e.checked);
+        syncDependentRows();
     }
 
     function playAudio() {
@@ -393,9 +412,11 @@ const DECK_HTML_BACK = `<!--FIELDS-->\n\n${PERSISTENCE}\n\n${SIDEBAR_BLOCK}\n\n$
 // appended after the assembled body, so the control bar works on the front too.
 const DECK_HTML_FRONT_CHROME = `${PERSISTENCE}\n\n${SIDEBAR_BLOCK}\n\n${sideScript('front')}`;
 
-const DECK_HTML_WITH_HANZI_WRITER =
-`
-<script>
+// Writer colours read from the live CSS vars so strokes track the card theme
+// and the chosen tone palette. Split out of the writer template so a different
+// layout can reuse the engine without re-deriving them.
+const WRITER_COLOR_JS =
+`<script>
     // Writer colors come from the live CSS vars so they track the card theme
     // (--stroke/--outline/--drawing map to the theme's text/surface colors) and
     // the chosen tone palette (--tone-1..5, overridden by the tone preset).
@@ -412,7 +433,407 @@ const DECK_HTML_WITH_HANZI_WRITER =
         if (!m) return cssVar("--stroke", _night ? "#ffffff" : "#555");
         return cssVar("--tone-" + m[1], stroke_color);
     }
-</script>
+</script>`;
+
+// The Hanzi Writer engine: grid painting, the stroke quiz, the finished-glyph
+// row and the reveal / replay / next wiring. Expects the writer markup ids
+// (character-target-div, onfinish-character-target-div, ch_load_status), the
+// sidebar's draw-size / stroke-size / hint-miss / practice-select inputs, and
+// `charClass`, `frontBack`, `showHide`, `showTraditionalChar` from the page.
+const WRITER_ENGINE_JS =
+`<script src="_hanzi-writer.min.js"></script>
+<script>
+    // Offline stroke data: load the bundled subset, serve one character on demand.
+    var HANZI_DATA = {};
+    function hwCharDataLoader(char) { return HANZI_DATA[char]; }
+
+    var charHW = document.getElementById("draw-size").value;
+    var charHeight = charHW;
+    var charWidth = charHW;
+    var strokeWidth = document.getElementById("stroke-size").value;
+    var strokeAfterMisses = document.getElementById("hint-miss").value;
+
+    function btnTapAudio() {
+        var audio = new Audio();
+        audio.src = "_press.mp3";
+        audio.load();
+        audio.play();
+    }
+
+    function playAudio() {
+        var audioEl = document.getElementById('audio');
+        if (!audioEl) return;
+        var audio = audioEl.getElementsByTagName("*");
+        if (audio[0]) audio[0].tagName == "AUDIO" ? audio[0].play() : audio[0].click();
+    }
+
+    var btnAudio = document.getElementById("btnPlayAudio");
+    if (btnAudio) btnAudio.onclick = playAudio;
+
+    // Guide lines get their color from CSS (.char-grid line { stroke: var(--grid-line) }),
+    // not from a stroke="" presentation attribute: var() in a presentation attribute is
+    // unreliable across webviews, and the CSS rule lets card themes repoint --grid-line.
+    var grid_data = \`<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' class='grid-color' id='grid-background-target'><g id="char_grid" class="char-grid"><line x1='0' y1='0' x2='100%' y2='100%' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='100%' y1='0' x2='0' y2='100%' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='50%' y1='0' x2='50%' y2='100%' stroke-width='0.7' stroke-dasharray='3 4'/><line x1='0' y1='50%' x2='100%' y2='50%' stroke-width='0.7' stroke-dasharray='3 4'/></g></svg>\`;
+
+    var characters = document.getElementById("practice-select").selectedIndex == "0"
+        ? document.getElementById('char_sim').textContent
+        : document.getElementById('char_trad').textContent;
+
+    function isHanzi(c) {
+        return (c >= 0x4E00 && c <= 0x9FFF) || (c >= 0x3400 && c <= 0x4DBF) || (c >= 0xF900 && c <= 0xFAFF);
+    }
+
+    // The characters to practise, as a dense list — and the only thing anything
+    // downstream is allowed to index.
+    //
+    // \`characters\` is the *rendered text* of a field, not a word: the traditional
+    // field is bracketed by the template, so char_trad reads 〔圖書館〕 and the
+    // hanzi sit at positions 1..3. Every loop below used to walk that string and
+    // key its work on the raw position, which meant the traditional side numbered
+    // its grid cells from 1 and — because \`charClass\` (the tone-coloured spans of
+    // the simplified field) is a dense list of hanzi — shifted every stroke colour
+    // by one, leaving the last character with no entry at all. Indexing this list
+    // instead keeps cells, writers, tone colours and element ids on the same
+    // numbering whichever form is being written.
+    function practiceChars() {
+        var out = [];
+        for (var k = 0; k < characters.length; k++) {
+            if (isHanzi(characters.charCodeAt(k))) out.push(characters[k]);
+        }
+        return out;
+    }
+
+    // Paint the gray practice grid synchronously, before the async stroke-data
+    // fetch resolves and doPractice() runs. Without this the target div stays a
+    // blank 0px box until the fetch finishes, so the grid pops in white -> gray
+    // late and shoves the layout. Sized to charWidth/charHeight so it matches the
+    // writer's SVG exactly (no shrink) — the writer just draws strokes inside it.
+    function prefillGrid() {
+        var onBack = !!document.getElementById("back");
+        var box = document.getElementById(onBack ? "onfinish-character-target-div" : "character-target-div");
+        if (!box) return;
+        box.innerHTML = "";
+        if (onBack) {
+            // Match the finished layout (centered single row) so the placeholder
+            // doesn't flash left-aligned before doPractice centers it.
+            box.style.position = "unset";
+            box.style.display = "flex";
+            box.style.justifyContent = "center";
+            box.style.flexWrap = "nowrap";
+            box.style.overflow = "auto";
+        }
+        var cells = practiceChars();
+        for (var k = 0; k < cells.length; k++) {
+            var cell = document.createElement(onBack ? 'span' : 'div');
+            cell.innerHTML = grid_data;
+            var svg = cell.children[0];
+            svg.removeAttribute('id');
+            svg.style.margin = onBack ? "6px" : "";
+            svg.style.width = (onBack ? 100 : charWidth) + "px";
+            svg.style.height = (onBack ? 100 : charHeight) + "px";
+            box.appendChild(cell);
+        }
+        // doPractice() reveals ch_load_status on the front, and its inline
+        // margin-top:-36px nets ~-12px once shown — that pulled everything below
+        // the grid up when the writer kicked in. Reserve it now (shows the red
+        // loading dot during the fetch; the writer recolors it on success).
+        if (!onBack) {
+            var status = document.getElementById("ch_load_status");
+            if (status) status.style.display = "block";
+        }
+    }
+    prefillGrid();
+
+    function generateHanziOnFinishQuiz(style = "none", finish = false) {
+        var drawGrid = document.getElementById('onfinish-character-target-div');
+        if (!drawGrid) return;
+        drawGrid.innerHTML = "";
+        drawGrid.style = "";
+        var size = 40;
+        if (finish) {
+            // All chars done: one centered row of full-size finished glyphs
+            // (single and multi char alike), scroll only if it overflows.
+            size = 100;
+            drawGrid.style.position = "unset";
+            drawGrid.style.display = "flex";
+            drawGrid.style.justifyContent = "center";
+            drawGrid.style.flexWrap = "nowrap";
+            drawGrid.style.overflow = "auto";
+        } else {
+            // During writing: stack completed mini-chars in a column that hugs
+            // the left edge of the centered grid. The grid is centered in the
+            // viewport, so its left edge is at (50% - gridWidth/2); right-align
+            // a left-half-width column there so each finished char sits just
+            // beside the grid, not on top of it or at the window's left edge.
+            var half = (parseInt(charWidth, 10) || 200) / 2;
+            drawGrid.style.position = "absolute";
+            drawGrid.style.left = "0";
+            drawGrid.style.width = "calc(50% - " + half + "px)";
+            drawGrid.style.display = "flex";
+            drawGrid.style.flexDirection = "column";
+            drawGrid.style.alignItems = "flex-end";
+        }
+
+        var finished = practiceChars();
+        for (var n = 0; n < finished.length; n++) {
+            var hanzi = finished[n];
+            var span = document.createElement('span');
+            span.innerHTML = grid_data;
+            span.children[0].id = "onfinish-grid-background-target" + n;
+            span.children[0].style.margin = finish ? "6px" : "2px";
+            span.style.display = style;
+            drawGrid.appendChild(span);
+            setStrokeColor(n);
+            HanziWriter.create("onfinish-grid-background-target" + n, hanzi, {
+                charDataLoader: hwCharDataLoader,
+                width: size,
+                height: size,
+                padding: 5,
+                strokeColor: stroke_color
+            });
+        }
+    }
+
+    document.getElementById("btnReloadQuiz").onclick = function () {
+        // Finishing a quiz reveals the answer on the question side — the hanzi,
+        // the meaning, the readings (see onFinishQuiz). Restarting the quiz has
+        // to put the side back the way it was configured, or the practice grid
+        // sits underneath the very character it is asking for. initSwitchPrefs
+        // re-applies the stored per-side switches, so this is a reset, not a
+        // second set of rules that could drift from the sidebar's.
+        if (typeof initSwitchPrefs === "function") initSwitchPrefs();
+        // The answer side normally has no quiz — its grid is a strip of finished
+        // glyphs and the practice cell is hidden. Reload there means "let me
+        // write it again", so mark the side as practising: the CSS turns the
+        // cell back on, and the same three calls the question side makes then
+        // start a real quiz, reveal/next buttons included. onFinishQuiz drops
+        // the class again when the last character is done.
+        var backEl = document.getElementById("back");
+        if (backEl) backEl.classList.add("practising");
+        doPractice(true);
+        generateHanziOnFinishQuiz("none");
+        showNextAndRevealBtn(true);
+    }
+
+    function doPractice(p = false) {
+        if (document.getElementById("back")) {
+            generateHanziOnFinishQuiz("unset", true);
+            if (!p) {
+                showNextAndRevealBtn(false);
+                return;
+            };
+        } else {
+            generateHanziOnFinishQuiz("none");
+        }
+
+        // The stroke-data fetch resolves asynchronously; by then the reviewer may
+        // already have swapped this card out, leaving nothing to draw into.
+        var loadStatus = document.getElementById("ch_load_status");
+        var drawGrid = document.getElementById('character-target-div');
+        if (!loadStatus || !drawGrid) return;
+        loadStatus.innerHTML = "&#8226;";
+        loadStatus.style.marginBottom = "0px";
+        loadStatus.style.display = "block";
+
+        var hanziWriterList = [];
+        drawGrid.innerHTML = "";
+
+        var toWrite = practiceChars();
+        for (var n = 0; n < toWrite.length; n++) {
+            var div = document.createElement('div');
+            div.id = "div" + n;
+            div.innerHTML = grid_data;
+            div.children[0].id = "grid-background-target" + n;
+            drawGrid.appendChild(div);
+            setStrokeColor(n);
+            var hanzi = toWrite[n];
+            var writer = HanziWriter.create('grid-background-target' + n, hanzi, {
+                charDataLoader: hwCharDataLoader,
+                onLoadCharDataSuccess: function (data) {
+                    if (loadStatus) loadStatus.style.color = "#4caf50";
+                },
+                onLoadCharDataError: function (reason) {
+                    if (loadStatus) loadStatus.style.color = "#ea2322";
+                },
+
+                width: charWidth,
+                height: charHeight,
+                showCharacter: false,
+                showOutline: Persistence.getItem(frontBack + "text-outline") == "true" ? true : false,
+                highlightOnComplete: true,
+                highlightCompleteColor: stroke_color,
+                drawingWidth: strokeWidth,
+                strokeColor: stroke_color,
+                outlineColor: outline_color,
+                drawingColor: drawing_color,
+                showHintAfterMisses: strokeAfterMisses,
+                padding: 5
+            });
+
+            writerQuiz(writer);
+            hanziWriterList.push(writer);
+
+            var revealClickCount = 0;
+            document.getElementById("btnGoNextCard").onclick = function () {
+                revealClickCount = 0;
+                btnTapAudio();
+                writer = hanziWriterList[getCurrentHanziNum()];
+                writer.showOutline();
+                writer.showCharacter();
+
+                setTimeout(function () {
+                    onFinishQuizDrawHanzi();
+                }, 800);
+
+                setTimeout(function () {
+                    showNextHanzi();
+                }, 1000);
+            };
+
+            var outlineCb = document.getElementById("text-outline");
+            if (outlineCb) outlineCb.onclick = function () {
+                btnTapAudio();
+                outlineCb.checked ? writer.showOutline() : writer.hideOutline();
+            };
+
+            document.getElementById("btnRevealChar").onclick = function () {
+                btnTapAudio();
+                writer = hanziWriterList[getCurrentHanziNum()];
+                writer.showOutline();
+                if (revealClickCount == 0) {
+                    writer.animateCharacter();
+                } else if (revealClickCount == 1) {
+                    writer.showCharacter();
+                } else if (revealClickCount == 2) {
+                    writer.hideCharacter();
+                    writer.hideOutline();
+                    writerQuiz(writer);
+                } else {
+                    revealClickCount = -1;
+                    writerQuiz(writer);
+                }
+                revealClickCount++;
+            };
+
+            function writerQuiz(writer) {
+                writer.quiz({
+                    onComplete: function (summaryData) {
+                        onFinishQuizDrawHanzi();
+
+                        setTimeout(function () {
+                            showNextHanzi();
+                        }, 1000)
+                    }
+                });
+            }
+
+            function getCurrentHanziNum() {
+                var characterDiv = document.querySelector('#character-target-div');
+                var characterElements = characterDiv.children;
+                var len = characterElements.length;
+                // A local i, not the implicit global these functions shared:
+                // showNextHanzi() calls onFinishQuiz() from inside its own loop,
+                // and that path re-enters generateHanziOnFinishQuiz(). One counter
+                // between all of them survived only because every loop happened to
+                // break first.
+                for (var i = 0; i < len; i++) {
+                    var style = characterElements[i].style.display;
+                    if (style === 'block' || style === "") {
+                        return i;
+                    }
+                }
+            }
+
+            function onFinishQuizDrawHanzi() {
+                var finishCharacterDiv = document.getElementById('onfinish-character-target-div');
+                var characterElements = finishCharacterDiv.children;
+                var len = characterElements.length;
+                for (var i = 0; i < len; i++) {
+                    var style = characterElements[i].style.display;
+                    if (style === 'none' || style === "") {
+                        characterElements[i].style.display = "unset";
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    function setStrokeColor(i) {
+        if (!charClass[i]) return; // no colored span for this position (punctuation, etc.)
+        if (Persistence.getItem(frontBack + "text-stroke-color") == "true") {
+            var toneColor = getToneColor(charClass[i].className);
+            drawing_color = toneColor;
+            stroke_color = toneColor;
+        }
+    }
+
+    function showNextHanzi() {
+        var characterDiv = document.querySelector('#character-target-div');
+        var characterElements = characterDiv.children;
+        var len = characterElements.length;
+
+        for (var i = 0; i < len; i++) {
+            var style = characterElements[i].style.display;
+            if (style === 'block' || style === "") {
+                characterElements[i].style.display = 'none';
+                characterElements[(i + 1) % characterElements.length].style.display = 'block';
+                onFinishQuiz(i, len);
+                break;
+            }
+        }
+    }
+
+    function onFinishQuiz(i, len) {
+        if (i != len - 1) {
+            return;
+        }
+
+        if (i + 1 == len) {
+            var target = document.querySelector('#character-target-div');
+            if (target) target.innerHTML = "";
+            var status = document.getElementById("ch_load_status");
+            if (status) status.style.display = "none";
+            // A re-practised answer side goes back to being an answer side, or
+            // the emptied practice cell would sit there holding open its height.
+            var backEl = document.getElementById("back");
+            if (backEl) backEl.classList.remove("practising");
+            generateHanziOnFinishQuiz("unset", true);
+        }
+
+        playAudio();
+        showHide("#char_sim", true);
+        showTraditionalChar();
+        showHide("#char_meaning", true, "block");
+        // Rows exist only for fields this card type uses — treat a missing row as off.
+        var pinyinCb = document.getElementById("text-pinyin");
+        if (pinyinCb && pinyinCb.checked) showHide(".pinyin", true);
+        var zhuyinCb = document.getElementById("text-zhuyin");
+        if (zhuyinCb && zhuyinCb.checked) showHide(".zhuyin", true);
+        showNextAndRevealBtn(false);
+        // Layouts that collapse empty regions cached their emptiness before this
+        // ran; every reveal above has to be counted once, at the end, or the
+        // answer sits display:block inside a container still marked empty.
+        if (typeof reflow === "function") reflow();
+    }
+
+    function showNextAndRevealBtn(show) {
+        showHide("#btnGoNextCard", show);
+        showHide("#btnRevealChar", show);
+    }
+
+    if (Persistence.isAvailable()) {
+        fetch("_hanzi-writer-data.json")
+            .then(function (r) { return r.json(); })
+            .then(function (d) { HANZI_DATA = d; })
+            .catch(function () { /* offline data missing; loader returns undefined */ })
+            .finally(function () { doPractice(); });
+    }
+</script>`;
+
+const DECK_HTML_WITH_HANZI_WRITER =
+`
+${WRITER_COLOR_JS}
 
 <div id="char_zhuyin">{{Zhuyin}}</div>
 <div id="char_pinyin">{{Pinyin}}</div>
@@ -527,6 +948,7 @@ ${CARD_JS}
             applyField(_off, false);
         }
         showTraditionalChar();
+        syncDependentRows();
     }
 
     function showTraditionalChar() {
@@ -572,6 +994,7 @@ ${CARD_JS}
             var dv = document.getElementById(e.id.replace("text-", "char_"));
             if (dv) dv.style.display = e.checked ? "block" : "none";
             applyField(e.id, e.checked);
+            syncDependentRows();
         }
         if (e.type == "number") {
             Persistence.setItem(perId, e.value);
@@ -590,349 +1013,7 @@ ${CARD_JS}
         });
     }
 </script>
-<script src="_hanzi-writer.min.js"></script>
-<script>
-    // Offline stroke data: load the bundled subset, serve one character on demand.
-    var HANZI_DATA = {};
-    function hwCharDataLoader(char) { return HANZI_DATA[char]; }
-
-    var charHW = document.getElementById("draw-size").value;
-    var charHeight = charHW;
-    var charWidth = charHW;
-    var strokeWidth = document.getElementById("stroke-size").value;
-    var strokeAfterMisses = document.getElementById("hint-miss").value;
-
-    function btnTapAudio() {
-        var audio = new Audio();
-        audio.src = "_press.mp3";
-        audio.load();
-        audio.play();
-    }
-
-    function playAudio() {
-        var audioEl = document.getElementById('audio');
-        if (!audioEl) return;
-        var audio = audioEl.getElementsByTagName("*");
-        if (audio[0]) audio[0].tagName == "AUDIO" ? audio[0].play() : audio[0].click();
-    }
-
-    var btnAudio = document.getElementById("btnPlayAudio");
-    if (btnAudio) btnAudio.onclick = playAudio;
-
-    // Guide lines get their color from CSS (.char-grid line { stroke: var(--grid-line) }),
-    // not from a stroke="" presentation attribute: var() in a presentation attribute is
-    // unreliable across webviews, and the CSS rule lets card themes repoint --grid-line.
-    var grid_data = \`<svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' class='grid-color' id='grid-background-target'><g id="char_grid" class="char-grid"><line x1='0' y1='0' x2='100%' y2='100%' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='100%' y1='0' x2='0' y2='100%' stroke-width='0.5' stroke-dasharray='3 3' opacity='0.4'/><line x1='50%' y1='0' x2='50%' y2='100%' stroke-width='0.7' stroke-dasharray='3 4'/><line x1='0' y1='50%' x2='100%' y2='50%' stroke-width='0.7' stroke-dasharray='3 4'/></g></svg>\`;
-
-    var characters = document.getElementById("practice-select").selectedIndex == "0"
-        ? document.getElementById('char_sim').textContent
-        : document.getElementById('char_trad').textContent;
-
-    function isHanzi(c) {
-        return (c >= 0x4E00 && c <= 0x9FFF) || (c >= 0x3400 && c <= 0x4DBF) || (c >= 0xF900 && c <= 0xFAFF);
-    }
-
-    // Paint the gray practice grid synchronously, before the async stroke-data
-    // fetch resolves and doPractice() runs. Without this the target div stays a
-    // blank 0px box until the fetch finishes, so the grid pops in white -> gray
-    // late and shoves the layout. Sized to charWidth/charHeight so it matches the
-    // writer's SVG exactly (no shrink) — the writer just draws strokes inside it.
-    function prefillGrid() {
-        var onBack = !!document.getElementById("back");
-        var box = document.getElementById(onBack ? "onfinish-character-target-div" : "character-target-div");
-        if (!box) return;
-        box.innerHTML = "";
-        if (onBack) {
-            // Match the finished layout (centered single row) so the placeholder
-            // doesn't flash left-aligned before doPractice centers it.
-            box.style.position = "unset";
-            box.style.display = "flex";
-            box.style.justifyContent = "center";
-            box.style.flexWrap = "nowrap";
-            box.style.overflow = "auto";
-        }
-        for (var k = 0; k < characters.length; k++) {
-            if (!isHanzi(characters.charCodeAt(k))) continue;
-            var cell = document.createElement(onBack ? 'span' : 'div');
-            cell.innerHTML = grid_data;
-            var svg = cell.children[0];
-            svg.removeAttribute('id');
-            svg.style.margin = onBack ? "6px" : "";
-            svg.style.width = (onBack ? 100 : charWidth) + "px";
-            svg.style.height = (onBack ? 100 : charHeight) + "px";
-            box.appendChild(cell);
-        }
-        // doPractice() reveals ch_load_status on the front, and its inline
-        // margin-top:-36px nets ~-12px once shown — that pulled everything below
-        // the grid up when the writer kicked in. Reserve it now (shows the red
-        // loading dot during the fetch; the writer recolors it on success).
-        if (!onBack) {
-            var status = document.getElementById("ch_load_status");
-            if (status) status.style.display = "block";
-        }
-    }
-    prefillGrid();
-
-    function generateHanziOnFinishQuiz(style = "none", finish = false) {
-        var drawGrid = document.getElementById('onfinish-character-target-div');
-        if (!drawGrid) return;
-        drawGrid.innerHTML = "";
-        drawGrid.style = "";
-        var size = 40;
-        if (finish) {
-            // All chars done: one centered row of full-size finished glyphs
-            // (single and multi char alike), scroll only if it overflows.
-            size = 100;
-            drawGrid.style.position = "unset";
-            drawGrid.style.display = "flex";
-            drawGrid.style.justifyContent = "center";
-            drawGrid.style.flexWrap = "nowrap";
-            drawGrid.style.overflow = "auto";
-        } else {
-            // During writing: stack completed mini-chars in a column that hugs
-            // the left edge of the centered grid. The grid is centered in the
-            // viewport, so its left edge is at (50% - gridWidth/2); right-align
-            // a left-half-width column there so each finished char sits just
-            // beside the grid, not on top of it or at the window's left edge.
-            var half = (parseInt(charWidth, 10) || 200) / 2;
-            drawGrid.style.position = "absolute";
-            drawGrid.style.left = "0";
-            drawGrid.style.width = "calc(50% - " + half + "px)";
-            drawGrid.style.display = "flex";
-            drawGrid.style.flexDirection = "column";
-            drawGrid.style.alignItems = "flex-end";
-        }
-
-        for (i = 0; i < characters.length; i++) {
-            var _code = characters.charCodeAt(i);
-            if (!((_code >= 0x4E00 && _code <= 0x9FFF) || (_code >= 0x3400 && _code <= 0x4DBF) || (_code >= 0xF900 && _code <= 0xFAFF))) continue;
-            var hanzi = characters[i];
-            var span = document.createElement('span');
-            span.innerHTML = grid_data;
-            span.children[0].id = "onfinish-grid-background-target" + i;
-            span.children[0].style.margin = finish ? "6px" : "2px";
-            span.style.display = style;
-            drawGrid.appendChild(span);
-            setStrokeColor(i);
-            HanziWriter.create("onfinish-grid-background-target" + i, hanzi, {
-                charDataLoader: hwCharDataLoader,
-                width: size,
-                height: size,
-                padding: 5,
-                strokeColor: stroke_color
-            });
-        }
-    }
-
-    document.getElementById("btnReloadQuiz").onclick = function () {
-        doPractice(true);
-        generateHanziOnFinishQuiz("none");
-        showNextAndRevealBtn(true);
-    }
-
-    function doPractice(p = false) {
-        if (document.getElementById("back")) {
-            generateHanziOnFinishQuiz("unset", true);
-            if (!p) {
-                showNextAndRevealBtn(false);
-                return;
-            };
-        } else {
-            generateHanziOnFinishQuiz("none");
-        }
-
-        // The stroke-data fetch resolves asynchronously; by then the reviewer may
-        // already have swapped this card out, leaving nothing to draw into.
-        var loadStatus = document.getElementById("ch_load_status");
-        var drawGrid = document.getElementById('character-target-div');
-        if (!loadStatus || !drawGrid) return;
-        loadStatus.innerHTML = "&#8226;";
-        loadStatus.style.marginBottom = "0px";
-        loadStatus.style.display = "block";
-
-        var hanziWriterList = [];
-        drawGrid.innerHTML = "";
-
-        for (i = 0; i < characters.length; i++) {
-            var _code = characters.charCodeAt(i);
-            if (!((_code >= 0x4E00 && _code <= 0x9FFF) || (_code >= 0x3400 && _code <= 0x4DBF) || (_code >= 0xF900 && _code <= 0xFAFF))) continue;
-            var div = document.createElement('div');
-            div.id = "div" + i;
-            div.innerHTML = grid_data;
-            div.children[0].id = "grid-background-target" + i;
-            drawGrid.appendChild(div);
-            setStrokeColor(i);
-            var hanzi = characters[i];
-            var writer = HanziWriter.create('grid-background-target' + i, hanzi, {
-                charDataLoader: hwCharDataLoader,
-                onLoadCharDataSuccess: function (data) {
-                    if (loadStatus) loadStatus.style.color = "#4caf50";
-                },
-                onLoadCharDataError: function (reason) {
-                    if (loadStatus) loadStatus.style.color = "#ea2322";
-                },
-
-                width: charWidth,
-                height: charHeight,
-                showCharacter: false,
-                showOutline: Persistence.getItem(frontBack + "text-outline") == "true" ? true : false,
-                highlightOnComplete: true,
-                highlightCompleteColor: stroke_color,
-                drawingWidth: strokeWidth,
-                strokeColor: stroke_color,
-                outlineColor: outline_color,
-                drawingColor: drawing_color,
-                showHintAfterMisses: strokeAfterMisses,
-                padding: 5
-            });
-
-            writerQuiz(writer);
-            hanziWriterList.push(writer);
-
-            var revealClickCount = 0;
-            document.getElementById("btnGoNextCard").onclick = function () {
-                revealClickCount = 0;
-                btnTapAudio();
-                writer = hanziWriterList[getCurrentHanziNum()];
-                writer.showOutline();
-                writer.showCharacter();
-
-                setTimeout(function () {
-                    onFinishQuizDrawHanzi();
-                }, 800);
-
-                setTimeout(function () {
-                    showNextHanzi();
-                }, 1000);
-            };
-
-            var outlineCb = document.getElementById("text-outline");
-            if (outlineCb) outlineCb.onclick = function () {
-                btnTapAudio();
-                outlineCb.checked ? writer.showOutline() : writer.hideOutline();
-            };
-
-            document.getElementById("btnRevealChar").onclick = function () {
-                btnTapAudio();
-                writer = hanziWriterList[getCurrentHanziNum()];
-                writer.showOutline();
-                if (revealClickCount == 0) {
-                    writer.animateCharacter();
-                } else if (revealClickCount == 1) {
-                    writer.showCharacter();
-                } else if (revealClickCount == 2) {
-                    writer.hideCharacter();
-                    writer.hideOutline();
-                    writerQuiz(writer);
-                } else {
-                    revealClickCount = -1;
-                    writerQuiz(writer);
-                }
-                revealClickCount++;
-            };
-
-            function writerQuiz(writer) {
-                writer.quiz({
-                    onComplete: function (summaryData) {
-                        onFinishQuizDrawHanzi();
-
-                        setTimeout(function () {
-                            showNextHanzi();
-                        }, 1000)
-                    }
-                });
-            }
-
-            function getCurrentHanziNum() {
-                var characterDiv = document.querySelector('#character-target-div');
-                var characterElements = characterDiv.children;
-                var len = characterElements.length;
-                for (i = 0; i < len; i++) {
-                    var style = characterElements[i].style.display;
-                    if (style === 'block' || style === "") {
-                        return i;
-                    }
-                }
-            }
-
-            function onFinishQuizDrawHanzi() {
-                var finishCharacterDiv = document.getElementById('onfinish-character-target-div');
-                var characterElements = finishCharacterDiv.children;
-                var len = characterElements.length;
-                for (i = 0; i < len; i++) {
-                    var style = characterElements[i].style.display;
-                    if (style === 'none' || style === "") {
-                        characterElements[i].style.display = "unset";
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    function setStrokeColor(i) {
-        if (!charClass[i]) return; // no colored span for this position (punctuation, etc.)
-        if (Persistence.getItem(frontBack + "text-stroke-color") == "true") {
-            var toneColor = getToneColor(charClass[i].className);
-            drawing_color = toneColor;
-            stroke_color = toneColor;
-        }
-    }
-
-    function showNextHanzi() {
-        var characterDiv = document.querySelector('#character-target-div');
-        var characterElements = characterDiv.children;
-        var len = characterElements.length;
-
-        for (i = 0; i < len; i++) {
-            var style = characterElements[i].style.display;
-            if (style === 'block' || style === "") {
-                characterElements[i].style.display = 'none';
-                characterElements[(i + 1) % characterElements.length].style.display = 'block';
-                onFinishQuiz(i, len);
-                break;
-            }
-        }
-    }
-
-    function onFinishQuiz(i, len) {
-        if (i != len - 1) {
-            return;
-        }
-
-        if (i + 1 == len) {
-            var target = document.querySelector('#character-target-div');
-            if (target) target.innerHTML = "";
-            var status = document.getElementById("ch_load_status");
-            if (status) status.style.display = "none";
-            generateHanziOnFinishQuiz("unset", true);
-        }
-
-        playAudio();
-        showHide("#char_sim", true);
-        showTraditionalChar();
-        showHide("#char_meaning", true, "block");
-        // Rows exist only for fields this card type uses — treat a missing row as off.
-        var pinyinCb = document.getElementById("text-pinyin");
-        if (pinyinCb && pinyinCb.checked) showHide(".pinyin", true);
-        var zhuyinCb = document.getElementById("text-zhuyin");
-        if (zhuyinCb && zhuyinCb.checked) showHide(".zhuyin", true);
-        showNextAndRevealBtn(false);
-    }
-
-    function showNextAndRevealBtn(show) {
-        showHide("#btnGoNextCard", show);
-        showHide("#btnRevealChar", show);
-    }
-
-    if (Persistence.isAvailable()) {
-        fetch("_hanzi-writer-data.json")
-            .then(function (r) { return r.json(); })
-            .then(function (d) { HANZI_DATA = d; })
-            .catch(function () { /* offline data missing; loader returns undefined */ })
-            .finally(function () { doPractice(); });
-    }
-</script>
+${WRITER_ENGINE_JS}
 `;
 
 const DECK_CSS =
@@ -1582,6 +1663,14 @@ hr {
   animation: hwGridFadeIn 0.35s ease-out;
 }
 
+/* The stroke-data status dot is pulled back up over the practice cell by its own
+   inline margin-top:-36px, so it covers the bottom strip of the grid — and it
+   comes later in flow, so it paints on top and swallowed every stroke that began
+   down there. It is a status light, never a target. */
+#ch_load_status {
+  pointer-events: none;
+}
+
 #character-target-div > div {
   display: none;
 }
@@ -1705,5 +1794,25 @@ export default {
     DECK_HTML_FRONT_CHROME,
     DECK_HTML_BACK,
     DECK_HTML_WITH_HANZI_WRITER,
+    DECK_CSS
+};
+
+// The building blocks the assembled templates above are made of. Exported so a
+// template can be composed from a different layout without re-implementing the
+// persistence bootstrap, the sidebar machinery or the shared card runtime.
+export {
+    FIELDS,
+    PERSISTENCE,
+    WRITER_COLOR_JS,
+    WRITER_ENGINE_JS,
+    MORE_INFO_SIDEBAR,
+    SIDEBAR_JS,
+    SIDEBAR_BLOCK,
+    sidebarShell,
+    CARD_JS,
+    MEANING_CARD,
+    EXAMPLES_CARD,
+    CONTROL_BAR,
+    AUDIO_DIV,
     DECK_CSS
 };

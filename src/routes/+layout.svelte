@@ -8,11 +8,13 @@
 	import Share2 from '@lucide/svelte/icons/share-2';
 	import Heart from '@lucide/svelte/icons/heart';
 	import Coffee from '@lucide/svelte/icons/coffee';
+	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
 	import ShareModal from '$lib/components/ShareModal.svelte';
 	import { initSharePrefs, popupHidden } from '$lib/share.svelte';
 
 	let { children } = $props();
 	const repo = 'https://github.com/krmanik/Anki-xiehanzi';
+	const shop = 'https://www.patreon.com/cw/krmanik/shop';
 
 	// Kept in sync with .github/FUNDING.yml
 	const sponsorLinks = [
@@ -87,6 +89,14 @@
 				>
 			{/each}
 			<a
+				href={shop}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="ml-1 flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-500 transition hover:text-neutral-900"
+			>
+				<ShoppingBag size={14} /> Shop
+			</a>
+			<a
 				href={repo}
 				class="ml-1 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-500 hover:text-neutral-900"
 				>GitHub</a
@@ -160,6 +170,15 @@
 							: 'text-neutral-600'}">{item.label}</a
 					>
 				{/each}
+				<a
+					href={shop}
+					target="_blank"
+					rel="noopener noreferrer"
+					onclick={() => (open = false)}
+					class="flex items-center gap-2 rounded-md px-2 py-2.5 font-mono text-sm uppercase tracking-wider text-neutral-600"
+				>
+					<ShoppingBag size={16} /> Shop
+				</a>
 				<a
 					href={repo}
 					class="rounded-md px-2 py-2.5 font-mono text-sm uppercase tracking-wider text-neutral-600"
@@ -240,6 +259,12 @@
 		<div>
 			<h3 class="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">More</h3>
 			<a class="block py-1 text-sm text-neutral-600 hover:text-neutral-900" href="{base}/create">Create</a>
+			<a
+				class="block py-1 text-sm text-neutral-600 hover:text-neutral-900"
+				href={shop}
+				target="_blank"
+				rel="noopener noreferrer">Shop</a
+			>
 			<a class="block py-1 text-sm text-neutral-600 hover:text-neutral-900" href={repo}>GitHub</a>
 		</div>
 	</div>

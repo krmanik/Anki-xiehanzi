@@ -18,6 +18,14 @@ Works in [Anki Desktop](https://apps.ankiweb.net/),
 2. **Build your own** — the [Create](https://krmanik.github.io/Anki-xiehanzi/create)
    tool turns any Chinese words into a custom `.apkg`, in your browser, no account or upload.
 
+## Shop
+
+Premium decks and extras are available at the
+[Patreon shop](https://www.patreon.com/cw/krmanik/shop).
+
+- [Anki xiě hànzì 3.0 — premium deck](https://www.patreon.com/krmanik/posts/anki-xie-hanzi-3-166350823)
+- [Patreon page](https://www.patreon.com/cw/krmanik)
+
 ---
 
 ## Download the deck — New HSK (2025-11)

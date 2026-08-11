@@ -421,6 +421,21 @@ export async function wordsByLevel(levels: string[]): Promise<string[]> {
 	return [...out];
 }
 
+/**
+ * Every headword in cedict.db, most-common first. Only offline batch jobs want
+ * this (building a bundled dictionary); the app looks words up one at a time.
+ */
+export async function allWords(): Promise<string[]> {
+	if (!cedictDb) await loadCedict();
+	const rows = queryAll(
+		cedictDb,
+		`SELECT word FROM cedict
+		 ORDER BY CASE WHEN rank IS NULL OR rank = 0 THEN 1 ELSE 0 END, rank ASC`,
+		[]
+	);
+	return rows.map((r) => r.word as string);
+}
+
 let yctData: Record<string, { word: string; pinyin_tone: string; meaning: string }[]> | null =
 	null;
 
@@ -567,6 +582,16 @@ export async function getSentences(word: string, opts: SentenceQueryOptions = {}
 	if (maxChars != null) hits = hits.filter((s) => s.nChars <= maxChars);
 	hits.sort((a, b) => a.difficulty - b.difficulty);
 	return hits.slice(0, limit);
+}
+
+/**
+ * Every sentence in the db, in storage order. Only offline batch jobs want this
+ * (bundling the whole corpus into a deck); the app looks sentences up per word.
+ */
+export async function allSentences(): Promise<Sentence[]> {
+	if (!sentencesDb) await loadSentences();
+	ensureSentenceIndex();
+	return [...sentenceRows!.values()];
 }
 
 /**

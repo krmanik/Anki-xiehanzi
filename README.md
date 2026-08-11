@@ -21,10 +21,10 @@ Works in [Anki Desktop](https://apps.ankiweb.net/),
 ## Shop
 
 Premium decks and extras are available at the
-[Patreon shop](https://www.patreon.com/cw/krmanik/shop).
+[Patreon shop](https://www.patreon.com/cw/krmani/shop).
 
-- [Anki xiě hànzì 3.0 — premium deck](https://www.patreon.com/krmanik/posts/anki-xie-hanzi-3-166350823)
-- [Patreon page](https://www.patreon.com/cw/krmanik)
+- [Anki xiě hànzì 3.0 — premium deck](https://www.patreon.com/krmani/posts/anki-xie-hanzi-3-166350823)
+- [Patreon page](https://www.patreon.com/cw/krmani)
 
 ---
 

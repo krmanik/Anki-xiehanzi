@@ -2,8 +2,19 @@
 	import { base } from '$app/paths';
 	import Download from '@lucide/svelte/icons/download';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import Sparkles from '@lucide/svelte/icons/sparkles';
+	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
 
 	const rel = 'https://github.com/krmanik/Anki-xiehanzi/releases';
+
+	// Paid decks live on Patreon; the shop is the storefront, the post describes
+	// what is in the deck.
+	const premium = {
+		name: 'Anki xiě hànzì 3.0 — Premium',
+		desc: 'Premium HSK writing decks, prebuilt and ready to import. Supports development of the free decks and the Create tool.',
+		post: 'https://www.patreon.com/krmani/posts/anki-xie-hanzi-3-166350823',
+		shop: 'https://www.patreon.com/cw/krmani/shop'
+	};
 
 	const current = {
 		version: '2025-11 · v2.3',
@@ -85,6 +96,41 @@
 				</span>
 			</a>
 		{/each}
+	</div>
+
+	<div class="mt-12 flex items-baseline justify-between border-b border-neutral-200 pb-2">
+		<h2 class="text-xl font-bold">Premium</h2>
+		<span class="font-mono text-xs text-neutral-400">Patreon shop</span>
+	</div>
+
+	<div
+		class="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-indigo-200 bg-indigo-50/60 p-5"
+	>
+		<div class="min-w-0">
+			<h3 class="flex items-center gap-2 font-semibold">
+				<Sparkles size={16} class="text-indigo-600" />
+				{premium.name}
+			</h3>
+			<p class="mt-1.5 max-w-xl text-sm leading-relaxed text-neutral-600">{premium.desc}</p>
+		</div>
+		<div class="flex flex-wrap gap-2">
+			<a
+				href={premium.post}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="inline-flex items-center gap-1.5 rounded bg-neutral-900 px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-white transition hover:bg-neutral-700"
+			>
+				<Sparkles size={14} /> Get the deck
+			</a>
+			<a
+				href={premium.shop}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="inline-flex items-center gap-1.5 rounded border border-neutral-300 bg-white px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-700 transition hover:border-neutral-900"
+			>
+				<ShoppingBag size={14} /> Shop
+			</a>
+		</div>
 	</div>
 
 	<details class="group mt-12 rounded-lg border border-neutral-200">

@@ -14,7 +14,7 @@
 
 	let { children } = $props();
 	const repo = 'https://github.com/krmanik/Anki-xiehanzi';
-	const shop = 'https://www.patreon.com/cw/krmanik/shop';
+	const shop = 'https://www.patreon.com/cw/krmani/shop';
 
 	// Kept in sync with .github/FUNDING.yml
 	const sponsorLinks = [

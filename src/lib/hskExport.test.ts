@@ -54,6 +54,11 @@ describe('columnsFor', () => {
 		]);
 	});
 
+	it('numbers rows from one', () => {
+		const r = buildRows(entries, columnsFor(['index']), ctx);
+		expect(r.slice(1).map((row) => row[0])).toEqual(['1', '2']);
+	});
+
 	it('ignores unknown keys', () => {
 		expect(columnsFor(['nope'])).toEqual([]);
 	});
@@ -62,10 +67,14 @@ describe('columnsFor', () => {
 describe('buildRows', () => {
 	it('starts with a header row and fills the context-driven level column', () => {
 		const r = rows();
-		expect(r[0][0]).toBe('Simplified');
+		expect(r[0][0]).toBe('Word');
 		expect(r).toHaveLength(entries.length + 1);
-		const levelIdx = columnsFor(DEFAULT_COLUMN_KEYS).findIndex((c) => c.key === 'level');
-		expect(r[1][levelIdx]).toBe('HSK 1');
+		const levelIdx = columnsFor([...DEFAULT_COLUMN_KEYS, 'level']).findIndex(
+			(c) => c.key === 'level'
+		);
+		expect(buildRows(entries, columnsFor([...DEFAULT_COLUMN_KEYS, 'level']), ctx)[1][levelIdx]).toBe(
+			'HSK 1'
+		);
 	});
 
 	it('formats classifiers and joins parts of speech', () => {
@@ -76,7 +85,14 @@ describe('buildRows', () => {
 
 	it('flattens all readings when that column is picked', () => {
 		const r = buildRows(entries, columnsFor(['readings']), ctx);
-		expect(r[1][0]).toBe('ài [ai4] to love; to be fond of');
+		// 爱's only reading is the primary one, so it has nothing extra to list.
+		expect(r[1][0]).toBe('');
+		const extra = buildRows(
+			[{ ...entries[0], r: [...(entries[0].r ?? []), { p: 'ai1', y: 'āi', z: 'ㄞ', d: 'variant' }] }],
+			columnsFor(['readings']),
+			ctx
+		);
+		expect(extra[1][0]).toBe('āi ㄞ — variant');
 	});
 });
 
@@ -84,7 +100,7 @@ describe('toCsv', () => {
 	it('quotes cells containing commas or quotes and uses CRLF', () => {
 		const csv = toCsv(buildRows(entries, columnsFor(['simplified', 'meaning']), ctx));
 		const lines = csv.split('\r\n');
-		expect(lines[0]).toBe('Simplified,Meaning');
+		expect(lines[0]).toBe('Word,Meaning');
 		expect(lines[1]).toBe('爱,to love; affection');
 		expect(lines[2]).toBe('爸爸,"father, ""dad"""');
 	});

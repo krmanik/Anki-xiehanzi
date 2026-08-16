@@ -18,7 +18,7 @@
 		type ExportFormat
 	} from '$lib/hskExport';
 	import { PENDING_WORDS_KEY } from '$lib/hskHandoff';
-	import { buildHskPdf, DEFAULT_PDF_FIELDS, PDF_FIELDS } from '$lib/hskPdf';
+	import { buildHskPdf } from '$lib/hskPdf';
 	import X from '@lucide/svelte/icons/x';
 	import Download from '@lucide/svelte/icons/download';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
@@ -37,28 +37,24 @@
 	} = $props();
 
 	let format = $state<ExportFormat>('csv');
+	// One field selection for every file format — the PDF lays the same columns
+	// out, so switching format keeps whatever the user picked.
 	let columnKeys = $state<string[]>([...DEFAULT_COLUMN_KEYS]);
 	let colorPdf = $state(true);
 	let pdfLandscape = $state(false);
-	let pdfFields = $state<string[]>([...DEFAULT_PDF_FIELDS]);
 	let deckAudio = $state(true);
 	let deckExamples = $state(true);
 	let busy = $state(false);
 	let progress = $state(0);
 	let status = $state('');
 
-	const tabular = $derived(format !== 'json' && format !== 'pdf' && format !== 'anki');
+	/** Formats laid out from the selected fields. */
+	const fielded = $derived(format !== 'json' && format !== 'anki');
 
 	function toggleColumn(key: string) {
 		columnKeys = columnKeys.includes(key)
 			? columnKeys.filter((k) => k !== key)
 			: [...columnKeys, key];
-	}
-
-	function togglePdfField(key: string) {
-		pdfFields = pdfFields.includes(key)
-			? pdfFields.filter((k) => k !== key)
-			: [...pdfFields, key];
 	}
 
 	function save(blob: Blob, name: string) {
@@ -79,7 +75,7 @@
 		const pdf = await buildHskPdf(entries, ctx, {
 			colored: colorPdf,
 			landscape: pdfLandscape,
-			fields: pdfFields,
+			fields: columnKeys,
 			onProgress: (fraction, label) => {
 				progress = Math.round(fraction * 100);
 				status = label;
@@ -193,10 +189,11 @@
 			{/each}
 		</div>
 
-		{#if tabular}
-			<h3 class="mt-6 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">
-				Columns
-			</h3>
+		{#if fielded}
+			<h3 class="mt-6 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">Fields</h3>
+			<p class="mt-1 text-xs text-neutral-500">
+				Tick what you want in the file. The order is fixed; the columns you leave out are dropped.
+			</p>
 			<div class="mt-2 flex flex-wrap gap-1.5">
 				{#each EXPORT_COLUMNS as col (col.key)}
 					<button
@@ -210,24 +207,9 @@
 					</button>
 				{/each}
 			</div>
-		{:else if format === 'pdf'}
-			<h3 class="mt-6 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">
-				Columns
-			</h3>
-			<div class="mt-2 flex flex-wrap gap-1.5">
-				{#each PDF_FIELDS as f (f.key)}
-					<button
-						type="button"
-						onclick={() => togglePdfField(f.key)}
-						class="rounded-full border px-3 py-1 text-xs transition {pdfFields.includes(f.key)
-							? 'border-neutral-900 bg-neutral-100 text-neutral-900'
-							: 'border-neutral-200 text-neutral-400 hover:border-neutral-400'}"
-					>
-						{f.key === 'index' ? 'Row number' : f.label}
-					</button>
-				{/each}
-			</div>
+		{/if}
 
+		{#if format === 'pdf'}
 			<h3 class="mt-5 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">Page</h3>
 			<div class="mt-2 space-y-2">
 				<label class="flex items-center gap-2 text-sm text-neutral-700">
@@ -237,7 +219,7 @@
 				<label class="flex items-center gap-2 text-sm text-neutral-700">
 					<input type="checkbox" bind:checked={pdfLandscape} class="h-4 w-4 accent-neutral-900" />
 					Landscape A4
-					<span class="text-neutral-500">— more room once you add columns</span>
+					<span class="text-neutral-500">— more room once you add fields</span>
 				</label>
 			</div>
 			<p class="mt-3 text-xs leading-relaxed text-neutral-500">
@@ -248,7 +230,8 @@
 			</p>
 		{:else if format === 'json'}
 			<p class="mt-6 text-xs leading-relaxed text-neutral-500">
-				Every field of every word, including all readings and their full definitions.
+				Every field of every word, including all readings and their full definitions — the field
+				picker does not apply.
 			</p>
 		{:else if format === 'anki'}
 			<div class="mt-6 rounded-lg border border-indigo-200 bg-indigo-50/60 p-4">
@@ -316,9 +299,7 @@
 			<button
 				class="{btnPrimary} inline-flex items-center gap-2"
 				onclick={run}
-				disabled={busy ||
-					(tabular && columnKeys.length === 0) ||
-					(format === 'pdf' && pdfFields.length === 0)}
+				disabled={busy || (fielded && columnKeys.length === 0)}
 			>
 				{#if format === 'anki'}
 					<Sparkles size={15} /> Open deck creator

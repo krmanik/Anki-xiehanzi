@@ -21,24 +21,40 @@ export interface ExportContext {
 export interface ExportColumn {
 	key: string;
 	label: string;
-	get: (e: HskEntry, ctx: ExportContext) => string;
+	/** `index` is the word's 1-based position in the list being exported. */
+	get: (e: HskEntry, ctx: ExportContext, index: number) => string;
 }
 
+/**
+ * The one field registry. Every format picks from this list — the delimited
+ * formats and the OOXML ones use `get` directly, and `hskPdf.ts` layers its
+ * drawing metadata (type size, wrapping, colouring) on top of the same keys, so
+ * the picker in the UI means the same thing whatever format is selected.
+ */
 export const EXPORT_COLUMNS: ExportColumn[] = [
-	{ key: 'simplified', label: 'Simplified', get: (e) => e.s },
+	{ key: 'index', label: 'Row number', get: (_e, _ctx, i) => String(i + 1) },
+	{ key: 'simplified', label: 'Word', get: (e) => e.s },
 	{ key: 'traditional', label: 'Traditional', get: (e) => e.t },
 	{ key: 'pinyin', label: 'Pinyin', get: (e) => e.y },
 	{ key: 'numbered', label: 'Pinyin (numbered)', get: (e) => e.p },
 	{ key: 'zhuyin', label: 'Zhuyin', get: (e) => e.z },
 	{ key: 'meaning', label: 'Meaning', get: (e) => e.m },
 	{ key: 'pos', label: 'Part of speech', get: (e) => (e.o ?? []).join(', ') },
-	{ key: 'classifiers', label: 'Classifiers', get: (e) => (e.c ?? []).map(formatClassifier).join(', ') },
+	{
+		key: 'classifiers',
+		label: 'Classifiers',
+		get: (e) => (e.c ?? []).map(formatClassifier).join(', ')
+	},
 	{ key: 'level', label: 'Level', get: (_e, ctx) => ctx.levelLabel },
 	{ key: 'frequency', label: 'Frequency rank', get: (e) => (e.f ? String(e.f) : '') },
 	{
 		key: 'readings',
-		label: 'All readings',
-		get: (e) => (e.r ?? []).map((r) => `${r.y} [${r.p}] ${r.d}`).join(' | ')
+		label: 'Other readings',
+		get: (e) =>
+			(e.r ?? [])
+				.filter((r) => r.p !== e.p && r.d)
+				.map((r) => `${r.y} ${r.z} — ${r.d}`)
+				.join('; ')
 	}
 ];
 
@@ -48,9 +64,7 @@ export const DEFAULT_COLUMN_KEYS = [
 	'pinyin',
 	'zhuyin',
 	'meaning',
-	'pos',
-	'level',
-	'frequency'
+	'pos'
 ];
 
 export function columnsFor(keys: string[]): ExportColumn[] {
@@ -64,7 +78,10 @@ export function buildRows(
 	columns: ExportColumn[],
 	ctx: ExportContext
 ): string[][] {
-	return [columns.map((c) => c.label), ...entries.map((e) => columns.map((c) => c.get(e, ctx)))];
+	return [
+		columns.map((c) => c.label),
+		...entries.map((e, i) => columns.map((c) => c.get(e, ctx, i)))
+	];
 }
 
 // ---------------------------------------------------------------------------

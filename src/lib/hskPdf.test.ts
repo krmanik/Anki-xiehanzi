@@ -3,6 +3,7 @@ import {
 	clampLines,
 	computeColumnWidths,
 	pdfFieldsFor,
+	rowLineCount,
 	runsWidth,
 	scriptOf,
 	splitRuns,
@@ -15,6 +16,7 @@ import {
 	type PdfField,
 	type Run
 } from './hskPdf';
+import { EXPORT_COLUMNS } from './hskExport';
 
 // Latin: 1 unit per character. CJK: 2 units — close enough to real metrics for
 // the wrapping rules, and it makes the expected line breaks obvious.
@@ -162,6 +164,45 @@ describe('pdfFieldsFor', () => {
 		const keys = PDF_FIELDS.map((f) => f.key);
 		expect(new Set(keys).size).toBe(keys.length);
 		for (const k of DEFAULT_PDF_FIELDS) expect(keys).toContain(k);
+	});
+
+	it('offers exactly the fields the other formats offer', () => {
+		expect(PDF_FIELDS.map((f) => f.key)).toEqual(EXPORT_COLUMNS.map((c) => c.key));
+		expect(PDF_FIELDS.map((f) => f.label)).toEqual(EXPORT_COLUMNS.map((c) => c.label));
+	});
+
+	it('gives every field drawing rules', () => {
+		for (const f of PDF_FIELDS) {
+			expect(f.size, f.key).toBeGreaterThan(0);
+			expect(['index', 'hanzi', 'pinyin', 'text'], f.key).toContain(f.kind);
+		}
+	});
+
+	it('wraps the list-valued columns instead of cutting them short', () => {
+		for (const key of ['pos', 'classifiers']) {
+			const field = PDF_FIELDS.find((f) => f.key === key)!;
+			expect(field.wrap, key).toBe(true);
+		}
+	});
+});
+
+describe('rowLineCount', () => {
+	it('covers the great majority rather than the single worst row', () => {
+		const needed = [...Array(95).fill(2), ...Array(5).fill(9)];
+		expect(rowLineCount(needed, 4)).toBe(2);
+	});
+
+	it('never exceeds the cap', () => {
+		expect(rowLineCount([9, 9, 9], 4)).toBe(4);
+	});
+
+	it('never drops below one line', () => {
+		expect(rowLineCount([1, 1], 4)).toBe(1);
+		expect(rowLineCount([], 4)).toBe(1);
+	});
+
+	it('grows when most rows genuinely need the space', () => {
+		expect(rowLineCount([3, 3, 3, 3, 1], 4)).toBe(3);
 	});
 });
 

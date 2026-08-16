@@ -22,8 +22,13 @@
 import { PDFDocument, rgb, type PDFFont, type PDFPage, type RGB } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { base } from '$app/paths';
-import { formatClassifier, hanziTones, pinyinTones, type HskEntry } from '$lib/hsk';
-import type { ExportContext } from '$lib/hskExport';
+import { hanziTones, pinyinTones, type HskEntry } from '$lib/hsk';
+import {
+	DEFAULT_COLUMN_KEYS,
+	EXPORT_COLUMNS,
+	type ExportColumn,
+	type ExportContext
+} from '$lib/hskExport';
 
 // ---------------------------------------------------------------------------
 // Pure layout helpers
@@ -210,9 +215,8 @@ export function rowLineCount(needed: number[], max: number, fit = 0.85): number 
 /** How a column's value is drawn. */
 export type CellKind = 'index' | 'hanzi' | 'pinyin' | 'text';
 
-export interface PdfField {
-	key: string;
-	label: string;
+/** Per-column drawing rules, layered onto the shared field registry. */
+interface RenderSpec {
 	kind: CellKind;
 	size: number;
 	/** Wrapping columns share whatever width is left, by this weight. */
@@ -221,75 +225,54 @@ export interface PdfField {
 	max?: number;
 	/** Lower bound for a wrapping column. */
 	min?: number;
-	get: (entry: HskEntry) => string;
+	/**
+	 * Measured column that wraps onto further lines instead of being cut short —
+	 * a list like "Preposition, Verb, Conjunction" reads far better broken over
+	 * two lines than truncated to "Preposition, Verb,…".
+	 */
+	wrap?: boolean;
+	/**
+	 * Header text for narrow columns. Column widths follow the data, so a long
+	 * heading like "Traditional" over one hanzi would only be cut short.
+	 */
+	short?: string;
 }
 
-export const PDF_FIELDS: PdfField[] = [
-	{ key: 'index', label: '#', kind: 'index', size: 7, max: 26, get: () => '' },
-	{ key: 'simplified', label: 'Word', kind: 'hanzi', size: 15, max: 110, get: (e) => e.s },
-	{
-		key: 'traditional',
-		label: 'Trad.',
-		kind: 'text',
-		size: 10.5,
-		max: 80,
-		get: (e) => (e.t !== e.s ? e.t : '')
-	},
-	{ key: 'pinyin', label: 'Pinyin', kind: 'pinyin', size: 10, max: 100, get: (e) => e.y },
-	{ key: 'zhuyin', label: 'Zhuyin', kind: 'text', size: 8, max: 95, get: (e) => e.z },
-	{ key: 'meaning', label: 'Meaning', kind: 'text', size: 8.8, flex: 3, min: 120, get: (e) => e.m },
-	{
-		key: 'readings',
-		label: 'Other readings',
-		kind: 'text',
-		size: 7.8,
-		flex: 2,
-		min: 90,
-		get: (e) =>
-			(e.r ?? [])
-				.filter((r) => r.p !== e.p && r.d)
-				.map((r) => `${r.y} ${r.z} — ${r.d}`)
-				.join('; ')
-	},
-	{
-		key: 'pos',
-		label: 'Part of speech',
-		kind: 'text',
-		size: 7.8,
-		max: 78,
-		get: (e) => (e.o ?? []).join(', ')
-	},
-	{
-		key: 'classifiers',
-		label: 'Classifier',
-		kind: 'text',
-		size: 8,
-		max: 70,
-		get: (e) => (e.c ?? []).map(formatClassifier).join(', ')
-	},
-	{
-		key: 'frequency',
-		label: 'Freq.',
-		kind: 'text',
-		size: 7.8,
-		max: 42,
-		get: (e) => (e.f ? `#${e.f}` : '')
-	}
-];
+export type PdfField = ExportColumn & RenderSpec;
 
-export const DEFAULT_PDF_FIELDS = [
-	'index',
-	'simplified',
-	'traditional',
-	'pinyin',
-	'zhuyin',
-	'meaning'
-];
+const RENDER: Record<string, RenderSpec> = {
+	index: { kind: 'index', size: 7, max: 26, short: '#' },
+	simplified: { kind: 'hanzi', size: 15, max: 110 },
+	traditional: { kind: 'text', size: 10.5, max: 80, short: 'Trad.' },
+	pinyin: { kind: 'pinyin', size: 10, max: 100 },
+	numbered: { kind: 'text', size: 8.5, max: 80, short: 'Numbered' },
+	zhuyin: { kind: 'text', size: 8, max: 95 },
+	meaning: { kind: 'text', size: 8.8, flex: 3, min: 120 },
+	pos: { kind: 'text', size: 7.8, max: 74, wrap: true, short: 'Part of sp.' },
+	classifiers: { kind: 'text', size: 8, max: 70, wrap: true, short: 'Classifier' },
+	level: { kind: 'text', size: 8, max: 52 },
+	frequency: { kind: 'text', size: 7.8, max: 46, short: 'Freq.' },
+	readings: { kind: 'text', size: 7.8, flex: 2, min: 90 }
+};
+
+/** Column heading: the short form when the field has one. */
+export const headingOf = (f: PdfField) => (f.short ?? f.label).toUpperCase();
+
+/** The shared field registry, in order, with its PDF drawing rules attached. */
+export const PDF_FIELDS: PdfField[] = EXPORT_COLUMNS.map((column) => ({
+	...column,
+	...(RENDER[column.key] ?? { kind: 'text' as CellKind, size: 8, max: 90, wrap: true })
+}));
+
+export const DEFAULT_PDF_FIELDS = DEFAULT_COLUMN_KEYS;
 
 /** Selected fields, in the canonical column order. */
 export function pdfFieldsFor(keys: string[]): PdfField[] {
 	return PDF_FIELDS.filter((f) => keys.includes(f.key));
 }
+
+/** Columns whose text may run onto further lines. */
+const wraps = (f: PdfField) => Boolean(f.flex || f.wrap);
 
 const COLUMN_GAP = 10;
 
@@ -468,9 +451,9 @@ export async function buildHskPdf(
 	};
 
 	progress(0.25, 'Measuring columns…');
-	const values = entries.map((entry) => {
+	const values = entries.map((entry, i) => {
 		const row: Record<string, string> = {};
-		for (const f of fields) row[f.key] = f.get(entry);
+		for (const f of fields) row[f.key] = f.get(entry, ctx, i);
 		return row;
 	});
 
@@ -480,10 +463,10 @@ export async function buildHskPdf(
 	for (const f of fields) {
 		if (f.flex) continue;
 		const measure = measureAt(f.size);
-		let widest =
-			f.kind === 'index' ? textWidth(String(entries.length), measureAt(f.size)) : 0;
-		widest = Math.max(widest, textWidth(f.label, measureAt(6.6)));
-		if (f.kind !== 'index') {
+		let widest = textWidth(headingOf(f), measureAt(6.6));
+		if (f.kind === 'index') {
+			widest = Math.max(widest, textWidth(String(entries.length), measure));
+		} else {
 			for (const row of values) widest = Math.max(widest, textWidth(row[f.key], measure));
 		}
 		natural[f.key] = widest + 2;
@@ -501,10 +484,10 @@ export async function buildHskPdf(
 	// Every row gets the same height. Sizing it to the longest definition would
 	// leave most rows mostly empty, so it is sized to cover the great majority
 	// (ROW_FIT) and the rare rambling entry is clamped with an ellipsis instead.
-	const flexFields = fields.filter((f) => f.flex);
+	const wrapFields = fields.filter(wraps);
 	const lineHeightOf = (f: PdfField) => f.size + LINE_GAP;
 	const needed = values.map((row) =>
-		flexFields.reduce(
+		wrapFields.reduce(
 			(most, f) => Math.max(most, wrapRuns(row[f.key], widths[f.key], measureAt(f.size)).length),
 			1
 		)
@@ -514,10 +497,10 @@ export async function buildHskPdf(
 	// baseline hangs `tallestSize` below the row top, each further wrapped line
 	// adds one line height, and the last line still needs room for descenders.
 	const tallestSize = Math.max(...fields.map((f) => f.size));
-	const flexLine = flexFields.length ? Math.max(...flexFields.map(lineHeightOf)) : 0;
-	const flexSize = flexFields.length ? Math.max(...flexFields.map((f) => f.size)) : tallestSize;
+	const wrapLine = wrapFields.length ? Math.max(...wrapFields.map(lineHeightOf)) : 0;
+	const wrapSize = wrapFields.length ? Math.max(...wrapFields.map((f) => f.size)) : tallestSize;
 	const rowHeight =
-		ROW_PAD * 2 + tallestSize + Math.max(0, rowLines - 1) * flexLine + flexSize * DESCENDER;
+		ROW_PAD * 2 + tallestSize + Math.max(0, rowLines - 1) * wrapLine + wrapSize * DESCENDER;
 
 	const pages: PDFPage[] = [];
 	let page!: PDFPage;
@@ -548,7 +531,7 @@ export async function buildHskPdf(
 	/** Column header band, repeated at the top of every page. */
 	const drawTableHead = () => {
 		for (const f of fields) {
-			const label = truncateRuns(splitRuns(f.label.toUpperCase()), widths[f.key], measureAt(6.6));
+			const label = truncateRuns(splitRuns(headingOf(f)), widths[f.key], measureAt(6.6));
 			drawRuns(page, label, xs[f.key], y, 6.6, FAINT, true);
 		}
 		y -= 6;
@@ -620,7 +603,7 @@ export async function buildHskPdf(
 			const value = row[f.key];
 			if (!value) continue;
 
-			if (f.flex) {
+			if (wraps(f)) {
 				let lineY = baseline;
 				for (const line of clampLines(value, width, rowLines, measure)) {
 					drawRuns(page, line, x, lineY, f.size, f.key === 'meaning' ? INK : MUTED);

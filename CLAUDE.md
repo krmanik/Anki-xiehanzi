@@ -64,8 +64,10 @@ A separate, much lighter stack from the deck generator — it must never pull th
   (Node ≥22 type stripping), so pinyin/zhuyin match the deck pipeline exactly.
 - **`src/lib/hsk.ts`** — types, cached JSON loaders, and pure search / sort /
   tone-pairing helpers. Unit-tested.
-- **`src/lib/hskExport.ts`** — pure export builders: CSV, TSV, JSON and real
-  OOXML `.xlsx` / `.docx` (JSZip).
+- **`src/lib/hskExport.ts`** — the one field registry (`EXPORT_COLUMNS`) plus
+  pure export builders: CSV, TSV, JSON and real OOXML `.xlsx` / `.docx` (JSZip).
+  Every format picks from the same field list, so the picker in the UI means the
+  same thing whatever format is selected.
 - **`src/lib/hskPdf.ts`** — writes the PDF directly with pdf-lib; no print
   dialog. A PDF carries its own glyphs, so it embeds the subset fonts built by
   `scripts/build_pdf_fonts.py` (merged simplified+traditional Kai for hanzi and
@@ -74,8 +76,10 @@ A separate, much lighter stack from the deck generator — it must never pull th
   Text is drawn run by run, one font per run. Columns are sized by measuring
   their widest value (capped), the leftover goes to the wrapping columns, and
   every row is the same height — sized to fit ~85% of rows whole, clamping the
-  rest with an ellipsis, so nothing overruns its column. Which columns appear is
-  the user's choice (`PDF_FIELDS`). All of that maths is pure and unit-tested.
+  rest with an ellipsis, so nothing overruns its column. `PDF_FIELDS` layers
+  drawing rules (type size, colouring, `wrap` for list-valued columns like part
+  of speech) onto `EXPORT_COLUMNS` rather than duplicating it. All of that maths
+  is pure and unit-tested.
   The CJK subset is ~4 MB and is fetched only on the first PDF export.
 - **`src/lib/hskHandoff.ts`** — a level's word list plus the requested deck
   options (audio, example sentences) is parked in sessionStorage and consumed

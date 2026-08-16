@@ -16,7 +16,7 @@ zhuyin, audio, meanings and stroke-order practice.
 
 ### How do I import a deck into Anki?
 
-Download an `.apkg` from the <a href="{base}/decks">decks page</a>, then in Anki choose
+Download an `.apkg` from the <a href="{base}/hsk#decks">decks page</a>, then in Anki choose
 **File → Import** and select the file. Before importing, back up your collection with scheduling
 information.
 

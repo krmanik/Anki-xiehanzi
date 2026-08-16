@@ -108,7 +108,7 @@
 		href="{base}/hsk"
 		class="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-neutral-400 transition hover:text-neutral-900"
 	>
-		<ArrowLeft size={14} /> All HSK lists
+		<ArrowLeft size={14} /> All word lists &amp; decks
 	</a>
 
 	<div class="mt-4 flex flex-wrap items-end justify-between gap-4">

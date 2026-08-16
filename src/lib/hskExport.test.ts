@@ -9,7 +9,6 @@ import {
 	toCsv,
 	toDocx,
 	toJson,
-	toPrintHtml,
 	toTsv,
 	toXlsx,
 	DEFAULT_COLUMN_KEYS,
@@ -159,26 +158,6 @@ describe('toDocx', () => {
 		expect(doc).toContain('New HSK · HSK 1');
 		expect(doc.match(/<w:tr>/g)).toHaveLength(entries.length + 1);
 		expect(doc).toContain('爸爸');
-	});
-});
-
-describe('toPrintHtml', () => {
-	it('colours each character by its tone', () => {
-		const html = toPrintHtml(entries, ctx);
-		// 爸爸 is ba4 ba5 — 4th tone blue then neutral grey.
-		expect(html).toContain('<span style="color:#2196f3">爸</span><span style="color:#9e9e9e">爸</span>');
-		expect(html).toContain('HSK 1');
-		expect(html).toContain('2 words');
-	});
-
-	it('omits colour when asked', () => {
-		expect(toPrintHtml(entries, ctx, false)).not.toContain('color:#2196f3');
-	});
-
-	it('escapes HTML in meanings', () => {
-		const html = toPrintHtml([{ ...entries[0], m: '<script>x</script>' }], ctx);
-		expect(html).not.toContain('<script>x');
-		expect(html).toContain('&lt;script&gt;x');
 	});
 });
 

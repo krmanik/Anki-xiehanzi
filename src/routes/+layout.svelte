@@ -9,6 +9,7 @@
 	import Heart from '@lucide/svelte/icons/heart';
 	import Coffee from '@lucide/svelte/icons/coffee';
 	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ShareModal from '$lib/components/ShareModal.svelte';
 	import { initSharePrefs, popupHidden } from '$lib/share.svelte';
 
@@ -24,23 +25,29 @@
 
 	let open = $state(false);
 	let showShare = $state(false);
-	let sponsorOpen = $state(false);
-	let sponsorMenu = $state<HTMLElement>();
-	let sponsorMenuMobile = $state<HTMLElement>();
+	let moreOpen = $state(false);
+	let moreMenu = $state<HTMLElement>();
+	let moreMenuMobile = $state<HTMLElement>();
 
-	const insideSponsor = (target: Node) =>
-		!!sponsorMenu?.contains(target) || !!sponsorMenuMobile?.contains(target);
+	const insideMore = (target: Node) =>
+		!!moreMenu?.contains(target) || !!moreMenuMobile?.contains(target);
 
 	// The Share menu entry appears only after the user dismisses the
 	// export-success popup with "Do not show again".
 	onMount(initSharePrefs);
 
+	// Word lists and prebuilt decks share one page; everything outbound (shop,
+	// source, sharing, sponsoring) is folded into a single "More" menu so the bar
+	// stays down to three destinations.
 	const nav = [
 		{ href: `${base}/create`, label: 'Create' },
-		{ href: `${base}/decks`, label: 'Decks' },
 		{ href: `${base}/hsk`, label: 'HSK' },
 		{ href: `${base}/docs`, label: 'Docs' }
 	];
+
+	const menuItem =
+		'flex items-center gap-2.5 px-3 py-2 text-sm text-neutral-600 transition hover:bg-neutral-50 hover:text-neutral-900';
+	const mobileItem = 'flex items-center gap-2.5 rounded-md px-2 py-2.5 text-sm text-neutral-600';
 
 	const current = $derived(page.url.pathname.replace(base, '') || '/');
 	const isActive = (href: string) => {
@@ -63,10 +70,10 @@
 
 <svelte:window
 	onclick={(e) => {
-		if (sponsorOpen && !insideSponsor(e.target as Node)) sponsorOpen = false;
+		if (moreOpen && !insideMore(e.target as Node)) moreOpen = false;
 	}}
 	onkeydown={(e) => {
-		if (e.key === 'Escape') sponsorOpen = false;
+		if (e.key === 'Escape') moreOpen = false;
 	}}
 />
 
@@ -89,51 +96,68 @@
 						: 'text-neutral-500 hover:text-neutral-900'}">{item.label}</a
 				>
 			{/each}
-			<a
-				href={shop}
-				target="_blank"
-				rel="noopener noreferrer"
-				class="ml-1 flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-500 transition hover:text-neutral-900"
-			>
-				<ShoppingBag size={14} /> Shop
-			</a>
-			<a
-				href={repo}
-				class="ml-1 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-500 hover:text-neutral-900"
-				>GitHub</a
-			>
-			{#if popupHidden()}
+			<div class="relative ml-1" bind:this={moreMenu}>
 				<button
-					onclick={() => (showShare = true)}
-					class="ml-1 flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-500 transition hover:text-neutral-900"
-				>
-					<Share2 size={14} /> Share
-				</button>
-			{/if}
-
-			<div class="relative ml-1" bind:this={sponsorMenu}>
-				<button
-					onclick={() => (sponsorOpen = !sponsorOpen)}
+					onclick={() => (moreOpen = !moreOpen)}
 					aria-haspopup="menu"
-					aria-expanded={sponsorOpen}
+					aria-expanded={moreOpen}
 					class="flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-500 transition hover:text-neutral-900"
 				>
-					<Heart size={14} /> Sponsor
+					More <ChevronDown size={13} class={moreOpen ? 'rotate-180 transition' : 'transition'} />
 				</button>
-				{#if sponsorOpen}
+				{#if moreOpen}
 					<div
 						role="menu"
 						tabindex="-1"
-						class="absolute right-0 z-50 mt-1 w-52 overflow-hidden rounded-md border border-neutral-200 bg-white py-1 shadow-lg"
+						class="absolute right-0 z-50 mt-1 w-60 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 shadow-lg"
 					>
+						<a
+							role="menuitem"
+							href={shop}
+							target="_blank"
+							rel="noopener noreferrer"
+							onclick={() => (moreOpen = false)}
+							class={menuItem}
+						>
+							<ShoppingBag size={16} class="text-neutral-400" /> Shop
+						</a>
+						<a
+							role="menuitem"
+							href={repo}
+							target="_blank"
+							rel="noopener noreferrer"
+							onclick={() => (moreOpen = false)}
+							class={menuItem}
+						>
+							{@render brandIcon('github', 16)} GitHub
+						</a>
+						{#if popupHidden()}
+							<button
+								role="menuitem"
+								onclick={() => {
+									moreOpen = false;
+									showShare = true;
+								}}
+								class="{menuItem} w-full text-left"
+							>
+								<Share2 size={16} class="text-neutral-400" /> Share this site
+							</button>
+						{/if}
+
+						<div class="my-1 border-t border-neutral-100"></div>
+						<p
+							class="flex items-center gap-1.5 px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-neutral-400"
+						>
+							<Heart size={11} /> Sponsor
+						</p>
 						{#each sponsorLinks as link}
 							<a
 								role="menuitem"
 								href={link.href}
 								target="_blank"
 								rel="noopener noreferrer"
-								onclick={() => (sponsorOpen = false)}
-								class="flex items-center gap-2 px-3 py-2 text-sm text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+								onclick={() => (moreOpen = false)}
+								class={menuItem}
 							>
 								{@render brandIcon(link.brand, 16)}
 								{link.label}
@@ -150,7 +174,7 @@
 			aria-label="menu"
 			onclick={() => {
 				open = !open;
-				sponsorOpen = false;
+				moreOpen = false;
 			}}
 		>
 			{#if open}<X size={20} />{:else}<Menu size={20} />{/if}
@@ -159,7 +183,7 @@
 
 	{#if open}
 		<div class="border-t border-neutral-200 bg-white md:hidden">
-			<div class="flex flex-col px-5 py-2">
+			<div class="flex flex-col px-5 py-2" bind:this={moreMenuMobile}>
 				{#each nav as item}
 					<a
 						href={item.href}
@@ -171,58 +195,56 @@
 							: 'text-neutral-600'}">{item.label}</a
 					>
 				{/each}
+
+				<div class="my-1 border-t border-neutral-100"></div>
+
 				<a
 					href={shop}
 					target="_blank"
 					rel="noopener noreferrer"
 					onclick={() => (open = false)}
-					class="flex items-center gap-2 rounded-md px-2 py-2.5 font-mono text-sm uppercase tracking-wider text-neutral-600"
+					class={mobileItem}
 				>
-					<ShoppingBag size={16} /> Shop
+					<ShoppingBag size={16} class="text-neutral-400" /> Shop
 				</a>
 				<a
 					href={repo}
-					class="rounded-md px-2 py-2.5 font-mono text-sm uppercase tracking-wider text-neutral-600"
-					>GitHub</a
+					target="_blank"
+					rel="noopener noreferrer"
+					onclick={() => (open = false)}
+					class={mobileItem}
 				>
+					{@render brandIcon('github', 16)} GitHub
+				</a>
 				{#if popupHidden()}
 					<button
 						onclick={() => {
 							open = false;
 							showShare = true;
 						}}
-						class="flex items-center gap-2 rounded-md px-2 py-2.5 text-left font-mono text-sm uppercase tracking-wider text-neutral-600"
+						class="{mobileItem} text-left"
 					>
-						<Share2 size={16} /> Share
+						<Share2 size={16} class="text-neutral-400" /> Share this site
 					</button>
 				{/if}
 
-				<div class="flex flex-col" bind:this={sponsorMenuMobile}>
-					<button
-						onclick={() => (sponsorOpen = !sponsorOpen)}
-						aria-expanded={sponsorOpen}
-						class="flex items-center gap-2 rounded-md px-2 py-2.5 text-left font-mono text-sm uppercase tracking-wider text-neutral-600"
+				<p
+					class="mt-1 flex items-center gap-1.5 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-neutral-400"
+				>
+					<Heart size={11} /> Sponsor
+				</p>
+				{#each sponsorLinks as link}
+					<a
+						href={link.href}
+						target="_blank"
+						rel="noopener noreferrer"
+						onclick={() => (open = false)}
+						class={mobileItem}
 					>
-						<Heart size={16} /> Sponsor
-					</button>
-					{#if sponsorOpen}
-						{#each sponsorLinks as link}
-							<a
-								href={link.href}
-								target="_blank"
-								rel="noopener noreferrer"
-								onclick={() => {
-									open = false;
-									sponsorOpen = false;
-								}}
-								class="flex items-center gap-2 rounded-md py-2 pl-6 pr-2 text-sm text-neutral-600"
-							>
-								{@render brandIcon(link.brand, 16)}
-								{link.label}
-							</a>
-						{/each}
-					{/if}
-				</div>
+						{@render brandIcon(link.brand, 16)}
+						{link.label}
+					</a>
+				{/each}
 			</div>
 		</div>
 	{/if}
@@ -250,8 +272,8 @@
 		<div>
 			<h3 class="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">Resources</h3>
 			<a class="block py-1 text-sm text-neutral-600 hover:text-neutral-900" href="{base}/docs">Docs</a>
-			<a class="block py-1 text-sm text-neutral-600 hover:text-neutral-900" href="{base}/decks">Decks</a>
 			<a class="block py-1 text-sm text-neutral-600 hover:text-neutral-900" href="{base}/hsk">HSK word lists</a>
+			<a class="block py-1 text-sm text-neutral-600 hover:text-neutral-900" href="{base}/hsk#decks">Prebuilt decks</a>
 		</div>
 		<div>
 			<h3 class="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">Community</h3>

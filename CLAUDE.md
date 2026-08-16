@@ -16,6 +16,7 @@ Three loosely-coupled parts under one repo:
 
 ```bash
 npm run build:hsk    # regenerate static/data/hsk/*.json from cedict.db + the word lists
+npm run build:pdf-fonts  # regenerate static/fonts/*.ttf (needs python3 + fonttools)
 npm run dev          # vite dev server
 npm run build        # static build → build/ (adapter-static, SPA fallback 404.html)
 npm run preview      # serve the production build
@@ -63,20 +64,28 @@ A separate, much lighter stack from the deck generator — it must never pull th
   (Node ≥22 type stripping), so pinyin/zhuyin match the deck pipeline exactly.
 - **`src/lib/hsk.ts`** — types, cached JSON loaders, and pure search / sort /
   tone-pairing helpers. Unit-tested.
-- **`src/lib/hskExport.ts`** — pure export builders: CSV, TSV, JSON, real OOXML
-  `.xlsx` / `.docx` (JSZip), and a print-styled HTML document for PDF. PDF is
-  deliberately print-based: embedding a CJK font in a generated PDF would add
-  multiple MB.
+- **`src/lib/hskExport.ts`** — pure export builders: CSV, TSV, JSON and real
+  OOXML `.xlsx` / `.docx` (JSZip).
+- **`src/lib/hskPdf.ts`** — writes the PDF directly with pdf-lib; no print
+  dialog. A PDF carries its own glyphs, so it embeds the subset fonts built by
+  `scripts/build_pdf_fonts.py` (merged simplified+traditional Kai for hanzi and
+  bopomofo, DejaVu Sans for Latin — the Kai faces have no macron/caron vowels,
+  which is why tone-marked pinyin came out blank when the browser printed).
+  Text is drawn run by run, one font per run; run splitting, wrapping and
+  pagination are pure and unit-tested. The CJK subset is ~4 MB and is fetched
+  only on the first PDF export.
 - **`src/lib/hskHandoff.ts`** — a level's word list plus the requested deck
   options (audio, example sentences) is parked in sessionStorage and consumed
   once by `WordSourceInput` on `/create` (too many words for a query string).
   `create/+page.svelte` *peeks* the entry to jump to step 2 (where
   `WordSourceInput` mounts) and to apply the options after the localStorage
   restores; `WordSourceInput` is what actually consumes it.
-- Routes: `src/routes/hsk/+page.svelte` (level picker) and
-  `src/routes/hsk/[list]/[level]/+page.svelte` (browser + export). The dynamic
-  route needs explicit `entries()` in its `+page.ts` — the site is client-rendered,
-  so the prerenderer cannot crawl to it.
+- Routes: `src/lib/components/DeckLibrary.svelte` holds the merged landing page
+  (word lists + prebuilt decks, tabbed, `#decks` deep-links the second tab) and
+  is rendered by both `/hsk` (canonical) and `/decks` (the older URL, kept
+  alive). `src/routes/hsk/[list]/[level]/+page.svelte` is the level browser and
+  export. The dynamic route needs explicit `entries()` in its `+page.ts` — the
+  site is client-rendered, so the prerenderer cannot crawl to it.
 
 Data assets the app fetches at runtime live in `static/data/` (`cedict.db.zip`, `hsk_sentences.db.zip`, `*.wasm`, `hsk_words.json`, etc.). They are served from `${base}/data/...` — always go through `base` from `$app/paths` because of the GitHub Pages base path (see below).
 

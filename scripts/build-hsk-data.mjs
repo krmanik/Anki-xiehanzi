@@ -164,13 +164,17 @@ async function buildEntry(word, seed) {
 
 	// Prefer the reading the source list gives us — the old lists carry numbered
 	// pinyin, the new ones tone-marked pinyin — otherwise the most common one.
+	// CEDICT capitalises proper-noun readings ("Ri4" for 日 = Japan), so when a
+	// reading matches in both cases the lowercase, general one wins.
+	const pickMatch = (matches) =>
+		matches.find((r) => r.p === r.p.toLowerCase()) ?? matches[0] ?? null;
 	let primary = readings[0];
 	if (seed?.numbered) {
 		const want = pyKey(normalizeNumbered(seed.numbered));
-		primary = readings.find((r) => pyKey(r.p) === want) ?? primary;
+		primary = pickMatch(readings.filter((r) => pyKey(r.p) === want)) ?? primary;
 	} else if (seed?.marked) {
 		const want = pyKey(seed.marked);
-		primary = readings.find((r) => pyKey(r.y) === want) ?? primary;
+		primary = pickMatch(readings.filter((r) => pyKey(r.y) === want)) ?? primary;
 	}
 
 	const numbered = primary?.p ?? normalizeNumbered(seed?.numbered ?? '');

@@ -14,7 +14,7 @@ Anki-xiehanzi is a free, open-source Anki deck and deck generator for learning t
 
 There are two ways to use Anki-xiehanzi:
 
-1. **Download** a ready-made deck from the <a href="{base}/decks">Decks</a> page and import into Anki via **File → Import**.
+1. **Download** a ready-made deck from the <a href="{base}/hsk#decks">Decks</a> page and import into Anki via **File → Import**.
 2. **Build your own** with the <a href="{base}/create">Create</a> tool — add Chinese words (typed, pasted, uploaded, or pulled from an HSK / BCT / YCT level), configure card types and fields, then export a `.apkg`. See <a href="{base}/docs/export-deck">Export a Deck</a> for the full walkthrough.
 
 Everything runs in your browser — no account, no upload. The generated `.apkg`

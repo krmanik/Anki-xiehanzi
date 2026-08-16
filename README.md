@@ -24,7 +24,8 @@ Browse every [HSK word list](https://krmanik.github.io/Anki-xiehanzi/hsk) —
 Old HSK (2012) levels 1–6 and New HSK 3.0 (2025) levels 1–9 — with tone-coloured
 hanzi and pinyin, zhuyin, traditional forms, part of speech, classifiers and
 frequency. Any level downloads free as CSV, Excel, Word, PDF, plain text or JSON,
-or opens straight in the deck creator as an Anki deck.
+or opens straight in the deck creator as an Anki deck with audio and example
+sentences. The same page holds the ready-made decks below.
 
 ## Shop
 

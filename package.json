@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:hsk": "node scripts/build-hsk-data.mjs"
   },
   "dependencies": {
     "@hiseb/confetti": "^2.1.0",
@@ -19,6 +20,7 @@
     "genanki-js": "^2.0.0",
     "hanzi-writer": "^3.6.1",
     "jieba-wasm": "^2.0.0",
+    "jszip": "^3.10.1",
     "segmentit": "^2.0.3",
     "sql.js": "^1.10.3",
     "unzipit": "^1.4.3"

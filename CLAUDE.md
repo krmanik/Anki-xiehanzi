@@ -15,6 +15,7 @@ Three loosely-coupled parts under one repo:
 ## Commands
 
 ```bash
+npm run build:hsk    # regenerate static/data/hsk/*.json from cedict.db + the word lists
 npm run dev          # vite dev server
 npm run build        # static build → build/ (adapter-static, SPA fallback 404.html)
 npm run preview      # serve the production build
@@ -48,6 +49,34 @@ The deck generator is the heart of the app. Layering matters because correctness
 - **`src/lib/dict/cedict.ts`** — impure dictionary layer. Loads `cedict.db` + `hsk_sentences.db` (SQLite via sql.js, unzipped from `static/data/*.zip`) plus JSON glosses. Provides lookup, POS, classifiers, HSK level, frequency, per-reading definitions, example sentences.
 - **`src/lib/dict/sentences.ts`** — pure example-sentence ranking (difficulty + length score); DB lookup stays in `cedict.ts`.
 - **`src/routes/create/+page.svelte`** — the UI orchestrator (~400 lines) wiring all of the above: word/paragraph/file input → segmentation → dict lookup → live `CardPreview` → `.apkg` export. The bulk of the UI lives in extracted components under `src/lib/components/` (`WordSourceInput`, `WordReviewTable`, `CardCustomizer`, `AppearancePanel`, `ExportPreview`, `ExportSuccess`, …).
+
+## HSK browser (`/hsk`)
+
+A separate, much lighter stack from the deck generator — it must never pull the
+10 MB `cedict.db.zip` just to show a word list.
+
+- **`scripts/build-hsk-data.mjs`** (`npm run build:hsk`) — offline generator. Reads
+  `static/data/cedict.db`, the Old HSK 2012 lists in `HSK Wordlist/`, and the New
+  HSK 2025 lists in the submodule, and writes `static/data/hsk/{old|new}-{level}.json`
+  plus `index.json`. Committed output; rerun it when any of those sources change.
+  Runs on Node's `node:sqlite` and imports `src/lib/dict/pinyinzhuyin.ts` directly
+  (Node ≥22 type stripping), so pinyin/zhuyin match the deck pipeline exactly.
+- **`src/lib/hsk.ts`** — types, cached JSON loaders, and pure search / sort /
+  tone-pairing helpers. Unit-tested.
+- **`src/lib/hskExport.ts`** — pure export builders: CSV, TSV, JSON, real OOXML
+  `.xlsx` / `.docx` (JSZip), and a print-styled HTML document for PDF. PDF is
+  deliberately print-based: embedding a CJK font in a generated PDF would add
+  multiple MB.
+- **`src/lib/hskHandoff.ts`** — a level's word list plus the requested deck
+  options (audio, example sentences) is parked in sessionStorage and consumed
+  once by `WordSourceInput` on `/create` (too many words for a query string).
+  `create/+page.svelte` *peeks* the entry to jump to step 2 (where
+  `WordSourceInput` mounts) and to apply the options after the localStorage
+  restores; `WordSourceInput` is what actually consumes it.
+- Routes: `src/routes/hsk/+page.svelte` (level picker) and
+  `src/routes/hsk/[list]/[level]/+page.svelte` (browser + export). The dynamic
+  route needs explicit `entries()` in its `+page.ts` — the site is client-rendered,
+  so the prerenderer cannot crawl to it.
 
 Data assets the app fetches at runtime live in `static/data/` (`cedict.db.zip`, `hsk_sentences.db.zip`, `*.wasm`, `hsk_words.json`, etc.). They are served from `${base}/data/...` — always go through `base` from `$app/paths` because of the GitHub Pages base path (see below).
 

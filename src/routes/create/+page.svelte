@@ -11,6 +11,7 @@
 	import ExportPreview from '$lib/components/ExportPreview.svelte';
 	import ExportSuccess from '$lib/components/ExportSuccess.svelte';
 	import { popupHidden } from '$lib/share.svelte';
+	import { peekPendingWords } from '$lib/hskHandoff';
 	import {
 		CARD_STYLE_LS_KEY,
 		CARD_TABS_LS_KEY,
@@ -119,6 +120,25 @@
 		}
 	});
 
+	// Turn the Examples field on for every card type. Membership in `back` only
+	// decides visibility — where it renders comes from `order` — so appending is
+	// enough. Used by the HSK hand-off; the card editor drives it manually.
+	function showExamplesOnEveryCard() {
+		if (!order.includes(FIELDS.EXAMPLES)) {
+			const ai = order.indexOf(FIELDS.AUDIO);
+			const next = [...order];
+			next.splice(ai === -1 ? next.length : ai, 0, FIELDS.EXAMPLES);
+			order = next;
+		}
+		const id = `back${FIELDS.EXAMPLES}`;
+		const next: TabContent = { ...tabContent };
+		for (const name of tabs) {
+			const card = next[name];
+			if (card && !card.back.includes(id)) next[name] = { ...card, back: [...card.back, id] };
+		}
+		tabContent = next;
+	}
+
 	// Persist the deck-wide template (tone palette + custom colors, font, etc.)
 	// so choices — including a custom palette — survive a page refresh.
 	let stylesRestored = $state(false);
@@ -142,6 +162,11 @@
 
 	onMount(async () => {
 		deckName = `Anki xiehanzi ${new Date().toISOString().slice(0, 10)} ${Math.floor(Date.now() / 1000)}`;
+
+		// Arriving from an HSK level: open the word step so WordSourceInput mounts
+		// and picks the handed-over list up (it consumes the entry; we only peek).
+		const pending = peekPendingWords();
+		if (pending) page = 2;
 
 		// Restore saved card style from localStorage.
 		try {
@@ -177,6 +202,11 @@
 			}
 		}
 		stylesRestored = true;
+
+		// Deck features requested by the HSK page. Applied after the localStorage
+		// restores above so they are not overwritten by the saved layout.
+		if (pending?.options.audio) includeAudio = true;
+		if (pending?.options.examples) showExamplesOnEveryCard();
 
 		loadDict();
 		initJieba();

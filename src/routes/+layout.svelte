@@ -38,6 +38,7 @@
 	const nav = [
 		{ href: `${base}/create`, label: 'Create' },
 		{ href: `${base}/decks`, label: 'Decks' },
+		{ href: `${base}/hsk`, label: 'HSK' },
 		{ href: `${base}/docs`, label: 'Docs' }
 	];
 
@@ -250,6 +251,7 @@
 			<h3 class="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">Resources</h3>
 			<a class="block py-1 text-sm text-neutral-600 hover:text-neutral-900" href="{base}/docs">Docs</a>
 			<a class="block py-1 text-sm text-neutral-600 hover:text-neutral-900" href="{base}/decks">Decks</a>
+			<a class="block py-1 text-sm text-neutral-600 hover:text-neutral-900" href="{base}/hsk">HSK word lists</a>
 		</div>
 		<div>
 			<h3 class="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">Community</h3>

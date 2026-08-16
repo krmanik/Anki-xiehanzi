@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { Input, Fileupload, Progressbar, Textarea } from 'flowbite-svelte';
 	import { btnPrimary } from '$lib/buttonStyles';
+	import { takePendingWords } from '$lib/hskHandoff';
 	import BreakWordsModal from '$lib/components/BreakWordsModal.svelte';
 	import {
 		cutParagraph,
@@ -88,34 +90,59 @@
 		selectedLevels = next;
 	}
 
+	/** Look every word up and append the ones not already in the deck. */
+	async function addWordList(list: string[]): Promise<number> {
+		const existing = new Set(words.map((w) => w.Simplified));
+		const todo = list.filter((w) => !existing.has(w));
+		const added: Word[] = [];
+		for (let i = 0; i < todo.length; i++) {
+			if ((i + 1) % PROGRESS_STRIDE === 0 || i === todo.length - 1) {
+				hskProgress = Math.round(((i + 1) / todo.length) * 100);
+				hskStatus = `Adding ${i + 1} / ${todo.length}…`;
+			}
+			try {
+				added.push(await lookupWord(todo[i]));
+			} catch {
+				// Skip a word that fails to look up rather than aborting the batch.
+			}
+		}
+		words = [...words, ...added];
+		return added.length;
+	}
+
 	async function addWordsByLevel() {
 		if (hskProcessing || selectedLevels.size === 0) return;
 		hskProcessing = true;
 		hskProgress = 0;
 		hskStatus = 'Loading word list…';
 		try {
-			const list = await wordsByLevel([...selectedLevels]);
-			const existing = new Set(words.map((w) => w.Simplified));
-			const todo = list.filter((w) => !existing.has(w));
-			const added: Word[] = [];
-			for (let i = 0; i < todo.length; i++) {
-				if ((i + 1) % PROGRESS_STRIDE === 0 || i === todo.length - 1) {
-					hskProgress = Math.round(((i + 1) / todo.length) * 100);
-					hskStatus = `Adding ${i + 1} / ${todo.length}…`;
-				}
-				try {
-					added.push(await lookupWord(todo[i]));
-				} catch {
-					// Skip a word that fails to look up rather than aborting the batch.
-				}
-			}
-			words = [...words, ...added];
+			const count = await addWordList(await wordsByLevel([...selectedLevels]));
 			hskProgress = 100;
-			hskStatus = `Added ${added.length} words.`;
+			hskStatus = `Added ${count} words.`;
 		} finally {
 			hskProcessing = false;
 		}
 	}
+
+	// A level opened from /hsk hands its word list over in sessionStorage — too
+	// many words for a query string. Consume it once, on arrival.
+	let importedFrom = $state('');
+	onMount(async () => {
+		const pending = takePendingWords();
+		if (!pending) return;
+		selectType = 'HSK';
+		importedFrom = pending.label;
+		hskProcessing = true;
+		hskProgress = 0;
+		hskStatus = `Loading ${pending.label}…`;
+		try {
+			const count = await addWordList(pending.words);
+			hskProgress = 100;
+			hskStatus = `Added ${count} words from ${pending.label}.`;
+		} finally {
+			hskProcessing = false;
+		}
+	});
 
 	// ---- BCT levels ----
 	const BCT_LEVELS = ['A', 'B'];
@@ -298,6 +325,12 @@
 
 {#if selectType === 'HSK'}
 	<div class="my-4">
+		{#if importedFrom}
+			<p class="mb-3 rounded-lg border border-indigo-200 bg-indigo-50/60 p-3 text-sm text-neutral-700">
+				Imported from <strong>{importedFrom}</strong> — carry on customising the cards below, or add
+				more levels here.
+			</p>
+		{/if}
 		<p class="mb-2 text-sm text-neutral-500">
 			Pick one or more HSK levels — every word at those levels is added to your deck,
 			most-common first.

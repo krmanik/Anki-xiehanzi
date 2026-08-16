@@ -145,20 +145,42 @@ async function openDbFromZip(zipUrl: string): Promise<any> {
 	return new sql.Database(new Uint8Array(buf));
 }
 
-export async function loadCedict(): Promise<void> {
-	if (cedictDb) return;
-	cedictDb = await openDbFromZip(`${base}/data/cedict.db.zip`);
-	// The shipped db only indexes cedict.word (PK). lookup() filters on
-	// `simplified`, so without this every word triggers a full 120k-row scan
-	// (~12ms/word, ~68s for a 5k-word HSK batch). Build it once, in-memory.
-	cedictDb.run('CREATE INDEX IF NOT EXISTS idx_cedict_simplified ON cedict(simplified)');
-	console.log('cedict.db loaded');
+// Both dbs are multi-MB downloads and several callers race to open them (the
+// create page preloads while a word lookup may already be in flight). Keep the
+// in-flight promise so concurrent callers share one download.
+let cedictLoading: Promise<void> | null = null;
+let sentencesLoading: Promise<void> | null = null;
+
+export function loadCedict(): Promise<void> {
+	if (cedictDb) return Promise.resolve();
+	cedictLoading ??= openDbFromZip(`${base}/data/cedict.db.zip`)
+		.then((db) => {
+			cedictDb = db;
+			// The shipped db only indexes cedict.word (PK). lookup() filters on
+			// `simplified`, so without this every word triggers a full 120k-row scan
+			// (~12ms/word, ~68s for a 5k-word HSK batch). Build it once, in-memory.
+			cedictDb.run('CREATE INDEX IF NOT EXISTS idx_cedict_simplified ON cedict(simplified)');
+			console.log('cedict.db loaded');
+		})
+		.catch((e) => {
+			cedictLoading = null; // allow a retry
+			throw e;
+		});
+	return cedictLoading;
 }
 
-export async function loadSentences(): Promise<void> {
-	if (sentencesDb) return;
-	sentencesDb = await openDbFromZip(`${base}/data/hsk_sentences.db.zip`);
-	console.log('hsk_sentences.db loaded');
+export function loadSentences(): Promise<void> {
+	if (sentencesDb) return Promise.resolve();
+	sentencesLoading ??= openDbFromZip(`${base}/data/hsk_sentences.db.zip`)
+		.then((db) => {
+			sentencesDb = db;
+			console.log('hsk_sentences.db loaded');
+		})
+		.catch((e) => {
+			sentencesLoading = null;
+			throw e;
+		});
+	return sentencesLoading;
 }
 
 /**

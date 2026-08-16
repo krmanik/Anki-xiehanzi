@@ -18,6 +18,14 @@ Works in [Anki Desktop](https://apps.ankiweb.net/),
 2. **Build your own** — the [Create](https://krmanik.github.io/Anki-xiehanzi/create)
    tool turns any Chinese words into a custom `.apkg`, in your browser, no account or upload.
 
+## HSK word lists
+
+Browse every [HSK word list](https://krmanik.github.io/Anki-xiehanzi/hsk) —
+Old HSK (2012) levels 1–6 and New HSK 3.0 (2025) levels 1–9 — with tone-coloured
+hanzi and pinyin, zhuyin, traditional forms, part of speech, classifiers and
+frequency. Any level downloads free as CSV, Excel, Word, PDF, plain text or JSON,
+or opens straight in the deck creator as an Anki deck.
+
 ## Shop
 
 Premium decks and extras are available at the

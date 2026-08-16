@@ -1,8 +1,9 @@
 <script lang="ts">
 	/**
-	 * The single HSK destination: browsable word lists and ready-made decks in one
-	 * place, since every deck is built from one of these lists. Rendered by both
-	 * `/hsk` (canonical) and `/decks` (the older URL, kept working).
+	 * The single HSK destination: ready-made decks first, then the browsable word
+	 * lists they are built from. One scrolling page — no tabs — so both halves are
+	 * discoverable. Rendered by both `/hsk` (canonical) and `/decks` (the older
+	 * URL, kept working); `#decks` and `#lists` jump to each half.
 	 */
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
@@ -17,26 +18,16 @@
 	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 
-	type Tab = 'lists' | 'decks';
-
-	let tab = $state<Tab>('lists');
 	let index = $state<HskIndex | null>(null);
 	let error = $state('');
 
 	onMount(async () => {
-		// #decks lets other pages (and the footer) link straight to the downloads.
-		if (location.hash === '#decks') tab = 'decks';
 		try {
 			index = await loadHskIndex();
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 		}
 	});
-
-	function select(next: Tab) {
-		tab = next;
-		history.replaceState(null, '', next === 'decks' ? '#decks' : location.pathname);
-	}
 
 	// New HSK first — it is the current standard.
 	const lists = $derived.by(() => {
@@ -120,73 +111,198 @@
 	];
 </script>
 
-<section class="mx-auto max-w-6xl px-5 py-12">
+<div class="mx-auto max-w-6xl px-5 py-12">
 	<p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">HSK</p>
-	<h1 class="mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl">Word lists &amp; decks</h1>
+	<h1 class="mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl">Decks &amp; word lists</h1>
 	<p class="mt-3 max-w-2xl text-neutral-600">
-		Every word of the old six-level HSK and the current nine-level HSK 3.0 — read them here with
-		tone-coloured pinyin, take a level away as CSV, Excel, Word, PDF or text, or grab a ready-made
-		Anki deck built from the same data.
+		Import a ready-made Anki deck below, or open any HSK level to read it here with tone-coloured
+		pinyin and take it away as CSV, Excel, Word, PDF or text.
 	</p>
 
-	<div class="mt-8 inline-flex rounded-xl border border-neutral-200 bg-neutral-50 p-1">
-		<button
-			onclick={() => select('lists')}
-			aria-pressed={tab === 'lists'}
-			class="rounded-lg px-4 py-2 font-mono text-xs uppercase tracking-wider transition {tab ===
-			'lists'
-				? 'bg-neutral-900 text-white shadow-sm'
-				: 'text-neutral-500 hover:text-neutral-900'}">Word lists</button
+	<div class="mt-6 flex flex-wrap gap-2">
+		<a
+			href="#decks"
+			class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-500 transition hover:border-neutral-900 hover:text-neutral-900"
 		>
-		<button
-			onclick={() => select('decks')}
-			aria-pressed={tab === 'decks'}
-			class="rounded-lg px-4 py-2 font-mono text-xs uppercase tracking-wider transition {tab ===
-			'decks'
-				? 'bg-neutral-900 text-white shadow-sm'
-				: 'text-neutral-500 hover:text-neutral-900'}">Ready-made decks</button
+			<Download size={13} /> Ready-made decks
+		</a>
+		<a
+			href="#lists"
+			class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-500 transition hover:border-neutral-900 hover:text-neutral-900"
 		>
+			<Layers size={13} /> Word lists
+		</a>
 	</div>
 
-	{#if tab === 'lists'}
-		<div class="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2">
-			<span
-				class="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-neutral-400"
-			>
-				<Palette size={13} /> Tones
-			</span>
-			{#each TONE_LEGEND as t}
-				<span class="font-mono text-xs tone{t.tone}">{t.name}</span>
+	<!-- ------------------------------------------------------------------ -->
+	<!-- Ready-made decks                                                    -->
+	<!-- ------------------------------------------------------------------ -->
+	<section id="decks" class="scroll-mt-20">
+		<div class="mt-12 flex flex-wrap items-baseline justify-between gap-2 border-b border-neutral-200 pb-2">
+			<h2 class="text-2xl font-bold tracking-tight">Ready-made decks</h2>
+			<span class="font-mono text-xs text-neutral-400">{current.version}</span>
+		</div>
+		<p class="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-600">
+			Download an <code class="rounded bg-neutral-100 px-1.5 py-0.5">.apkg</code> and import it in
+			Anki via <strong>File → Import</strong>. Back up your collection with scheduling information
+			first.
+		</p>
+
+		<div class="mt-5 grid gap-4 sm:grid-cols-2">
+			{#each current.decks as d}
+				<a
+					href={d.href}
+					class="group flex flex-col justify-between rounded-xl border border-neutral-200 p-5 transition hover:border-neutral-900 hover:shadow-[4px_4px_0_0_#111]"
+				>
+					<div>
+						<h3 class="font-semibold">{d.name}</h3>
+						<p class="mt-1.5 text-sm leading-relaxed text-neutral-600">{d.desc}</p>
+					</div>
+					<span
+						class="mt-4 inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-neutral-900"
+					>
+						<Download size={14} /> Download .apkg
+					</span>
+				</a>
 			{/each}
 		</div>
 
+		<div class="mt-4 grid gap-4 sm:grid-cols-2">
+			<div class="rounded-xl border border-neutral-200 bg-neutral-50 p-5">
+				<h3 class="font-semibold">Just one level?</h3>
+				<p class="mt-1.5 text-sm leading-relaxed text-neutral-600">
+					Open a level in <a class="font-medium text-indigo-600 underline underline-offset-2" href="#lists">Word lists</a>
+					and choose <strong>Download → Anki deck</strong>. Its words go to the deck creator with
+					audio and example sentences ready to switch on.
+				</p>
+			</div>
+			<div class="rounded-xl border border-neutral-200 bg-neutral-50 p-5">
+				<h3 class="font-semibold">Your own words?</h3>
+				<p class="mt-1.5 text-sm leading-relaxed text-neutral-600">
+					The <a class="font-medium text-indigo-600 underline underline-offset-2" href="{base}/create">deck creator</a>
+					turns typed words, a pasted paragraph or an uploaded file into a custom deck — card
+					layout, tone colours, stroke practice and all.
+				</p>
+			</div>
+		</div>
+
+		<div
+			class="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-indigo-200 bg-indigo-50/60 p-5"
+		>
+			<div class="min-w-0">
+				<h3 class="flex items-center gap-2 font-semibold">
+					<Sparkles size={16} class="text-indigo-600" />
+					{premium.name}
+				</h3>
+				<p class="mt-1.5 max-w-xl text-sm leading-relaxed text-neutral-600">{premium.desc}</p>
+			</div>
+			<div class="flex flex-wrap gap-2">
+				<a
+					href={premium.post}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="inline-flex items-center gap-1.5 rounded bg-neutral-900 px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-white transition hover:bg-neutral-700"
+				>
+					<Sparkles size={14} /> Get the deck
+				</a>
+				<a
+					href={premium.shop}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="inline-flex items-center gap-1.5 rounded border border-neutral-300 bg-white px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-700 transition hover:border-neutral-900"
+				>
+					<ShoppingBag size={14} /> Shop
+				</a>
+			</div>
+		</div>
+
+		<details class="group mt-6 rounded-xl border border-neutral-200">
+			<summary class="flex cursor-pointer list-none items-center justify-between p-4 font-semibold">
+				Previous decks (HSK 2.0, 2021)
+				<ChevronDown size={18} class="transition group-open:rotate-180" />
+			</summary>
+			<div class="space-y-3 border-t border-neutral-200 p-4">
+				{#each previous as p}
+					<div
+						class="flex flex-wrap items-center justify-between gap-3 rounded border border-neutral-200 bg-neutral-50 p-4"
+					>
+						<div class="min-w-0">
+							<div class="flex items-center gap-2">
+								<h4 class="font-semibold">{p.name}</h4>
+								{#if p.tag}
+									<span
+										class="rounded-full bg-indigo-100 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-indigo-700"
+										>{p.tag}</span
+									>
+								{/if}
+							</div>
+							<p class="mt-1 text-sm text-neutral-600">{p.desc}</p>
+						</div>
+						<div class="flex gap-2">
+							<a
+								href={p.ankiweb}
+								class="rounded border border-neutral-300 px-3 py-1.5 text-sm hover:border-neutral-900"
+								>AnkiWeb</a
+							>
+							<a
+								href={rel}
+								class="rounded border border-neutral-300 px-3 py-1.5 text-sm hover:border-neutral-900"
+								>GitHub</a
+							>
+						</div>
+					</div>
+				{/each}
+			</div>
+		</details>
+	</section>
+
+	<!-- ------------------------------------------------------------------ -->
+	<!-- Word lists                                                          -->
+	<!-- ------------------------------------------------------------------ -->
+	<section id="lists" class="scroll-mt-20">
+		<div class="mt-16 flex flex-wrap items-baseline justify-between gap-2 border-b border-neutral-200 pb-2">
+			<h2 class="text-2xl font-bold tracking-tight">Word lists</h2>
+			<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+				<span
+					class="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-neutral-400"
+				>
+					<Palette size={13} /> Tones
+				</span>
+				{#each TONE_LEGEND as t}
+					<span class="font-mono text-xs tone{t.tone}">{t.name}</span>
+				{/each}
+			</div>
+		</div>
+		<p class="mt-3 max-w-2xl text-sm leading-relaxed text-neutral-600">
+			Pick a level to read every word with tone-coloured hanzi and pinyin, zhuyin, traditional
+			forms, part of speech, classifiers and frequency — then export it in the format you want.
+		</p>
+
 		{#if error}
-			<p class="mt-10 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+			<p class="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
 				Could not load the word lists: {error}
 			</p>
 		{:else if !index}
-			<div class="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				{#each Array(8) as _}
 					<div class="h-32 animate-pulse rounded-xl bg-neutral-100"></div>
 				{/each}
 			</div>
 		{:else}
 			{#each lists as list (list.id)}
-				<div class="mt-12">
-					<div
-						class="flex flex-wrap items-baseline justify-between gap-2 border-b border-neutral-200 pb-2"
-					>
-						<h2 class="text-xl font-bold">
+				<div class="mt-8">
+					<div class="flex flex-wrap items-baseline justify-between gap-2">
+						<h3 class="text-lg font-bold">
 							{list.name}
 							<span class="ml-1 font-mono text-sm font-normal text-neutral-400">{list.year}</span>
-						</h2>
+						</h3>
 						<span class="font-mono text-xs text-neutral-400">
 							{list.levels.length} levels · {list.total.toLocaleString()} words
 						</span>
 					</div>
-					<p class="mt-2 text-sm text-neutral-500">{list.subtitle}</p>
+					<p class="mt-1 text-sm text-neutral-500">{list.subtitle}</p>
 
-					<div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+					<div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 						{#each list.levels as lvl, i (lvl.level)}
 							<a
 								href={levelHref(list, lvl.level)}
@@ -225,159 +341,29 @@
 				</div>
 			{/each}
 
-			<div class="mt-14 rounded-xl border border-neutral-200 bg-neutral-50 p-6">
-				<h2 class="text-lg font-bold">Which list should I learn?</h2>
+			<div class="mt-10 rounded-xl border border-neutral-200 bg-neutral-50 p-6">
+				<h3 class="text-lg font-bold">Which list should I learn?</h3>
 				<div class="mt-3 grid gap-6 sm:grid-cols-2">
 					<div>
-						<h3 class="font-semibold">New HSK 3.0 (2025)</h3>
+						<h4 class="font-semibold">New HSK 3.0 (2025)</h4>
 						<p class="mt-1 text-sm leading-relaxed text-neutral-600">
 							The current standard: nine levels grouped 1–6 plus an advanced 7–9 band, ~11,000
 							words. Use this if you are taking the exam today.
 						</p>
 					</div>
 					<div>
-						<h3 class="font-semibold">Old HSK (2012)</h3>
+						<h4 class="font-semibold">Old HSK (2012)</h4>
 						<p class="mt-1 text-sm leading-relaxed text-neutral-600">
 							The classic six-level syllabus, 5,000 words. Still the list most textbooks, graded
 							readers and older courses are built around.
 						</p>
 					</div>
 				</div>
-				<p class="mt-5 text-sm text-neutral-600">
-					Want cards instead of a list?
-					<button
-						onclick={() => select('decks')}
-						class="font-medium text-indigo-600 underline underline-offset-2">Download a prebuilt deck</button
-					>
-					or
-					<a class="font-medium text-indigo-600 underline underline-offset-2" href="{base}/create"
-						>build your own</a
-					>.
-				</p>
 			</div>
 
 			<p class="mt-6 font-mono text-[11px] uppercase tracking-wider text-neutral-400">
 				Data updated {index.generated} · word data from CC-CEDICT and the HSK 3.0 word list
 			</p>
 		{/if}
-	{:else}
-		<p class="mt-8 max-w-2xl text-sm text-neutral-600">
-			Download a ready-made <code class="rounded bg-neutral-100 px-1.5 py-0.5">.apkg</code>, then
-			import it in Anki via <strong>File → Import</strong>. Back up your collection with scheduling
-			information first.
-		</p>
-
-		<div class="mt-8 flex items-baseline justify-between border-b border-neutral-200 pb-2">
-			<h2 class="text-xl font-bold">New HSK</h2>
-			<span class="font-mono text-xs text-neutral-400">{current.version}</span>
-		</div>
-
-		<div class="mt-5 grid gap-4 sm:grid-cols-2">
-			{#each current.decks as d}
-				<a
-					href={d.href}
-					class="group flex flex-col justify-between rounded-lg border border-neutral-200 p-5 transition hover:border-neutral-900 hover:shadow-[4px_4px_0_0_#111]"
-				>
-					<div>
-						<h3 class="font-semibold">{d.name}</h3>
-						<p class="mt-1.5 text-sm leading-relaxed text-neutral-600">{d.desc}</p>
-					</div>
-					<span
-						class="mt-4 inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-neutral-900"
-					>
-						<Download size={14} /> Download .apkg
-					</span>
-				</a>
-			{/each}
-		</div>
-
-		<div class="mt-8 rounded-xl border border-neutral-200 bg-neutral-50 p-5">
-			<h3 class="font-semibold">Want a deck for one level only?</h3>
-			<p class="mt-1.5 max-w-2xl text-sm leading-relaxed text-neutral-600">
-				Open any level in
-				<button
-					onclick={() => select('lists')}
-					class="font-medium text-indigo-600 underline underline-offset-2">Word lists</button
-				>
-				and choose <strong>Download → Anki deck</strong>. Its words go straight to the
-				<a class="font-medium text-indigo-600 underline underline-offset-2" href="{base}/create"
-					>deck creator</a
-				>, where you pick the card layout, tone colours, audio and example sentences.
-			</p>
-		</div>
-
-		<div class="mt-12 flex items-baseline justify-between border-b border-neutral-200 pb-2">
-			<h2 class="text-xl font-bold">Premium</h2>
-			<span class="font-mono text-xs text-neutral-400">Patreon shop</span>
-		</div>
-
-		<div
-			class="mt-5 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-indigo-200 bg-indigo-50/60 p-5"
-		>
-			<div class="min-w-0">
-				<h3 class="flex items-center gap-2 font-semibold">
-					<Sparkles size={16} class="text-indigo-600" />
-					{premium.name}
-				</h3>
-				<p class="mt-1.5 max-w-xl text-sm leading-relaxed text-neutral-600">{premium.desc}</p>
-			</div>
-			<div class="flex flex-wrap gap-2">
-				<a
-					href={premium.post}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="inline-flex items-center gap-1.5 rounded bg-neutral-900 px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-white transition hover:bg-neutral-700"
-				>
-					<Sparkles size={14} /> Get the deck
-				</a>
-				<a
-					href={premium.shop}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="inline-flex items-center gap-1.5 rounded border border-neutral-300 bg-white px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-700 transition hover:border-neutral-900"
-				>
-					<ShoppingBag size={14} /> Shop
-				</a>
-			</div>
-		</div>
-
-		<details class="group mt-12 rounded-lg border border-neutral-200">
-			<summary class="flex cursor-pointer list-none items-center justify-between p-4 font-semibold">
-				Previous decks (HSK 2.0, 2021)
-				<ChevronDown size={18} class="transition group-open:rotate-180" />
-			</summary>
-			<div class="space-y-3 border-t border-neutral-200 p-4">
-				{#each previous as p}
-					<div
-						class="flex flex-wrap items-center justify-between gap-3 rounded border border-neutral-200 bg-neutral-50 p-4"
-					>
-						<div class="min-w-0">
-							<div class="flex items-center gap-2">
-								<h4 class="font-semibold">{p.name}</h4>
-								{#if p.tag}
-									<span
-										class="rounded-full bg-indigo-100 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-indigo-700"
-										>{p.tag}</span
-									>
-								{/if}
-							</div>
-							<p class="mt-1 text-sm text-neutral-600">{p.desc}</p>
-						</div>
-						<div class="flex gap-2">
-							<a
-								href={p.ankiweb}
-								class="rounded border border-neutral-300 px-3 py-1.5 text-sm hover:border-neutral-900"
-								>AnkiWeb</a
-							>
-							<a
-								href={rel}
-								class="rounded border border-neutral-300 px-3 py-1.5 text-sm hover:border-neutral-900"
-								>GitHub</a
-							>
-						</div>
-					</div>
-				{/each}
-			</div>
-		</details>
-	{/if}
-</section>
+	</section>
+</div>

@@ -18,7 +18,7 @@
 		type ExportFormat
 	} from '$lib/hskExport';
 	import { PENDING_WORDS_KEY } from '$lib/hskHandoff';
-	import { buildHskPdf } from '$lib/hskPdf';
+	import { buildHskPdf, DEFAULT_PDF_FIELDS, PDF_FIELDS } from '$lib/hskPdf';
 	import X from '@lucide/svelte/icons/x';
 	import Download from '@lucide/svelte/icons/download';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
@@ -39,8 +39,8 @@
 	let format = $state<ExportFormat>('csv');
 	let columnKeys = $state<string[]>([...DEFAULT_COLUMN_KEYS]);
 	let colorPdf = $state(true);
-	let pdfReadings = $state(true);
-	let pdfTraditional = $state(true);
+	let pdfLandscape = $state(false);
+	let pdfFields = $state<string[]>([...DEFAULT_PDF_FIELDS]);
 	let deckAudio = $state(true);
 	let deckExamples = $state(true);
 	let busy = $state(false);
@@ -53,6 +53,12 @@
 		columnKeys = columnKeys.includes(key)
 			? columnKeys.filter((k) => k !== key)
 			: [...columnKeys, key];
+	}
+
+	function togglePdfField(key: string) {
+		pdfFields = pdfFields.includes(key)
+			? pdfFields.filter((k) => k !== key)
+			: [...pdfFields, key];
 	}
 
 	function save(blob: Blob, name: string) {
@@ -72,8 +78,8 @@
 		const name = exportFilename(ctx, 'pdf');
 		const pdf = await buildHskPdf(entries, ctx, {
 			colored: colorPdf,
-			includeReadings: pdfReadings,
-			includeTraditional: pdfTraditional,
+			landscape: pdfLandscape,
+			fields: pdfFields,
 			onProgress: (fraction, label) => {
 				progress = Math.round(fraction * 100);
 				status = label;
@@ -206,35 +212,39 @@
 			</div>
 		{:else if format === 'pdf'}
 			<h3 class="mt-6 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">
-				Page contents
+				Columns
 			</h3>
+			<div class="mt-2 flex flex-wrap gap-1.5">
+				{#each PDF_FIELDS as f (f.key)}
+					<button
+						type="button"
+						onclick={() => togglePdfField(f.key)}
+						class="rounded-full border px-3 py-1 text-xs transition {pdfFields.includes(f.key)
+							? 'border-neutral-900 bg-neutral-100 text-neutral-900'
+							: 'border-neutral-200 text-neutral-400 hover:border-neutral-400'}"
+					>
+						{f.key === 'index' ? 'Row number' : f.label}
+					</button>
+				{/each}
+			</div>
+
+			<h3 class="mt-5 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">Page</h3>
 			<div class="mt-2 space-y-2">
 				<label class="flex items-center gap-2 text-sm text-neutral-700">
 					<input type="checkbox" bind:checked={colorPdf} class="h-4 w-4 accent-neutral-900" />
 					Tone-coloured hanzi and pinyin
 				</label>
 				<label class="flex items-center gap-2 text-sm text-neutral-700">
-					<input type="checkbox" bind:checked={pdfTraditional} class="h-4 w-4 accent-neutral-900" />
-					Traditional form beside each word
-				</label>
-				<label class="flex items-start gap-2 text-sm text-neutral-700">
-					<input
-						type="checkbox"
-						bind:checked={pdfReadings}
-						class="mt-0.5 h-4 w-4 shrink-0 accent-neutral-900"
-					/>
-					<span>
-						Other pronunciations
-						<span class="text-neutral-500"
-							>— words like 的 <em>de / dí / dì / dī</em> get every reading with its own meaning.</span
-						>
-					</span>
+					<input type="checkbox" bind:checked={pdfLandscape} class="h-4 w-4 accent-neutral-900" />
+					Landscape A4
+					<span class="text-neutral-500">— more room once you add columns</span>
 				</label>
 			</div>
 			<p class="mt-3 text-xs leading-relaxed text-neutral-500">
-				Written directly as a PDF with the Chinese fonts embedded, so the characters render
-				anywhere and the text stays selectable. The fonts are fetched once (about 4 MB) the first
-				time you export a PDF.
+				Columns are sized from their widest entry and every row is the same height, so the page
+				reads as a grid. Written directly as a PDF with the Chinese fonts embedded — characters
+				render anywhere and the text stays selectable. The fonts are fetched once (about 4 MB) the
+				first time you export a PDF.
 			</p>
 		{:else if format === 'json'}
 			<p class="mt-6 text-xs leading-relaxed text-neutral-500">
@@ -306,7 +316,9 @@
 			<button
 				class="{btnPrimary} inline-flex items-center gap-2"
 				onclick={run}
-				disabled={busy || (tabular && columnKeys.length === 0)}
+				disabled={busy ||
+					(tabular && columnKeys.length === 0) ||
+					(format === 'pdf' && pdfFields.length === 0)}
 			>
 				{#if format === 'anki'}
 					<Sparkles size={15} /> Open deck creator

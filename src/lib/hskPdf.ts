@@ -9,14 +9,20 @@
  *
  * Text is drawn run by run: each run is a stretch of characters belonging to one
  * font, so a mixed string like "个 (ge4)" is measured and drawn correctly.
- * Layout maths (run splitting, wrapping, pagination) is pure and unit-tested;
- * only `loadPdfFonts` and `buildHskPdf` touch the network or pdf-lib.
+ * Layout maths — run splitting, wrapping, truncation, column widths — is pure
+ * and unit-tested; only `loadPdfFonts` and `buildHskPdf` touch the network or
+ * pdf-lib.
+ *
+ * The table is laid out by measuring: every column is sized from the widest
+ * value it actually holds (so zhuyin can never spill into the meaning), the
+ * leftover width goes to the wrapping columns, and every row is given the same
+ * height so the page reads as a grid.
  */
 
 import { PDFDocument, rgb, type PDFFont, type PDFPage, type RGB } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { base } from '$app/paths';
-import { hanziTones, pinyinTones, type HskEntry } from '$lib/hsk';
+import { formatClassifier, hanziTones, pinyinTones, type HskEntry } from '$lib/hsk';
 import type { ExportContext } from '$lib/hskExport';
 
 // ---------------------------------------------------------------------------
@@ -75,11 +81,14 @@ export function splitRuns(text: string): Run[] {
 	return runs;
 }
 
-/** Measures one run's width; injected so wrapping can be tested without fonts. */
+/** Measures one run's width; injected so layout can be tested without fonts. */
 export type Measure = (run: Run) => number;
 
 export const runsWidth = (runs: Run[], measure: Measure): number =>
 	runs.reduce((sum, r) => sum + measure(r), 0);
+
+export const textWidth = (text: string, measure: Measure): number =>
+	runsWidth(splitRuns(text), measure);
 
 /**
  * Wrap text to `maxWidth`, breaking at spaces for Latin and between characters
@@ -136,6 +145,200 @@ export function wrapRuns(
 	return lines.length ? lines : [[]];
 }
 
+/**
+ * Cut a line of runs down to `maxWidth`, appending an ellipsis when anything was
+ * dropped. Used for single-line columns and for the last line of a clamped cell,
+ * so nothing can ever overrun into the next column.
+ */
+export function truncateRuns(runs: Run[], maxWidth: number, measure: Measure): Run[] {
+	if (runsWidth(runs, measure) <= maxWidth) return runs;
+	const ellipsis: Run = { text: '…', script: 'latin' };
+	const budget = maxWidth - measure(ellipsis);
+	const out: Run[] = [];
+	let width = 0;
+	for (const run of runs) {
+		let kept = '';
+		for (const ch of run.text) {
+			const w = measure({ text: ch, script: run.script });
+			if (width + w > budget) break;
+			kept += ch;
+			width += w;
+		}
+		if (kept) out.push({ text: kept, script: run.script });
+		if (kept.length !== [...run.text].length) break;
+	}
+	out.push(ellipsis);
+	return out;
+}
+
+/** Wrap to at most `maxLines`, truncating the last line if the text runs on. */
+export function clampLines(
+	text: string,
+	maxWidth: number,
+	maxLines: number,
+	measure: Measure
+): Run[][] {
+	const lines = wrapRuns(text, maxWidth, measure);
+	if (lines.length <= maxLines) return lines;
+	const kept = lines.slice(0, maxLines);
+	// Re-join what is left onto the last kept line so the ellipsis lands there.
+	const tail = lines
+		.slice(maxLines - 1)
+		.flat()
+		.map((r) => r.text)
+		.join('');
+	kept[maxLines - 1] = truncateRuns(splitRuns(tail), maxWidth, measure);
+	return kept;
+}
+
+/**
+ * How many text lines every row should be given, from the line counts each row
+ * would need. Uses a high percentile rather than the maximum so one rambling
+ * definition cannot leave every other row three-quarters empty.
+ */
+export function rowLineCount(needed: number[], max: number, fit = 0.85): number {
+	if (!needed.length) return 1;
+	const sorted = [...needed].sort((a, b) => a - b);
+	const at = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * fit))];
+	return Math.min(max, Math.max(1, at));
+}
+
+// ---------------------------------------------------------------------------
+// Fields
+// ---------------------------------------------------------------------------
+
+/** How a column's value is drawn. */
+export type CellKind = 'index' | 'hanzi' | 'pinyin' | 'text';
+
+export interface PdfField {
+	key: string;
+	label: string;
+	kind: CellKind;
+	size: number;
+	/** Wrapping columns share whatever width is left, by this weight. */
+	flex?: number;
+	/** Upper bound for a measured column, so one freak entry cannot dominate. */
+	max?: number;
+	/** Lower bound for a wrapping column. */
+	min?: number;
+	get: (entry: HskEntry) => string;
+}
+
+export const PDF_FIELDS: PdfField[] = [
+	{ key: 'index', label: '#', kind: 'index', size: 7, max: 26, get: () => '' },
+	{ key: 'simplified', label: 'Word', kind: 'hanzi', size: 15, max: 110, get: (e) => e.s },
+	{
+		key: 'traditional',
+		label: 'Trad.',
+		kind: 'text',
+		size: 10.5,
+		max: 80,
+		get: (e) => (e.t !== e.s ? e.t : '')
+	},
+	{ key: 'pinyin', label: 'Pinyin', kind: 'pinyin', size: 10, max: 100, get: (e) => e.y },
+	{ key: 'zhuyin', label: 'Zhuyin', kind: 'text', size: 8, max: 95, get: (e) => e.z },
+	{ key: 'meaning', label: 'Meaning', kind: 'text', size: 8.8, flex: 3, min: 120, get: (e) => e.m },
+	{
+		key: 'readings',
+		label: 'Other readings',
+		kind: 'text',
+		size: 7.8,
+		flex: 2,
+		min: 90,
+		get: (e) =>
+			(e.r ?? [])
+				.filter((r) => r.p !== e.p && r.d)
+				.map((r) => `${r.y} ${r.z} — ${r.d}`)
+				.join('; ')
+	},
+	{
+		key: 'pos',
+		label: 'Part of speech',
+		kind: 'text',
+		size: 7.8,
+		max: 78,
+		get: (e) => (e.o ?? []).join(', ')
+	},
+	{
+		key: 'classifiers',
+		label: 'Classifier',
+		kind: 'text',
+		size: 8,
+		max: 70,
+		get: (e) => (e.c ?? []).map(formatClassifier).join(', ')
+	},
+	{
+		key: 'frequency',
+		label: 'Freq.',
+		kind: 'text',
+		size: 7.8,
+		max: 42,
+		get: (e) => (e.f ? `#${e.f}` : '')
+	}
+];
+
+export const DEFAULT_PDF_FIELDS = [
+	'index',
+	'simplified',
+	'traditional',
+	'pinyin',
+	'zhuyin',
+	'meaning'
+];
+
+/** Selected fields, in the canonical column order. */
+export function pdfFieldsFor(keys: string[]): PdfField[] {
+	return PDF_FIELDS.filter((f) => keys.includes(f.key));
+}
+
+const COLUMN_GAP = 10;
+
+/**
+ * Give every column a width: measured columns take what their widest value
+ * needs (capped), wrapping columns split the remainder by weight. When the
+ * measured columns alone would not leave the wrapping ones their minimum, the
+ * measured ones are scaled down together rather than any single column
+ * overflowing into its neighbour.
+ */
+export function computeColumnWidths(
+	fields: PdfField[],
+	natural: Record<string, number>,
+	available: number
+): Record<string, number> {
+	const out: Record<string, number> = {};
+	if (!fields.length) return out;
+
+	const gaps = COLUMN_GAP * Math.max(0, fields.length - 1);
+	const usable = Math.max(0, available - gaps);
+	const flexFields = fields.filter((f) => f.flex);
+	const fixedFields = fields.filter((f) => !f.flex);
+
+	for (const f of fixedFields) {
+		out[f.key] = Math.min(natural[f.key] ?? 0, f.max ?? Infinity);
+	}
+	let fixedTotal = fixedFields.reduce((sum, f) => sum + out[f.key], 0);
+
+	if (!flexFields.length) {
+		// Nothing wraps: spread any slack evenly so the table still fills the page.
+		const slack = Math.max(0, usable - fixedTotal) / fixedFields.length;
+		const shrink = fixedTotal > usable ? usable / fixedTotal : 1;
+		for (const f of fixedFields) out[f.key] = out[f.key] * shrink + (shrink === 1 ? slack : 0);
+		return out;
+	}
+
+	const minFlex = flexFields.reduce((sum, f) => sum + (f.min ?? 60), 0);
+	if (fixedTotal > usable - minFlex) {
+		const shrink = Math.max(0, usable - minFlex) / (fixedTotal || 1);
+		for (const f of fixedFields) out[f.key] *= shrink;
+		fixedTotal = fixedFields.reduce((sum, f) => sum + out[f.key], 0);
+	}
+
+	const remaining = Math.max(0, usable - fixedTotal);
+	const weight = flexFields.reduce((sum, f) => sum + (f.flex ?? 1), 0);
+	for (const f of flexFields) out[f.key] = (remaining * (f.flex ?? 1)) / weight;
+	return out;
+}
+
 // ---------------------------------------------------------------------------
 // Fonts
 // ---------------------------------------------------------------------------
@@ -172,15 +375,17 @@ export function loadPdfFonts(): Promise<PdfFontBytes> {
 // ---------------------------------------------------------------------------
 
 const A4 = { width: 595.28, height: 841.89 };
+const LANDSCAPE = { width: A4.height, height: A4.width };
 const MARGIN = { top: 48, bottom: 44, x: 40 };
 
-const COLUMNS = { num: 22, word: 96, pinyin: 92, zhuyin: 60 };
-const CONTENT_WIDTH = A4.width - MARGIN.x * 2;
-const MEANING_WIDTH = CONTENT_WIDTH - COLUMNS.num - COLUMNS.word - COLUMNS.pinyin - COLUMNS.zhuyin;
-
-const SIZE = { hanzi: 15, trad: 10.5, pinyin: 10, zhuyin: 8, meaning: 8.8, reading: 7.8, num: 7 };
-const ROW_PAD = 7;
-const LINE_GAP = 1.25;
+const ROW_PAD = 6;
+const LINE_GAP = 1.6;
+/** Hard ceiling on how tall one row may grow; longer text is clamped. */
+const MAX_ROW_LINES = 4;
+/** Share of rows whose text must fit whole; the rest are clamped. */
+const ROW_FIT = 0.85;
+/** Descender allowance below the last baseline, as a fraction of type size. */
+const DESCENDER = 0.28;
 
 const TONE: Record<number, RGB> = {
 	1: rgb(0.957, 0.263, 0.212), // #f44336
@@ -193,14 +398,15 @@ const INK = rgb(0.07, 0.07, 0.07);
 const MUTED = rgb(0.45, 0.45, 0.45);
 const FAINT = rgb(0.62, 0.62, 0.62);
 const HAIRLINE = rgb(0.886, 0.886, 0.886);
+const ZEBRA = rgb(0.976, 0.976, 0.976);
 
 export interface PdfOptions {
+	/** Column keys to print, defaults to `DEFAULT_PDF_FIELDS`. */
+	fields?: string[];
 	/** Tone-colour the hanzi and pinyin (default true). */
 	colored?: boolean;
-	/** Print every pronunciation of a word, not just the one on the list. */
-	includeReadings?: boolean;
-	/** Show the traditional form beside the simplified one. */
-	includeTraditional?: boolean;
+	/** Landscape paper — worth it once several columns are selected. */
+	landscape?: boolean;
 	onProgress?: (fraction: number, label: string) => void;
 }
 
@@ -214,9 +420,12 @@ export async function buildHskPdf(
 	opts: PdfOptions = {}
 ): Promise<Uint8Array> {
 	const colored = opts.colored ?? true;
-	const includeReadings = opts.includeReadings ?? true;
-	const includeTraditional = opts.includeTraditional ?? true;
 	const progress = opts.onProgress ?? (() => {});
+	const fields = pdfFieldsFor(opts.fields?.length ? opts.fields : DEFAULT_PDF_FIELDS);
+	if (!fields.length) throw new Error('Pick at least one column for the PDF.');
+
+	const paper = opts.landscape ? LANDSCAPE : A4;
+	const contentWidth = paper.width - MARGIN.x * 2;
 
 	progress(0.02, 'Loading fonts…');
 	const bytes = await loadPdfFonts();
@@ -233,9 +442,9 @@ export async function buildHskPdf(
 	doc.setCreator('Anki-xiehanzi');
 	doc.setProducer('Anki-xiehanzi');
 
-	const fontFor = (script: Script, bold = false) =>
+	const fontFor = (script: Script, bold = false): PDFFont =>
 		script === 'cjk' ? cjk : bold ? latinBold : latin;
-	const measure = (size: number, bold = false): Measure => {
+	const measurer = (size: number, bold = false): Measure => {
 		const cache = new Map<string, number>();
 		return (run) => {
 			const key = `${run.script} ${run.text}`;
@@ -247,14 +456,75 @@ export async function buildHskPdf(
 			return w;
 		};
 	};
-	const measureMeaning = measure(SIZE.meaning);
-	const measureReading = measure(SIZE.reading);
+	// One measurer per distinct font size in the table.
+	const measures = new Map<number, Measure>();
+	const measureAt = (size: number) => {
+		let m = measures.get(size);
+		if (!m) {
+			m = measurer(size);
+			measures.set(size, m);
+		}
+		return m;
+	};
+
+	progress(0.25, 'Measuring columns…');
+	const values = entries.map((entry) => {
+		const row: Record<string, string> = {};
+		for (const f of fields) row[f.key] = f.get(entry);
+		return row;
+	});
+
+	// Widest value per measured column. The index column is sized from the last
+	// row number rather than its (empty) values.
+	const natural: Record<string, number> = {};
+	for (const f of fields) {
+		if (f.flex) continue;
+		const measure = measureAt(f.size);
+		let widest =
+			f.kind === 'index' ? textWidth(String(entries.length), measureAt(f.size)) : 0;
+		widest = Math.max(widest, textWidth(f.label, measureAt(6.6)));
+		if (f.kind !== 'index') {
+			for (const row of values) widest = Math.max(widest, textWidth(row[f.key], measure));
+		}
+		natural[f.key] = widest + 2;
+	}
+	const widths = computeColumnWidths(fields, natural, contentWidth);
+
+	// Column x positions, left to right.
+	const xs: Record<string, number> = {};
+	let cursorX = MARGIN.x;
+	for (const f of fields) {
+		xs[f.key] = cursorX;
+		cursorX += widths[f.key] + COLUMN_GAP;
+	}
+
+	// Every row gets the same height. Sizing it to the longest definition would
+	// leave most rows mostly empty, so it is sized to cover the great majority
+	// (ROW_FIT) and the rare rambling entry is clamped with an ellipsis instead.
+	const flexFields = fields.filter((f) => f.flex);
+	const lineHeightOf = (f: PdfField) => f.size + LINE_GAP;
+	const needed = values.map((row) =>
+		flexFields.reduce(
+			(most, f) => Math.max(most, wrapRuns(row[f.key], widths[f.key], measureAt(f.size)).length),
+			1
+		)
+	);
+	const rowLines = rowLineCount(needed, MAX_ROW_LINES, ROW_FIT);
+	// Row height follows from where the text actually sits: the shared first
+	// baseline hangs `tallestSize` below the row top, each further wrapped line
+	// adds one line height, and the last line still needs room for descenders.
+	const tallestSize = Math.max(...fields.map((f) => f.size));
+	const flexLine = flexFields.length ? Math.max(...flexFields.map(lineHeightOf)) : 0;
+	const flexSize = flexFields.length ? Math.max(...flexFields.map((f) => f.size)) : tallestSize;
+	const rowHeight =
+		ROW_PAD * 2 + tallestSize + Math.max(0, rowLines - 1) * flexLine + flexSize * DESCENDER;
 
 	const pages: PDFPage[] = [];
 	let page!: PDFPage;
 	let y = 0;
 
 	const drawRuns = (
+		target: PDFPage,
 		runs: Run[],
 		x: number,
 		baseline: number,
@@ -265,154 +535,130 @@ export async function buildHskPdf(
 		let cursor = x;
 		for (const run of runs) {
 			const font = fontFor(run.script, bold);
-			page.drawText(run.text, { x: cursor, y: baseline, size, font, color });
+			target.drawText(run.text, { x: cursor, y: baseline, size, font, color });
 			cursor += font.widthOfTextAtSize(run.text, size);
 		}
 		return cursor;
 	};
 	const drawText = (text: string, x: number, baseline: number, size: number, color: RGB, bold = false) =>
-		drawRuns(splitRuns(text), x, baseline, size, color, bold);
+		drawRuns(page, splitRuns(text), x, baseline, size, color, bold);
 
 	const tone = (n: number) => (colored ? (TONE[n] ?? TONE[5]) : INK);
 
 	/** Column header band, repeated at the top of every page. */
 	const drawTableHead = () => {
-		const labels: [string, number][] = [
-			['#', MARGIN.x],
-			['WORD', MARGIN.x + COLUMNS.num],
-			['PINYIN', MARGIN.x + COLUMNS.num + COLUMNS.word],
-			['ZHUYIN', MARGIN.x + COLUMNS.num + COLUMNS.word + COLUMNS.pinyin],
-			['MEANING', MARGIN.x + COLUMNS.num + COLUMNS.word + COLUMNS.pinyin + COLUMNS.zhuyin]
-		];
-		for (const [label, x] of labels) {
-			page.drawText(label, { x, y, size: 6.6, font: latinBold, color: FAINT });
+		for (const f of fields) {
+			const label = truncateRuns(splitRuns(f.label.toUpperCase()), widths[f.key], measureAt(6.6));
+			drawRuns(page, label, xs[f.key], y, 6.6, FAINT, true);
 		}
 		y -= 6;
 		page.drawLine({
 			start: { x: MARGIN.x, y },
-			end: { x: A4.width - MARGIN.x, y },
+			end: { x: paper.width - MARGIN.x, y },
 			thickness: 0.9,
 			color: INK
 		});
-		y -= ROW_PAD + 4;
+		y -= 4;
 	};
 
 	const newPage = (first = false) => {
-		page = doc.addPage([A4.width, A4.height]);
+		page = doc.addPage([paper.width, paper.height]);
 		pages.push(page);
-		y = A4.height - MARGIN.top;
+		y = paper.height - MARGIN.top;
 
 		if (first) {
-			drawText(`${ctx.listName}`, MARGIN.x, y - 16, 17, INK, true);
-			y -= 16 + 8;
-			const sub = `${ctx.levelLabel} · ${entries.length} word${entries.length === 1 ? '' : 's'}`;
-			drawText(sub, MARGIN.x, y - 9, 9.5, MUTED);
-			y -= 9 + 18;
+			drawText(ctx.listName, MARGIN.x, y - 16, 17, INK, true);
+			y -= 24;
+			drawText(
+				`${ctx.levelLabel} · ${entries.length} word${entries.length === 1 ? '' : 's'}`,
+				MARGIN.x,
+				y - 9,
+				9.5,
+				MUTED
+			);
+			y -= 27;
 		} else {
 			drawText(`${ctx.listName} · ${ctx.levelLabel}`, MARGIN.x, y - 7, 7.5, FAINT);
-			y -= 7 + 14;
+			y -= 21;
 		}
 		drawTableHead();
 	};
 
+	progress(0.32, 'Laying out pages…');
 	newPage(true);
-
-	const xNum = MARGIN.x;
-	const xWord = MARGIN.x + COLUMNS.num;
-	const xPinyin = xWord + COLUMNS.word;
-	const xZhuyin = xPinyin + COLUMNS.pinyin;
-	const xMeaning = xZhuyin + COLUMNS.zhuyin;
 
 	const total = entries.length || 1;
 	for (let i = 0; i < entries.length; i++) {
-		const entry = entries[i];
-		if (i % 200 === 0) progress(0.25 + (0.65 * i) / total, `Laying out ${i + 1} / ${total}…`);
+		if (i % 200 === 0) progress(0.32 + (0.58 * i) / total, `Laying out ${i + 1} / ${total}…`);
 
-		const meaningLines = wrapRuns(entry.m, MEANING_WIDTH - 4, measureMeaning);
-
-		// Alternate pronunciations, printed under the meaning as their own lines.
-		const extras = includeReadings ? (entry.r ?? []).filter((r) => r.p !== entry.p && r.d) : [];
-		const extraLines = extras.map((r) => {
-			const head = `${r.y} ${r.z}  `;
-			return {
-				reading: r,
-				head,
-				// Only the first line starts after the pronunciation label.
-				lines: wrapRuns(
-					r.d,
-					MEANING_WIDTH - 4,
-					measureReading,
-					runsWidth(splitRuns(head), measureReading)
-				)
-			};
-		});
-
-		const meaningHeight = meaningLines.length * (SIZE.meaning + LINE_GAP);
-		const extraHeight = extraLines.reduce(
-			(sum, e) => sum + Math.max(1, e.lines.length) * (SIZE.reading + LINE_GAP) + 2,
-			0
-		);
-		const rowHeight = Math.max(SIZE.hanzi + 4, meaningHeight + extraHeight) + ROW_PAD * 2;
-
-		if (y - rowHeight < MARGIN.bottom + 14) newPage();
+		if (y - rowHeight < MARGIN.bottom + 12) newPage();
 
 		const top = y;
-		const firstBaseline = top - SIZE.hanzi;
-
-		page.drawText(String(i + 1), {
-			x: xNum,
-			y: firstBaseline + 3,
-			size: SIZE.num,
-			font: latin,
-			color: FAINT
-		});
-
-		let cursor = xWord;
-		for (const c of hanziTones(entry.s, entry.p)) {
-			page.drawText(c.ch, { x: cursor, y: firstBaseline, size: SIZE.hanzi, font: cjk, color: tone(c.tone) });
-			cursor += cjk.widthOfTextAtSize(c.ch, SIZE.hanzi);
-		}
-		if (includeTraditional && entry.t !== entry.s) {
-			drawText(entry.t, cursor + 5, firstBaseline + 1, SIZE.trad, FAINT);
+		if (i % 2 === 1) {
+			page.drawRectangle({
+				x: MARGIN.x - 4,
+				y: top - rowHeight + 2,
+				width: contentWidth + 8,
+				height: rowHeight - 1,
+				color: ZEBRA
+			});
 		}
 
-		cursor = xPinyin;
-		const syllables = pinyinTones(entry.y, entry.p);
-		for (let s = 0; s < syllables.length; s++) {
-			const text = s === syllables.length - 1 ? syllables[s].text : `${syllables[s].text} `;
-			cursor = drawRuns(splitRuns(text), cursor, firstBaseline + 2, SIZE.pinyin, tone(syllables[s].tone));
-		}
+		const row = values[i];
+		for (const f of fields) {
+			const x = xs[f.key];
+			const width = widths[f.key];
+			const measure = measureAt(f.size);
+			// Every column shares the first baseline — set by the largest type in the
+			// row — so hanzi, pinyin and meaning line up instead of stair-stepping.
+			const baseline = top - ROW_PAD - tallestSize;
 
-		drawText(entry.z, xZhuyin, firstBaseline + 2, SIZE.zhuyin, MUTED);
-
-		let lineY = top - SIZE.meaning - 2;
-		for (const line of meaningLines) {
-			drawRuns(line, xMeaning, lineY, SIZE.meaning, INK);
-			lineY -= SIZE.meaning + LINE_GAP;
-		}
-
-		for (const extra of extraLines) {
-			lineY -= 2;
-			const headEnd = drawText(
-				extra.head,
-				xMeaning,
-				lineY,
-				SIZE.reading,
-				tone(toneOf(extra.reading.p))
-			);
-			let first = true;
-			for (const line of extra.lines) {
-				drawRuns(line, first ? headEnd : xMeaning, lineY, SIZE.reading, MUTED);
-				lineY -= SIZE.reading + LINE_GAP;
-				first = false;
+			if (f.kind === 'index') {
+				drawText(String(i + 1), x, baseline + 3, f.size, FAINT);
+				continue;
 			}
-			if (!extra.lines.length) lineY -= SIZE.reading + LINE_GAP;
+			const value = row[f.key];
+			if (!value) continue;
+
+			if (f.flex) {
+				let lineY = baseline;
+				for (const line of clampLines(value, width, rowLines, measure)) {
+					drawRuns(page, line, x, lineY, f.size, f.key === 'meaning' ? INK : MUTED);
+					lineY -= lineHeightOf(f);
+				}
+				continue;
+			}
+
+			if (f.kind === 'hanzi') {
+				let cursor = x;
+				for (const c of hanziTones(value, entries[i].p)) {
+					const w = cjk.widthOfTextAtSize(c.ch, f.size);
+					if (cursor + w > x + width) break;
+					page.drawText(c.ch, { x: cursor, y: baseline, size: f.size, font: cjk, color: tone(c.tone) });
+					cursor += w;
+				}
+			} else if (f.kind === 'pinyin') {
+				let cursor = x;
+				const syllables = pinyinTones(value, entries[i].p);
+				for (let s = 0; s < syllables.length; s++) {
+					const text = s === syllables.length - 1 ? syllables[s].text : `${syllables[s].text} `;
+					const runs = splitRuns(text);
+					if (cursor + runsWidth(runs, measure) > x + width) {
+						drawRuns(page, truncateRuns(runs, x + width - cursor, measure), cursor, baseline, f.size, tone(syllables[s].tone));
+						break;
+					}
+					cursor = drawRuns(page, runs, cursor, baseline, f.size, tone(syllables[s].tone));
+				}
+			} else {
+				const color = f.key === 'traditional' ? FAINT : MUTED;
+				drawRuns(page, truncateRuns(splitRuns(value), width, measure), x, baseline, f.size, color);
+			}
 		}
 
-		y = top - rowHeight + ROW_PAD;
+		y = top - rowHeight;
 		page.drawLine({
-			start: { x: MARGIN.x, y: y + ROW_PAD / 2 },
-			end: { x: A4.width - MARGIN.x, y: y + ROW_PAD / 2 },
+			start: { x: MARGIN.x, y: y + 1 },
+			end: { x: paper.width - MARGIN.x, y: y + 1 },
 			thickness: 0.4,
 			color: HAIRLINE
 		});
@@ -423,7 +669,7 @@ export async function buildHskPdf(
 		const label = `${i + 1} / ${pages.length}`;
 		const width = latin.widthOfTextAtSize(label, 7.5);
 		p.drawText(label, {
-			x: A4.width - MARGIN.x - width,
+			x: paper.width - MARGIN.x - width,
 			y: MARGIN.bottom - 12,
 			size: 7.5,
 			font: latin,
@@ -442,10 +688,4 @@ export async function buildHskPdf(
 	const out = await doc.save();
 	progress(1, 'Done');
 	return out;
-}
-
-/** Tone digit of a numbered-pinyin string's first syllable. */
-function toneOf(numbered: string): number {
-	const m = /([1-5])\D*/.exec(numbered ?? '');
-	return m ? Number(m[1]) : 5;
 }

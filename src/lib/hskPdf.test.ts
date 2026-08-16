@@ -1,11 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import {
+	clampLines,
+	computeColumnWidths,
+	pdfFieldsFor,
 	runsWidth,
 	scriptOf,
 	splitRuns,
 	substitute,
+	truncateRuns,
 	wrapRuns,
+	DEFAULT_PDF_FIELDS,
+	PDF_FIELDS,
 	type Measure,
+	type PdfField,
 	type Run
 } from './hskPdf';
 
@@ -103,5 +110,113 @@ describe('wrapRuns', () => {
 
 	it('does not loop forever when one token is wider than the line', () => {
 		expect(asText(wrapRuns('supercalifragilistic', 4, measure))).toEqual(['supercalifragilistic']);
+	});
+});
+
+describe('truncateRuns', () => {
+	it('leaves text that already fits alone', () => {
+		const runs = splitRuns('short');
+		expect(truncateRuns(runs, 50, measure)).toBe(runs);
+	});
+
+	it('cuts to the budget and marks the cut with an ellipsis', () => {
+		const out = truncateRuns(splitRuns('abcdefghij'), 5, measure);
+		expect(out.map((r) => r.text).join('')).toBe('abcd…');
+	});
+
+	it('never exceeds the width it was given', () => {
+		const out = truncateRuns(splitRuns('爱八爸杯北京本'), 7, measure);
+		expect(runsWidth(out, measure)).toBeLessThanOrEqual(7);
+	});
+
+	it('truncates across a script boundary', () => {
+		const out = truncateRuns(splitRuns('ab爱爱爱'), 6, measure);
+		expect(out.map((r) => r.text).join('')).toBe('ab爱…');
+	});
+});
+
+describe('clampLines', () => {
+	it('returns the natural wrap when it is short enough', () => {
+		expect(asText(clampLines('alpha beta', 12, 3, measure))).toEqual(['alpha beta']);
+	});
+
+	it('keeps at most maxLines and ellipsises the last one', () => {
+		const lines = clampLines('alpha beta gamma delta epsilon', 12, 2, measure);
+		expect(lines).toHaveLength(2);
+		expect(asText(lines)[1].endsWith('…')).toBe(true);
+	});
+
+	it('does not exceed the column width on any line', () => {
+		for (const line of clampLines('alpha beta gamma delta epsilon', 12, 2, measure)) {
+			expect(runsWidth(line, measure)).toBeLessThanOrEqual(12);
+		}
+	});
+});
+
+describe('pdfFieldsFor', () => {
+	it('keeps the canonical column order whatever order keys arrive in', () => {
+		expect(pdfFieldsFor(['meaning', 'index']).map((f) => f.key)).toEqual(['index', 'meaning']);
+	});
+
+	it('every default key exists and keys are unique', () => {
+		const keys = PDF_FIELDS.map((f) => f.key);
+		expect(new Set(keys).size).toBe(keys.length);
+		for (const k of DEFAULT_PDF_FIELDS) expect(keys).toContain(k);
+	});
+});
+
+describe('computeColumnWidths', () => {
+	const fixed = (key: string, max: number): PdfField => ({
+		key,
+		label: key,
+		kind: 'text',
+		size: 8,
+		max,
+		get: () => ''
+	});
+	const flex = (key: string, weight: number, min = 60): PdfField => ({
+		key,
+		label: key,
+		kind: 'text',
+		size: 8,
+		flex: weight,
+		min,
+		get: () => ''
+	});
+
+	it('gives a measured column exactly what it needs, up to its cap', () => {
+		const fields = [fixed('a', 100), flex('m', 1)];
+		const w = computeColumnWidths(fields, { a: 40 }, 400);
+		expect(w.a).toBe(40);
+	});
+
+	it('caps a runaway column instead of letting it eat the row', () => {
+		const w = computeColumnWidths([fixed('a', 60), flex('m', 1)], { a: 900 }, 400);
+		expect(w.a).toBe(60);
+	});
+
+	it('hands the leftover to the wrapping columns by weight', () => {
+		const fields = [fixed('a', 100), flex('m', 3), flex('r', 1)];
+		const w = computeColumnWidths(fields, { a: 50 }, 400);
+		const gaps = 10 * 2;
+		expect(w.a + w.m + w.r + gaps).toBeCloseTo(400, 5);
+		expect(w.m / w.r).toBeCloseTo(3, 5);
+	});
+
+	it('shrinks the measured columns rather than starving a wrapping one', () => {
+		const fields = [fixed('a', 500), fixed('b', 500), flex('m', 1, 120)];
+		const w = computeColumnWidths(fields, { a: 300, b: 300 }, 400);
+		expect(w.m).toBeGreaterThanOrEqual(119);
+		expect(w.a + w.b + w.m + 20).toBeCloseTo(400, 5);
+	});
+
+	it('fills the page when nothing wraps', () => {
+		const fields = [fixed('a', 100), fixed('b', 100)];
+		const w = computeColumnWidths(fields, { a: 40, b: 40 }, 200);
+		expect(w.a + w.b + 10).toBeCloseTo(200, 5);
+	});
+
+	it('returns nothing for no fields', () => {
+		expect(computeColumnWidths([], {}, 400)).toEqual({});
 	});
 });

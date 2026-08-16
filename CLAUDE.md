@@ -71,9 +71,12 @@ A separate, much lighter stack from the deck generator — it must never pull th
   `scripts/build_pdf_fonts.py` (merged simplified+traditional Kai for hanzi and
   bopomofo, DejaVu Sans for Latin — the Kai faces have no macron/caron vowels,
   which is why tone-marked pinyin came out blank when the browser printed).
-  Text is drawn run by run, one font per run; run splitting, wrapping and
-  pagination are pure and unit-tested. The CJK subset is ~4 MB and is fetched
-  only on the first PDF export.
+  Text is drawn run by run, one font per run. Columns are sized by measuring
+  their widest value (capped), the leftover goes to the wrapping columns, and
+  every row is the same height — sized to fit ~85% of rows whole, clamping the
+  rest with an ellipsis, so nothing overruns its column. Which columns appear is
+  the user's choice (`PDF_FIELDS`). All of that maths is pure and unit-tested.
+  The CJK subset is ~4 MB and is fetched only on the first PDF export.
 - **`src/lib/hskHandoff.ts`** — a level's word list plus the requested deck
   options (audio, example sentences) is parked in sessionStorage and consumed
   once by `WordSourceInput` on `/create` (too many words for a query string).
@@ -81,9 +84,9 @@ A separate, much lighter stack from the deck generator — it must never pull th
   `WordSourceInput` mounts) and to apply the options after the localStorage
   restores; `WordSourceInput` is what actually consumes it.
 - Routes: `src/lib/components/DeckLibrary.svelte` holds the merged landing page
-  (word lists + prebuilt decks, tabbed, `#decks` deep-links the second tab) and
-  is rendered by both `/hsk` (canonical) and `/decks` (the older URL, kept
-  alive). `src/routes/hsk/[list]/[level]/+page.svelte` is the level browser and
+  — ready-made decks first, then the word lists they are built from, one
+  scrolling page with `#decks` / `#lists` anchors — rendered by both `/hsk`
+  (canonical) and `/decks` (the older URL, kept alive). `src/routes/hsk/[list]/[level]/+page.svelte` is the level browser and
   export. The dynamic route needs explicit `entries()` in its `+page.ts` — the
   site is client-rendered, so the prerenderer cannot crawl to it.
 

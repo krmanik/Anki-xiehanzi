@@ -36,9 +36,8 @@
 	// export-success popup with "Do not show again".
 	onMount(initSharePrefs);
 
-	// Word lists and prebuilt decks share one page; everything outbound (shop,
-	// source, sharing, sponsoring) is folded into a single "More" menu so the bar
-	// stays down to three destinations.
+	// Word lists and prebuilt decks share one page. Source, sharing and sponsoring
+	// fold into a single "More" menu, leaving three destinations plus the shop.
 	const nav = [
 		{ href: `${base}/create`, label: 'Create' },
 		{ href: `${base}/hsk`, label: 'HSK' },
@@ -96,6 +95,15 @@
 						: 'text-neutral-500 hover:text-neutral-900'}">{item.label}</a
 				>
 			{/each}
+			<a
+				href={shop}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="ml-1 flex items-center gap-1.5 rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-500 transition hover:text-neutral-900"
+			>
+				<ShoppingBag size={14} /> Shop
+			</a>
+
 			<div class="relative ml-1" bind:this={moreMenu}>
 				<button
 					onclick={() => (moreOpen = !moreOpen)}
@@ -111,16 +119,6 @@
 						tabindex="-1"
 						class="absolute right-0 z-50 mt-1 w-60 overflow-hidden rounded-lg border border-neutral-200 bg-white py-1 shadow-lg"
 					>
-						<a
-							role="menuitem"
-							href={shop}
-							target="_blank"
-							rel="noopener noreferrer"
-							onclick={() => (moreOpen = false)}
-							class={menuItem}
-						>
-							<ShoppingBag size={16} class="text-neutral-400" /> Shop
-						</a>
 						<a
 							role="menuitem"
 							href={repo}
@@ -196,17 +194,18 @@
 					>
 				{/each}
 
-				<div class="my-1 border-t border-neutral-100"></div>
-
 				<a
 					href={shop}
 					target="_blank"
 					rel="noopener noreferrer"
 					onclick={() => (open = false)}
-					class={mobileItem}
+					class="flex items-center gap-2 rounded-md px-2 py-2.5 font-mono text-sm uppercase tracking-wider text-neutral-600"
 				>
-					<ShoppingBag size={16} class="text-neutral-400" /> Shop
+					<ShoppingBag size={16} /> Shop
 				</a>
+
+				<div class="my-1 border-t border-neutral-100"></div>
+
 				<a
 					href={repo}
 					target="_blank"

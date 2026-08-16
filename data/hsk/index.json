@@ -1,0 +1,88 @@
+{
+	"generated": "2026-08-16",
+	"lists": [
+		{
+			"id": "old",
+			"name": "Old HSK",
+			"year": "2012",
+			"subtitle": "HSK 2.0 — the classic six-level syllabus",
+			"total": 5001,
+			"levels": [
+				{
+					"level": "1",
+					"count": 150,
+					"file": "old-1.json"
+				},
+				{
+					"level": "2",
+					"count": 151,
+					"file": "old-2.json"
+				},
+				{
+					"level": "3",
+					"count": 300,
+					"file": "old-3.json"
+				},
+				{
+					"level": "4",
+					"count": 600,
+					"file": "old-4.json"
+				},
+				{
+					"level": "5",
+					"count": 1300,
+					"file": "old-5.json"
+				},
+				{
+					"level": "6",
+					"count": 2500,
+					"file": "old-6.json"
+				}
+			]
+		},
+		{
+			"id": "new",
+			"name": "New HSK",
+			"year": "2025",
+			"subtitle": "HSK 3.0 — the current nine-level standard",
+			"total": 11073,
+			"levels": [
+				{
+					"level": "1",
+					"count": 301,
+					"file": "new-1.json"
+				},
+				{
+					"level": "2",
+					"count": 203,
+					"file": "new-2.json"
+				},
+				{
+					"level": "3",
+					"count": 506,
+					"file": "new-3.json"
+				},
+				{
+					"level": "4",
+					"count": 1016,
+					"file": "new-4.json"
+				},
+				{
+					"level": "5",
+					"count": 1632,
+					"file": "new-5.json"
+				},
+				{
+					"level": "6",
+					"count": 1810,
+					"file": "new-6.json"
+				},
+				{
+					"level": "7-9",
+					"count": 5605,
+					"file": "new-7-9.json"
+				}
+			]
+		}
+	]
+}

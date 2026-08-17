@@ -222,11 +222,28 @@ Same shape as the HSK browser — committed JSON, no `cedict.db` at runtime.
     `.card-body.xhz-h-<key> [data-xhz='<key>'] { display: none }` rule per key.
     `grid` is the exception — it takes the guide lines off the writer box and
     leaves the animation.
-  - **Per side.** Each side lists only the parts it actually renders (a
-    recognition front offers one switch), and choices are stored per side —
-    `localStorage['xhz.hide.front'|'xhz.hide.back']`, a comma-separated key list,
-    so the front can be stripped bare while the back stays full. A row whose part
-    is missing from *this note* (no variant forms, say) is hidden on load.
+  - **Per side, and every field on both sides.** A question side carries the
+    whole note too — `extras()` renders the same stack as the answer, minus what
+    the question already prints (`FRONT_SKIP`) and minus the writer, which the
+    writing front owns in quiz mode — with every extra part **default-hidden via
+    an `xhz-h-*` class on `.card-body`**. So the reader can put the pinyin, the
+    readings or the examples on a front, the way the HSK deck ships every field
+    on both sides with the deselected ones simply hidden. Choices are stored per
+    side — `localStorage['xhz.hide2.front'|'xhz.hide2.back']`, a comma-separated
+    key list. **`SIDEBAR_SCRIPT` seeds that entry from the template's classes on
+    first run**, then treats a stored entry as authoritative in both directions
+    (it *removes* the template's default classes before applying it) — otherwise
+    a part switched on would be re-hidden by the next card, and the first toggle
+    would rewrite a list built from nothing. The key is `hide2` because a stored
+    `xhz.hide.front` from the build before this one would read as "show
+    everything on the front". A row whose part is missing from *this note* (no
+    variant forms, say) is hidden on load. Free ships no extras at all — dead
+    markup without a panel to work it.
+  - **`.ident` collapses when empty.** The identity column is one panel with a
+    shadow, and its default state on a question side is every row off, so
+    `identCollapseCss` emits one compound selector per side ("all of this side's
+    ident parts are hidden → `display: none`"). Plain CSS on purpose: `:has()`
+    is not old enough for every Anki webview.
   - **Each switch's `onchange` carries its own code**, like the bar's buttons, and
     `try`/`catch`es storage. Only *restoring* the choices needs `SIDEBAR_SCRIPT`.
   - Free never gets it however it is configured (`radicalOptions` forces
@@ -235,9 +252,11 @@ Same shape as the HSK browser — committed JSON, no `cedict.db` at runtime.
 - **Card chrome**: the control bar is the card's one row of controls and sits in
   the card's flow under the top grid, like the word decks' buttons — not pinned
   to the bottom of the webview, where it covered the last row of a long answer.
-  What the card can **do** on the left (play audio · replay strokes · practise
-  writing), what it can **show** on the right (`.bar-tools`: the switches panel,
-  then the dictionary drawer). Only the left group carries
+  It is a **three-lane grid** (`1fr auto 1fr`), each lane always present even
+  when empty: the switches panel opens from the left of the card so its button
+  sits in the left lane, the dictionary drawer opens from the right so its button
+  sits in the right lane, and what the card can *do* (play audio · replay strokes
+  · practise writing) is centred between them. Only that centre lane carries
   `data-xhz="buttons"` — hiding the buttons must not take the switch that unhides
   them with it. Tool buttons are neutral (`--soft`/`--muted`), action buttons
   tonal indigo, so the two groups do not read as one. Pure HTML/CSS with

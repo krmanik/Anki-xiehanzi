@@ -217,11 +217,37 @@ describe('radicalNoteGuid', () => {
 describe('radicalTemplates', () => {
 	const [recognize, write] = radicalTemplates();
 
-	it('shows the glyph on the recognition front and no answer', () => {
+	// The whole note rides on the question side too, so any field can be switched
+	// on there (the HSK deck ships every field on both sides the same way) — but
+	// every one of them starts hidden, or the card would answer itself.
+	it('shows the glyph on the recognition front and hides the answer', () => {
 		expect(recognize.qfmt).toContain('{{Radical}}');
-		expect(recognize.qfmt).not.toContain('{{Meaning}}');
-		expect(recognize.qfmt).not.toContain('{{Pinyin}}');
+		expect(recognize.qfmt).toContain('{{Meaning}}');
 		expect(recognize.qfmt).not.toContain('{{Audio}}');
+		const body = recognize.qfmt.slice(0, recognize.qfmt.indexOf('>'));
+		for (const key of ['meaning', 'pinyin', 'readings', 'examples', 'word']) {
+			expect(body).toContain(`xhz-h-${key}`);
+		}
+		// The question itself is not hidden, and neither is its metadata line.
+		expect(body).not.toContain('xhz-h-glyph');
+		expect(body).not.toContain('xhz-h-meta');
+	});
+
+	// The writing front asks for the glyph, so the glyph is what starts hidden
+	// there — its prompt (meaning, pinyin) is the one thing that does not.
+	it('hides the answer on the writing front, not the prompt', () => {
+		const body = write.qfmt.slice(0, write.qfmt.indexOf('>'));
+		expect(body).toContain('xhz-h-glyph');
+		expect(body).not.toContain('xhz-h-meaning');
+		expect(body).not.toContain('xhz-h-pinyin');
+	});
+
+	// A free deck has no panel to work the switches, so it ships no hidden extras
+	// either — dead markup on every card.
+	it('leaves the extras off an edition with no panel', () => {
+		const [freeRecognize] = radicalTemplates('free');
+		expect(freeRecognize.qfmt).not.toContain('xhz-h-');
+		expect(freeRecognize.qfmt).not.toContain('{{Meaning}}');
 	});
 
 	it('asks for the glyph on the writing front without showing it', () => {
@@ -411,15 +437,24 @@ describe('radicalTemplates', () => {
 	});
 
 	// Hiding "Buttons" must not take the switch that unhides them with it, so only
-	// the action group carries the part marker.
+	// the centre lane carries the part marker.
 	it('keeps the chrome buttons out of the switchable button group', () => {
-		const group = recognize.afmt.slice(
-			recognize.afmt.indexOf('<div class="bar-actions"'),
-			recognize.afmt.indexOf('<div class="bar-tools">')
+		const bar = recognize.afmt.slice(
+			recognize.afmt.indexOf('<div class="bar">'),
+			recognize.afmt.indexOf('</div>\n\n', recognize.afmt.indexOf('<div class="bar">'))
+		);
+		const group = bar.slice(
+			bar.indexOf('<div class="bar-actions"'),
+			bar.indexOf('<div class="bar-side bar-side--right">')
 		);
 		expect(group).toContain('data-xhz="buttons"');
 		expect(group).not.toContain('bar-btn--tool');
 		expect(group).not.toContain('more-btn');
+		// One lane each side of the actions, whatever is in them.
+		expect(bar.indexOf('bar-side--left')).toBeLessThan(bar.indexOf('bar-actions'));
+		expect(bar.indexOf('bar-actions')).toBeLessThan(bar.indexOf('bar-side--right'));
+		expect(bar).toContain('--tool cog');
+		expect(bar).toContain('more-btn');
 	});
 
 	it('lists only the parts a side actually shows, and every one of them', () => {

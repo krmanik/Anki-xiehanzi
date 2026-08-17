@@ -655,15 +655,20 @@ function controlBar(
 			);
 		})
 		.join('\n    ');
+	if (!buttons.length && !tools.cog && !tools.more) return '';
+	// Three lanes, always in the same places, and always all three: the switches
+	// panel opens from the left of the card and its button sits at the left, the
+	// lookup drawer opens from the right and its button sits at the right, and
+	// what the card can *do* is centred between them. An empty lane still holds
+	// its column, or a single button would drift into the middle.
 	const actions = buttons.length
 		? `<div class="bar-actions" ${part('buttons')}>\n    ${items}\n  </div>`
-		: '';
-	const toolItems = [tools.cog ? COG_BUTTON : '', tools.more ? MORE_BUTTON : '']
-		.filter(Boolean)
-		.join('\n    ');
-	const toolGroup = toolItems ? `<div class="bar-tools">\n    ${toolItems}\n  </div>` : '';
-	if (!actions && !toolGroup) return '';
-	return `<div class="bar">\n  ${[actions, toolGroup].filter(Boolean).join('\n  ')}\n</div>`;
+		: `<div class="bar-actions"></div>`;
+	return `<div class="bar">
+  <div class="bar-side bar-side--left">${tools.cog ? `\n    ${COG_BUTTON}\n  ` : ''}</div>
+  ${actions}
+  <div class="bar-side bar-side--right">${tools.more ? `\n    ${MORE_BUTTON}\n  ` : ''}</div>
+</div>`;
 }
 
 /**
@@ -723,7 +728,7 @@ const toggleCall = (key: CardPart) =>
 		`var r=document.querySelector('.card-body'),k='${key}';`,
 		`r.classList.toggle('xhz-h-'+k,!this.checked);`,
 		`try{`,
-		`var s=r.classList.contains('back')?'back':'front',n='xhz.hide.'+s,`,
+		`var s=r.classList.contains('back')?'back':'front',n='xhz.hide2.'+s,`,
 		`l=(localStorage.getItem(n)||'').split(',').filter(Boolean),i=l.indexOf(k);`,
 		`if(this.checked){if(i>-1)l.splice(i,1)}else if(i<0)l.push(k);`,
 		`localStorage.setItem(n,l.join(','))`,
@@ -772,10 +777,30 @@ const SIDEBAR_SCRIPT = `<script>
   var root = document.querySelector('.card-body');
   if (!root) return;
   var side = root.classList.contains('back') ? 'back' : 'front';
-  var hidden = [];
-  try { hidden = (localStorage.getItem('xhz.hide.' + side) || '').split(',').filter(Boolean); }
-  catch (e) { hidden = []; }
-  for (var i = 0; i < hidden.length; i++) root.classList.add('xhz-h-' + hidden[i]);
+  // hide2, not hide: a question side used to store only its own two or three
+  // switches, and a stored list from that build would now read as "the reader
+  // wants every field on the front shown" — the card answering itself.
+  var name = 'xhz.hide2.' + side;
+  // What the template hides to begin with: on a question side, everything the
+  // answer would give away. Seeded into storage on the first card of all, so the
+  // first toggle rewrites a complete list instead of one built from nothing.
+  var initial = [];
+  for (var c = 0; c < root.classList.length; c++) {
+    var cls = root.classList[c];
+    if (cls.indexOf('xhz-h-') === 0) initial.push(cls.slice(6));
+  }
+  var stored = null;
+  try { stored = localStorage.getItem(name); } catch (e) { stored = null; }
+  var hidden = initial;
+  if (stored === null) {
+    try { localStorage.setItem(name, initial.join(',')); } catch (e) {}
+  } else {
+    // The reader's choices replace the defaults in both directions — a part they
+    // switched on has to survive the class the template puts on every card.
+    hidden = stored.split(',').filter(Boolean);
+    for (var d = 0; d < initial.length; d++) root.classList.remove('xhz-h-' + initial[d]);
+    for (var i = 0; i < hidden.length; i++) root.classList.add('xhz-h-' + hidden[i]);
+  }
   var rows = root.querySelectorAll('.panel-row');
   for (var j = 0; j < rows.length; j++) {
     var key = rows[j].getAttribute('data-row');
@@ -849,76 +874,120 @@ const READINGS_TABLE = `<table class="readings">
  * It used to be a full-width header above the grid, which then repeated its own
  * pinyin in the readings table two lines below it. One column, said once.
  */
-function identColumn(o: RadicalDeckOptions): string {
-	const forms = `{{#Variants}}<div class="forms" ${part(
-		'forms'
-	)}><span class="forms-label">also written</span>{{Variants}}</div>{{/Variants}}
+/**
+ * The rows the identity panel renders, in order. Shared with `radicalCss`, which
+ * needs to know when *every* one of them is switched off — the panel is one
+ * surface with a shadow, and an empty one is a blank white box on the card.
+ */
+function identParts(o: RadicalDeckOptions, skip: Set<CardPart> = new Set()): CardPart[] {
+	return (
+		[
+			'glyph',
+			'pinyin',
+			...(o.asWord ? ['zhuyin'] : []),
+			'meaning',
+			'meta',
+			'forms',
+			...(o.colloquial ? ['name'] : []),
+			...(o.readings ? ['readings'] : [])
+		] as CardPart[]
+	).filter((key) => !skip.has(key));
+}
+
+function identColumn(o: RadicalDeckOptions, skip: Set<CardPart> = new Set()): string {
+	const has = (key: CardPart) => !skip.has(key);
+
+	const forms = has('forms')
+		? `{{#Variants}}<div class="forms" ${part(
+				'forms'
+			)}><span class="forms-label">also written</span>{{Variants}}</div>{{/Variants}}
   {{#Simplified}}<div class="forms" ${part(
 		'forms'
-	)}><span class="forms-label">simplified</span>{{Simplified}}</div>{{/Simplified}}`;
+	)}><span class="forms-label">simplified</span>{{Simplified}}</div>{{/Simplified}}`
+		: '';
 
-	const colloquial = o.colloquial
-		? `{{#Colloquial}}<div class="colloquial" ${part('name')}>
+	const colloquial =
+		o.colloquial && has('name')
+			? `{{#Colloquial}}<div class="colloquial" ${part('name')}>
     <span class="coll-term">{{Colloquial}}</span>
     <span class="coll-pinyin">{{ColloquialPinyin}}</span>
     {{#ColloquialMeaning}}<span class="coll-en">{{ColloquialMeaning}}</span>{{/ColloquialMeaning}}
   </div>{{/Colloquial}}`
-		: '';
+			: '';
 
-	const readings = o.readings
-		? `<div class="ident-readings" ${part('readings')}>
+	const readings =
+		o.readings && has('readings')
+			? `<div class="ident-readings" ${part('readings')}>
     <h2>Readings</h2>
     ${READINGS_TABLE}
   </div>`
-		: '';
+			: '';
 
-	return [
-		`<div class="ident">`,
-		`  <div class="ident-head">`,
-		`    <span class="ident-glyph" ${part('glyph')}>{{Radical}}</span>`,
-		`    <span class="ident-say">`,
-		`      <span class="pinyin" ${part('pinyin')}>{{Pinyin}}</span>${
-			o.asWord
-				? `{{#Zhuyin}}<span class="zhuyin" ${part('zhuyin')}>{{Zhuyin}}</span>{{/Zhuyin}}`
-				: ''
-		}`,
-		`    </span>`,
-		`  </div>`,
-		`  <div class="ident-meaning" ${part('meaning')}>{{Meaning}}</div>`,
-		`  <div class="ident-meta" ${part(
-			'meta'
-		)}>Kangxi {{Number}} · {{StrokeLabel}}{{#Productivity}} · {{Productivity}}{{/Productivity}}{{#Band}} · {{Band}}{{/Band}}</div>`,
-		`  ${forms}`,
+	const say = [
+		has('pinyin') ? `<span class="pinyin" ${part('pinyin')}>{{Pinyin}}</span>` : '',
+		o.asWord && has('zhuyin')
+			? `{{#Zhuyin}}<span class="zhuyin" ${part('zhuyin')}>{{Zhuyin}}</span>{{/Zhuyin}}`
+			: ''
+	].join('');
+
+	const head = [
+		has('glyph') ? `    <span class="ident-glyph" ${part('glyph')}>{{Radical}}</span>` : '',
+		say && `    <span class="ident-say">\n      ${say}\n    </span>`
+	].filter(Boolean);
+
+	const rows = [
+		head.length && `  <div class="ident-head">\n${head.join('\n')}\n  </div>`,
+		has('meaning') && `  <div class="ident-meaning" ${part('meaning')}>{{Meaning}}</div>`,
+		has('meta') &&
+			`  <div class="ident-meta" ${part(
+				'meta'
+			)}>Kangxi {{Number}} · {{StrokeLabel}}{{#Productivity}} · {{Productivity}}{{/Productivity}}{{#Band}} · {{Band}}{{/Band}}</div>`,
+		forms && `  ${forms}`,
 		colloquial && `  ${colloquial}`,
-		readings && `  ${readings}`,
-		`</div>`
-	]
-		.filter(Boolean)
-		.join('\n');
+		readings && `  ${readings}`
+	].filter(Boolean);
+
+	if (!rows.length) return '';
+	return [`<div class="ident">`, ...rows, `</div>`].join('\n');
 }
 
 /**
- * The answer. One column of titled blocks under one grid: the stroke animation
- * on the left, everything the radical *is* on the right, and the control bar
- * directly under that pair — the same place the word decks put their buttons.
+ * Everything the deck knows about the radical, in card order: the stroke
+ * animation paired with the identity column, then one panel per block.
+ *
+ * `skip` is what *this side* leaves out — a question side renders the whole
+ * stack too (that is what makes every field switchable on the front, as the HSK
+ * deck's sidebar does), minus the parts its question already prints and minus
+ * the writer, which the writing front owns in quiz mode.
  */
-function answerBody(o: RadicalDeckOptions, bar: string): string {
-	const strokes = o.strokeOrder
-		? `{{#StrokeData}}<section class="block block--grid" ${part('strokes')}>
+function answerBody(
+	o: RadicalDeckOptions,
+	bar: string,
+	skip: Set<CardPart> = new Set()
+): string {
+	const strokes =
+		o.strokeOrder && !skip.has('strokes')
+			? `{{#StrokeData}}<section class="block block--grid" ${part('strokes')}>
   <h2>Stroke order</h2>
   <div class="block-body block-body--center">
 ${writerBlock('animate', false)}
   </div>
 </section>{{/StrokeData}}`
-		: '';
+			: '';
+
+	const ident = identColumn(o, skip);
+	// The pair only exists when both halves do; one child in a two-column grid
+	// would sit in the 208px lane meant for the stroke box.
+	const top = strokes ? `<div class="duo">\n${[strokes, ident].filter(Boolean).join('\n')}\n</div>` : ident;
 
 	const blocks = [
-		`<div class="duo">\n${[strokes, identColumn(o)].filter(Boolean).join('\n')}\n</div>`,
+		top,
 		bar,
-		o.asWord && block('As a word', '{{AsWord}}', 'AsWord', 'block--word', 'word'),
+		o.asWord && !skip.has('word') && block('As a word', '{{AsWord}}', 'AsWord', 'block--word', 'word'),
 		// English first, and short: a beginner cannot read 字源演变, and a heading is a
 		// label, not the sentence "How the glyph evolved".
 		o.glyphs &&
+			!skip.has('evolution') &&
 			block(
 				'Evolution <span class="h2-cn">字源演变</span>',
 				'{{Evolution}}',
@@ -927,6 +996,7 @@ ${writerBlock('animate', false)}
 				'evolution'
 			),
 		o.glyphs &&
+			!skip.has('regional') &&
 			block(
 				'Regional forms <span class="h2-cn">字形对比</span>',
 				'{{Regional}}',
@@ -934,8 +1004,11 @@ ${writerBlock('animate', false)}
 				'block--regional',
 				'regional'
 			),
-		o.examples && block('Examples', '{{Examples}}', 'Examples', 'block--examples', 'examples'),
+		o.examples &&
+			!skip.has('examples') &&
+			block('Examples', '{{Examples}}', 'Examples', 'block--examples', 'examples'),
 		o.asWord &&
+			!skip.has('codes') &&
 			`<div class="foot" ${part('codes')}>
   {{#Unicode}}<span>{{Unicode}}</span>{{/Unicode}}
   {{#KangxiForm}}<span>Kangxi radical form {{KangxiForm}}</span>{{/KangxiForm}}
@@ -945,8 +1018,42 @@ ${writerBlock('animate', false)}
 }
 
 /** The question side of the recognition card: the glyph, and nothing else. */
-const RECOGNIZE_FRONT = `  <div class="glyph-main">{{Radical}}</div>
+const RECOGNIZE_FRONT = `  <div class="glyph-main" ${part('glyph')}>{{Radical}}</div>
   <div class="kangxi" ${part('meta')}>Kangxi radical {{Number}} · {{StrokeLabel}}</div>`;
+
+/**
+ * Which parts `answerBody` renders, in the order it renders them — the one list
+ * the sidebar's rows are built from, so a row can never offer a switch for
+ * something the side does not have (the test pins rows to `data-xhz` markers).
+ */
+function stackParts(o: RadicalDeckOptions, skip: Set<CardPart> = new Set()): CardPart[] {
+	const keys: CardPart[] = [
+		...(o.strokeOrder ? (['strokes', 'grid'] as CardPart[]) : []),
+		'glyph',
+		'pinyin',
+		...(o.asWord ? (['zhuyin'] as CardPart[]) : []),
+		'meaning',
+		'meta',
+		'forms',
+		...(o.colloquial ? (['name'] as CardPart[]) : []),
+		...(o.readings ? (['readings'] as CardPart[]) : []),
+		...(o.asWord ? (['word'] as CardPart[]) : []),
+		...(o.glyphs ? (['evolution', 'regional'] as CardPart[]) : []),
+		...(o.examples ? (['examples'] as CardPart[]) : []),
+		...(o.asWord ? (['codes'] as CardPart[]) : [])
+	];
+	return keys.filter((key) => !skip.has(key));
+}
+
+/**
+ * What a question side already prints itself, and so leaves out of the switchable
+ * stack under it. Shared with `radicalCss` — a rule there has to name the same
+ * set of parts to know when the identity panel has nothing left in it.
+ */
+const FRONT_SKIP: Record<RadicalCardType, CardPart[]> = {
+	recognize: ['glyph', 'meta'],
+	write: ['meaning', 'pinyin', 'meta']
+};
 
 /**
  * The cards. Recognition shows the glyph and asks what it is; writing gives the
@@ -969,18 +1076,7 @@ export function radicalTemplates(
 
 	// Everything the answer can switch off, in the order it appears on the card.
 	const backParts: CardPart[] = [
-		...(o.strokeOrder ? (['strokes', 'grid'] as CardPart[]) : []),
-		'glyph',
-		'pinyin',
-		...(o.asWord ? (['zhuyin'] as CardPart[]) : []),
-		'meaning',
-		'meta',
-		'forms',
-		...(o.colloquial ? (['name'] as CardPart[]) : []),
-		...(o.readings ? (['readings'] as CardPart[]) : []),
-		...(o.asWord ? (['word'] as CardPart[]) : []),
-		...(o.glyphs ? (['evolution', 'regional'] as CardPart[]) : []),
-		...(o.examples ? (['examples'] as CardPart[]) : []),
+		...stackParts(o).filter((key) => key !== 'codes'),
 		...(backButtons.length ? (['buttons'] as CardPart[]) : []),
 		...(o.asWord ? (['codes'] as CardPart[]) : [])
 	];
@@ -994,14 +1090,43 @@ ${MORE_DRAWER}
 ${o.audio ? AUDIO_HOLDER : ''}
 </div>`;
 
+	/**
+	 * The rest of the note under a question, for the reader to switch on — the
+	 * pinyin as a hint on a recognition card, say, or the readings while writing.
+	 * The HSK deck ships every field on both sides the same way, deselected ones
+	 * simply starting hidden.
+	 *
+	 * It exists only where there is a panel to work it (premium), and never
+	 * carries the stroke writer: the writing front owns `#xhz-writer` in quiz
+	 * mode, and two of them on one side is one grid with two engines fighting
+	 * over it.
+	 */
+	const extras = (skip: CardPart[]) => {
+		if (!o.fieldToggles) return { html: '', parts: [] as CardPart[], hidden: '' };
+		const omit = new Set<CardPart>([...skip, 'strokes', 'grid', 'buttons']);
+		const parts = stackParts(o, omit);
+		if (!parts.length) return { html: '', parts, hidden: '' };
+		return {
+			html: `<div class="extras">\n${answerBody(o, '', omit)}\n</div>`,
+			parts,
+			// Default-hidden on a question side: the class list is the template's
+			// opinion, which the reader's stored choices then replace wholesale.
+			hidden: parts.map((key) => ` xhz-h-${key}`).join('')
+		};
+	};
+
+	const recognizeExtra = extras(FRONT_SKIP.recognize);
+	const writeExtra = extras(FRONT_SKIP.write);
+
 	const fronts: Record<RadicalCardType, string> = {
-		// A question side has no bar of its own; the panel button is the whole bar.
-		recognize: `<div class="card-body front front--recognize">
+		// A question side has no actions of its own; the bar is the two chrome buttons.
+		recognize: `<div class="card-body front front--recognize${recognizeExtra.hidden}">
 ${RECOGNIZE_FRONT}
 ${controlBar([], { cog: o.fieldToggles })}
-${chrome(['meta'])}
+${recognizeExtra.html}
+${chrome(['glyph', 'meta', ...recognizeExtra.parts])}
 </div>`,
-		write: `<div class="card-body front front--write">
+		write: `<div class="card-body front front--write${writeExtra.hidden}">
   <div class="prompt">
     <span class="prompt-meaning" ${part('meaning')}>{{Meaning}}</span>
     <span class="prompt-pinyin" ${part('pinyin')}>{{Pinyin}}</span>
@@ -1009,7 +1134,8 @@ ${chrome(['meta'])}
   <div class="kangxi" ${part('meta')}>Kangxi radical {{Number}} · {{StrokeLabel}}</div>
 ${writerBlock('quiz')}
 ${controlBar(['hint', 'replay'], { cog: o.fieldToggles })}
-${chrome(['meaning', 'pinyin', 'meta', 'grid', 'buttons'])}
+${writeExtra.html}
+${chrome(['meaning', 'pinyin', 'meta', 'grid', 'buttons', ...writeExtra.parts])}
 </div>`
 	};
 
@@ -1150,6 +1276,12 @@ export const RADICAL_CSS = `
   text-transform: uppercase;
   color: var(--p);
 }
+
+/* A question side carries the whole note too, switched off — the bar and those
+   panels are laid out across the card, not shrunk to the question's width. */
+.front .bar, .front .extras { width: 100%; }
+.front .extras { text-align: left; }
+.front .extras .block:first-child, .front .extras .duo, .front .extras .ident { margin-top: 0; }
 
 .prompt-meaning { display: block; font-size: 30px; font-weight: 600; }
 .prompt-pinyin { display: block; margin-top: 2px; font-size: 21px; font-weight: 600; color: var(--p); }
@@ -1399,14 +1531,16 @@ export const RADICAL_CSS = `
    and the dictionary drawer used to be a button floating over the corner of the
    webview and nothing at all. */
 .bar {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 8px;
   margin: 16px 0 2px;
 }
 
-.bar-actions, .bar-tools { display: flex; gap: 8px; }
-.bar-tools { margin-left: auto; }
+.bar-actions { display: flex; gap: 8px; justify-content: center; }
+.bar-side { display: flex; }
+.bar-side--right { justify-content: flex-end; }
 
 .bar-btn {
   -webkit-appearance: none;
@@ -1571,10 +1705,30 @@ const NO_TONE_COLORS = `
 .t1, .t2, .t3, .t4, .t5 { color: inherit; }
 `;
 
+/**
+ * The identity panel is one surface with a shadow, so switching off everything
+ * inside it leaves a blank white box — which is the *default* state of a question
+ * side. One compound rule per side ("every row this side's panel has is hidden")
+ * collapses it, in plain CSS: `:has()` is not old enough for every Anki webview.
+ */
+function identCollapseCss(o: RadicalDeckOptions): string {
+	const sides = [
+		new Set<CardPart>(),
+		new Set<CardPart>(FRONT_SKIP.recognize),
+		new Set<CardPart>(FRONT_SKIP.write)
+	];
+	const rules = sides
+		.map((skip) => identParts(o, skip))
+		.filter((parts) => parts.length)
+		.map((parts) => `.card-body${parts.map((key) => `.xhz-h-${key}`).join('')} .ident`);
+	return `${[...new Set(rules)].join(',\n')} { display: none; }`;
+}
+
 /** The deck CSS for one set of options. */
 export function radicalCss(spec: Edition | RadicalDeckOptions = 'premium'): string {
 	const o = asOptions(spec);
-	return o.toneColors ? RADICAL_CSS : RADICAL_CSS + NO_TONE_COLORS;
+	const css = `${RADICAL_CSS}\n${identCollapseCss(o)}\n`;
+	return o.toneColors ? css : css + NO_TONE_COLORS;
 }
 
 /**

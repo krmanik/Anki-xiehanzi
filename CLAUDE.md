@@ -145,6 +145,23 @@ Same shape as the HSK browser — committed JSON, no `cedict.db` at runtime.
   `strokes.json` — Hanzi Writer data for the radicals and their variant forms
   (~460 KB), so neither `/radicals` nor the in-browser deck builder pulls the
   32 MB blob to animate 214 glyphs.
+  **The "Simplified" column says two opposite things**, and reading both as
+  "simplified" made the 儿 card print `simplified 兒` — 兒 is the *traditional*
+  form. A bare glyph is the radical's simplified form (見 → 见); `(pr. 兒)` means
+  the radical *is* a simplified character and names the traditional one it stands
+  in for (7 radicals: 儿 厂 尸 干 广 气 虫). `splitSimplified` files them as
+  `simplified` and `traditional`, two fields the card labels separately. The bare
+  column also lists *combining* forms that are not simplifications at all (肉 → 月,
+  艸 → ⺾, 角 → ⻆, 骨 → ⻣, 糸 → 纟 — 肉, 角 and 骨 were never simplified), so each
+  pairing is checked against cedict's own traditional↔simplified columns and
+  anything it will not confirm goes to `variants` instead. 21 radicals end up with
+  a real `simplified`; before the check they were all sitting in `variants` under
+  "also written", which is why the audio resolver's "speak it through the
+  simplified form" branch never fired.
+  Examples cedict has no reading *or* gloss for (匼, 屰, 韰, 鼧, …) are dropped
+  rather than rendered as a bare hanzi between two blanks; every radical still
+  keeps at least two.
+
   **Two things about parsing that table**, both of which corrupted readings that
   then shipped: (a) tags are walked with a scanner that tracks quotes, not
   `/<[^>]+>/` — Wikipedia's `data-mw='{"parts":[…]}'` attributes contain `>`, and
@@ -271,6 +288,10 @@ Same shape as the HSK browser — committed JSON, no `cedict.db` at runtime.
     is not old enough for every Anki webview.
   - **Each switch's `onchange` carries its own code**, like the bar's buttons, and
     `try`/`catch`es storage. Only *restoring* the choices needs `SIDEBAR_SCRIPT`.
+  - **The drawer carries the branding**: `Anki-xiehanzi` / `Radicals` at the top,
+    a "View on GitHub" row (`PROJECT_URL`) at the bottom. It is the only chrome
+    with room for a name, and a card otherwise says nothing about where it came
+    from. Free has no drawer, so it has neither.
   - Free never gets it however it is configured (`radicalOptions` forces
     `fieldToggles: false`), and it is listed in `premiumExtras()`, the modal's
     comparison table and the manifest's `features.fieldToggles`.
@@ -381,7 +402,9 @@ Same shape as the HSK browser — committed JSON, no `cedict.db` at runtime.
   行 lists `heng2` first), and a recording says the common reading. `radical-audio.json`
   is checked the same way — 24 of its hand-written alternatives named a character
   that reads differently (冖 mì → 盖 gài, 卩 jié → 印 yìn, 釆 biàn → 采 cǎi) — and it
-  now records the character each radical is actually spoken through.
+  now records the character each radical is actually spoken through. A radical
+  with a genuine simplified form is spoken through it (見 → 见, 車 → 车, 魚 → 鱼),
+  which only started working once `simplified` stopped being empty — see below.
   After the clips are fetched the build **re-checks every one and refuses to
   package** on a wrong reading, a missing clip, or a file extension Anki will not
   play; that check is why none of the above can come back quietly.

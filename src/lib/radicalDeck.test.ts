@@ -11,6 +11,7 @@ import {
 	glyphRowHtml,
 	productivityLabel,
 	orderByKangxi,
+	PROJECT_URL,
 	radicalCss,
 	radicalDeckName,
 	radicalNoteGuid,
@@ -32,6 +33,7 @@ const yue: Radical = {
 	char: '月',
 	variants: ['⺝'],
 	simplified: [],
+	traditional: [],
 	strokes: 4,
 	meaning: 'moon',
 	pinyin: 'yuè',
@@ -434,6 +436,39 @@ describe('radicalTemplates', () => {
 			expect(tmpl).not.toContain('--tool cog');
 			expect(tmpl).not.toContain('class="panel"');
 		}
+	});
+
+	// 儿 printed "simplified 兒" — 兒 is the traditional form, and the two
+	// directions were sharing one field and one label.
+	it('labels the simplified and traditional forms as opposite directions', () => {
+		const [rec] = radicalTemplates('premium');
+		expect(rec.afmt).toContain('<span class="forms-label">simplified</span>{{Simplified}}');
+		expect(rec.afmt).toContain('<span class="forms-label">traditional</span>{{Traditional}}');
+		// Only one of the two is ever filled, so each row is guarded by its field.
+		expect(rec.afmt).toContain('{{#Traditional}}');
+
+		const er = { ...yue, char: '儿', simplified: [], traditional: ['兒'] };
+		const jian = { ...yue, char: '見', simplified: ['见'], traditional: [] };
+		expect(buildRadicalNote(er).Traditional).toBe('兒');
+		expect(buildRadicalNote(er).Simplified).toBe('');
+		expect(buildRadicalNote(jian).Simplified).toBe('见');
+		expect(buildRadicalNote(jian).Traditional).toBe('');
+	});
+
+	// The drawer is the only chrome with room for the deck's own name, so it
+	// carries the brand and the one link back to the project.
+	it('brands the sidebar and links to the project', () => {
+		const [rec] = radicalTemplates('premium');
+		for (const tmpl of [rec.qfmt, rec.afmt]) {
+			expect(tmpl).toContain('class="brand-name">Anki-xiehanzi<');
+			expect(tmpl).toContain('class="brand-sub">Radicals<');
+			expect(tmpl).toContain(`href="${PROJECT_URL}"`);
+			expect(tmpl).toContain('View on GitHub');
+		}
+		// Free has no panel at all, so it has nowhere to put either.
+		const [free] = radicalTemplates('free');
+		expect(free.afmt).not.toContain('brand-name');
+		expect(radicalCss(radicalOptions('premium'))).toContain('.panel-gh');
 	});
 
 	// Hiding "Buttons" must not take the switch that unhides them with it, so only

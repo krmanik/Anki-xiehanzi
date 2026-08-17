@@ -105,7 +105,7 @@
 		{/if}
 	</div>
 
-	{#if radical.variants.length || radical.simplified.length}
+	{#if radical.variants.length || radical.simplified.length || radical.traditional.length}
 		<div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
 			{#if radical.variants.length}
 				<span class="flex items-baseline gap-2">
@@ -121,6 +121,14 @@
 						simplified
 					</span>
 					<span class="text-xl" lang="zh-Hans">{radical.simplified.join('   ')}</span>
+				</span>
+			{/if}
+			{#if radical.traditional.length}
+				<span class="flex items-baseline gap-2">
+					<span class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">
+						traditional
+					</span>
+					<span class="text-xl" lang="zh-Hant">{radical.traditional.join('   ')}</span>
 				</span>
 			{/if}
 		</div>

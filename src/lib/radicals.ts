@@ -49,8 +49,13 @@ export interface Radical {
 	char: string;
 	/** combining forms (氵 for 水), never repeating `char` */
 	variants: string[];
-	/** simplified form, only when it genuinely differs */
+	/** simplified form, only when cedict confirms the simplification (見 → 见) */
 	simplified: string[];
+	/**
+	 * the traditional form a simplified radical stands in for — Wikipedia's
+	 * "(pr. 兒)". Seven radicals: 儿 厂 尸 干 广 气 虫.
+	 */
+	traditional: string[];
 	strokes: number;
 	/** English meaning ("moon") */
 	meaning: string;
@@ -242,7 +247,8 @@ export function filterRadicals(radicals: Radical[], query: string): Radical[] {
 
 	return radicals.filter((r) => {
 		if (asNumber !== null && r.number === asNumber) return true;
-		if (r.char === q || r.variants.includes(q) || r.simplified.includes(q)) return true;
+		if (r.char === q || r.variants.includes(q)) return true;
+		if (r.simplified.includes(q) || r.traditional.includes(q)) return true;
 		if (r.colloquial?.term.includes(q)) return true;
 		if (r.kana.includes(q) || r.hangul.includes(q)) return true;
 		if (r.examples.some((e) => e.char === q)) return true;
@@ -303,10 +309,11 @@ export function productivityBand(frequency: number): string {
 
 /**
  * Every form a radical is written in, head form first. This is what a learner
- * has to recognize, so variants and a differing simplified form belong with it.
+ * has to recognize, so variants and the other side of the simplification —
+ * whichever side this radical is on — belong with it.
  */
 export function allForms(r: Radical): string[] {
-	return [...new Set([r.char, ...r.variants, ...r.simplified])];
+	return [...new Set([r.char, ...r.variants, ...r.simplified, ...r.traditional])];
 }
 
 /** "月 · yuè · moon" — a one-line label for lists and page titles. */

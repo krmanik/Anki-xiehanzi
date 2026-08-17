@@ -12,6 +12,7 @@
 			"char": "一",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 1,
 			"meaning": "one",
 			"pinyin": "yī",
@@ -139,6 +140,7 @@
 			"char": "丨",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 1,
 			"meaning": "line",
 			"pinyin": "gǔn",
@@ -227,6 +229,7 @@
 			"char": "丶",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 1,
 			"meaning": "dot",
 			"pinyin": "zhǔ",
@@ -326,6 +329,7 @@
 				"乀"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 1,
 			"meaning": "slash",
 			"pinyin": "piě",
@@ -417,6 +421,7 @@
 				"乛"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 1,
 			"meaning": "second",
 			"pinyin": "yǐ",
@@ -540,6 +545,7 @@
 			"char": "亅",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 1,
 			"meaning": "hook",
 			"pinyin": "jué",
@@ -628,6 +634,7 @@
 			"char": "二",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "two",
 			"pinyin": "èr",
@@ -751,6 +758,7 @@
 			"char": "亠",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "lid",
 			"pinyin": "tóu",
@@ -835,6 +843,7 @@
 				"𠆢"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "man, person",
 			"pinyin": "rén",
@@ -961,7 +970,8 @@
 			"number": 10,
 			"char": "儿",
 			"variants": [],
-			"simplified": [
+			"simplified": [],
+			"traditional": [
 				"兒"
 			],
 			"strokes": 2,
@@ -1077,6 +1087,7 @@
 			"char": "入",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "enter",
 			"pinyin": "rù",
@@ -1206,6 +1217,7 @@
 				"丷"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "eight",
 			"pinyin": "bā",
@@ -1329,6 +1341,7 @@
 			"char": "冂",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "wide",
 			"pinyin": "jiōng",
@@ -1426,6 +1439,7 @@
 			"char": "冖",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "cloth cover",
 			"pinyin": "mì",
@@ -1523,6 +1537,7 @@
 			"char": "冫",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "ice",
 			"pinyin": "bīng",
@@ -1620,6 +1635,7 @@
 			"char": "几",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "table",
 			"pinyin": "jī",
@@ -1727,6 +1743,7 @@
 			"char": "凵",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "receptacle",
 			"pinyin": "kǎn",
@@ -1832,6 +1849,7 @@
 				"⺈"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "knife",
 			"pinyin": "dāo",
@@ -1959,6 +1977,7 @@
 			"char": "力",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "power",
 			"pinyin": "lì",
@@ -2082,6 +2101,7 @@
 			"char": "勹",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "wrap",
 			"pinyin": "bāo",
@@ -2184,6 +2204,7 @@
 			"char": "匕",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "spoon",
 			"pinyin": "bǐ",
@@ -2302,6 +2323,7 @@
 			"char": "匚",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "box",
 			"pinyin": "fāng",
@@ -2404,6 +2426,7 @@
 			"char": "匸",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "hiding enclosure",
 			"pinyin": "xǐ",
@@ -2426,14 +2449,6 @@
 					"meaning": "matching; comparable to",
 					"rank": 5463,
 					"band": "Top 10k"
-				},
-				{
-					"char": "匼",
-					"pinyin": "",
-					"zhuyin": "",
-					"meaning": "",
-					"rank": null,
-					"band": ""
 				},
 				{
 					"char": "匽",
@@ -2492,6 +2507,7 @@
 			"char": "十",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "ten",
 			"pinyin": "shí",
@@ -2615,6 +2631,7 @@
 			"char": "卜",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "divination",
 			"pinyin": "bǔ",
@@ -2740,6 +2757,7 @@
 				"㔾"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "seal",
 			"pinyin": "jié",
@@ -2836,7 +2854,8 @@
 			"number": 27,
 			"char": "厂",
 			"variants": [],
-			"simplified": [
+			"simplified": [],
+			"traditional": [
 				"廠"
 			],
 			"strokes": 2,
@@ -2932,6 +2951,7 @@
 			"char": "厶",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "private",
 			"pinyin": "sī",
@@ -3039,6 +3059,7 @@
 			"char": "又",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 2,
 			"meaning": "again",
 			"pinyin": "yòu",
@@ -3162,6 +3183,7 @@
 			"char": "口",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "mouth",
 			"pinyin": "kǒu",
@@ -3285,6 +3307,7 @@
 			"char": "囗",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "enclosure",
 			"pinyin": "wéi",
@@ -3407,6 +3430,7 @@
 			"char": "土",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "earth",
 			"pinyin": "tǔ",
@@ -3534,6 +3558,7 @@
 			"char": "士",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "scholar",
 			"pinyin": "shì",
@@ -3652,6 +3677,7 @@
 			"char": "夂",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "go",
 			"pinyin": "zhǐ",
@@ -3765,6 +3791,7 @@
 			"char": "夊",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "go slowly",
 			"pinyin": "suī",
@@ -3873,6 +3900,7 @@
 			"char": "夕",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "evening",
 			"pinyin": "xī",
@@ -3996,6 +4024,7 @@
 			"char": "大",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "big",
 			"pinyin": "dà",
@@ -4119,6 +4148,7 @@
 			"char": "女",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "woman",
 			"pinyin": "nǚ",
@@ -4242,6 +4272,7 @@
 			"char": "子",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "child",
 			"pinyin": "zǐ",
@@ -4369,6 +4400,7 @@
 			"char": "宀",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "roof",
 			"pinyin": "mián",
@@ -4466,6 +4498,7 @@
 			"char": "寸",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "inch",
 			"pinyin": "cùn",
@@ -4577,6 +4610,7 @@
 				"⺍"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "small",
 			"pinyin": "xiǎo",
@@ -4701,6 +4735,7 @@
 				"尣"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "lame",
 			"pinyin": "wāng",
@@ -4803,7 +4838,8 @@
 			"number": 44,
 			"char": "尸",
 			"variants": [],
-			"simplified": [
+			"simplified": [],
+			"traditional": [
 				"屍"
 			],
 			"strokes": 3,
@@ -4924,6 +4960,7 @@
 			"char": "屮",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "sprout",
 			"pinyin": "chè",
@@ -4945,14 +4982,6 @@
 			"frequency": 38,
 			"examples": [
 				{
-					"char": "艸",
-					"pinyin": "",
-					"zhuyin": "",
-					"meaning": "",
-					"rank": null,
-					"band": ""
-				},
-				{
 					"char": "屯",
 					"pinyin": "tún",
 					"zhuyin": "ㄊㄨㄣˊ",
@@ -4967,14 +4996,6 @@
 					"meaning": "to stop; to pause",
 					"rank": 1962,
 					"band": "Top 5000"
-				},
-				{
-					"char": "屰",
-					"pinyin": "",
-					"zhuyin": "",
-					"meaning": "",
-					"rank": null,
-					"band": ""
 				}
 			],
 			"evolution": [
@@ -5037,6 +5058,7 @@
 			"char": "山",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "mountain",
 			"pinyin": "shān",
@@ -5162,6 +5184,7 @@
 				"川"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "river",
 			"pinyin": "chuān",
@@ -5275,6 +5298,7 @@
 			"char": "工",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "work",
 			"pinyin": "gōng",
@@ -5398,6 +5422,7 @@
 			"char": "己",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "oneself",
 			"pinyin": "jǐ",
@@ -5521,6 +5546,7 @@
 			"char": "巾",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "turban, cloth",
 			"pinyin": "jīn",
@@ -5642,7 +5668,8 @@
 			"number": 51,
 			"char": "干",
 			"variants": [],
-			"simplified": [
+			"simplified": [],
+			"traditional": [
 				"乾",
 				"幹"
 			],
@@ -5771,6 +5798,7 @@
 				"么"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "short thread",
 			"pinyin": "yāo",
@@ -5883,7 +5911,8 @@
 			"number": 53,
 			"char": "广",
 			"variants": [],
-			"simplified": [
+			"simplified": [],
+			"traditional": [
 				"廣"
 			],
 			"strokes": 3,
@@ -5988,6 +6017,7 @@
 			"char": "廴",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "long stride",
 			"pinyin": "yǐn",
@@ -6080,6 +6110,7 @@
 			"char": "廾",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "arch",
 			"pinyin": "gǒng",
@@ -6187,6 +6218,7 @@
 			"char": "弋",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "shoot",
 			"pinyin": "yì",
@@ -6305,6 +6337,7 @@
 			"char": "弓",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "bow",
 			"pinyin": "gōng",
@@ -6434,6 +6467,7 @@
 				"彑"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "snout",
 			"pinyin": "jì",
@@ -6464,14 +6498,6 @@
 					"meaning": "swine",
 					"rank": 56271,
 					"band": "Rare"
-				},
-				{
-					"char": "彙",
-					"pinyin": "",
-					"zhuyin": "",
-					"meaning": "",
-					"rank": null,
-					"band": ""
 				},
 				{
 					"char": "录",
@@ -6522,6 +6548,7 @@
 			"char": "彡",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "bristle",
 			"pinyin": "shān",
@@ -6619,6 +6646,7 @@
 			"char": "彳",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 3,
 			"meaning": "step",
 			"pinyin": "chì",
@@ -6714,6 +6742,7 @@
 				"⺗"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "heart",
 			"pinyin": "xīn",
@@ -6841,6 +6870,7 @@
 			"char": "戈",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "halberd",
 			"pinyin": "gē",
@@ -6963,10 +6993,12 @@
 			"number": 63,
 			"char": "戶",
 			"variants": [
-				"户",
 				"戸"
 			],
-			"simplified": [],
+			"simplified": [
+				"户"
+			],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "door, household",
 			"pinyin": "hù",
@@ -7093,6 +7125,7 @@
 				"龵"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "hand",
 			"pinyin": "shǒu",
@@ -7215,6 +7248,7 @@
 			"char": "支",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "branch",
 			"pinyin": "zhī",
@@ -7325,6 +7359,7 @@
 				"攵"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "tap",
 			"pinyin": "pū",
@@ -7428,6 +7463,7 @@
 			"char": "文",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "script",
 			"pinyin": "wén",
@@ -7551,6 +7587,7 @@
 			"char": "斗",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "dipper",
 			"pinyin": "dǒu",
@@ -7669,6 +7706,7 @@
 			"char": "斤",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "axe",
 			"pinyin": "jīn",
@@ -7787,6 +7825,7 @@
 			"char": "方",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "square, direction",
 			"pinyin": "fāng",
@@ -7912,6 +7951,7 @@
 				"旡"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "not",
 			"pinyin": "wú",
@@ -8030,6 +8070,7 @@
 			"char": "日",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "sun",
 			"pinyin": "rì",
@@ -8157,6 +8198,7 @@
 			"char": "曰",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "say",
 			"pinyin": "yuē",
@@ -8280,6 +8322,7 @@
 			"char": "月",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "moon",
 			"pinyin": "yuè",
@@ -8407,6 +8450,7 @@
 			"char": "木",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "tree",
 			"pinyin": "mù",
@@ -8534,6 +8578,7 @@
 			"char": "欠",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "owe, lack",
 			"pinyin": "qiàn",
@@ -8646,6 +8691,7 @@
 			"char": "止",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "stop",
 			"pinyin": "zhǐ",
@@ -8771,6 +8817,7 @@
 				"歺"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "bad, death",
 			"pinyin": "dǎi",
@@ -8869,6 +8916,7 @@
 			"char": "殳",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "pike",
 			"pinyin": "shū",
@@ -8985,6 +9033,7 @@
 				"毌"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "do not",
 			"pinyin": "wú",
@@ -9103,6 +9152,7 @@
 			"char": "比",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "compare",
 			"pinyin": "bǐ",
@@ -9226,6 +9276,7 @@
 			"char": "毛",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "hair",
 			"pinyin": "máo",
@@ -9344,6 +9395,7 @@
 			"char": "氏",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "clan",
 			"pinyin": "shì",
@@ -9469,6 +9521,9 @@
 				"氣"
 			],
 			"simplified": [],
+			"traditional": [
+				"氣"
+			],
 			"strokes": 4,
 			"meaning": "steam",
 			"pinyin": "qì",
@@ -9594,6 +9649,7 @@
 				"氺"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "water",
 			"pinyin": "shuǐ",
@@ -9723,6 +9779,7 @@
 				"灬"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "fire",
 			"pinyin": "huǒ",
@@ -9847,6 +9904,7 @@
 				"爫"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "claw",
 			"pinyin": "zhǎo",
@@ -9964,6 +10022,7 @@
 			"char": "父",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "father",
 			"pinyin": "fù",
@@ -10087,6 +10146,7 @@
 			"char": "爻",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "diagrams",
 			"pinyin": "yáo",
@@ -10130,14 +10190,6 @@
 					"meaning": "thus; so",
 					"rank": 809,
 					"band": "Top 1500"
-				},
-				{
-					"char": "爼",
-					"pinyin": "",
-					"zhuyin": "",
-					"meaning": "",
-					"rank": null,
-					"band": ""
 				}
 			],
 			"evolution": [
@@ -10197,6 +10249,7 @@
 				"丬"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "half tree trunk",
 			"pinyin": "pán",
@@ -10294,6 +10347,7 @@
 			"char": "片",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "slice",
 			"pinyin": "piàn",
@@ -10397,6 +10451,7 @@
 			"char": "牙",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "tooth",
 			"pinyin": "yá",
@@ -10512,6 +10567,7 @@
 				"牜"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "cow",
 			"pinyin": "niú",
@@ -10641,6 +10697,7 @@
 				"犭"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 4,
 			"meaning": "dog",
 			"pinyin": "quǎn",
@@ -10763,6 +10820,7 @@
 			"char": "玄",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "dark, mysterious",
 			"pinyin": "xuán",
@@ -10884,6 +10942,7 @@
 				"𤣩"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "jade",
 			"pinyin": "yù",
@@ -11011,6 +11070,7 @@
 			"char": "瓜",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "melon",
 			"pinyin": "guā",
@@ -11124,6 +11184,7 @@
 			"char": "瓦",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "tile",
 			"pinyin": "wǎ",
@@ -11232,6 +11293,7 @@
 			"char": "甘",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "sweet",
 			"pinyin": "gān",
@@ -11350,6 +11412,7 @@
 			"char": "生",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "life, grow",
 			"pinyin": "shēng",
@@ -11473,6 +11536,7 @@
 			"char": "用",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "use",
 			"pinyin": "yòng",
@@ -11596,6 +11660,7 @@
 			"char": "田",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "field",
 			"pinyin": "tián",
@@ -11725,6 +11790,7 @@
 				"⺪"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "bolt of cloth",
 			"pinyin": "pǐ",
@@ -11847,6 +11913,7 @@
 			"char": "疒",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "sickness",
 			"pinyin": "nè",
@@ -11954,6 +12021,7 @@
 			"char": "癶",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "footsteps",
 			"pinyin": "bō",
@@ -12051,6 +12119,7 @@
 			"char": "白",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "white",
 			"pinyin": "bái",
@@ -12174,6 +12243,7 @@
 			"char": "皮",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "skin",
 			"pinyin": "pí",
@@ -12292,6 +12362,7 @@
 			"char": "皿",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "dish",
 			"pinyin": "mǐn",
@@ -12406,6 +12477,7 @@
 				"⺫"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "eye",
 			"pinyin": "mù",
@@ -12533,6 +12605,7 @@
 			"char": "矛",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "spear",
 			"pinyin": "máo",
@@ -12651,6 +12724,7 @@
 			"char": "矢",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "arrow",
 			"pinyin": "shǐ",
@@ -12774,6 +12848,7 @@
 			"char": "石",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "stone",
 			"pinyin": "shí",
@@ -12903,6 +12978,7 @@
 				"礻"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "spirit, show",
 			"pinyin": "shì",
@@ -13025,6 +13101,7 @@
 			"char": "禸",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "track",
 			"pinyin": "róu",
@@ -13118,6 +13195,7 @@
 			"char": "禾",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "grain",
 			"pinyin": "hé",
@@ -13245,6 +13323,7 @@
 			"char": "穴",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "cave",
 			"pinyin": "xué",
@@ -13362,6 +13441,7 @@
 			"char": "立",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 5,
 			"meaning": "stand",
 			"pinyin": "lì",
@@ -13491,6 +13571,7 @@
 				"⺮"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "bamboo",
 			"pinyin": "zhú",
@@ -13613,6 +13694,7 @@
 			"char": "米",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "rice",
 			"pinyin": "mǐ",
@@ -13738,6 +13820,7 @@
 				"糹"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "silk",
 			"pinyin": "mì",
@@ -13855,6 +13938,7 @@
 			"char": "缶",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "jar",
 			"pinyin": "fǒu",
@@ -13977,6 +14061,7 @@
 				"⺳"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "net",
 			"pinyin": "wǎng",
@@ -14093,6 +14178,7 @@
 				"⺷"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "sheep",
 			"pinyin": "yáng",
@@ -14216,6 +14302,7 @@
 			"char": "羽",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "feather",
 			"pinyin": "yǔ",
@@ -14341,6 +14428,7 @@
 				"耂"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "old",
 			"pinyin": "lǎo",
@@ -14468,6 +14556,7 @@
 			"char": "而",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "and, yet",
 			"pinyin": "ér",
@@ -14586,6 +14675,7 @@
 			"char": "耒",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "plow",
 			"pinyin": "lěi",
@@ -14689,6 +14779,7 @@
 			"char": "耳",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "ear",
 			"pinyin": "ěr",
@@ -14818,6 +14909,7 @@
 				"⺻"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "pen",
 			"pinyin": "yù",
@@ -14933,6 +15025,7 @@
 				"月"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "meat",
 			"pinyin": "ròu",
@@ -15055,6 +15148,7 @@
 			"char": "臣",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "minister",
 			"pinyin": "chén",
@@ -15178,6 +15272,7 @@
 			"char": "自",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "self",
 			"pinyin": "zì",
@@ -15301,6 +15396,7 @@
 			"char": "至",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "arrive",
 			"pinyin": "zhì",
@@ -15424,6 +15520,7 @@
 			"char": "臼",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "mortar",
 			"pinyin": "jiù",
@@ -15537,6 +15634,7 @@
 			"char": "舌",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "tongue",
 			"pinyin": "shé",
@@ -15660,6 +15758,7 @@
 			"char": "舛",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "contrary",
 			"pinyin": "chuǎn",
@@ -15758,6 +15857,7 @@
 			"char": "舟",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "boat",
 			"pinyin": "zhōu",
@@ -15880,6 +15980,7 @@
 			"char": "艮",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "limit, stubborn",
 			"pinyin": "gèn",
@@ -15988,6 +16089,7 @@
 			"char": "色",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "color",
 			"pinyin": "sè",
@@ -16111,6 +16213,7 @@
 				"⻀"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "grass",
 			"pinyin": "cǎo",
@@ -16213,6 +16316,7 @@
 			"char": "虍",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "tiger",
 			"pinyin": "hū",
@@ -16305,7 +16409,8 @@
 			"number": 142,
 			"char": "虫",
 			"variants": [],
-			"simplified": [
+			"simplified": [],
+			"traditional": [
 				"蟲"
 			],
 			"strokes": 6,
@@ -16430,6 +16535,7 @@
 			"char": "血",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "blood",
 			"pinyin": "xuè",
@@ -16465,14 +16571,6 @@
 					"meaning": "see 血",
 					"rank": 756,
 					"band": "Top 1500"
-				},
-				{
-					"char": "衃",
-					"pinyin": "",
-					"zhuyin": "",
-					"meaning": "",
-					"rank": null,
-					"band": ""
 				},
 				{
 					"char": "衄",
@@ -16548,6 +16646,7 @@
 			"char": "行",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "walk",
 			"pinyin": "háng",
@@ -16677,6 +16776,7 @@
 				"衤"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "clothes",
 			"pinyin": "yī",
@@ -16807,6 +16907,7 @@
 				"西"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 6,
 			"meaning": "cover",
 			"pinyin": "yà",
@@ -16893,10 +16994,11 @@
 		{
 			"number": 147,
 			"char": "見",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"见"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "see",
 			"pinyin": "jiàn",
@@ -17023,11 +17125,11 @@
 			"number": 148,
 			"char": "角",
 			"variants": [
-				"⻇"
-			],
-			"simplified": [
+				"⻇",
 				"⻆"
 			],
+			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "horn",
 			"pinyin": "jiǎo",
@@ -17154,6 +17256,7 @@
 				"讠"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "speech",
 			"pinyin": "yán",
@@ -17281,6 +17384,7 @@
 			"char": "谷",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "valley",
 			"pinyin": "gǔ",
@@ -17404,6 +17508,7 @@
 			"char": "豆",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "bean",
 			"pinyin": "dòu",
@@ -17527,6 +17632,7 @@
 			"char": "豕",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "pig",
 			"pinyin": "shǐ",
@@ -17650,6 +17756,7 @@
 			"char": "豸",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "catlike animal",
 			"pinyin": "zhì",
@@ -17761,10 +17868,11 @@
 		{
 			"number": 154,
 			"char": "貝",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"贝"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "shell",
 			"pinyin": "bèi",
@@ -17892,6 +18000,7 @@
 			"char": "赤",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "red",
 			"pinyin": "chì",
@@ -18015,6 +18124,7 @@
 			"char": "走",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "run",
 			"pinyin": "zǒu",
@@ -18144,6 +18254,7 @@
 				"⻊"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "foot",
 			"pinyin": "zú",
@@ -18266,6 +18377,7 @@
 			"char": "身",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "body",
 			"pinyin": "shēn",
@@ -18387,10 +18499,11 @@
 		{
 			"number": 159,
 			"char": "車",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"车"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "cart",
 			"pinyin": "chē",
@@ -18518,6 +18631,7 @@
 			"char": "辛",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "bitter",
 			"pinyin": "xīn",
@@ -18641,6 +18755,7 @@
 			"char": "辰",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "celestial stem",
 			"pinyin": "chén",
@@ -18768,6 +18883,7 @@
 				"⻍"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "walk",
 			"pinyin": "chuò",
@@ -18867,6 +18983,7 @@
 				"阝"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "city",
 			"pinyin": "yì",
@@ -18994,6 +19111,7 @@
 			"char": "酉",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "wine jug",
 			"pinyin": "yǒu",
@@ -19117,6 +19235,7 @@
 			"char": "釆",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "distinguish",
 			"pinyin": "biàn",
@@ -19225,6 +19344,7 @@
 			"char": "里",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 7,
 			"meaning": "village",
 			"pinyin": "lǐ",
@@ -19345,6 +19465,7 @@
 				"钅"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 8,
 			"meaning": "gold, metal",
 			"pinyin": "jīn",
@@ -19465,10 +19586,11 @@
 		{
 			"number": 168,
 			"char": "長",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"长"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 8,
 			"meaning": "long",
 			"pinyin": "cháng",
@@ -19590,10 +19712,11 @@
 		{
 			"number": 169,
 			"char": "門",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"门"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 8,
 			"meaning": "gate",
 			"pinyin": "mén",
@@ -19723,6 +19846,7 @@
 				"阝"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 8,
 			"meaning": "mound",
 			"pinyin": "fù",
@@ -19835,6 +19959,7 @@
 			"char": "隶",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 8,
 			"meaning": "slave",
 			"pinyin": "lì",
@@ -19870,14 +19995,6 @@
 					"meaning": "a person in servitude; low-ranking subordinate",
 					"rank": 29984,
 					"band": "Rare"
-				},
-				{
-					"char": "隷",
-					"pinyin": "",
-					"zhuyin": "",
-					"meaning": "",
-					"rank": null,
-					"band": ""
 				},
 				{
 					"char": "棣",
@@ -19943,6 +20060,7 @@
 			"char": "隹",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 8,
 			"meaning": "short-tailed bird",
 			"pinyin": "zhuī",
@@ -20055,6 +20173,7 @@
 			"char": "雨",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 8,
 			"meaning": "rain",
 			"pinyin": "yǔ",
@@ -20184,6 +20303,7 @@
 				"青"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 8,
 			"meaning": "blue-green",
 			"pinyin": "qīng",
@@ -20297,6 +20417,7 @@
 			"char": "非",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 8,
 			"meaning": "not",
 			"pinyin": "fēi",
@@ -20422,6 +20543,7 @@
 				"靣"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 9,
 			"meaning": "face",
 			"pinyin": "miàn",
@@ -20540,6 +20662,7 @@
 			"char": "革",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 9,
 			"meaning": "leather",
 			"pinyin": "gé",
@@ -20665,10 +20788,11 @@
 		{
 			"number": 178,
 			"char": "韋",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"韦"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 9,
 			"meaning": "tanned leather",
 			"pinyin": "wéi",
@@ -20792,6 +20916,7 @@
 			"char": "韭",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 9,
 			"meaning": "leek",
 			"pinyin": "jiǔ",
@@ -20827,22 +20952,6 @@
 					"meaning": "leek",
 					"rank": 38697,
 					"band": "Rare"
-				},
-				{
-					"char": "韰",
-					"pinyin": "",
-					"zhuyin": "",
-					"meaning": "",
-					"rank": null,
-					"band": ""
-				},
-				{
-					"char": "靭",
-					"pinyin": "",
-					"zhuyin": "",
-					"meaning": "",
-					"rank": null,
-					"band": ""
 				}
 			],
 			"evolution": [
@@ -20900,6 +21009,7 @@
 			"char": "音",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 9,
 			"meaning": "sound",
 			"pinyin": "yīn",
@@ -21016,10 +21126,11 @@
 		{
 			"number": 181,
 			"char": "頁",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"页"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 9,
 			"meaning": "page",
 			"pinyin": "yè",
@@ -21140,10 +21251,11 @@
 		{
 			"number": 182,
 			"char": "風",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"风"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 9,
 			"meaning": "wind",
 			"pinyin": "fēng",
@@ -21260,10 +21372,11 @@
 		{
 			"number": 183,
 			"char": "飛",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"飞"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 9,
 			"meaning": "fly",
 			"pinyin": "fēi",
@@ -21375,6 +21488,7 @@
 				"饣"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 9,
 			"meaning": "eat",
 			"pinyin": "shí",
@@ -21502,6 +21616,7 @@
 			"char": "首",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 9,
 			"meaning": "head",
 			"pinyin": "shǒu",
@@ -21625,6 +21740,7 @@
 			"char": "香",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 9,
 			"meaning": "fragrant",
 			"pinyin": "xiāng",
@@ -21660,14 +21776,6 @@
 					"meaning": "fragrance; scent",
 					"rank": 35991,
 					"band": "Rare"
-				},
-				{
-					"char": "馟",
-					"pinyin": "",
-					"zhuyin": "",
-					"meaning": "",
-					"rank": null,
-					"band": ""
 				},
 				{
 					"char": "香",
@@ -21736,10 +21844,11 @@
 		{
 			"number": 187,
 			"char": "馬",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"马"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 10,
 			"meaning": "horse",
 			"pinyin": "mǎ",
@@ -21865,10 +21974,11 @@
 		{
 			"number": 188,
 			"char": "骨",
-			"variants": [],
-			"simplified": [
+			"variants": [
 				"⻣"
 			],
+			"simplified": [],
+			"traditional": [],
 			"strokes": 10,
 			"meaning": "bone",
 			"pinyin": "gǔ",
@@ -21989,6 +22099,7 @@
 				"髙"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 10,
 			"meaning": "tall",
 			"pinyin": "gāo",
@@ -22112,6 +22223,7 @@
 			"char": "髟",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 10,
 			"meaning": "long hair",
 			"pinyin": "biāo",
@@ -22222,6 +22334,7 @@
 				"斗"
 			],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 10,
 			"meaning": "fight",
 			"pinyin": "dòu",
@@ -22315,6 +22428,7 @@
 			"char": "鬯",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 10,
 			"meaning": "herbs",
 			"pinyin": "chàng",
@@ -22350,14 +22464,6 @@
 					"meaning": "strongly fragrant; (of vegetation) lush",
 					"rank": 15031,
 					"band": "Rare"
-				},
-				{
-					"char": "鬰",
-					"pinyin": "",
-					"zhuyin": "",
-					"meaning": "",
-					"rank": null,
-					"band": ""
 				},
 				{
 					"char": "斁",
@@ -22423,6 +22529,7 @@
 			"char": "鬲",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 10,
 			"meaning": "tripod",
 			"pinyin": "lì",
@@ -22536,6 +22643,7 @@
 			"char": "鬼",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 10,
 			"meaning": "ghost",
 			"pinyin": "guǐ",
@@ -22657,10 +22765,11 @@
 		{
 			"number": 195,
 			"char": "魚",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"鱼"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 11,
 			"meaning": "fish",
 			"pinyin": "yú",
@@ -22786,10 +22895,11 @@
 		{
 			"number": 196,
 			"char": "鳥",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"鸟"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 11,
 			"meaning": "bird",
 			"pinyin": "niǎo",
@@ -22915,10 +23025,11 @@
 		{
 			"number": 197,
 			"char": "鹵",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"卤"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 11,
 			"meaning": "salty",
 			"pinyin": "lǔ",
@@ -23032,6 +23143,7 @@
 			"char": "鹿",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 11,
 			"meaning": "deer",
 			"pinyin": "lù",
@@ -23153,10 +23265,11 @@
 		{
 			"number": 199,
 			"char": "麥",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"麦"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 11,
 			"meaning": "wheat",
 			"pinyin": "mài",
@@ -23275,6 +23388,7 @@
 			"char": "麻",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 11,
 			"meaning": "hemp",
 			"pinyin": "má",
@@ -23386,10 +23500,11 @@
 		{
 			"number": 201,
 			"char": "黃",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"黄"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 12,
 			"meaning": "yellow",
 			"pinyin": "huáng",
@@ -23513,6 +23628,7 @@
 			"char": "黍",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 12,
 			"meaning": "millet",
 			"pinyin": "shǔ",
@@ -23631,6 +23747,7 @@
 			"char": "黑",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 12,
 			"meaning": "black",
 			"pinyin": "hēi",
@@ -23754,6 +23871,7 @@
 			"char": "黹",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 12,
 			"meaning": "needlework",
 			"pinyin": "zhǐ",
@@ -23789,14 +23907,6 @@
 					"meaning": "motif of axes with black handles and white heads, a symbo…",
 					"rank": 51769,
 					"band": "Rare"
-				},
-				{
-					"char": "黺",
-					"pinyin": "",
-					"zhuyin": "",
-					"meaning": "",
-					"rank": null,
-					"band": ""
 				},
 				{
 					"char": "蔽",
@@ -23855,10 +23965,11 @@
 		{
 			"number": 205,
 			"char": "黽",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"黾"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 13,
 			"meaning": "frog",
 			"pinyin": "měng",
@@ -23967,6 +24078,7 @@
 			"char": "鼎",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 13,
 			"meaning": "tripod cauldron",
 			"pinyin": "dǐng",
@@ -24085,6 +24197,7 @@
 			"char": "鼓",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 13,
 			"meaning": "drum",
 			"pinyin": "gǔ",
@@ -24208,6 +24321,7 @@
 			"char": "鼠",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 13,
 			"meaning": "rat",
 			"pinyin": "shǔ",
@@ -24251,14 +24365,6 @@
 					"meaning": "used in 鼩鼱",
 					"rank": 73436,
 					"band": "Rare"
-				},
-				{
-					"char": "鼧",
-					"pinyin": "",
-					"zhuyin": "",
-					"meaning": "",
-					"rank": null,
-					"band": ""
 				}
 			],
 			"evolution": [
@@ -24326,6 +24432,7 @@
 			"char": "鼻",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 14,
 			"meaning": "nose",
 			"pinyin": "bí",
@@ -24442,10 +24549,11 @@
 		{
 			"number": 210,
 			"char": "齊",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"齐"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 14,
 			"meaning": "even, neat",
 			"pinyin": "qí",
@@ -24567,10 +24675,11 @@
 		{
 			"number": 211,
 			"char": "齒",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"齿"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 15,
 			"meaning": "tooth",
 			"pinyin": "chǐ",
@@ -24692,10 +24801,11 @@
 		{
 			"number": 212,
 			"char": "龍",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"龙"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 16,
 			"meaning": "dragon",
 			"pinyin": "lóng",
@@ -24821,10 +24931,11 @@
 		{
 			"number": 213,
 			"char": "龜",
-			"variants": [
+			"variants": [],
+			"simplified": [
 				"龟"
 			],
-			"simplified": [],
+			"traditional": [],
 			"strokes": 16,
 			"meaning": "tortoise",
 			"pinyin": "guī",
@@ -24943,6 +25054,7 @@
 			"char": "龠",
 			"variants": [],
 			"simplified": [],
+			"traditional": [],
 			"strokes": 17,
 			"meaning": "flute",
 			"pinyin": "yuè",

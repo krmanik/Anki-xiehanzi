@@ -244,11 +244,28 @@ async function loadWikipedia() {
 			romaji,
 			hangul,
 			romaja,
-			simplified: hanziOf(cells[10])
+			...splitSimplified(cells[10])
 		});
 	}
 	if (byNumber.size < 214) fail(`Wikipedia table gave only ${byNumber.size} radicals`);
 	return byNumber;
+}
+
+/**
+ * The "Simplified" column says two opposite things in two shapes, and reading
+ * both as "simplified" is how the card for 儿 came to print `simplified 兒` —
+ * 兒 is the *traditional* form, and 儿 is what it simplifies to.
+ *
+ *   "见"        the radical is traditional; this is its simplified form.
+ *   "(pr. 兒)"  the radical *is* a simplified character, and this names the
+ *               traditional form it stands in for ("properly written 兒").
+ *               Six radicals: 儿 兒 · 厂 廠 · 尸 屍 · 干 乾幹 · 广 廣 · 虫 蟲.
+ */
+function splitSimplified(cell) {
+	const pr = String(cell ?? '').match(/\(\s*pr\.?\s*([^)]*)\)?/i);
+	return pr
+		? { simplified: [], traditional: hanziOf(pr[1]) }
+		: { simplified: hanziOf(cell), traditional: [] };
 }
 
 /**
@@ -409,6 +426,22 @@ const cedictStmt = db.prepare(
 	 ORDER BY CASE WHEN word = $c THEN 0 ELSE 1 END,
 	          CASE WHEN rank IS NULL THEN 1 ELSE 0 END, rank ASC LIMIT 1`
 );
+
+/**
+ * Does cedict really call `s` the simplification of `t`?
+ *
+ * Wikipedia's Simplified column also lists *combining* forms — 肉 → 月, 艸 → ⺾,
+ * 角 → ⻆, 骨 → ⻣, 糸 → 纟 — which are variants of the radical, not simplified
+ * characters (肉, 角 and 骨 are not simplified at all). Printing those under a
+ * "simplified" label teaches something false, so the column is checked against
+ * cedict's own traditional↔simplified pairing and anything it does not confirm
+ * is filed with the variant forms instead.
+ */
+const simplificationStmt = db.prepare(
+	`SELECT 1 FROM cedict WHERE traditional = $t AND simplified = $s LIMIT 1`
+);
+const isSimplificationOf = (t, s) =>
+	t !== s && simplificationStmt.get({ t, s }) !== undefined;
 
 const safeJSON = (raw, fallback) => {
 	try {
@@ -589,7 +622,15 @@ const slice = localRadicals.slice(0, limit === Infinity ? undefined : limit);
 for (const r of slice) {
 	const w = wiki.get(r.number) ?? {};
 	const examples = [];
-	for (const ex of r.examples ?? []) examples.push(await describeExample(ex));
+	for (const ex of r.examples ?? []) {
+		const e = await describeExample(ex);
+		// A handful of the listed examples are rare enough that cedict has neither
+		// a reading nor a gloss for them (匼, 屰, 韰, 鼧, …). A row that is a bare
+		// hanzi with two blanks beside it is one more thing to look up, which is
+		// the opposite of what the examples are for — drop it. Every radical keeps
+		// at least two.
+		if (e.pinyin && e.meaning) examples.push(e);
+	}
 
 	let glyphs = { evolution: [], compare: [] };
 	if (withZdic) {
@@ -600,16 +641,22 @@ for (const r of slice) {
 		if (!cachedAlready || refresh) await sleep(delayMs);
 	}
 
+	// Wikipedia's Simplified column repeats the head form for radicals that were
+	// never simplified, and lists combining forms for several that were not
+	// simplified either — only a pairing cedict confirms is a simplification.
+	const simplified = (w.simplified ?? []).filter((s) => isSimplificationOf(r.character, s));
+	// The traditional form a simplified radical stands in for ("(pr. 兒)").
+	const traditional = (w.traditional ?? []).filter((t) => t !== r.character);
 	// The local file and Wikipedia disagree on a handful of variant lists; the
 	// local one is hand-checked for this project, so it wins where it has data.
-	const variants = (r.alternate_forms?.length ? r.alternate_forms : (w.variants ?? [])).filter(
-		(v) => v !== r.character
-	);
-	// Wikipedia's Simplified column repeats the head form for radicals that were
-	// never simplified — only a genuinely different glyph is worth showing.
-	const simplified = (w.simplified ?? []).filter(
-		(s) => s !== r.character && !variants.includes(s)
-	);
+	// Whatever the Simplified column offered but cedict would not confirm ends up
+	// here, which is where 月 (肉), ⻆ (角) and ⻣ (骨) belong.
+	const variants = [
+		...new Set([
+			...(r.alternate_forms?.length ? r.alternate_forms : (w.variants ?? [])),
+			...(w.simplified ?? [])
+		])
+	].filter((v) => v !== r.character && !simplified.includes(v));
 
 	// The local file names ~a third of the radicals; Wikipedia's Colloquial Term
 	// column covers most of the rest, and its reading is built from cedict rather
@@ -630,6 +677,7 @@ for (const r of slice) {
 		char: r.character,
 		variants,
 		simplified,
+		traditional,
 		strokes: r.stroke_count,
 		meaning: r.meaning,
 		pinyin: r.pinyin,

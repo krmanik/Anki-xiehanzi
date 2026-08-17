@@ -175,6 +175,7 @@ export const RADICAL_FIELDS = [
 	'Radical',
 	'Variants',
 	'Simplified',
+	'Traditional',
 	'Strokes',
 	'StrokeLabel',
 	'Pinyin',
@@ -308,6 +309,7 @@ export function buildRadicalNote(
 		Radical: r.char,
 		Variants: r.variants.join(' '),
 		Simplified: r.simplified.join(' '),
+		Traditional: r.traditional.join(' '),
 		Strokes: String(r.strokes),
 		// Anki's template syntax tests fields for emptiness, not for value, so a
 		// singular/plural switch has to be decided here.
@@ -619,8 +621,13 @@ const ICONS: Record<string, string> = {
 	sliders:
 		'<path d="M4 7h9v2H4zm12 0h4v2h-4zM4 15h4v2H4zm7 0h9v2h-9z"/><path d="M13.5 5.5h2v5h-2zm-5 8h2v5h-2z"/>',
 	more: '<path d="M12 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>',
-	close: '<path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8"/>'
+	close: '<path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.8"/>',
+	github:
+		'<path d="M12 .5C5.7.5.9 5.4.9 11.6c0 4.9 3.2 9.1 7.6 10.5.6.1.8-.2.8-.5v-1.9c-3.1.7-3.8-1.5-3.8-1.5-.5-1.3-1.2-1.6-1.2-1.6-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 1.7 2.6 1.2 3.2.9.1-.7.4-1.2.7-1.5-2.5-.3-5.1-1.2-5.1-5.5 0-1.2.4-2.2 1.1-3-.1-.3-.5-1.4.1-3 0 0 .9-.3 3.1 1.1a10.6 10.6 0 0 1 5.6 0c2.1-1.4 3.1-1.1 3.1-1.1.6 1.6.2 2.7.1 3 .7.8 1.1 1.8 1.1 3 0 4.3-2.6 5.2-5.1 5.5.4.4.8 1 .8 2.1v3.1c0 .3.2.6.8.5 4.4-1.4 7.6-5.6 7.6-10.5C23.1 5.4 18.3.5 12 .5z"/>'
 };
+
+/** The project the deck comes from — the one link the sidebar carries. */
+export const PROJECT_URL = 'https://github.com/krmanik/Anki-xiehanzi';
 
 const icon = (name: string) =>
 	`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
@@ -822,17 +829,30 @@ function sidebar(parts: CardPart[]): string {
 		.join('\n');
 	// The button that opens this lives in the control bar (see COG_BUTTON), not
 	// pinned to the corner of the webview.
+	//
+	// The drawer is the one piece of chrome with room for the deck's own name, so
+	// it carries it: the brand at the top, the project link at the bottom. A card
+	// otherwise says nothing about where it came from.
 	return `<aside class="panel" aria-label="Show or hide parts of the card">
-  <div class="panel-head">
-    <span class="panel-title">Show</span>
+  <div class="panel-brand">
+    <span class="brand-text">
+      <span class="brand-name">Anki-xiehanzi</span>
+      <span class="brand-sub">Radicals</span>
+    </span>
     <button type="button" class="panel-close tappable" aria-label="Close" onclick="document.querySelector('.card-body').classList.remove('xhz-panel')">${icon(
 			'close'
 		)}</button>
   </div>
+  <div class="panel-head">
+    <span class="panel-title">Show</span>
+    <span class="panel-note">This side only</span>
+  </div>
   <div class="panel-rows">
 ${rows}
   </div>
-  <div class="panel-foot">This side only</div>
+  <div class="panel-foot">
+    <a class="panel-gh tappable" href="${PROJECT_URL}">${icon('github')}<span>View on GitHub</span></a>
+  </div>
 </aside>`;
 }
 
@@ -1005,13 +1025,21 @@ function identParts(o: RadicalDeckOptions, skip: Set<CardPart> = new Set()): Car
 function identColumn(o: RadicalDeckOptions, skip: Set<CardPart> = new Set()): string {
 	const has = (key: CardPart) => !skip.has(key);
 
+	// Three different relations, three different labels. `Simplified` and
+	// `Traditional` are opposite directions and only one is ever filled: a
+	// traditional radical names what it simplifies to (見 → 见), a simplified one
+	// names the traditional form it stands in for (儿 → 兒). Printing both under
+	// "simplified" is how the 儿 card claimed 兒 was the simplified form.
 	const forms = has('forms')
 		? `{{#Variants}}<div class="forms" ${part(
 				'forms'
 			)}><span class="forms-label">also written</span>{{Variants}}</div>{{/Variants}}
   {{#Simplified}}<div class="forms" ${part(
 		'forms'
-	)}><span class="forms-label">simplified</span>{{Simplified}}</div>{{/Simplified}}`
+	)}><span class="forms-label">simplified</span>{{Simplified}}</div>{{/Simplified}}
+  {{#Traditional}}<div class="forms" ${part(
+		'forms'
+	)}><span class="forms-label">traditional</span>{{Traditional}}</div>{{/Traditional}}`
 		: '';
 
 	const colloquial =
@@ -1441,11 +1469,15 @@ export const RADICAL_CSS = `
 .ident-say { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .pinyin { font-size: 29px; font-weight: 700; letter-spacing: 0.01em; }
 .zhuyin { font-size: 14px; color: var(--muted); }
-.ident-meaning { margin-top: 2px; font-size: 20px; }
+
+/* The meaning is the answer to the recognition card, and it was sitting 2px
+   under the glyph line — close enough to read as part of it. It gets room on
+   both sides instead. */
+.ident-meaning { margin-top: 10px; font-size: 20px; line-height: 1.35; }
 
 .ident-meta {
   display: inline-block;
-  margin-top: 10px;
+  margin-top: 14px;
   padding: 4px 11px;
   border-radius: 999px;
   background: var(--p-soft);
@@ -1731,6 +1763,10 @@ export const RADICAL_CSS = `
   width: 186px;
   border-right: 1px solid var(--line);
   transform: translateX(-100%);
+  /* A column so the project link sits at the foot of the drawer rather than
+     floating under the last switch on a side with only a few of them. */
+  display: flex;
+  flex-direction: column;
 }
 
 .more {
@@ -1742,12 +1778,49 @@ export const RADICAL_CSS = `
 
 .xhz-panel .panel, .xhz-more .more { transform: translateX(0); }
 
+/* The deck's name, at the top of the drawer. */
+.panel-brand {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 10px 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand-text { display: block; }
+
+.brand-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--p);
+}
+
+.brand-sub {
+  display: block;
+  margin-top: 1px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
 .panel-head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  padding: 0 10px 8px 12px;
-  border-bottom: 1px solid var(--line);
+  gap: 8px;
+  padding: 10px 10px 6px 12px;
+}
+
+.panel-note {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
 }
 
 .panel-title {
@@ -1768,7 +1841,7 @@ export const RADICAL_CSS = `
   cursor: pointer;
 }
 
-.panel-rows { padding: 4px 0; }
+.panel-rows { flex: 1 0 auto; padding: 4px 0; }
 
 .panel-row {
   display: flex;
@@ -1782,12 +1855,26 @@ export const RADICAL_CSS = `
 .panel-row input { margin: 0; flex: none; accent-color: var(--p); }
 
 .panel-foot {
-  padding: 8px 12px 14px;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--faint);
+  margin-top: 4px;
+  padding: 8px 8px 16px;
+  border-top: 1px solid var(--line);
 }
+
+.panel-gh {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--soft);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.panel-gh:active { background: var(--p-soft); color: var(--p); }
+.panel-gh .ico { width: 15px; height: 15px; }
 
 /* ── The dictionary drawer's own rows ─────────────────────────────────── */
 

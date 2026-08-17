@@ -22,6 +22,7 @@ const make = (over: Partial<Radical>): Radical => ({
 	char: '一',
 	variants: [],
 	simplified: [],
+	traditional: [],
 	strokes: 1,
 	meaning: 'one',
 	pinyin: 'yī',
@@ -174,6 +175,9 @@ describe('allForms', () => {
 	it('puts the head form first and never repeats it', () => {
 		expect(allForms(shui)).toEqual(['水', '氵', '氺']);
 		expect(allForms(make({ char: '網', variants: ['网'], simplified: ['网'] }))).toEqual(['網', '网']);
+		// A simplified radical carries the traditional form it stands in for, and
+		// that is a form the learner has to recognize too.
+		expect(allForms(make({ char: '儿', traditional: ['兒'] }))).toEqual(['儿', '兒']);
 	});
 });
 

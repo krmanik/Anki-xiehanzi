@@ -1,7 +1,7 @@
 {
 	"generated": "2026-08-17",
-	"tag": "radical-deck-2026-08",
-	"baseUrl": "https://github.com/krmanik/Anki-xiehanzi/releases/download/radical-deck-2026-08",
+	"tag": "v2.4",
+	"baseUrl": "https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.4",
 	"shop": "https://www.patreon.com/cw/krmani/shop",
 	"radicals": 214,
 	"audio": 214,
@@ -10,7 +10,7 @@
 			"file": "Anki-xiehanzi-Kangxi-Radicals-Free.apkg",
 			"cards": 428,
 			"glyphs": 0,
-			"bytes": 1082383,
+			"bytes": 1091537,
 			"premium": false,
 			"features": {
 				"recognitionCard": true,
@@ -27,7 +27,7 @@
 			"file": "Anki-xiehanzi-Kangxi-Radicals.apkg",
 			"cards": 428,
 			"glyphs": 2016,
-			"bytes": 4857209,
+			"bytes": 4866140,
 			"premium": true,
 			"features": {
 				"recognitionCard": true,

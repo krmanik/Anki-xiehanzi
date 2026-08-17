@@ -1,7 +1,7 @@
 {
 	"generated": "2026-08-17",
-	"tag": "hsk-decks-2026-08",
-	"baseUrl": "https://github.com/krmanik/Anki-xiehanzi/releases/download/hsk-decks-2026-08",
+	"tag": "v2.4",
+	"baseUrl": "https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.4",
 	"options": {
 		"audio": true,
 		"examples": true

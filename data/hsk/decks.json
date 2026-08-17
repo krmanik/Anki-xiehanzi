@@ -1,0 +1,27 @@
+{
+	"generated": "2026-08-17",
+	"tag": "v2.4",
+	"baseUrl": "https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.4",
+	"options": {
+		"audio": true,
+		"examples": true
+	},
+	"decks": [
+		{
+			"list": "new",
+			"file": "Anki-xiehanzi-New-HSK-2025.apkg",
+			"words": 10900,
+			"levels": 7,
+			"audio": 10900,
+			"bytes": 57493136
+		},
+		{
+			"list": "old",
+			"file": "Anki-xiehanzi-Old-HSK-2012.apkg",
+			"words": 4995,
+			"levels": 6,
+			"audio": 4995,
+			"bytes": 32277306
+		}
+	]
+}

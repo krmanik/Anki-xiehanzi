@@ -411,6 +411,11 @@ export const ENGINE_FILE = '_xhz-hanzi-writer.js';
 
 export const WRITER_SCRIPT = `<script>
 (function () {
+  // Anki reuses one webview across cards, so the handler the last card left on
+  // window would drive a writer that is no longer on screen. Drop it first, and
+  // let this card's boot put its own back.
+  window.xhzWriterAction = null;
+
   function boot() {
     var host = document.getElementById('xhz-writer');
     if (!host) return;
@@ -425,8 +430,25 @@ export const WRITER_SCRIPT = `<script>
     if (!data || !data.strokes) { host.classList.add('writer--missing'); return; }
 
     host.innerHTML = '';
+    var body = document.querySelector('.card-body');
+    // Every client spells it differently: Anki desktop puts nightMode and
+    // night_mode on the body, AnkiDroid night-mode on the html element.
     var night = document.body.classList.contains('nightMode') ||
-                document.documentElement.classList.contains('night-mode');
+                document.body.classList.contains('night_mode') ||
+                document.documentElement.classList.contains('night-mode') ||
+                document.documentElement.classList.contains('night_mode');
+    // Stroke colours come off the live CSS variables, so the writer tracks the
+    // card's palette instead of keeping its own copy of it (the word decks read
+    // theirs the same way).
+    function cssVar(name, fallback) {
+      try {
+        var v = getComputedStyle(document.body).getPropertyValue(name);
+        return (v || '').trim() || fallback;
+      } catch (e) { return fallback; }
+    }
+    // The outline is a switch like any other part; the card body carries its
+    // state, so the writer and the panel cannot disagree about it.
+    function outlineOn() { return !(body && body.classList.contains('xhz-h-outline')); }
     // The replay grid lives in the narrow left column of the answer's top pair,
     // inside a padded panel; the quiz grid has the question side to itself.
     var size = mode === 'quiz'
@@ -438,18 +460,22 @@ export const WRITER_SCRIPT = `<script>
       height: size,
       padding: 6,
       showCharacter: false,
-      showOutline: true,
+      showOutline: outlineOn(),
       strokeAnimationSpeed: 1,
       delayBetweenStrokes: 200,
-      strokeColor: night ? '#e8eaed' : '#16181d',
-      outlineColor: night ? '#3a3d42' : '#dfe2e6',
-      drawingColor: night ? '#8ab4f8' : '#1a73e8',
+      strokeColor: cssVar('--fg', night ? '#e8eaed' : '#16181d'),
+      outlineColor: cssVar('--line', night ? '#3a3d42' : '#dfe2e6'),
+      drawingColor: cssVar('--p', night ? '#9aa5ff' : '#4b56e8'),
       highlightColor: '#4caf50',
       showHintAfterMisses: 2
     });
 
     var hint = document.getElementById('xhz-writer-hint');
     function say(text) { if (hint) hint.textContent = text; }
+
+    function applyOutline() {
+      if (outlineOn()) writer.showOutline(); else writer.hideOutline();
+    }
 
     function animate() {
       host.classList.remove('writer--quiz', 'writer--done');
@@ -463,8 +489,9 @@ export const WRITER_SCRIPT = `<script>
     function quiz() {
       host.classList.add('writer--quiz');
       host.classList.remove('writer--done');
-      // An outline to trace is not recall — the hint after two misses is.
-      writer.hideOutline();
+      // An outline to trace is not recall — the hint after two misses is. The
+      // reader can put it back with the switch, which is what the word decks do.
+      applyOutline();
       writer.hideCharacter();
       writer.quiz({ onComplete: function () {
         host.classList.add('writer--done');
@@ -473,15 +500,20 @@ export const WRITER_SCRIPT = `<script>
       say('Write it');
     }
 
-    // The control bar talks to the writer through this, so the bar markup stays
-    // free of any knowledge of Hanzi Writer.
+    // The control bar and the switches talk to the writer through this, so their
+    // markup stays free of any knowledge of Hanzi Writer.
     window.xhzWriterAction = function (action) {
       if (action === 'practice') quiz();
       else if (action === 'hint') writer.animateCharacter();
+      else if (action === 'outline') applyOutline();
       else animate();
     };
 
-    host.addEventListener('click', function () {
+    // AnkiMobile reads a tap anywhere on the card as "show answer" unless the
+    // element says otherwise, which is what the tappable class on the grid is
+    // for; stopping the event here covers the clients that have no such rule.
+    host.addEventListener('click', function (event) {
+      if (event && event.stopPropagation) event.stopPropagation();
       if (!host.classList.contains('writer--quiz')) animate();
     });
 
@@ -554,8 +586,11 @@ export const WRITER_SCRIPT = `<script>
  * block in one, and the same section nested inside itself is dead weight.
  */
 function writerBlock(mode: 'animate' | 'quiz', guard = true): string {
-	const body = `<div class="writer-wrap">
-  <div id="xhz-writer" class="writer" ${part(
+	// `outline` has no element of its own — it is a call into the writer, not a
+	// thing to hide — so it marks the wrap, which is what tells the panel the
+	// switch belongs on this side.
+	const body = `<div class="writer-wrap" ${part('outline')}>
+  <div id="xhz-writer" class="writer tappable" ${part(
 		'grid'
 	)} data-char="{{text:Radical}}" data-mode="${mode}"></div>
   <div id="xhz-writer-hint" class="writer-hint">${
@@ -615,22 +650,38 @@ const PLAY_AUDIO =
 const writerCall = (action: string) =>
 	`if(window.xhzWriterAction)window.xhzWriterAction('${action}')`;
 
-const BUTTONS: Record<BarButton, { label: string; icon: string; call: string }> = {
-	audio: { label: 'Play audio', icon: 'play', call: PLAY_AUDIO },
-	replay: { label: 'Replay the strokes', icon: 'replay', call: writerCall('replay') },
-	practice: { label: 'Practise writing it', icon: 'pencil', call: writerCall('practice') },
-	hint: { label: 'Show me a stroke', icon: 'eye', call: writerCall('hint') }
+/**
+ * `field` is what the button needs to do anything. A note with no clip, or none
+ * of the 214 with no stroke data, would otherwise carry buttons that press to no
+ * effect — and worse, Anki reuses one webview across cards, so a writer button on
+ * a card with no writer of its own reaches the *previous* card's engine.
+ */
+const BUTTONS: Record<BarButton, { label: string; icon: string; call: string; field: string }> = {
+	audio: { label: 'Play audio', icon: 'play', call: PLAY_AUDIO, field: 'Audio' },
+	replay: {
+		label: 'Replay the strokes',
+		icon: 'replay',
+		call: writerCall('replay'),
+		field: 'StrokeData'
+	},
+	practice: {
+		label: 'Practise writing it',
+		icon: 'pencil',
+		call: writerCall('practice'),
+		field: 'StrokeData'
+	},
+	hint: { label: 'Show me a stroke', icon: 'eye', call: writerCall('hint'), field: 'StrokeData' }
 };
 
 /** Opens the show/hide panel. Lives in the bar, beside the audio and writer buttons. */
 const COG_BUTTON =
-	`<button type="button" class="bar-btn bar-btn--tool cog" aria-label="Show or hide parts of the card" ` +
+	`<button type="button" class="bar-btn bar-btn--tool cog tappable" aria-label="Show or hide parts of the card" ` +
 	`title="Show or hide parts of the card" ` +
 	`onclick="document.querySelector('.card-body').classList.toggle('xhz-panel')">${icon('sliders')}</button>`;
 
 /** Opens the dictionary drawer on the right. */
 const MORE_BUTTON =
-	`<button type="button" class="bar-btn bar-btn--tool more-btn" aria-label="Look it up elsewhere" ` +
+	`<button type="button" class="bar-btn bar-btn--tool more-btn tappable" aria-label="Look it up elsewhere" ` +
 	`title="Look it up elsewhere" ` +
 	`onclick="document.querySelector('.card-body').classList.toggle('xhz-more')">${icon('more')}</button>`;
 
@@ -650,8 +701,8 @@ function controlBar(
 		.map((b) => {
 			const spec = BUTTONS[b];
 			return (
-				`<button type="button" class="bar-btn" aria-label="${spec.label}" ` +
-				`title="${spec.label}" onclick="${spec.call}">${icon(spec.icon)}</button>`
+				`{{#${spec.field}}}<button type="button" class="bar-btn tappable" aria-label="${spec.label}" ` +
+				`title="${spec.label}" onclick="${spec.call}">${icon(spec.icon)}</button>{{/${spec.field}}}`
 			);
 		})
 		.join('\n    ');
@@ -664,10 +715,16 @@ function controlBar(
 	const actions = buttons.length
 		? `<div class="bar-actions" ${part('buttons')}>\n    ${items}\n  </div>`
 		: `<div class="bar-actions"></div>`;
+	// "Buttons" takes the lookup button with it — it is chrome the reader may not
+	// want either. The panel's own button is the one thing it cannot hide: with
+	// that gone there would be nothing left to switch anything back on with.
+	const right = tools.more
+		? `<div class="bar-side bar-side--right" ${part('buttons')}>\n    ${MORE_BUTTON}\n  </div>`
+		: `<div class="bar-side bar-side--right"></div>`;
 	return `<div class="bar">
   <div class="bar-side bar-side--left">${tools.cog ? `\n    ${COG_BUTTON}\n  ` : ''}</div>
   ${actions}
-  <div class="bar-side bar-side--right">${tools.more ? `\n    ${MORE_BUTTON}\n  ` : ''}</div>
+  ${right}
 </div>`;
 }
 
@@ -691,14 +748,14 @@ const MORE_LINKS: { label: string; note: string; href: string }[] = [
 const MORE_DRAWER = `<aside class="more" aria-label="Look it up elsewhere">
   <div class="panel-head">
     <span class="panel-title">Look it up</span>
-    <button type="button" class="panel-close" aria-label="Close" onclick="document.querySelector('.card-body').classList.remove('xhz-more')">${icon(
+    <button type="button" class="panel-close tappable" aria-label="Close" onclick="document.querySelector('.card-body').classList.remove('xhz-more')">${icon(
 			'close'
 		)}</button>
   </div>
   <div class="more-links">
 ${MORE_LINKS.map(
 	(l) =>
-		`    <a class="more-link" href="${l.href}"><span class="more-name">${l.label}</span>` +
+		`    <a class="more-link tappable" href="${l.href}"><span class="more-name">${l.label}</span>` +
 		`<span class="more-note">${l.note}</span></a>`
 ).join('\n')}
   </div>
@@ -728,11 +785,22 @@ const toggleCall = (key: CardPart) =>
 		`var r=document.querySelector('.card-body'),k='${key}';`,
 		`r.classList.toggle('xhz-h-'+k,!this.checked);`,
 		`try{`,
-		`var s=r.classList.contains('back')?'back':'front',n='xhz.hide2.'+s,`,
+		// The key is the side's own name, not front/back: the two question sides
+		// hide different things (a recognition front prints the glyph, a writing
+		// front asks for it), so one shared "front" entry made each of them undo
+		// the other's defaults — which is how the glyph came back on the writing card.
+		`var s=r.getAttribute('data-side')||'front',n='xhz.hide2.'+s,`,
 		`l=(localStorage.getItem(n)||'').split(',').filter(Boolean),i=l.indexOf(k);`,
 		`if(this.checked){if(i>-1)l.splice(i,1)}else if(i<0)l.push(k);`,
 		`localStorage.setItem(n,l.join(','))`,
-		`}catch(e){}`
+		`}catch(e){}`,
+		// The outline is drawn by the engine, not by CSS, so its switch has to say
+		// so — guarded, like the bar's buttons, so a card without the engine does
+		// nothing rather than throwing.
+		key === 'outline' ? `if(window.xhzWriterAction)window.xhzWriterAction('outline');` : '',
+		// Collapses a panel this switch has just emptied. Guarded the same way: the
+		// switch does its own work first and asks for the tidy-up only if it is there.
+		`if(window.xhzSync)window.xhzSync()`
 	].join('');
 
 /**
@@ -745,8 +813,10 @@ function sidebar(parts: CardPart[]): string {
 	const rows = parts
 		.map(
 			(key) =>
-				`    <label class="panel-row" data-row="${key}">` +
-				`<input type="checkbox" checked value="${key}" onchange="${toggleCall(key)}">` +
+				`    <label class="panel-row tappable" data-row="${key}">` +
+				`<input class="tappable" type="checkbox" checked value="${key}" onchange="${toggleCall(
+					key
+				)}">` +
 				`<span>${PART_LABELS[key]}</span></label>`
 		)
 		.join('\n');
@@ -755,7 +825,7 @@ function sidebar(parts: CardPart[]): string {
 	return `<aside class="panel" aria-label="Show or hide parts of the card">
   <div class="panel-head">
     <span class="panel-title">Show</span>
-    <button type="button" class="panel-close" aria-label="Close" onclick="document.querySelector('.card-body').classList.remove('xhz-panel')">${icon(
+    <button type="button" class="panel-close tappable" aria-label="Close" onclick="document.querySelector('.card-body').classList.remove('xhz-panel')">${icon(
 			'close'
 		)}</button>
   </div>
@@ -776,7 +846,10 @@ const SIDEBAR_SCRIPT = `<script>
 (function () {
   var root = document.querySelector('.card-body');
   if (!root) return;
-  var side = root.classList.contains('back') ? 'back' : 'front';
+  // The side's own name — 'recognize', 'write' or 'back'. Not front/back: the two
+  // question sides hide different things, so a shared entry made each of them
+  // undo the other's defaults (the writing card came up showing the glyph).
+  var side = root.getAttribute('data-side') || (root.classList.contains('back') ? 'back' : 'front');
   // hide2, not hide: a question side used to store only its own two or three
   // switches, and a stored list from that build would now read as "the reader
   // wants every field on the front shown" — the card answering itself.
@@ -808,6 +881,28 @@ const SIDEBAR_SCRIPT = `<script>
     var box = rows[j].getElementsByTagName('input')[0];
     if (box) box.checked = hidden.indexOf(key) < 0;
   }
+
+  // The identity column and the prompt are each one panel — a surface with a
+  // shadow — so a panel whose every row is switched off is a blank white box on
+  // the card. The CSS collapses the states known in advance; this covers the
+  // ones that are not, such as a row left on for a part this note has not got.
+  // The switches call it if it is there and work the same if it is not.
+  window.xhzSync = function () {
+    var boxes = root.querySelectorAll('.ident, .prompt, .extras');
+    // Clear every verdict before taking a new one, then work from the innermost
+    // box outwards: the extras wrap holds the identity panel, so measuring the
+    // wrap first would read a panel this pass is about to bring back as empty.
+    for (var r = 0; r < boxes.length; r++) boxes[r].style.display = '';
+    for (var b = boxes.length - 1; b >= 0; b--) {
+      var kids = boxes[b].children, live = 0;
+      for (var k = 0; k < kids.length; k++) {
+        var style = getComputedStyle(kids[k]);
+        if (!style || style.display !== 'none') live++;
+      }
+      if (!live) boxes[b].style.display = 'none';
+    }
+  };
+  try { window.xhzSync(); } catch (e) {}
 })();
 </script>`;
 
@@ -825,6 +920,7 @@ const SIDEBAR_SCRIPT = `<script>
 export const PART_LABELS: Record<string, string> = {
 	strokes: 'Stroke order',
 	grid: 'Grid lines',
+	outline: 'Character outline',
 	glyph: 'Glyph',
 	pinyin: 'Pinyin',
 	zhuyin: 'Zhuyin',
@@ -842,6 +938,18 @@ export const PART_LABELS: Record<string, string> = {
 };
 
 export type CardPart = keyof typeof PART_LABELS;
+
+/**
+ * The parts that also exist inside the note's own HTML, where a `data-xhz`
+ * marker cannot reach: `examplesHtml` and `asWordHtml` build their rows from the
+ * fields, so a switch has to name their classes to cover the whole card. Turning
+ * zhuyin off and still reading it under every example is the switch lying.
+ */
+const PART_SELECTORS: Record<string, string[]> = {
+	pinyin: ['.ex-pinyin', '.coll-pinyin', '.word-pinyin'],
+	zhuyin: ['.ex-zhuyin'],
+	meaning: ['.ex-meaning', '.word-meaning']
+};
 
 /** Marks an element as switchable: `<div data-xhz="pinyin">`. */
 const part = (key: CardPart) => `data-xhz="${key}"`;
@@ -1028,7 +1136,7 @@ const RECOGNIZE_FRONT = `  <div class="glyph-main" ${part('glyph')}>{{Radical}}<
  */
 function stackParts(o: RadicalDeckOptions, skip: Set<CardPart> = new Set()): CardPart[] {
 	const keys: CardPart[] = [
-		...(o.strokeOrder ? (['strokes', 'grid'] as CardPart[]) : []),
+		...(o.strokeOrder ? (['strokes', 'grid', 'outline'] as CardPart[]) : []),
 		'glyph',
 		'pinyin',
 		...(o.asWord ? (['zhuyin'] as CardPart[]) : []),
@@ -1083,7 +1191,7 @@ export function radicalTemplates(
 
 	// The hidden audio the bar plays is looked up by id at click time, so it sits
 	// at the end of the card where it belongs.
-	const afmt = `<div class="card-body back">
+	const afmt = `<div class="card-body back" data-side="back">
 ${answerBody(o, controlBar(backButtons, { cog: o.fieldToggles, more: true }))}
 ${chrome(backParts)}
 ${MORE_DRAWER}
@@ -1103,7 +1211,7 @@ ${o.audio ? AUDIO_HOLDER : ''}
 	 */
 	const extras = (skip: CardPart[]) => {
 		if (!o.fieldToggles) return { html: '', parts: [] as CardPart[], hidden: '' };
-		const omit = new Set<CardPart>([...skip, 'strokes', 'grid', 'buttons']);
+		const omit = new Set<CardPart>([...skip, 'strokes', 'grid', 'outline', 'buttons']);
 		const parts = stackParts(o, omit);
 		if (!parts.length) return { html: '', parts, hidden: '' };
 		return {
@@ -1119,14 +1227,20 @@ ${o.audio ? AUDIO_HOLDER : ''}
 	const writeExtra = extras(FRONT_SKIP.write);
 
 	const fronts: Record<RadicalCardType, string> = {
-		// A question side has no actions of its own; the bar is the two chrome buttons.
-		recognize: `<div class="card-body front front--recognize${recognizeExtra.hidden}">
+		// `data-side` names the side's own storage entry. Not "front": the two
+		// question sides hide different things, so one shared entry had each of them
+		// undoing the other's defaults the moment either was touched.
+		recognize: `<div class="card-body front front--recognize${
+			recognizeExtra.hidden
+		}" data-side="recognize">
 ${RECOGNIZE_FRONT}
 ${controlBar([], { cog: o.fieldToggles })}
 ${recognizeExtra.html}
 ${chrome(['glyph', 'meta', ...recognizeExtra.parts])}
 </div>`,
-		write: `<div class="card-body front front--write${writeExtra.hidden}">
+		// The outline starts off here — tracing is not recall — and is the one part
+		// a switch cannot show by unhiding an element, so it is listed by hand.
+		write: `<div class="card-body front front--write${writeExtra.hidden} xhz-h-outline" data-side="write">
   <div class="prompt">
     <span class="prompt-meaning" ${part('meaning')}>{{Meaning}}</span>
     <span class="prompt-pinyin" ${part('pinyin')}>{{Pinyin}}</span>
@@ -1135,7 +1249,15 @@ ${chrome(['glyph', 'meta', ...recognizeExtra.parts])}
 ${writerBlock('quiz')}
 ${controlBar(['hint', 'replay'], { cog: o.fieldToggles })}
 ${writeExtra.html}
-${chrome(['meaning', 'pinyin', 'meta', 'grid', 'buttons', ...writeExtra.parts])}
+${chrome([
+	'meaning',
+	'pinyin',
+	'meta',
+	'grid',
+	'outline',
+	'buttons',
+	...writeExtra.parts
+])}
 </div>`
 	};
 
@@ -1198,7 +1320,9 @@ export const RADICAL_CSS = `
   -webkit-font-smoothing: antialiased;
 }
 
-.nightMode.card, .night_mode .card, .card.nightMode {
+/* Every client marks night mode differently: Anki desktop puts nightMode on the
+   body, AnkiDroid and AnkiMobile night_mode, and some wrap the card instead. */
+.nightMode.card, .card.nightMode, .card.night_mode, .night_mode .card, .nightMode .card {
   --bg: #121319;
   --surface: #1c1e27;
   --fg: #e8eaf2;
@@ -1227,6 +1351,19 @@ export const RADICAL_CSS = `
   padding: 26px 18px 34px;
   box-sizing: border-box;
 }
+
+/* AnkiMobile reads a tap anywhere on the card as "show answer" unless the
+   element carries this class — which is why tapping the writing grid used to
+   flip the card instead of drawing a stroke. Every control on the card has it,
+   the same convention the word decks follow. */
+.tappable {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* The one exception: strokes are drawn on the grid, so the browser must not
+   claim the gesture for scrolling or zooming. */
+.writer.tappable { touch-action: none; }
 
 /* A question is one short thing; sitting it against the top of a tall webview
    leaves it stranded. */
@@ -1468,7 +1605,10 @@ export const RADICAL_CSS = `
 }
 
 .glyph-row img { width: 44px; height: 44px; object-fit: contain; display: block; margin: 0 auto 5px; }
-.nightMode .glyph-row img, .night_mode .glyph-row img { filter: invert(1) hue-rotate(180deg); }
+.nightMode .glyph-row img, .night_mode .glyph-row img,
+.nightMode.card .glyph-row img, .card.night_mode .glyph-row img {
+  filter: invert(1) hue-rotate(180deg);
+}
 .glyph-row figcaption { font-size: 10px; line-height: 1.3; }
 .glyph-cn { display: block; }
 .glyph-en { display: block; color: var(--faint); }
@@ -1674,15 +1814,29 @@ export const RADICAL_CSS = `
   color: var(--faint);
 }
 
-/* One rule per switchable part. "grid" is the only one that is not a matter of
-   hiding an element: it takes the guide lines off the box the strokes are drawn
-   in, and the animation stays. */
+/* One rule per switchable part, and a switch means the *whole card*: turning
+   zhuyin off has to take the zhuyin out of the example rows too, or the switch
+   is only telling half the truth. The data-xhz attribute marks what the template
+   owns; PART_SELECTORS names what the note's own HTML calls the same thing.
+
+   Two parts are not a matter of hiding an element at all: "grid" takes the guide
+   lines off the box the strokes are drawn in, and "outline" is a call into the
+   writer (see toggleCall) — both leave the animation where it is. */
 ${Object.keys(PART_LABELS)
-	.filter((key) => key !== 'grid')
-	.map((key) => `.card-body.xhz-h-${key} [data-xhz='${key}'] { display: none !important; }`)
+	.filter((key) => key !== 'grid' && key !== 'outline')
+	.map(
+		(key) =>
+			`${[`[data-xhz='${key}']`, ...(PART_SELECTORS[key] ?? [])]
+				.map((sel) => `.card-body.xhz-h-${key} ${sel}`)
+				.join(',\n')} { display: none !important; }`
+	)
 	.join('\n')}
 
 .card-body.xhz-h-grid .writer { border-color: transparent; background: var(--surface); }
+
+/* Both halves of the question's prompt gone leaves an empty white panel sitting
+   above the grid; same reasoning as the identity panel below. */
+.card-body.xhz-h-meaning.xhz-h-pinyin .prompt { display: none; }
 
 /* ── Tones ────────────────────────────────────────────────────────────── */
 

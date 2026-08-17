@@ -445,16 +445,27 @@ describe('radicalTemplates', () => {
 		);
 		const group = bar.slice(
 			bar.indexOf('<div class="bar-actions"'),
-			bar.indexOf('<div class="bar-side bar-side--right">')
+			bar.indexOf('bar-side bar-side--right')
 		);
 		expect(group).toContain('data-xhz="buttons"');
-		expect(group).not.toContain('bar-btn--tool');
+		expect(group).not.toContain('--tool cog');
 		expect(group).not.toContain('more-btn');
 		// One lane each side of the actions, whatever is in them.
 		expect(bar.indexOf('bar-side--left')).toBeLessThan(bar.indexOf('bar-actions'));
 		expect(bar.indexOf('bar-actions')).toBeLessThan(bar.indexOf('bar-side--right'));
 		expect(bar).toContain('--tool cog');
 		expect(bar).toContain('more-btn');
+	});
+
+	// "Buttons" hides the lookup button too — it is chrome the reader may not
+	// want either. The panel's own button is the one thing it cannot hide, or
+	// there would be nothing left to switch anything back on with.
+	it('hides the lookup button with the buttons, and never the panel switch', () => {
+		const bar = recognize.afmt.slice(recognize.afmt.indexOf('<div class="bar">'));
+		const right = bar.slice(bar.indexOf('bar-side--right'));
+		expect(right.slice(0, right.indexOf('</div>'))).toContain('data-xhz="buttons"');
+		const left = bar.slice(bar.indexOf('bar-side--left'), bar.indexOf('bar-actions'));
+		expect(left).not.toContain('data-xhz');
 	});
 
 	it('lists only the parts a side actually shows, and every one of them', () => {
@@ -483,7 +494,7 @@ describe('radicalTemplates', () => {
 	it('switches carry their own code and remember the side they are on', () => {
 		for (const [, handler] of recognize.afmt.matchAll(/onchange="([^"]*)"/g)) {
 			expect(handler).toContain("classList.toggle('xhz-h-'+k");
-			expect(handler).toContain("contains('back')?'back':'front'");
+			expect(handler).toContain("getAttribute('data-side')");
 			expect(handler).toContain('localStorage.setItem');
 			expect(handler).toContain('catch(e){}');
 		}
@@ -491,12 +502,89 @@ describe('radicalTemplates', () => {
 		expect(recognize.afmt).toContain("classList.toggle('xhz-panel')");
 	});
 
+	// One entry per side, keyed by the side's own name. Sharing a "front" entry
+	// between the two question sides made each of them undo the other's defaults
+	// — the writing card came up showing the glyph it was asking for.
+	it('stores each side under its own name', () => {
+		const [pRec, pWrite] = radicalTemplates('premium');
+		expect(pRec.qfmt).toContain('data-side="recognize"');
+		expect(pWrite.qfmt).toContain('data-side="write"');
+		expect(pRec.afmt).toContain('data-side="back"');
+		for (const [, handler] of pWrite.qfmt.matchAll(/onchange="([^"]*)"/g)) {
+			expect(handler).toContain("'xhz.hide2.'+s");
+		}
+	});
+
+	// The writing front asks for the glyph, so the glyph is what it hides — and
+	// the recognition front, which prints the glyph as its question, does not.
+	it('hides the right things per question side', () => {
+		const [pRec, pWrite] = radicalTemplates('premium');
+		const head = (s: string) => s.slice(0, s.indexOf('>'));
+		expect(head(pWrite.qfmt)).toContain('xhz-h-glyph');
+		expect(head(pWrite.qfmt)).toContain('xhz-h-readings');
+		expect(head(pWrite.qfmt)).toContain('xhz-h-zhuyin');
+		expect(head(pRec.qfmt)).not.toContain('xhz-h-glyph');
+		expect(head(pRec.qfmt)).toContain('xhz-h-pinyin');
+	});
+
+	// The outline is drawn by the engine, so its switch calls the writer instead
+	// of hiding an element — the word decks offer exactly the same control.
+	it('offers the character outline as a switch on every side with a writer', () => {
+		const [pRec, pWrite] = radicalTemplates('premium');
+		expect(pWrite.qfmt).toContain('data-row="outline"');
+		expect(pRec.afmt).toContain('data-row="outline"');
+		// Off while writing (tracing is not recall), on when replaying.
+		expect(pWrite.qfmt.slice(0, pWrite.qfmt.indexOf('>'))).toContain('xhz-h-outline');
+		expect(pRec.afmt.slice(0, pRec.afmt.indexOf('>'))).not.toContain('xhz-h-outline');
+		// A question side with no writer has no outline to switch.
+		expect(pRec.qfmt).not.toContain('data-row="outline"');
+		for (const [, handler] of pWrite.qfmt.matchAll(/onchange="([^"]*)"/g)) {
+			if (!handler.includes("k='outline'")) continue;
+			expect(handler).toContain("if(window.xhzWriterAction)window.xhzWriterAction('outline')");
+		}
+		// Free has no panel, but its quiz must still start without the outline.
+		expect(radicalTemplates('free')[1].qfmt).toContain('xhz-h-outline');
+	});
+
+	// A switch means the whole card: the note's own HTML builds example rows from
+	// the fields, where no data-xhz marker can reach.
+	it('hides a part everywhere on the card, not only where the template marks it', () => {
+		const css = radicalCss('premium');
+		expect(css).toContain('.card-body.xhz-h-zhuyin .ex-zhuyin');
+		expect(css).toContain('.card-body.xhz-h-pinyin .ex-pinyin');
+		expect(css).toContain('.card-body.xhz-h-pinyin .coll-pinyin');
+		expect(css).toContain('.card-body.xhz-h-pinyin .word-pinyin');
+		expect(css).toContain('.card-body.xhz-h-meaning .ex-meaning');
+	});
+
+	// Every control has to say it is a control, or AnkiMobile reads the tap as
+	// "show answer" — which is what tapping the writing grid used to do.
+	it('marks every control tappable for AnkiMobile', () => {
+		for (const tmpl of [recognize.afmt, write.qfmt, write.afmt]) {
+			for (const [, cls] of tmpl.matchAll(/class="(bar-btn[^"]*|more-link|panel-row|writer)"/g)) {
+				expect(cls).toContain('tappable');
+			}
+		}
+		expect(write.qfmt).toContain('class="writer tappable"');
+		expect(radicalCss()).toContain('.writer.tappable { touch-action: none; }');
+	});
+
+	// A panel with every row switched off is a blank white box; both the prompt
+	// and the identity column are one surface each.
+	it('collapses the panels whose every part is switched off', () => {
+		const css = radicalCss('premium');
+		expect(css).toContain('.card-body.xhz-h-meaning.xhz-h-pinyin .prompt');
+		expect(css).toMatch(/\.card-body(\.xhz-h-[a-z]+){2,} \.ident/);
+	});
+
 	it('has a hide rule in the CSS for every part it offers', () => {
 		const css = radicalCss('premium');
 		const parts = [...new Set([...recognize.afmt.matchAll(/data-xhz="([a-z]+)"/g)].map((m) => m[1]))];
 		for (const key of parts) {
-			// "grid" takes the guide lines off rather than hiding the box.
+			// Two parts are not a matter of hiding an element: "grid" takes the guide
+			// lines off the box, "outline" is a call into the writer.
 			if (key === 'grid') expect(css).toContain('.card-body.xhz-h-grid .writer');
+			else if (key === 'outline') expect(css).not.toContain('.xhz-h-outline [data-xhz');
 			else expect(css).toContain(`.card-body.xhz-h-${key} [data-xhz='${key}']`);
 		}
 	});

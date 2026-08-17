@@ -228,17 +228,42 @@ Same shape as the HSK browser — committed JSON, no `cedict.db` at runtime.
     writing front owns in quiz mode — with every extra part **default-hidden via
     an `xhz-h-*` class on `.card-body`**. So the reader can put the pinyin, the
     readings or the examples on a front, the way the HSK deck ships every field
-    on both sides with the deselected ones simply hidden. Choices are stored per
-    side — `localStorage['xhz.hide2.front'|'xhz.hide2.back']`, a comma-separated
-    key list. **`SIDEBAR_SCRIPT` seeds that entry from the template's classes on
-    first run**, then treats a stored entry as authoritative in both directions
-    (it *removes* the template's default classes before applying it) — otherwise
-    a part switched on would be re-hidden by the next card, and the first toggle
-    would rewrite a list built from nothing. The key is `hide2` because a stored
-    `xhz.hide.front` from the build before this one would read as "show
-    everything on the front". A row whose part is missing from *this note* (no
-    variant forms, say) is hidden on load. Free ships no extras at all — dead
-    markup without a panel to work it.
+    on both sides with the deselected ones simply hidden. Free ships no extras
+    at all — dead markup without a panel to work it.
+  - **One storage entry per side, keyed by `data-side`** (`recognize` / `write` /
+    `back`), a comma-separated key list under `localStorage['xhz.hide2.<side>']`.
+    **Not front/back**: the two question sides hide opposite things (a
+    recognition front *prints* the glyph, a writing front *asks* for it), so one
+    shared "front" entry had each of them undoing the other's defaults — the
+    writing card came up showing the glyph, so pinyin or readings could not be
+    switched on without the answer coming with them.
+  - **`SIDEBAR_SCRIPT` seeds the entry from the template's classes on first run**,
+    then treats a stored entry as authoritative in both directions (it *removes*
+    the template's default classes before applying it) — otherwise a part
+    switched on would be re-hidden by the next card, and the first toggle would
+    rewrite a list built from nothing. The key is `hide2` because a stored
+    `xhz.hide.front` from an earlier build would read as "show everything on the
+    front". A row whose part is missing from *this note* (no variant forms, say)
+    is hidden on load.
+  - **A switch means the whole card.** `PART_SELECTORS` names the classes the
+    *note's own HTML* uses for the same thing (`.ex-zhuyin`, `.ex-pinyin`,
+    `.coll-pinyin`, `.word-pinyin`, `.ex-meaning`, `.word-meaning`), because
+    `examplesHtml` / `asWordHtml` build their rows from the fields where no
+    `data-xhz` marker can reach. Switching zhuyin off and still reading it under
+    every example is the switch lying.
+  - **`outline` is a call, not a hide** — like `grid`, it gets no generated CSS
+    rule. Its `onchange` toggles the class and then asks the engine
+    (`window.xhzWriterAction('outline')`, guarded), and the writer reads the same
+    class at boot, so panel and engine cannot disagree. It starts **off on the
+    writing front** (tracing is not recall) and on everywhere else, and its
+    marker rides on `.writer-wrap`, so the row only exists where a writer does.
+    This is the word decks' outline control, which the radical deck was missing.
+  - **`window.xhzSync`** collapses a panel a switch has just emptied (the
+    identity column, the prompt and the extras wrap are each one surface with a
+    shadow, so an empty one is a blank white box). The CSS handles the states
+    known in advance — `identCollapseCss` and the `.prompt` rule — and this
+    covers the rest, such as a row left on for a part the *next* note has not
+    got. Switches call it guarded, so they work the same when it is absent.
   - **`.ident` collapses when empty.** The identity column is one panel with a
     shadow, and its default state on a question side is every row off, so
     `identCollapseCss` emits one compound selector per side ("all of this side's
@@ -256,13 +281,26 @@ Same shape as the HSK browser — committed JSON, no `cedict.db` at runtime.
   when empty: the switches panel opens from the left of the card so its button
   sits in the left lane, the dictionary drawer opens from the right so its button
   sits in the right lane, and what the card can *do* (play audio · replay strokes
-  · practise writing) is centred between them. Only that centre lane carries
-  `data-xhz="buttons"` — hiding the buttons must not take the switch that unhides
-  them with it. Tool buttons are neutral (`--soft`/`--muted`), action buttons
+  · practise writing) is centred between them. **"Buttons" hides the centre lane
+  and the lookup button** (both carry `data-xhz="buttons"`) but never the panel
+  switch — with that gone there would be nothing left to switch anything back on
+  with. **Each button is wrapped in the field it needs** (`{{#Audio}}`,
+  `{{#StrokeData}}`): a button that presses to no effect is bad enough, but Anki
+  reuses one webview across cards, so a writer button on a card with no writer of
+  its own reaches the *previous* card's engine — which is also why
+  `WRITER_SCRIPT` nulls `window.xhzWriterAction` before it boots. Tool buttons are neutral (`--soft`/`--muted`), action buttons
   tonal indigo, so the two groups do not read as one. Pure HTML/CSS with
   inline-SVG icons — no Material Icons font, no logo PNGs, unlike the word decks.
   `window.xhzWriterAction` is the one seam between the bar and Hanzi Writer, and
   the buttons check for it rather than assume it (see below).
+- **Every control carries `class="tappable"`.** AnkiMobile reads a tap anywhere
+  on the card as "show answer" unless the element says otherwise, which is why
+  tapping the writing grid flipped the card instead of drawing a stroke; the
+  writer's click handler also stops the event for clients with no such rule. The
+  grid additionally takes `touch-action: none` so a stroke is not read as a
+  scroll. Night mode is matched on **four** selectors (`.card.nightMode`,
+  `.card.night_mode`, and both as ancestors): desktop and AnkiDroid spell it
+  differently, and the card was staying light on one of them.
 - **The dictionary drawer** (`MORE_DRAWER`, both editions, **answers only** — on
   a question side, looking the glyph up would answer the card) is the right-hand
   counterpart of the switches panel: `MORE_LINKS` rendered as text rows (Pleco ·

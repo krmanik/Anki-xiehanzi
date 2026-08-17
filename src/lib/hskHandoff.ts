@@ -40,6 +40,18 @@ function parsePending(raw: string | null): PendingWords | null {
 	}
 }
 
+/**
+ * Park a word list for the creator to pick up. The dictionary's word bag is the
+ * producer today; `/hsk` hands out prebuilt decks instead.
+ */
+export function setPendingWords(pending: PendingWords): void {
+	try {
+		sessionStorage.setItem(PENDING_WORDS_KEY, JSON.stringify(pending));
+	} catch {
+		/* private mode / storage disabled — the creator simply starts empty */
+	}
+}
+
 /** Look at the pending list without consuming it. */
 export function peekPendingWords(): PendingWords | null {
 	try {

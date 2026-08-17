@@ -40,6 +40,7 @@
 	// fold into a single "More" menu, leaving three destinations plus the shop.
 	const nav = [
 		{ href: `${base}/create`, label: 'Create' },
+		{ href: `${base}/dictionary`, label: 'Dictionary' },
 		{ href: `${base}/hsk`, label: 'HSK' },
 		{ href: `${base}/radicals`, label: 'Radicals' },
 		{ href: `${base}/docs`, label: 'Docs' }

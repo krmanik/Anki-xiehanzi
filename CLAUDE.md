@@ -21,6 +21,7 @@ HSK 2012 source for `npm run build:hsk`.
 ```bash
 npm run build:hsk    # regenerate static/data/hsk/*.json from cedict.db + the word lists
 npm run build:hsk-decks  # pre-build one .apkg per HSK word list into dist-decks/
+npm run build:dict   # regenerate static/data/dict/ (etymology + stroke names)
 npm run build:radicals   # regenerate static/data/radicals/ (Wikipedia + cedict + zdic; slow first run)
 npm run build:radical-deck  # build dist-decks/Anki-xiehanzi-Kangxi-Radicals.apkg
 npm run preview:radical-card # render the cards to dist-decks/radical-card.html (design check)
@@ -154,6 +155,66 @@ A separate, much lighter stack from the deck generator — it must never pull th
   `/hsk` (canonical) and `/decks` (the older URL, kept alive). `src/routes/hsk/[list]/[level]/+page.svelte` is the level browser and
   export. The dynamic route needs explicit `entries()` in its `+page.ts` — the
   site is client-rendered, so the prerenderer cannot crawl to it.
+
+## Dictionary (`/dictionary`)
+
+A lookup page in the shape of the hanzi-slides character deck: search a word,
+then drill into any character of it.
+
+- **It does pull `cedict.db`** (10 MB zipped), unlike `/hsk` and `/radicals` —
+  a dictionary that only knows a word list is not a dictionary. `loadCedict()`
+  is kicked off on mount, not on the first keystroke, so the download overlaps
+  the reader typing. `hsk_sentences.db` follows lazily, when an entry asks for
+  examples.
+- **`src/lib/dictionary.ts`** — pure: query classification, ranking, IDS
+  parsing, etymology wording, stroke pairing, reading order. Unit-tested
+  (`dictionary.test.ts`); it is to the dictionary what `deckTemplate.ts` is to
+  the deck.
+- **`src/lib/dict/cedict.ts`** gained `searchDictionary`, `wordsContaining` and
+  `charactersWithComponent`. Search resolves the query kind itself:
+  - hanzi — exact, then prefix, then contains, ranked by frequency;
+  - pinyin — an in-memory index of every reading keyed by its **normalized**
+    (toneless, spaceless, ü→v) form, built on the first pinyin search from a
+    `word,pinyin,rank` projection (~2.3 MB). No SQL `LIKE` can match `nihao`
+    against the stored `["ni3 hao3"]`;
+  - english — `LIKE` on `eng_Tran` as a coarse filter, scored in JS.
+  - **A toneless latin run is searched both ways.** "love" is spellable as
+    lo + ve, "long" and "man" are syllables; committing to one reading of the
+    query is what makes a dictionary feel broken, so `queryKind` returns `both`
+    and the scores settle it.
+  - **A word matches on its best reading, not its first**, and hits print every
+    reading: cedict's `pinyin` array is not ordered by commonness (分 lists
+    fèn first, 女 lists rǔ first). `orderReadings()` puts the reading with the
+    fullest sense list first **for display only** — `lookup()` keeps cedict's
+    order, because the deck's fields are built from it and must not drift.
+  - `eng_Tran` is sometimes the placeholder `#` (龙, 钕 …); the per-reading
+    `definitions` are the fallback.
+- **`static/data/dict/`** — two committed assets `cedict.db` has no room for,
+  built by `npm run build:dict` from the hanzi-slides checkout
+  (`--source ~/Desktop/hanzi-slides-svelte`): `etymology.json` (makemeahanzi's
+  formation type / hint / semantic + phonetic component, 9,033 chars, 570 KB)
+  and `stroke-names.json` + `stroke-types.json` (ordered stroke names per
+  character and their glyphs, 6,939 chars). Loaded by `dict/chardata.ts` only
+  when a character is first expanded.
+- **Stroke animation comes from Hanzi Writer's own CDN**, one file per
+  character — the dictionary can be asked about any of 9,500 characters, so
+  neither the local 32 MB blob nor the radicals' 214-glyph subset would do.
+  Strokes are drawn in the character's **tone colour**.
+- **Components:** `/dictionary` (search + word bag) → `WordEntry` (readings,
+  senses, chips, character row, sentences, compounds) → `CharacterPanel`
+  (writing, structure, components with semantic/phonetic roles, origin, stroke
+  sequence, radical → `/radicals`, words with it, characters built from it,
+  sentences) → `StrokeAnimation`. A one-character word opens its panel at once
+  and the panel drops its own sentence list, so the same examples are not
+  printed twice.
+- **The word bag is the `hskHandoff` bridge's new producer.** Starred words go
+  to sessionStorage via `setPendingWords()` and `/create` picks them up in
+  `WordSourceInput` — the consumer had been sitting there with nobody feeding it.
+- Audio is `dict/audio.ts`: the HSK 2025 CDN recording first, Edge TTS
+  (lazily imported) otherwise. Deliberately not `deck.ts#playWordAudio`, which
+  drags in genanki-js, sql.js and jieba-wasm.
+- `$app/navigation` and `$app/state` have test stubs beside `appPathsStub.ts`,
+  aliased in `vitest.config.ts` — the page keeps its query in the URL.
 
 ## Kangxi radicals (`/radicals` + the radical deck)
 

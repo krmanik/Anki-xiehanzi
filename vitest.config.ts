@@ -2,11 +2,14 @@ import { defineConfig } from 'vitest/config';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import path from 'node:path';
 
-// Aliases: $lib → src/lib, and a tiny stub for SvelteKit's $app/paths so the
-// pure modules (which import `base`) resolve outside the SvelteKit dev server.
+// Aliases: $lib → src/lib, plus tiny stubs for the SvelteKit `$app/*` modules
+// the components import (`base`, `goto`, `page`), so they resolve outside the
+// SvelteKit dev server.
 const alias = {
 	$lib: path.resolve('./src/lib'),
-	'$app/paths': path.resolve('./src/test/appPathsStub.ts')
+	'$app/paths': path.resolve('./src/test/appPathsStub.ts'),
+	'$app/navigation': path.resolve('./src/test/appNavigationStub.ts'),
+	'$app/state': path.resolve('./src/test/appStateStub.ts')
 };
 
 export default defineConfig({

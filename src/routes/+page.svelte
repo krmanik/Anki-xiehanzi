@@ -9,6 +9,7 @@
 	import Download from '@lucide/svelte/icons/download';
 	import SquarePen from '@lucide/svelte/icons/square-pen';
 	import Book from '@lucide/svelte/icons/book';
+	import BookOpen from '@lucide/svelte/icons/book-open';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 
 	const repo = 'https://github.com/krmanik/Anki-xiehanzi';
@@ -43,6 +44,7 @@
 	const cards = [
 		{ title: 'Import', icon: Download, link: `${base}/hsk#decks`, description: 'Download ready-made HSK 3.0 decks for Anki.' },
 		{ title: 'Create', icon: SquarePen, link: `${base}/create`, description: 'Build custom xiehanzi decks from your own words.' },
+		{ title: 'Look up', icon: BookOpen, link: `${base}/dictionary`, description: 'Search any word or character — strokes, parts, origin.' },
 		{ title: 'Guide', icon: Book, link: `${base}/docs`, description: 'See features and how to customize the decks.' }
 	];
 </script>
@@ -117,7 +119,7 @@
 <!-- get started cards -->
 <section class="mx-auto max-w-6xl px-5 pb-20">
 	<p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">Get started</p>
-	<div class="mt-6 grid gap-4 md:grid-cols-3">
+	<div class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 		{#each cards as c}
 			<a
 				href={c.link}

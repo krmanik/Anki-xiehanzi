@@ -11,6 +11,17 @@ import Chinese from 'chinese-s2t';
 import { base } from '$app/paths';
 import pinzhu from './pinyinzhuyin';
 import { rankSentences } from './sentences';
+import {
+	commonness,
+	hasToneMarker,
+	normalizePinyin,
+	queryKind,
+	scoreEnglish,
+	scoreHanzi,
+	scorePinyin,
+	sortHits,
+	type SearchHit
+} from '$lib/dictionary';
 
 let SQL: any = null;
 let cedictDb: any = null;
@@ -633,5 +644,297 @@ export async function getSmartSentences(
 		traditional: Chinese.s2t(r.sentence),
 		pinyin: r.pinyin,
 		translation: r.translation
+	}));
+}
+
+// ---------------------------------------------------------------------------
+// Dictionary search (`/dictionary`)
+// ---------------------------------------------------------------------------
+
+/**
+ * Tone-marked pinyin for a numbered-pinyin string ("ni3 hao3" -> "nǐ hǎo").
+ * Cached: search re-converts the same common words on every keystroke.
+ */
+const pinyinPlainCache = new Map<string, string>();
+async function toPinyinPlain(syllables: string): Promise<string> {
+	const key = (syllables ?? '').trim();
+	if (!key) return '';
+	const hit = pinyinPlainCache.get(key);
+	if (hit !== undefined) return hit;
+	const p = await pinzhu.pinyinAndZhuyin(key.replace(/v/g, 'u:').replace(/0/g, '5'), '', '');
+	const plain = p[1] || key;
+	pinyinPlainCache.set(key, plain);
+	return plain;
+}
+
+/**
+ * cedict's slash-joined gloss as one readable line, falling back to the
+ * per-reading definitions. Some rows carry `#` as their `eng_Tran` (龙, 钕 …) —
+ * a placeholder, not a meaning, and printing it says nothing.
+ */
+function commonMeaningOf(engTran: string | null, definitions?: string | null): string {
+	const gloss = (engTran || '').replace(/\//g, '; ').replace(/;\s*$/, '').trim();
+	if (gloss && gloss !== '#') return gloss;
+	const defs = safeJSON<Record<string, string>>(definitions ?? null, {});
+	return Object.values(defs)
+		.map((d) => d.replace(/;\s*$/, '').trim())
+		.filter(Boolean)
+		.join('; ');
+}
+
+interface RawRow {
+	word: string;
+	traditional: string | null;
+	pinyin: string | null;
+	definitions: string | null;
+	eng_Tran: string | null;
+	rank: number | null;
+	level: string | null;
+}
+
+const SEARCH_COLUMNS = `c.word AS word, c.traditional AS traditional, c.pinyin AS pinyin,
+	 c.definitions AS definitions, c.eng_Tran AS eng_Tran, c.rank AS rank, wl.level AS level`;
+const SEARCH_FROM = `FROM cedict c LEFT JOIN word_levels wl ON wl.word = c.word`;
+
+/**
+ * Turn rows into hits. Every reading is shown, not just the first: cedict's
+ * `pinyin` array is not ordered by commonness (分 lists fen4 before fen1), so a
+ * result labelled with element 0 alone is labelled wrong half the time.
+ */
+async function toHits(
+	rows: RawRow[],
+	via: SearchHit['via'],
+	score: (row: RawRow, syllables: string[]) => number
+): Promise<SearchHit[]> {
+	const out: SearchHit[] = [];
+	for (const row of rows) {
+		const readings = safeJSON<string[]>(row.pinyin, []);
+		const shown = readings.slice(0, 3);
+		const plain: string[] = [];
+		for (const r of shown) plain.push(await toPinyinPlain(r));
+		out.push({
+			simplified: row.word,
+			traditional: row.traditional || row.word,
+			syllables: readings[0] ?? '',
+			pinyin: plain.filter(Boolean).join(' / '),
+			meaning: commonMeaningOf(row.eng_Tran, row.definitions),
+			rank: typeof row.rank === 'number' ? row.rank : null,
+			level: row.level ?? null,
+			via,
+			score: score(row, readings)
+		});
+	}
+	return out;
+}
+
+// word/pinyin/rank projection of the whole table (~2.3 MB of strings), built on
+// the first pinyin search only. Pinyin is stored as a JSON array of numbered
+// syllables, so no SQL LIKE can match "nihao" against "ni3 hao3" — the index
+// keys every reading by its normalized (toneless, spaceless) form instead.
+let pinyinIndex: Map<string, number[]> | null = null;
+let pinyinRows: { word: string; pinyin: string; syllables: string; rank: number | null }[] = [];
+
+function ensurePinyinIndex(): void {
+	if (pinyinIndex) return;
+	pinyinIndex = new Map();
+	pinyinRows = [];
+	for (const r of queryAll(cedictDb, `SELECT word, pinyin, rank FROM cedict`, [])) {
+		for (const syllables of safeJSON<string[]>(r.pinyin, [])) {
+			const norm = normalizePinyin(syllables);
+			if (!norm) continue;
+			const i = pinyinRows.length;
+			pinyinRows.push({
+				word: r.word,
+				pinyin: syllables,
+				syllables,
+				rank: typeof r.rank === 'number' ? r.rank : null
+			});
+			const bucket = pinyinIndex.get(norm);
+			if (bucket) bucket.push(i);
+			else pinyinIndex.set(norm, [i]);
+		}
+	}
+}
+
+/** Rows for a set of words, in one query, keyed by word. */
+function rowsForWords(words: string[]): Map<string, RawRow> {
+	const out = new Map<string, RawRow>();
+	if (!words.length) return out;
+	const placeholders = words.map(() => '?').join(',');
+	for (const r of queryAll(
+		cedictDb,
+		`SELECT ${SEARCH_COLUMNS} ${SEARCH_FROM} WHERE c.word IN (${placeholders})`,
+		words
+	)) {
+		out.set(r.word, r as RawRow);
+	}
+	return out;
+}
+
+/**
+ * Search the dictionary by hanzi, pinyin (with or without tones) or English.
+ * The query kind is detected, not chosen by the reader — typing "hao3", "hǎo",
+ * "好" or "good" all just work. Results are ranked by how well they match and,
+ * within that, by how common the word is.
+ */
+export async function searchDictionary(query: string, limit = 40): Promise<SearchHit[]> {
+	const q = (query ?? '').trim();
+	const kind = queryKind(q);
+	if (kind === 'empty') return [];
+	if (!cedictDb) await loadCedict();
+
+	if (kind === 'hanzi') return sortHits(await searchHanzi(q)).slice(0, limit);
+	if (kind === 'pinyin') return sortHits(await searchPinyin(q)).slice(0, limit);
+	if (kind === 'english') return sortHits(await searchEnglish(q)).slice(0, limit);
+
+	// Ambiguous latin ("long", "man", "love"): search both and let the scores
+	// settle it. One word's row can come back from both, so the better score wins.
+	const [byPinyin, byEnglish] = await Promise.all([searchPinyin(q), searchEnglish(q)]);
+	const merged = new Map<string, SearchHit>();
+	for (const hit of [...byPinyin, ...byEnglish]) {
+		const key = hit.simplified + hit.syllables;
+		const seen = merged.get(key);
+		if (!seen || hit.score > seen.score) merged.set(key, hit);
+	}
+	return sortHits([...merged.values()]).slice(0, limit);
+}
+
+/** Words written with the query: the whole word, then prefixes, then anywhere. */
+async function searchHanzi(q: string): Promise<SearchHit[]> {
+	const rows = queryAll(
+		cedictDb,
+		`SELECT ${SEARCH_COLUMNS} ${SEARCH_FROM}
+		 WHERE c.word = ? OR c.traditional = ? OR c.word LIKE ? OR c.word LIKE ? OR c.traditional LIKE ?
+		 ORDER BY CASE WHEN c.rank IS NULL THEN 1 ELSE 0 END, c.rank ASC
+		 LIMIT 400`,
+		[q, q, `${q}%`, `%${q}%`, `%${q}%`]
+	) as RawRow[];
+	return toHits(rows, 'hanzi', (row) => scoreHanzi(row.word, q, row.rank));
+}
+
+/** Words read as the query, tones optional. */
+async function searchPinyin(q: string): Promise<SearchHit[]> {
+	ensurePinyinIndex();
+	const norm = normalizePinyin(q);
+	if (!norm) return [];
+	const picked = new Map<string, true>();
+
+	const take = (i: number) => picked.set(pinyinRows[i].word, true);
+	for (const i of pinyinIndex!.get(norm) ?? []) take(i);
+	if (picked.size < 400) {
+		for (const [key, bucket] of pinyinIndex!) {
+			if (key !== norm && key.startsWith(norm)) for (const i of bucket) take(i);
+			if (picked.size >= 400) break;
+		}
+	}
+	if (picked.size < 40) {
+		for (const [key, bucket] of pinyinIndex!) {
+			if (!key.startsWith(norm) && key.includes(norm)) for (const i of bucket) take(i);
+			if (picked.size >= 200) break;
+		}
+	}
+
+	const words = [...picked.keys()].slice(0, 400);
+	const byWord = rowsForWords(words);
+	const rows = words.map((w) => byWord.get(w)).filter(Boolean) as RawRow[];
+	// The tone the reader typed, if any, only breaks ties — a wrong-tone match is
+	// still shown, just below the right-tone one.
+	const wantsTones = hasToneMarker(q) ? normalizeTypedTones(q) : '';
+	// A word matches on its best reading, not its first — 行 lists heng2 first
+	// but is looked up as xing2 or hang2.
+	return toHits(rows, 'pinyin', (row, readings) =>
+		Math.max(
+			...readings.map((syl) =>
+				scorePinyin(syl, norm, row.rank, wantsTones !== '' && numberedTones(syl) === wantsTones)
+			),
+			0
+		)
+	);
+}
+
+/**
+ * Words glossed with the query. cedict packs every sense into one slash-joined
+ * `eng_Tran`, so the LIKE is a coarse filter and the scoring decides what each
+ * hit is worth.
+ */
+async function searchEnglish(q: string): Promise<SearchHit[]> {
+	const rows = queryAll(
+		cedictDb,
+		`SELECT ${SEARCH_COLUMNS} ${SEARCH_FROM}
+		 WHERE c.eng_Tran LIKE ?
+		 ORDER BY CASE WHEN c.rank IS NULL THEN 1 ELSE 0 END, c.rank ASC
+		 LIMIT 600`,
+		[`%${q}%`]
+	) as RawRow[];
+	return toHits(rows, 'english', (row) =>
+		scoreEnglish(commonMeaningOf(row.eng_Tran, row.definitions), q, row.rank)
+	);
+}
+
+/** Tone digits of a numbered-pinyin string: "ni3 hao3" -> "33". */
+function numberedTones(syllables: string): string {
+	return (syllables.match(/[1-5]/g) ?? []).join('');
+}
+
+/** Tone digits the reader typed, whether as digits ("hao3") or marks ("hǎo"). */
+function normalizeTypedTones(q: string): string {
+	const digits = q.match(/[1-5]/g);
+	if (digits) return digits.join('');
+	const marks: Record<string, string> = { '̄': '1', '́': '2', '̌': '3', '̀': '4' };
+	return [...q.normalize('NFD')]
+		.map((c) => marks[c] ?? '')
+		.join('');
+}
+
+/** Words containing `char`, most common first — the "words with this character" list. */
+export async function wordsContaining(char: string, limit = 12): Promise<SearchHit[]> {
+	if (!cedictDb) await loadCedict();
+	const rows = queryAll(
+		cedictDb,
+		`SELECT ${SEARCH_COLUMNS} ${SEARCH_FROM}
+		 WHERE c.word LIKE ? AND LENGTH(c.word) > 1
+		 ORDER BY CASE WHEN c.rank IS NULL THEN 1 ELSE 0 END, c.rank ASC
+		 LIMIT ?`,
+		[`%${char}%`, limit]
+	) as RawRow[];
+	return toHits(rows, 'hanzi', (row) => commonness(row.rank));
+}
+
+/** A character built from `component`, for the "characters sharing this part" list. */
+export interface RelatedCharacter {
+	character: string;
+	pinyin: string;
+	definition: string;
+	decomposition: string;
+	rank: number | null;
+}
+
+/**
+ * Characters whose decomposition names `component` — the deck's "character
+ * relations" fan, computed rather than stored. The `character` table is 9.5k
+ * rows, so the LIKE scan is cheap; ordering joins cedict's frequency rank so the
+ * characters a learner will actually meet come first.
+ */
+export async function charactersWithComponent(
+	component: string,
+	limit = 24
+): Promise<RelatedCharacter[]> {
+	if (!cedictDb) await loadCedict();
+	const rows = queryAll(
+		cedictDb,
+		`SELECT ch.character AS character, ch.definition AS definition, ch.pinyin AS pinyin,
+		        ch.decomposition AS decomposition, c.rank AS rank
+		 FROM character ch LEFT JOIN cedict c ON c.word = ch.character
+		 WHERE ch.decomposition LIKE ? AND ch.character != ?
+		 ORDER BY CASE WHEN c.rank IS NULL THEN 1 ELSE 0 END, c.rank ASC
+		 LIMIT ?`,
+		[`%${component}%`, component, limit]
+	);
+	return rows.map((r) => ({
+		character: r.character,
+		pinyin: safeJSON<string[]>(r.pinyin, []).join(' / '),
+		definition: shortCharDef(r.definition || ''),
+		decomposition: r.decomposition || '',
+		rank: typeof r.rank === 'number' ? r.rank : null
 	}));
 }

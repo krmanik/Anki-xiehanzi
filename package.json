@@ -11,7 +11,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "build:hsk": "node scripts/build-hsk-data.mjs",
-    "build:pdf-fonts": "python3 scripts/build_pdf_fonts.py"
+    "build:hsk-decks": "node --max-old-space-size=8192 scripts/build-hsk-decks.mjs",
+    "build:radicals": "node scripts/build-radical-data.mjs",
+    "build:radical-deck": "node scripts/build-radical-deck.mjs",
+    "build:pdf-fonts": "python3 scripts/build_pdf_fonts.py",
+    "preview:radical-card": "node scripts/preview-radical-card.mjs"
   },
   "dependencies": {
     "@hiseb/confetti": "^2.1.0",

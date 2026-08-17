@@ -7,6 +7,8 @@
 # Generated files
 .docusaurus
 .cache-loader
+# Scraped pages, glyph SVGs and TTS clips the offline builders re-use
+/.cache
 .svelte-kit
 /.vercel
 /.netlify
@@ -27,6 +29,10 @@ yarn-error.log*
 
 Anki-xiehanzi - New HSK (2025).apkg
 Anki-xiehanzi - New HSK (2025) with sentences.apkg
+
+# Prebuilt per-level decks (uploaded as GitHub Release assets) + their audio cache
+/dist-decks
+/.cache
 
 cedict.db
 hsk_sentences.db

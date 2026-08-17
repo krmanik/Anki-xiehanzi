@@ -41,6 +41,7 @@
 	const nav = [
 		{ href: `${base}/create`, label: 'Create' },
 		{ href: `${base}/hsk`, label: 'HSK' },
+		{ href: `${base}/radicals`, label: 'Radicals' },
 		{ href: `${base}/docs`, label: 'Docs' }
 	];
 

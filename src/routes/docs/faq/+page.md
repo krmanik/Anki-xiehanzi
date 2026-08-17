@@ -20,6 +20,15 @@ Download an `.apkg` from the <a href="{base}/hsk#decks">decks page</a>, then in 
 **File → Import** and select the file. Before importing, back up your collection with scheduling
 information.
 
+### Can I get just one HSK level?
+
+Each list is one download — New HSK (2025) or Old HSK (2012) — on the
+<a href="{base}/hsk">HSK page</a>, with audio, example sentences and stroke order already inside.
+Every level is a subdeck of it, so you can study, suspend or delete a level on its own after
+importing. Nothing is generated in your browser, so there is no wait. If you want one level as its
+own file or a different card layout, the <a href="{base}/create">Create</a> tool can build any HSK
+level from scratch with your own fields and card types.
+
 ### Can I make my own deck?
 
 Yes. Use the <a href="{base}/create">Create</a> tool. Enter words, a paragraph or upload a word

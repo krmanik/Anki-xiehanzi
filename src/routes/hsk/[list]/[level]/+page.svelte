@@ -18,8 +18,16 @@
 		type HskListMeta,
 		type SortMode
 	} from '$lib/hsk';
+	import {
+		deckUrl,
+		findDeck,
+		formatBytes,
+		loadHskDecks,
+		type HskDeckManifest
+	} from '$lib/hskDecks';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Download from '@lucide/svelte/icons/download';
+	import FileDown from '@lucide/svelte/icons/file-down';
 	import LayoutGrid from '@lucide/svelte/icons/layout-grid';
 	import Rows3 from '@lucide/svelte/icons/rows-3';
 	import Search from '@lucide/svelte/icons/search';
@@ -41,6 +49,18 @@
 	let pageNo = $state(1);
 	let openWord = $state<string | null>(null);
 	let showExport = $state(false);
+	let deckManifest = $state<HskDeckManifest | null>(null);
+
+	/**
+	 * The ready-made .apkg for this list, when one has been published. It is one
+	 * file per list, every level a subdeck — there is no per-level download.
+	 */
+	const prebuilt = $derived(findDeck(deckManifest, listId));
+
+	$effect(() => {
+		loadHskDecks().then((m) => (deckManifest = m));
+	});
+
 
 	const meta = $derived(lists.find((l) => l.id === listId) ?? null);
 	const levelMeta = $derived(meta?.levels.find((l) => l.level === level) ?? null);
@@ -129,12 +149,21 @@
 				<a class={btnSecondary} href={switchHref}>{otherList?.name} instead</a>
 			{/if}
 			<button
-				class="{btnPrimary} inline-flex items-center gap-2"
+				class="{btnSecondary} inline-flex items-center gap-2"
 				onclick={() => (showExport = true)}
 				disabled={loading || !visible.length}
 			>
-				<Download size={15} /> Download
+				<FileDown size={15} /> Export list
 			</button>
+			{#if prebuilt && deckManifest}
+				<a
+					class="{btnPrimary} inline-flex items-center gap-2"
+					href={deckUrl(deckManifest, prebuilt)}
+				>
+					<Download size={15} /> Anki deck · all levels
+					<span class="font-mono text-xs text-neutral-400">{formatBytes(prebuilt.bytes)}</span>
+				</a>
+			{/if}
 		</div>
 	</div>
 

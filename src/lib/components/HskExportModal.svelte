@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { base } from '$app/paths';
 	import { btnPrimary, btnSecondary } from '$lib/buttonStyles';
 	import type { HskEntry } from '$lib/hsk';
 	import {
@@ -17,11 +16,9 @@
 		type ExportContext,
 		type ExportFormat
 	} from '$lib/hskExport';
-	import { PENDING_WORDS_KEY } from '$lib/hskHandoff';
 	import { buildHskPdf } from '$lib/hskPdf';
 	import X from '@lucide/svelte/icons/x';
 	import Download from '@lucide/svelte/icons/download';
-	import Sparkles from '@lucide/svelte/icons/sparkles';
 
 	let {
 		entries,
@@ -42,14 +39,12 @@
 	let columnKeys = $state<string[]>([...DEFAULT_COLUMN_KEYS]);
 	let colorPdf = $state(true);
 	let pdfLandscape = $state(false);
-	let deckAudio = $state(true);
-	let deckExamples = $state(true);
 	let busy = $state(false);
 	let progress = $state(0);
 	let status = $state('');
 
 	/** Formats laid out from the selected fields. */
-	const fielded = $derived(format !== 'json' && format !== 'anki');
+	const fielded = $derived(format !== 'json');
 
 	function toggleColumn(key: string) {
 		columnKeys = columnKeys.includes(key)
@@ -86,22 +81,8 @@
 		return name;
 	}
 
-	/** Hand the word list to the deck creator through sessionStorage. */
-	function openInCreator() {
-		sessionStorage.setItem(
-			PENDING_WORDS_KEY,
-			JSON.stringify({
-				label: `${ctx.listName} · ${ctx.levelLabel}`,
-				words: entries.map((e) => e.s),
-				options: { audio: deckAudio, examples: deckExamples }
-			})
-		);
-		window.location.href = `${base}/create`;
-	}
-
 	async function run() {
 		if (busy) return;
-		if (format === 'anki') return openInCreator();
 
 		busy = true;
 		progress = 0;
@@ -233,54 +214,6 @@
 				Every field of every word, including all readings and their full definitions — the field
 				picker does not apply.
 			</p>
-		{:else if format === 'anki'}
-			<div class="mt-6 rounded-lg border border-indigo-200 bg-indigo-50/60 p-4">
-				<h4 class="flex items-center gap-2 text-sm font-semibold">
-					<Sparkles size={15} class="text-indigo-600" /> Build this level as a deck
-				</h4>
-				<p class="mt-1.5 text-xs leading-relaxed text-neutral-600">
-					These {entries.length.toLocaleString()} words are handed to the deck creator, where you pick
-					the card layout, tone colours and stroke practice, then export a
-					<code class="rounded bg-white px-1 py-0.5">.apkg</code>.
-				</p>
-
-				<div class="mt-3 space-y-2">
-					<label class="flex items-start gap-2 text-xs text-neutral-700">
-						<input
-							type="checkbox"
-							bind:checked={deckAudio}
-							class="mt-0.5 h-4 w-4 shrink-0 accent-neutral-900"
-						/>
-						<span>
-							<strong>Audio</strong> — a text-to-speech clip per word, bundled into the deck.
-							{#if entries.length > 800}
-								<span class="text-neutral-500"
-									>Generated one word at a time, so {entries.length.toLocaleString()} words will take a
-									while.</span
-								>
-							{/if}
-						</span>
-					</label>
-					<label class="flex items-start gap-2 text-xs text-neutral-700">
-						<input
-							type="checkbox"
-							bind:checked={deckExamples}
-							class="mt-0.5 h-4 w-4 shrink-0 accent-neutral-900"
-						/>
-						<span>
-							<strong>Example sentences</strong> — real sentences using the word, with pinyin and a
-							translation, on the back of every card.
-						</span>
-					</label>
-				</div>
-
-				<p class="mt-3 text-xs leading-relaxed text-neutral-600">
-					Both stay editable in the creator. Prefer something ready-made? <a
-						class="font-medium text-indigo-600 underline underline-offset-2"
-						href="{base}/hsk#decks">Download a prebuilt deck</a
-					>.
-				</p>
-			</div>
 		{/if}
 
 		{#if status}
@@ -301,12 +234,8 @@
 				onclick={run}
 				disabled={busy || (fielded && columnKeys.length === 0)}
 			>
-				{#if format === 'anki'}
-					<Sparkles size={15} /> Open deck creator
-				{:else}
-					<Download size={15} />
-					{busy ? 'Preparing…' : `Download .${EXPORT_FORMATS.find((f) => f.id === format)?.ext}`}
-				{/if}
+				<Download size={15} />
+				{busy ? 'Preparing…' : `Download .${EXPORT_FORMATS.find((f) => f.id === format)?.ext}`}
 			</button>
 		</div>
 	</div>

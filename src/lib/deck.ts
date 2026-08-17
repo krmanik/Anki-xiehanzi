@@ -587,6 +587,27 @@ export function stableNoteGuid(word: Word, modelId: string): string {
 	return (h1 >>> 0).toString(36).padStart(7, '0') + (h2 >>> 0).toString(36).padStart(7, '0');
 }
 
+/**
+ * Audio clips fetched at once. The CDN is HTTP/2, so the browser is not capped
+ * at six connections and a dozen in flight is roughly three times faster than
+ * the four-at-a-time this used to do. The offline builder raises it much
+ * further (see scripts/build-hsk-decks.mjs).
+ */
+export const DEFAULT_AUDIO_CONCURRENCY = 12;
+
+/**
+ * Deck id seeded on the deck's name (FNV-1a), in Anki's [2^30, 2^31) range.
+ * Deterministic so rebuilding a deck re-imports onto the same deck instead of
+ * creating a second one next to it.
+ */
+export function stableDeckId(name: string): number {
+	let h = 0x811c9dc5;
+	for (let i = 0; i < name.length; i++) {
+		h = Math.imul(h ^ name.charCodeAt(i), 0x01000193);
+	}
+	return (h >>> 0) % (1 << 30) + (1 << 30);
+}
+
 export interface GenerateDeckOptions {
 	words: Word[];
 	deckName: string;
@@ -598,38 +619,75 @@ export interface GenerateDeckOptions {
 	hskWordsDict: Set<string>;
 	db: any;
 	template?: TemplateOpts;
+	/**
+	 * Which (sub)deck a word belongs in — return `"Parent::Child"` for subdecks.
+	 * Defaults to `deckName` for every word.
+	 */
+	deckFor?: (word: Word) => string;
+	/** How many audio clips to fetch at once (default DEFAULT_AUDIO_CONCURRENCY). */
+	audioConcurrency?: number;
+	/**
+	 * Where a word's clip comes from. The default — CDN recording, then Edge TTS
+	 * — is a browser path: Edge TTS is a browser API and fails under Node with
+	 * "the file buffer is empty" on every word, so the offline builder injects its
+	 * own resolver (disk cache → the HSK submodule's own recordings → CDN → macOS
+	 * `say`) instead.
+	 */
+	getAudio?: (word: string) => Promise<Blob | null>;
 	onProgress?: (value: number) => void;
 	// Smart example-sentence fetcher (injectable for tests). Defaults to the
 	// hsk_sentences.db lookup, loaded lazily only when the Examples field is used.
 	getExamples?: (word: string) => Promise<ExampleSentence[]>;
 }
 
-export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
+/**
+ * Build the .apkg package in memory — notes, media, audio — without writing it.
+ *
+ * Split out of `generateDeck` so the offline deck builder
+ * (`scripts/build-hsk-decks.mjs`) can zip the same package to disk in Node,
+ * where `writeToFile`'s browser download does not exist. The package contents
+ * must stay identical to what the browser exports.
+ */
+export async function buildDeckPackage(opts: GenerateDeckOptions): Promise<any> {
 	const { words, deckName, includeAudio, fields, tabContent, hskWordsDict, db } = opts;
 	const template = opts.template ?? DEFAULT_TEMPLATE;
 	const onProgress = opts.onProgress ?? (() => {});
 
 	onProgress(0);
 
-	const { flds, req, tmpls, css: modelCss, usesWriter } = buildNoteTemplates({
+	// One note type carrying every card type. Its two ids are what every existing
+	// deck was built with, so a rebuild re-imports onto the same note type.
+	const name = includeAudio ? 'Basic - (Anki-xiehanzi)' : 'Basic - (Anki-xiehanzi) - No Audio';
+	const built = buildNoteTemplates({
 		fields,
 		order: opts.order,
 		tabContent,
 		includeAudio,
 		template
 	});
-
-	const m = new Model({
-		name: includeAudio ? 'Basic - (Anki-xiehanzi)' : 'Basic - (Anki-xiehanzi) - No Audio',
+	const model = new Model({
+		name,
 		id: includeAudio ? '1969669503' : '1969669504',
-		flds: flds,
-		css: CONSTANTS.DECK_CSS + modelCss,
-		req: req,
-		tmpls: tmpls
+		flds: built.flds,
+		css: CONSTANTS.DECK_CSS + built.css,
+		req: built.req,
+		tmpls: built.tmpls
 	});
 
-	const deckId = Math.floor(Math.random() * (1 << 30) + (1 << 30));
-	const d = new Deck(deckId, deckName);
+	const usesWriter = built.usesWriter;
+
+	// One deck unless the caller splits the words up (the offline builder puts a
+	// whole word list in one .apkg, one subdeck per HSK level).
+	const deckOf = opts.deckFor ?? (() => deckName);
+	const decks = new Map<string, any>();
+	const deckFor = (name: string) => {
+		let deck = decks.get(name);
+		if (!deck) {
+			deck = new Deck(stableDeckId(name), name);
+			decks.set(name, deck);
+		}
+		return deck;
+	};
 
 	// Smart example sentences are only fetched when the Examples field is used
 	// (the sentences db is a separate ~5MB download), keyed by Simplified word.
@@ -653,16 +711,19 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 		}
 	}
 
-	const modelId = String(m.props.id);
 	words.forEach((word) => {
 		const fmap = buildNoteFields(word, template, examplesMap.get(word.Simplified) ?? []);
-		const note = flds.map((f) => fmap[f.name] ?? '');
-		d.addNote(m.note(note, noteTags(word), stableNoteGuid(word, modelId)));
+		const note = built.flds.map((f) => fmap[f.name] ?? '');
+		deckFor(deckOf(word)).addNote(
+			model.note(note, noteTags(word), stableNoteGuid(word, String(model.props.id)))
+		);
 	});
 
 	const p = new Package();
 	p.setSqlJs(db);
-	p.addDeck(d);
+	// Anki keeps the deck that has notes; an empty package still needs one.
+	if (decks.size === 0) deckFor(deckName);
+	for (const deck of decks.values()) p.addDeck(deck);
 
 	// Image/font media live in /img.
 	const mediaFiles = [
@@ -707,22 +768,38 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 	const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 	const fetchAudio = async (word: string): Promise<Blob | null> => {
+		// An injected resolver owns the whole clip: the offline builder's reaches
+		// local files and macOS `say`, neither of which exists in a browser.
+		if (opts.getAudio) {
+			const blob = await opts.getAudio(word).catch(() => null);
+			progress += 1;
+			onProgress((progress / total) * 100);
+			return blob;
+		}
+
 		// Check if word exists in HSK dictionary first
 		if (hskWordsDict.has(word)) {
 			console.log(`Fetching audio for HSK word: ${word}`);
 			const encodedWord = encodeURIComponent(word);
 			const jsdelivrUrl = `https://cdn.jsdelivr.net/gh/krmanik/HSK-3.0/New%20HSK%20(2025)/Audio/cmn-${encodedWord}.mp3`;
 
-			try {
-				const response = await fetch(jsdelivrUrl);
-				if (response.ok) {
-					const blob = await response.blob();
-					progress += 1;
-					onProgress((progress / total) * 100);
-					return blob;
+			// One retry: with many requests in flight a few drop, and falling
+			// straight through to TTS for those is both slow and worse audio.
+			for (let attempt = 0; attempt < 2; attempt++) {
+				try {
+					const response = await fetch(jsdelivrUrl);
+					if (response.ok) {
+						const blob = await response.blob();
+						progress += 1;
+						onProgress((progress / total) * 100);
+						return blob;
+					}
+					// The CDN says it has no clip for this word — retrying won't help.
+					if (response.status === 404) break;
+				} catch (error) {
+					console.log(`Audio fetch failed for ${word} from jsdelivr:`, error);
 				}
-			} catch (error) {
-				console.log(`Audio fetch failed for ${word} from jsdelivr:`, error);
+				await delay(250);
 			}
 		}
 
@@ -748,49 +825,59 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 		}
 	};
 
-	const batchSize = 4;
-	const fetchBatch = async (batch: string[]) => {
-		const blobs = await Promise.all(batch.map(fetchAudio));
-		blobs.forEach((blob, index) => {
-			if (blob) {
-				p.addMedia(blob, `cmn-${batch[index]}.mp3`);
+	/**
+	 * Audio is fetched by a pool of workers rather than fixed batches: a batch
+	 * only moves on once its slowest member lands, so one stalled clip used to
+	 * idle the other three. Clips are collected first and added in word order
+	 * afterwards, keeping the media list byte-identical whatever order they
+	 * arrive in.
+	 */
+	const fetchAllAudio = async (words: string[], concurrency: number) => {
+		const files = [...new Set(words)];
+		const clips = new Map<string, Blob>();
+		const queue = files.slice();
+		const workers = Array.from({ length: Math.min(concurrency, queue.length) }, async () => {
+			for (;;) {
+				const word = queue.shift();
+				if (word === undefined) return;
+				const blob = await fetchAudio(word);
+				if (blob) clips.set(word, blob);
 			}
 		});
-	};
-
-	const processWordsSequentially = async (files: string[]) => {
-		const totalBatches = Math.ceil(files.length / batchSize);
-		for (let i = 0; i < totalBatches; i++) {
-			const start = i * batchSize;
-			const end = start + batchSize;
-			const currentBatch = files.slice(start, end);
-			await fetchBatch(currentBatch);
+		await Promise.all(workers);
+		for (const word of files) {
+			const blob = clips.get(word);
+			if (blob) p.addMedia(blob, `cmn-${word}.mp3`);
 		}
 	};
 
 	// Only process audio if includeAudio is true
 	if (includeAudio) {
-		await processWordsSequentially(wordFiles);
+		await fetchAllAudio(wordFiles, opts.audioConcurrency ?? DEFAULT_AUDIO_CONCURRENCY);
 	}
 
 	// sidebar icons (/img) + scripts (/data)
-	return Promise.all([
-		...mediaFiles.map((f) => fetchFile(f).then((blob) => ({ blob, name: f }))),
-		...dataFiles.map((f) => fetchDataFile(f).then((blob) => ({ blob, name: f })))
-	])
-		.then((items) => {
-			items.forEach(({ blob, name }) => {
-				if (blob) {
-					p.addMedia(blob, name);
-				}
-			});
-		})
-		.catch((error) => {
-			console.error('Error fetching or adding media:', error);
-		})
-		.finally(async () => {
-			p.writeToFile(`${deckName}.apkg`);
-			onProgress(100);
-			setTimeout(() => onProgress(0), 2000);
+	try {
+		const items = await Promise.all([
+			...mediaFiles.map((f) => fetchFile(f).then((blob) => ({ blob, name: f }))),
+			...dataFiles.map((f) => fetchDataFile(f).then((blob) => ({ blob, name: f })))
+		]);
+		items.forEach(({ blob, name }) => {
+			if (blob) {
+				p.addMedia(blob, name);
+			}
 		});
+	} catch (error) {
+		console.error('Error fetching or adding media:', error);
+	}
+
+	return p;
+}
+
+export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
+	const onProgress = opts.onProgress ?? (() => {});
+	const p = await buildDeckPackage(opts);
+	p.writeToFile(`${opts.deckName}.apkg`);
+	onProgress(100);
+	setTimeout(() => onProgress(0), 2000);
 }

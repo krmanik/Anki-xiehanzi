@@ -12,15 +12,15 @@ Three loosely-coupled parts under one repo:
 
 `main.ipynb` + `HSK Wordlist/` + `card templates/` are the *legacy* offline pipeline that
 generated the released `.apkg` files (8 fields: ID, Simplified, Traditional, Pinyin, Zhuyin, PoS,
-Meaning, Audio). Released decks are now built by `scripts/build-hsk-decks.mjs`, which runs the web
-app's own deck code and carries every field it computes. `HSK Wordlist/` is still the Old HSK 2012
-source for `npm run build:hsk`.
+Meaning, Audio). Released decks are now built by `scripts/build-hsk-decks.mjs`, which runs the web app's own deck
+code and carries every field it computes. `HSK Wordlist/` is still the Old
+HSK 2012 source for `npm run build:hsk`.
 
 ## Commands
 
 ```bash
 npm run build:hsk    # regenerate static/data/hsk/*.json from cedict.db + the word lists
-npm run build:hsk-decks  # pre-build one .apkg per HSK level into dist-decks/ (slow: audio)
+npm run build:hsk-decks  # pre-build one .apkg per HSK word list into dist-decks/
 npm run build:radicals   # regenerate static/data/radicals/ (Wikipedia + cedict + zdic; slow first run)
 npm run build:radical-deck  # build dist-decks/Anki-xiehanzi-Kangxi-Radicals.apkg
 npm run preview:radical-card # render the cards to dist-decks/radical-card.html (design check)
@@ -90,41 +90,68 @@ A separate, much lighter stack from the deck generator — it must never pull th
   is pure and unit-tested.
   The CJK subset is ~4 MB and is fetched only on the first PDF export.
 - **`scripts/build-hsk-decks.mjs`** (`npm run build:hsk-decks`) — offline deck
-  builder. Two shapes per list: one `.apkg` per HSK level (`--levels`) and one
-  holding the whole list with a subdeck per level (`--whole`), the successor to
-  what `main.ipynb` used to publish. `/hsk` then hands out a direct download
-  instead of making every visitor generate the same deck (and its thousands of
-  audio clips) in the browser.
-  Notes get four card types — Audio / Meaning / Pinyin / Write (`--cards single`
-  for one) — and every field the dictionary layer computes: common meaning, full
-  definitions, character breakdown, radical, HSK level, frequency, example
-  sentences, audio, stroke practice.
+  builder. **One `.apkg` per word list**, holding the whole list with a subdeck
+  per level, the successor to what `main.ipynb` used to publish. `/hsk` hands out
+  the file directly instead of making every visitor generate the same deck (and
+  its ~16,000 audio clips) in the browser.
+  **One note and one card per word** — hanzi + audio on the front, everything on
+  the back: common meaning (`SimpleMeaning`), full definitions, breakdown,
+  radical, HSK level, frequency, example sentences and the stroke-practice grid.
+  The released decks' four note types + four subdecks per level (`HSK 1::Audio`,
+  `::Meaning`, `::Pinyin`, `::Write`) are gone: they quadrupled the notes and the
+  deck tree for the same words, and per-level `.apkg` files are gone with them.
+  Card layout is `scripts/lib/deck-layout.mjs`, so the builder and any preview
+  script describe the same deck.
+  **The card is the app's own design** (`deck.ts` → `deckTemplate.ts` +
+  `CONSTANTS.DECK_CSS`) — the `char-card` hanzi, the `modal-footer1` control bar,
+  the sidebar of field switches, i.e. what `/create` exports and what the
+  released v2.x decks looked like. The premium line's panel layout is a separate
+  product; **nothing in `scripts/` reads from `premium/`** and the free deck is
+  not a premium subset.
   It runs the *real* browser code (`src/lib/deck.ts` → `buildDeckPackage`) under
   the Node shims in `scripts/lib/node-env.mjs`, which (a) resolve `$app/paths` to
   a stub whose `base` is the absolute path of `static/` and (b) serve every
-  resulting `${base}/data/…` fetch from disk. Audio comes off the HSK CDN at
-  `--audio-concurrency` (48) in flight and is cached in `.cache/hsk-audio`
-  between runs — a full rebuild is ~2 minutes warm; the ~1% of words with no CDN
-  clip end up silent (Edge TTS does not work outside a browser). The 31 MB
-  stroke-data blob is subset to the characters that deck actually uses.
-  Output goes to `dist-decks/` (gitignored — upload as GitHub Release assets,
-  see `.github/workflows/build-hsk-decks.yml`); the only committed artefact is
-  `static/data/hsk/decks.json`, where the whole-list deck is the entry with
-  `level: "all"`.
+  resulting `${base}/data/…` fetch from disk.
+  **Audio is injected, not left to `deck.ts`.** Its browser path ends in Edge
+  TTS, which is a browser API and fails under Node with "the file buffer is
+  empty" on every word — a screenful of stack traces and a silent clip. The
+  builder passes `getAudio`, which tries, in order: the clip cache in
+  `.cache/hsk-audio` (keyed by word; clips from the older url-hash cache are
+  moved across on sight) · **the submodule's own `New HSK (2025)/Audio` folder**,
+  so a full build of that list needs no network · the CDN, for words the checkout
+  has not got (the 2012 list has no folder of its own) · macOS `say` via
+  `scripts/lib/say.mjs`, whose output is checked with `afinfo` and transcoded
+  with `lame`, because the note names an `.mp3` and a valid-but-silent file
+  passes every other test. Every clip in a build is reported by source.
+  **Stroke data ships whole, never subset** — see `buildHanziData` in `deck.ts`:
+  both list decks claim the media name `_hanzi-writer-data.json`, and Anki keys
+  media by name across the collection, so two different subsets would have the
+  second import strip characters from the first.
+  Output goes to `dist-decks/` (gitignored — upload as GitHub Release assets by
+  hand); the only committed artefact is `static/data/hsk/decks.json`, one entry
+  per list (`new`, `old`).
+- **The v2.3 decks stay linked, not rebuilt.** `DeckLibrary`'s `v23` list points
+  at the release assets of the four-card-type decks `main.ipynb` built. People
+  mid-collection should not be pushed onto a differently-shaped deck. Those two
+  downloads and the "Which list should I learn?" comparison are **always-open
+  sections at the foot of the page**, not the disclosure — nobody opens a
+  collapsible to find out which of two lists applies to them. Only the 2021
+  AnkiWeb decks stay behind `<details>`.
 - **`src/lib/hskDecks.ts`** — the manifest loader plus pure lookup/format
-  helpers. A level with no entry falls back to the deck creator, so the manifest
-  may lag behind the word lists.
+  helpers, keyed by list. A list with no entry falls back to the deck creator, so
+  the manifest may lag behind the word lists.
 - **`src/lib/hskHandoff.ts`** — the sessionStorage bridge that used to carry a
   level's word list from `/hsk` to `/create`. **Currently has no producer**: the
   HSK export modal is file formats only now (a level's deck is the prebuilt
   download), and `/create` builds HSK levels through its own level picker in
   `WordSourceInput`. The consuming code in `WordSourceInput` /
   `create/+page.svelte` is still wired up, so a new producer would just work.
-- Routes: `src/lib/components/DeckLibrary.svelte` holds the merged landing page
-  — one level grid per list, each card carrying both the prebuilt `.apkg`
-  download and the link into the word-list browser (`#decks` / `#lists` both
-  still resolve to it) — rendered by both `/hsk` (canonical) and `/decks` (the
-  older URL, kept alive). `src/routes/hsk/[list]/[level]/+page.svelte` is the level browser and
+- Routes: `src/lib/components/DeckLibrary.svelte` holds the merged landing page,
+  ordered **what the project makes first** (radicals · premium · deck creator),
+  **the HSK downloads below** — one card per list with a single download button
+  and the level chips linking into the word-list browser, not into downloads
+  (`#decks` / `#lists` both still resolve to that section) — rendered by both
+  `/hsk` (canonical) and `/decks` (the older URL, kept alive). `src/routes/hsk/[list]/[level]/+page.svelte` is the level browser and
   export. The dynamic route needs explicit `entries()` in its `+page.ts` — the
   site is client-rendered, so the prerenderer cannot crawl to it.
 

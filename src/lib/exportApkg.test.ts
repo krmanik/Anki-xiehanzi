@@ -19,7 +19,7 @@ vi.mock('@kingdanx/edge-tts-browser', () => ({
 }));
 vi.mock('jieba-wasm', () => ({ default: async () => {}, cut: () => [] }));
 
-import { generateDeck, commonReadingIndex, displayReadings, buildNoteFields, renderCardHtml, noteTags, stableNoteGuid, type Word } from './deck';
+import { generateDeck, stableDeckId, commonReadingIndex, displayReadings, buildNoteFields, renderCardHtml, noteTags, stableNoteGuid, type Word } from './deck';
 import { DEFAULT_TEMPLATE, type TabContent } from './deckTemplate';
 import type { Reading } from './dict/cedict';
 
@@ -318,6 +318,56 @@ describe('generateDeck — real .apkg round-trip', () => {
 		// can be toggled independently of the main card via the sidebar.
 		expect(flds).toContain('<span class="ex-tone4">这</span>');
 		expect(flds).toContain('<span class="ex-tone1">zhōng</span>');
+
+		cdb.close();
+		db.close();
+	}, 20000);
+});
+
+describe('deck splitting', () => {
+	it('gives every deck name a stable id in Anki’s range', () => {
+		const id = stableDeckId('Anki xiehanzi::New HSK (2025)::HSK 1');
+		expect(id).toBe(stableDeckId('Anki xiehanzi::New HSK (2025)::HSK 1'));
+		expect(id).not.toBe(stableDeckId('Anki xiehanzi::New HSK (2025)::HSK 2'));
+		expect(id).toBeGreaterThanOrEqual(1 << 30);
+		expect(id).toBeLessThan(2 ** 31);
+	});
+
+	it('puts words in the subdeck `deckFor` names, keeping one note each', async () => {
+		const SQL = await loadSql();
+		const db = new SQL.Database();
+		h.saved = null;
+
+		const other: Word = { ...word(), Simplified: '美国', Traditional: '美國', level: 'new-2' };
+		await generateDeck({
+			words: [word(), other],
+			deckName: 'Whole list',
+			includeAudio: false,
+			fields: ['Simplified', 'Pinyin'],
+			tabContent: {
+				'Card 1': { front: ['frontSimplified'], back: ['backPinyin'], additional: [], elementStyles: {} }
+			},
+			hskWordsDict: new Set<string>(),
+			db,
+			deckFor: (w) => `Whole list::${w.level === 'new-1' ? 'HSK 1' : 'HSK 2'}`,
+			onProgress: () => {}
+		});
+
+		const start = Date.now();
+		while (!h.saved && Date.now() - start < 8000) {
+			await new Promise((r) => setTimeout(r, 25));
+		}
+		const zip = await JSZip.loadAsync(await h.saved!.arrayBuffer());
+		const cdb = new SQL.Database(await zip.file('collection.anki2')!.async('uint8array'));
+
+		const decks = JSON.parse(cdb.exec('SELECT decks FROM col')[0].values[0][0] as string);
+		const names = Object.values(decks).map((d: any) => d.name);
+		expect(names).toContain('Whole list::HSK 1');
+		expect(names).toContain('Whole list::HSK 2');
+		// One card per note, each in its own subdeck.
+		const dids = cdb.exec('SELECT DISTINCT did FROM cards')[0].values.map((r) => String(r[0]));
+		expect(dids).toHaveLength(2);
+		expect(cdb.exec('SELECT count(*) FROM notes')[0].values[0][0]).toBe(2);
 
 		cdb.close();
 		db.close();

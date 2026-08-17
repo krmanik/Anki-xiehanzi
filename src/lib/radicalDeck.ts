@@ -120,7 +120,7 @@ const asOptions = (spec: Edition | RadicalDeckOptions = 'premium'): RadicalDeckO
 /**
  * Recognition and writing ship as **separate decks**, each with its own note
  * type: one to study, one to practise, suspendable and schedulable apart from
- * each other. (The word decks do the same — see `cardTypeDecks` in `deck.ts`.)
+ * each other. (The premium word decks do the same, one model per card kind.)
  *
  * Every id here is distinct from the HSK note types (`1969669503`/`4`) and from
  * each other: two note types sharing an id makes importing one rewrite the

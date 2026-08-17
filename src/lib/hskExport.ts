@@ -235,7 +235,9 @@ export async function toDocx(rows: string[][], title: string): Promise<Blob> {
 // Format registry + download helper
 // ---------------------------------------------------------------------------
 
-export type ExportFormat = 'csv' | 'txt' | 'xlsx' | 'docx' | 'pdf' | 'json' | 'anki';
+// File formats only. Anki decks are not generated here — every level has a
+// prebuilt .apkg (see $lib/hskDecks), which is a direct download.
+export type ExportFormat = 'csv' | 'txt' | 'xlsx' | 'docx' | 'pdf' | 'json';
 
 export interface FormatMeta {
 	id: ExportFormat;
@@ -250,8 +252,7 @@ export const EXPORT_FORMATS: FormatMeta[] = [
 	{ id: 'docx', label: 'Word', ext: 'docx', hint: 'Formatted table document' },
 	{ id: 'pdf', label: 'PDF', ext: 'pdf', hint: 'Print-ready, tone coloured' },
 	{ id: 'txt', label: 'Text', ext: 'txt', hint: 'Tab separated plain text' },
-	{ id: 'json', label: 'JSON', ext: 'json', hint: 'Full data, every field' },
-	{ id: 'anki', label: 'Anki deck', ext: 'apkg', hint: 'Build it in the deck creator' }
+	{ id: 'json', label: 'JSON', ext: 'json', hint: 'Full data, every field' }
 ];
 
 /** "new HSK 7-9" -> "New-HSK-2025-HSK-7-9" — safe on every OS. */

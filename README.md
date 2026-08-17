@@ -23,9 +23,10 @@ Works in [Anki Desktop](https://apps.ankiweb.net/),
 Browse every [HSK word list](https://krmanik.github.io/Anki-xiehanzi/hsk) —
 Old HSK (2012) levels 1–6 and New HSK 3.0 (2025) levels 1–9 — with tone-coloured
 hanzi and pinyin, zhuyin, traditional forms, part of speech, classifiers and
-frequency. Any level downloads free as CSV, Excel, Word, PDF, plain text or JSON,
-or opens straight in the deck creator as an Anki deck with audio and example
-sentences. The same page holds the ready-made decks below.
+frequency. Any level downloads free as CSV, Excel, Word, PDF, plain text or JSON
+— and each list has one ready-made Anki deck: a single `.apkg` with every level
+as a subdeck, audio, example sentences and stroke order already inside, nothing
+to generate in your browser.
 
 ## Shop
 
@@ -37,10 +38,29 @@ Premium decks and extras are available at the
 
 ---
 
-## Download the deck — New HSK (2025-11)
+## Download a deck
 
-- [Anki-xiehanzi — New HSK (2025).apkg](https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.3/Anki-xiehanzi.-.New.HSK.2025.apkg)
-- [Anki-xiehanzi — New HSK (2025) with sentences.apkg](https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.3/Anki-xiehanzi.-.New.HSK.2025.with.sentences.apkg)
+Every deck is on the [HSK page](https://krmanik.github.io/Anki-xiehanzi/hsk) — one file per word
+list, one click:
+
+- **New HSK 2025** — 8.4 MB, 10,900 words, levels 1–7/9.
+- **Old HSK 2012** — 7.0 MB, 4,992 words, levels 1–6.
+
+Every level is a subdeck of the one import, so a level can still be studied or suspended on its
+own. Each word is **one note and one card**: hanzi and native audio on the front; traditional form,
+tone-marked pinyin, zhuyin, common meaning, full CC-CEDICT definitions, character breakdown,
+radical, part of speech, HSK band, frequency, example sentences and a stroke-practice grid on the
+back. The card's sidebar switches any field on or off, and the stroke data ships in the deck, so it
+all works offline.
+
+Separate writing cards, a redesigned card layout and a built-in offline dictionary are in the
+[premium deck](https://www.patreon.com/krmani/posts/anki-xie-hanzi-3-166350823).
+
+The **previous version (v2.3)** — four card types per level, from the legacy `main.ipynb` pipeline —
+is still a direct download:
+[New HSK (2025)](https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.3/Anki-xiehanzi.-.New.HSK.2025.apkg)
+·
+[with sentences](https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.3/Anki-xiehanzi.-.New.HSK.2025.with.sentences.apkg)
 
 Import via **File → Import** in Anki.
 

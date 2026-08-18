@@ -156,7 +156,7 @@
 			{/if}
 			<button
 				type="button"
-				onclick={() => speak(char)}
+				onclick={() => speak(char, { pinyin: info?.pinyin?.split(/[\s/]+/)[0] })}
 				class="mx-auto mt-2 flex items-center gap-1.5 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-[11px] text-neutral-500 transition hover:border-neutral-900 hover:text-neutral-900"
 			>
 				<Volume2 size={13} /> Listen
@@ -354,7 +354,12 @@
 						<li class="border-l-2 border-neutral-100 pl-3">
 							<button
 								type="button"
-								onclick={() => speak(sentence.simplified)}
+								onclick={() =>
+									speak(sentence.simplified, {
+										pinyin: sentence.pinyin,
+										spacing: 0.055,
+										skipRecording: true
+									})}
 								class="text-left text-lg leading-snug"
 								lang="zh-Hans"
 							>

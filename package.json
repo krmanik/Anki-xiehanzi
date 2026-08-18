@@ -13,6 +13,7 @@
 		"build:hsk": "node scripts/build-hsk-data.mjs",
 		"build:hsk-decks": "node --max-old-space-size=8192 scripts/build-hsk-decks.mjs",
 		"build:dict": "node scripts/build-dict-data.mjs",
+		"build:syllables": "python3 scripts/build_syllable_audio.py",
 		"build:radicals": "node scripts/build-radical-data.mjs",
 		"build:radical-deck": "node scripts/build-radical-deck.mjs",
 		"build:pdf-fonts": "python3 scripts/build_pdf_fonts.py",

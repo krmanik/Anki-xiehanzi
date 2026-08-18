@@ -24,6 +24,7 @@
 		type SearchHit
 	} from '$lib/dictionary';
 	import { speak } from '$lib/dict/audio';
+	import { preloadSyllables } from '$lib/dict/syllableAudio';
 	import { colorizePinyinString, colorizeSentenceHanzi, toneOfPinyin } from '$lib/tone';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -59,6 +60,12 @@
 
 	const levels = $derived(levelLabels(entry?.level ?? null));
 	const band = $derived(frequencyBand(entry?.rank ?? null));
+
+	// The offsets table is ~60 KB and answers "can this be spoken"; the 3 MB
+	// sprite itself still waits for an actual click.
+	$effect(() => {
+		preloadSyllables();
+	});
 
 	$effect(() => {
 		const w = word;
@@ -153,7 +160,7 @@
 				<div class="flex flex-col items-end gap-2">
 					<button
 						type="button"
-						onclick={() => speak(entry!.simplified)}
+						onclick={() => speak(entry!.simplified, { pinyin: readings[0]?.syllable })}
 						class="flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs text-neutral-500 transition hover:border-neutral-900 hover:text-neutral-900"
 					>
 						<Volume2 size={14} /> Listen
@@ -184,9 +191,15 @@
 							{#if reading.zhuyin}
 								<span class="text-sm text-neutral-400">{plainZhuyin(reading.zhuyin)}</span>
 							{/if}
+							<!-- This reading, not the word's most common one: the sprite can say
+							     either, so the button beside fèn must not play fēn. -->
 							<button
 								type="button"
-								onclick={() => speak(entry!.simplified)}
+								onclick={() =>
+									speak(entry!.simplified, {
+										pinyin: reading.syllable,
+										skipRecording: reading.syllable !== readings[0]?.syllable
+									})}
 								aria-label="Play {reading.pinyinPlain}"
 								class="text-neutral-300 transition hover:text-neutral-900"
 							>
@@ -278,7 +291,12 @@
 							<div class="min-w-0">
 								<button
 									type="button"
-									onclick={() => speak(sentence.simplified)}
+									onclick={() =>
+										speak(sentence.simplified, {
+											pinyin: sentence.pinyin,
+											spacing: 0.055,
+											skipRecording: true
+										})}
 									class="text-left text-lg leading-snug"
 									lang="zh-Hans"
 								>

@@ -22,6 +22,7 @@ HSK 2012 source for `npm run build:hsk`.
 npm run build:hsk    # regenerate static/data/hsk/*.json from cedict.db + the word lists
 npm run build:hsk-decks  # pre-build one .apkg per HSK word list into dist-decks/
 npm run build:dict   # regenerate static/data/dict/ (etymology + stroke names)
+npm run build:syllables  # regenerate static/data/audio/syllables/*.mp3 (needs the Qwen TTS server + ffmpeg + librosa)
 npm run build:radicals   # regenerate static/data/radicals/ (Wikipedia + cedict + zdic; slow first run)
 npm run build:radical-deck  # build dist-decks/Anki-xiehanzi-Kangxi-Radicals.apkg
 npm run preview:radical-card # render the cards to dist-decks/radical-card.html (design check)
@@ -210,9 +211,83 @@ then drill into any character of it.
 - **The word bag is the `hskHandoff` bridge's new producer.** Starred words go
   to sessionStorage via `setPendingWords()` and `/create` picks them up in
   `WordSourceInput` — the consumer had been sitting there with nobody feeding it.
-- Audio is `dict/audio.ts`: the HSK 2025 CDN recording first, Edge TTS
-  (lazily imported) otherwise. Deliberately not `deck.ts#playWordAudio`, which
-  drags in genanki-js, sql.js and jieba-wasm.
+- **Audio has three tiers** (`dict/audio.ts`), because the CDN only covers HSK:
+  1. the HSK 2025 recording on jsDelivr — a real speaker, ~11,000 words;
+  2. **the syllable sprite** — one clip per Mandarin syllable, scheduled back to
+     back, which covers all 120,000 cedict words and every example sentence;
+  3. Edge TTS, lazily imported, for anything with no pinyin to work from.
+  Deliberately not `deck.ts#playWordAudio`, which drags in genanki-js, sql.js
+  and jieba-wasm.
+- **Per-syllable audio** (`npm run build:syllables` → one
+  `static/data/audio/syllables/<syllable>.mp3` per syllable plus
+  `syllables.json`; 1,454 clips, 6 MB, speaking **99.8%** of cedict's words):
+  Mandarin has ~1,600 toned syllables in the whole dictionary, so one clip each
+  covers every word there will ever be, and the browser plays a word's syllables
+  back to back. 从零开始 has no recording of its own and used to make no sound
+  outside Edge browsers.
+  - **Qwen3-TTS generates the clips**, through the mlx-audio FastAPI server in
+    the hanzi-slides project (`backend/server.py`, `POST /tts`). The builder is
+    `scripts/build_syllable_audio.py` — Python, not `.mjs`, because the tone
+    check below needs librosa.
+  - **Feed hanzi, never pinyin.** Asked to read "bā", Qwen renders latin text
+    with utterance-final intonation: f0 falls ~8 semitones, which is a fourth
+    tone. Asked to read 八, it holds level. Measured, not assumed (bā −7.9 st vs
+    八 +2.2; mā −9.9 vs 妈 +1.1).
+  - **Which character speaks a syllable is the same problem the radical deck
+    has**: a TTS gives a character its default reading, so a character is used
+    only when cedict gives it exactly one reading, or when it is a
+    single-character HSK word whose listed pinyin is this syllable. Matching any
+    reading of any character is what would ship 白 bai2 as "bó". Readings are
+    case-folded and deduped first — cedict lists 牛 as `["niu2", "Niu2"]`, one
+    reading written twice.
+  - **A tone-ambiguous character is admitted only under measurement.** 论 is
+    lún/lùn, 跑 pǎo/páo — readings that differ *only* in tone, so a clip carrying
+    the right tone is the right syllable by construction. A character whose
+    readings differ by more than tone (着 zhāo/zhe/zháo/zhuó) is never used: a
+    tone match there could still be the wrong syllable.
+  - **What no character can say is cut out of a word.** No character is listed as
+    neutral on its own (服 is fú; fu5 exists only inside 衣服), and asked for 散
+    the voice says sǎn when 100 words need sàn. So the syllable is taken from the
+    commonest two-character word carrying it — 儿子, 石头, 认识, 丈夫, 扩散, 遇难 —
+    and **the cut is proved by the half that is thrown away**: if that piece
+    carries the tone the word says it has, the split landed on the boundary.
+    Several candidate cut points are tried (a stop consonant inside a syllable is
+    quieter than the boundary between two) and the window is wide, because 灾难's
+    boundary sits at 0.3 of the clip, not the middle.
+  - **Every clip's tone is verified, not trusted.** `tone_of_clip` classifies the
+    f0 contour (slope, range, dip in semitones around the clip's own median) and
+    compares it with the tone the syllable claims. The thresholds are calibrated
+    against 300 human HSK recordings whose tone the word list states, and agree
+    with 91% of them (99% tone 1, 94% tone 2, 84% tone 3, 88% tone 4); tone 3
+    against tone 2 is the weak pair, because half-third tone genuinely rises. So
+    it is a **screen, not a judge**: a clip that fails is regenerated through the
+    next candidate character, and one that never passes is still written but
+    listed under `unverified` in the index — 149 of 1,454, which is about what
+    the classifier's own error rate predicts, so it is a listening list, not a
+    defect list. `dist-decks/syllable-review.html` (see the build script) plays
+    them in a browser.
+    Two calibration details that cost real accuracy: the contour's **onset glide
+    and final creak are trimmed** (8%/97%), because an isolated tone-1 syllable
+    drifts down at the end and a naive classifier called 17 of 48 human tone-1
+    clips "tone 4"; and trimming the *tail* symmetrically hides the fourth tone's
+    fall, which sent 29 tone-4 clips to "tone 1".
+  - **One file per syllable, not one packed sprite.** A browser decodes an audio
+    file whole, at the context's sample rate, so a single file of every clip is
+    minutes of audio expanded to hundreds of MB of Float32 to say one word. A
+    word fetches the three or four small files it needs; decoded clips are kept
+    for the session.
+  - Playback is Web Audio: every clip is fetched and decoded first, then each
+    syllable is scheduled against the context clock rather than fired from a
+    timer, which is what makes separate recordings read as one word instead of a
+    stutter. `src/lib/syllables.ts` holds the pure half (tone-marked → numbered
+    keys, tokenizing, the playback plan) and is unit-tested;
+    `dict/syllableAudio.ts` is the impure half.
+  - Sentence pinyin keeps arabic digits ("xiàn zài 7 diǎn 30 fēn"), so
+    `numberSyllables()` reads one- and two-digit numbers out of the same clips;
+    three digits up need 零 placement and stay unknown, which sends the sentence
+    to the fallback.
+  - An unparseable token is `unknown`, **not dropped** — dropping it would speak
+    the word with a hole in it and report success.
 - `$app/navigation` and `$app/state` have test stubs beside `appPathsStub.ts`,
   aliased in `vitest.config.ts` — the page keeps its query in the URL.
 

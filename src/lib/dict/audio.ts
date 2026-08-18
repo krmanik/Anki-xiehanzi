@@ -17,6 +17,7 @@
  */
 
 import { speakSyllables, stopSyllables } from './syllableAudio';
+import { isHskWord, loadHskMeanings } from './cedict';
 
 const CDN = 'https://cdn.jsdelivr.net/gh/krmanik/HSK-3.0/New%20HSK%20(2025)/Audio';
 
@@ -63,10 +64,15 @@ export async function speak(text: string, opts: SpeakOptions = {}): Promise<bool
 	if (!t && !opts.pinyin) return false;
 
 	if (t && !opts.skipRecording) {
-		const url = await recordingFor(t);
-		if (url) {
-			playUrl(url);
-			return true;
+		await loadHskMeanings();
+		// The CDN only has HSK 2025 recordings — asking it about anything else is
+		// a fetch that can only 404.
+		if (isHskWord(t)) {
+			const url = await recordingFor(t);
+			if (url) {
+				playUrl(url);
+				return true;
+			}
 		}
 	}
 

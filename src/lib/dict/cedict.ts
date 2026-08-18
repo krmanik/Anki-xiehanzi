@@ -57,6 +57,11 @@ export function simpleMeaningOf(word: string): string {
 	return hskWords?.get(word.trim()) ?? yctWords?.get(word.trim()) ?? '';
 }
 
+/** Is this word in the HSK 2025 list — the CDN's audio set covers exactly this. */
+export function isHskWord(word: string): boolean {
+	return !!hskWords?.has(word.trim());
+}
+
 export async function loadYctMeanings(): Promise<void> {
 	if (yctWords) return;
 	yctWords = new Map();

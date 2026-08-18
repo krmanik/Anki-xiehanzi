@@ -25,11 +25,9 @@
 		describeStructure,
 		etymologyTypeBlurb,
 		etymologyTypeLabel,
-		strokeSequence,
 		structureLabel,
 		type Etymology,
-		type SearchHit,
-		type StrokeType
+		type SearchHit
 	} from '$lib/dictionary';
 	import { loadRadicals, type Radical } from '$lib/radicals';
 	import { colorizeSentenceHanzi, colorizePinyinString, toneOfPinyin } from '$lib/tone';
@@ -51,7 +49,6 @@
 
 	let info = $state<CharInfo | null>(null);
 	let etymology = $state<Etymology | null>(null);
-	let strokes = $state<{ name: string; type: StrokeType | null }[]>([]);
 	let components = $state<CharInfo[]>([]);
 	let related = $state<RelatedCharacter[]>([]);
 	let words = $state<SearchHit[]>([]);
@@ -83,7 +80,6 @@
 		loading = true;
 		info = null;
 		etymology = null;
-		strokes = [];
 		components = [];
 		related = [];
 		words = [];
@@ -97,7 +93,6 @@
 			if (cancelled) return;
 			info = charInfo ?? null;
 			etymology = assets.etymology[c] ?? null;
-			strokes = strokeSequence(assets.strokeNames[c], assets.strokeTypes);
 			loading = false;
 
 			const parts = componentsOf(charInfo?.decomposition ?? '', c);
@@ -246,38 +241,6 @@
 						{/if}
 					</p>
 				{/if}
-			</section>
-		{/if}
-
-		<!-- Stroke sequence -->
-		{#if strokes.length}
-			<section class={panel}>
-				<div class="flex items-baseline justify-between gap-3">
-					<h3 class={label}>Stroke order</h3>
-					<span class="text-[11px] text-neutral-400">{strokes.length} strokes</span>
-				</div>
-				<ol class="mt-3 flex flex-wrap gap-2">
-					{#each strokes as stroke, i (i)}
-						<li
-							class="flex min-w-16 flex-col items-center gap-0.5 rounded-lg border border-neutral-100 bg-neutral-50 px-2 py-1.5"
-						>
-							<span class="font-mono text-[10px] text-neutral-400">{i + 1}</span>
-							<!-- A stroke whose name has no type entry (竖折折钩) has no glyph to
-							     draw, so the name takes the glyph's place instead of printing twice. -->
-							{#if stroke.type?.glyph}
-								<span class="text-xl leading-none" lang="zh-Hans">{stroke.type.glyph}</span>
-								<span class="text-[11px] text-neutral-600" lang="zh-Hans">{stroke.name}</span>
-							{:else}
-								<span class="py-1 text-[13px] leading-tight text-neutral-700" lang="zh-Hans">
-									{stroke.name}
-								</span>
-							{/if}
-							{#if stroke.type?.romanization}
-								<span class="text-[10px] italic text-neutral-400">{stroke.type.romanization}</span>
-							{/if}
-						</li>
-					{/each}
-				</ol>
 			</section>
 		{/if}
 

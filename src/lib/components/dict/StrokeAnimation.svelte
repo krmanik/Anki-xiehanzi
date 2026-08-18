@@ -22,6 +22,25 @@
 	let outline = $state(true);
 	let quiz = $state(false);
 	let missing = $state(false);
+	/** One thumbnail per stroke, each adding one more stroke over the last. */
+	let strokeCells = $state<string[]>([]);
+
+	const CELL = 56;
+
+	function buildStrokeCells(
+		HanziWriter: any,
+		strokes: { path: string }[],
+		strokeColor: string
+	): string[] {
+		const { transform } = HanziWriter.getScalingTransform(CELL, CELL, 4);
+		return strokes.map((_, upTo) => {
+			const paths = strokes
+				.slice(0, upTo + 1)
+				.map((s, j) => `<path d="${s.path}" fill="${j === upTo ? strokeColor : '#d4d4d4'}"/>`)
+				.join('');
+			return `<svg xmlns="http://www.w3.org/2000/svg" width="${CELL}" height="${CELL}" viewBox="0 0 ${CELL} ${CELL}"><rect width="${CELL}" height="${CELL}" fill="white" rx="4"/><g transform="${transform}">${paths}</g></svg>`;
+		});
+	}
 
 	$effect(() => {
 		const c = char;
@@ -32,6 +51,7 @@
 		writer = null;
 		missing = false;
 		quiz = false;
+		strokeCells = [];
 
 		(async () => {
 			const { default: HanziWriter } = await import('hanzi-writer');
@@ -52,6 +72,9 @@
 				});
 				writer = w;
 				if (autoplay) w.animateCharacter();
+				const data = await w.getCharacterData();
+				if (cancelled) return;
+				strokeCells = buildStrokeCells(HanziWriter, data.strokes, color);
 			} catch {
 				missing = true;
 			}
@@ -133,4 +156,14 @@
 			<PencilLine size={13} /> Practise
 		</button>
 	</div>
+
+	{#if strokeCells.length}
+		<div class="flex flex-wrap items-center justify-center gap-1" style="max-width:{size}px">
+			<!-- eslint-disable svelte/no-at-html-tags -->
+			{#each strokeCells as svg, i (i)}
+				{@html svg}
+			{/each}
+			<!-- eslint-enable svelte/no-at-html-tags -->
+		</div>
+	{/if}
 </div>

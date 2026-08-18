@@ -13,8 +13,10 @@
 		type StrokeCharacter
 	} from '$lib/radicals';
 	import { toneOfPinyin } from '$lib/tone';
+	import { speakSyllables, stopSyllables } from '$lib/dict/syllableAudio';
 	import X from '@lucide/svelte/icons/x';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import Volume2 from '@lucide/svelte/icons/volume-2';
 
 	let {
 		radical,
@@ -37,9 +39,14 @@
 	 */
 	const loadStrokes = loadRadicalStrokes;
 
+	function playAudio() {
+		void speakSyllables(radical.pinyin);
+	}
+
 	$effect(() => {
 		const char = radical.char;
 		const el = target;
+		stopSyllables();
 		if (!el) return;
 		let cancelled = false;
 		el.innerHTML = '';
@@ -85,6 +92,14 @@
 					{#if radical.zhuyin}
 						<span class="text-sm text-neutral-400">{radical.zhuyin}</span>
 					{/if}
+					<button
+						type="button"
+						onclick={playAudio}
+						aria-label="Play {radical.pinyin}"
+						class="rounded-full p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900"
+					>
+						<Volume2 size={16} />
+					</button>
 				</p>
 				<p class="text-lg text-neutral-700">{radical.meaning}</p>
 				<p class="mt-1 font-mono text-xs uppercase tracking-wider text-neutral-400">

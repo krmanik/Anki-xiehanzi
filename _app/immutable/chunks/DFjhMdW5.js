@@ -1,0 +1,1 @@
+import{c as e,s as t}from"./CG_9zvlc.js";import"./xihTtKlq.js";import{t as n}from"./xUE_Q98t.js";var r=new Set([`$$slots`,`$$events`,`$$legacy`]);function i(i,a){let o=t(a,r),s=[[`path`,{d:`M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8`}],[`path`,{d:`M3 3v5h5`}]];n(i,e({name:`rotate-ccw`},()=>o,{get iconNode(){return s}}))}export{i as t};

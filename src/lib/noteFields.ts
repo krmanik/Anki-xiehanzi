@@ -31,6 +31,17 @@ export interface Word {
 	breakdown: CharInfo[];
 }
 
+/**
+ * Per-sentence TTS button, shared verbatim with premium/template/examples.ts
+ * (its "Load more" pagination renders sentences the note itself did not bake
+ * in, and must match this exactly or a page loaded live would read differently
+ * from the sentences already on the card).
+ */
+export const EXAMPLE_TTS_BUTTON =
+	`<button type="button" class="example-tts-btn" aria-label="Play sentence audio" ` +
+	`onclick="window.ttsPlay&&window.ttsPlay(this.parentElement.querySelector('.example-sim,.example-trad').textContent)">` +
+	`<i class="material-icons">volume_up</i></button>`;
+
 export function decodeHtmlEntities(input: string): string {
 	const htmlEntityRegex = /&#(\d+);|&([^;]+);/g;
 	const entityMappings: Record<string, string> = {
@@ -208,7 +219,12 @@ export function buildNoteFields(
 				parts.push(`<div class="example-pinyin">${colorizePinyinString(s.pinyin)}</div>`);
 			if (exOpts.showTranslation)
 				parts.push(`<div class="example-translation">${s.translation}</div>`);
-			return `<div class="example-item">${parts.join('')}</div>`;
+			// Sentence audio via anki-tts (window.ttsPlay, gated in deckTemplate.ts on
+			// the Examples field being shown). Reads the sentence back off the DOM
+			// instead of carrying its own copy of the text, so it always speaks
+			// whichever script (simplified/traditional) the reader has on.
+			const speak = exOpts.showSimplified || exOpts.showTraditional ? EXAMPLE_TTS_BUTTON : '';
+			return `<div class="example-item">${speak}${parts.join('')}</div>`;
 		})
 		.join('');
 

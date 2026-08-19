@@ -693,7 +693,8 @@ export async function buildDeckPackage(opts: GenerateDeckOptions): Promise<any> 
 	// (the sentences db is a separate ~5MB download), keyed by Simplified word.
 	const exOpts = template.exampleOptions ?? DEFAULT_TEMPLATE.exampleOptions;
 	const examplesMap = new Map<string, ExampleSentence[]>();
-	if (fields.includes('Examples') && fieldUsedByAnyCard(tabContent, 'Examples')) {
+	const usesExamples = fields.includes('Examples') && fieldUsedByAnyCard(tabContent, 'Examples');
+	if (usesExamples) {
 		const fetchExamples =
 			opts.getExamples ??
 			((w: string) =>
@@ -738,6 +739,8 @@ export async function buildDeckPackage(opts: GenerateDeckOptions): Promise<any> 
 
 	// Script media live in /data. Persistence ships with every deck; the writer
 	// engine + its stroke data only when a card uses the writing component.
+	// anki-tts (sentence audio) is loaded from its own CDN instead — see
+	// ANKI_TTS_SCRIPT in dict/contants.ts.
 	const dataFiles = ['_anki-persistence.js'];
 	if (usesWriter) {
 		dataFiles.push('_hanzi-writer.min.js');

@@ -336,7 +336,12 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		// Example sentences — each sentence is a mini card (matches reference design)
 		'.examples-row{margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;text-align:left;display:flex;flex-direction:column;gap:12px;}\n' +
 		'.examples-row:empty{display:none;}\n' +
-		'.example-item{font-size:0.85em;line-height:1.5;padding:var(--example-item-pad,10px 14px);background:var(--example-item-bg,transparent);border:var(--example-item-border,none);border-left:var(--example-item-left,var(--example-item-border,none));border-radius:var(--container-radius,16px);}\n' +
+		'.example-item{position:relative;font-size:0.85em;line-height:1.5;padding:var(--example-item-pad,10px 14px);padding-right:40px;background:var(--example-item-bg,transparent);border:var(--example-item-border,none);border-left:var(--example-item-left,var(--example-item-border,none));border-radius:var(--container-radius,16px);}\n' +
+		// Per-sentence TTS button (anki-tts) — top-right of its example, out of the
+		// text flow so it never shifts the sentence lines when it appears/disappears.
+		'.example-tts-btn{position:absolute;top:8px;right:8px;width:26px;height:26px;padding:0;display:flex;align-items:center;justify-content:center;border:none;border-radius:50%;background:var(--surface3);color:var(--text2);cursor:pointer;}\n' +
+		'.example-tts-btn i{font-size:16px;}\n' +
+		'.example-tts-btn:active{background:var(--surface4);}\n' +
 		'.example-trad,.example-sim{font-size:1em;}\n' +
 		'.example-pinyin{font-size:0.85em;color:var(--text2);margin-top:2px;}\n' +
 		'.example-translation{font-size:0.85em;color:var(--text2);margin-top:1px;}\n' +
@@ -1097,8 +1102,14 @@ for (var _hide of hideList) {
     }
 })();
 </script>`;
-		QFMT = colorDefaultScript + QFMT + dedupeScript;
-		AFMT = colorDefaultScript + AFMT + dedupeScript;
+		// anki-tts, only on a side that actually shows Examples. Its module runs
+		// once (module scripts don't re-execute on re-insertion), so it's safe to
+		// emit on every card of that shape; stopTts?.() re-runs each card, like the
+		// writing template's own guard, so a sentence playing when the reader
+		// advances doesn't bleed into the next card.
+		const ttsScript = `${CONSTANTS.ANKI_TTS_SCRIPT}\n<script>window.stopTts?.();</script>`;
+		QFMT = colorDefaultScript + QFMT + dedupeScript + (frontSel.includes('frontExamples') ? ttsScript : '');
+		AFMT = colorDefaultScript + AFMT + dedupeScript + (backSel.includes('backExamples') ? ttsScript : '');
 
 		tmpls.push({ name: card, qfmt: QFMT, afmt: AFMT });
 

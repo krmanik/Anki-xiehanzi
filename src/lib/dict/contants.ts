@@ -192,6 +192,18 @@ const MEANING_CARD =
     <div class="meaning-content">{{Definitions}}</div>
 </div>`;
 
+// anki-tts (github.com/krmanik/anki-tts): the library's own documented usage
+// — a CDN `<script type="module">` tag — loaded once per collection (an ES
+// module doesn't re-run on later cards re-inserting the tag; see its Readme).
+// Exposes window.ttsPlay(text) and a floating Settings button (Edge/online vs
+// Piper/offline, locale, voice), and is only pulled in on a side that shows
+// Examples — sentence audio is the one thing this deck's own three-tier player
+// (deck.ts#playWordAudio) does not read aloud. Premium (a separate, private
+// line — see premium/template/persistence.ts) inlines a vendored build of the
+// same library instead, for reasons specific to that template.
+const ANKI_TTS_SCRIPT =
+`<script type="module" src="https://cdn.jsdelivr.net/gh/krmanik/anki-tts@latest/src/anki_tts.js"></script>`;
+
 // Collapsible example-sentences card — same chrome as MEANING_CARD so it reuses
 // toggleMeaning/initMeaning. Used only when template.collapseExamples is on; the
 // non-collapsible variant is a plain `.examples-row` div (see deckTemplate.ts).
@@ -1790,6 +1802,7 @@ export default {
     EXAMPLES_CARD,
     CONTROL_BAR,
     AUDIO_DIV,
+    ANKI_TTS_SCRIPT,
     DECK_HTML_FRONT,
     DECK_HTML_FRONT_CHROME,
     DECK_HTML_BACK,
@@ -1814,5 +1827,6 @@ export {
     EXAMPLES_CARD,
     CONTROL_BAR,
     AUDIO_DIV,
+    ANKI_TTS_SCRIPT,
     DECK_CSS
 };

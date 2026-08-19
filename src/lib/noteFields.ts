@@ -38,7 +38,7 @@ export interface Word {
  * from the sentences already on the card).
  */
 export const EXAMPLE_TTS_BUTTON =
-	`<button type="button" class="example-tts-btn" aria-label="Play sentence audio" ` +
+	`<button type="button" class="example-tts-btn tappable" aria-label="Play sentence audio" ` +
 	`onclick="window.ttsPlay&&window.ttsPlay(this.parentElement.querySelector('.example-sim,.example-trad').textContent)">` +
 	`<i class="material-icons">volume_up</i></button>`;
 

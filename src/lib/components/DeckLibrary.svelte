@@ -14,12 +14,13 @@
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
 	import { loadHskIndex, levelLabel, type HskIndex, type HskListMeta } from '$lib/hsk';
+	import HskDeckModal from '$lib/components/HskDeckModal.svelte';
 	import {
 		deckSummary,
-		deckUrl,
 		findDeck,
 		formatBytes,
 		loadHskDecks,
+		type HskDeckEntry,
 		type HskDeckManifest
 	} from '$lib/hskDecks';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
@@ -32,6 +33,7 @@
 	let index = $state<HskIndex | null>(null);
 	let decks = $state<HskDeckManifest | null>(null);
 	let error = $state('');
+	let compareDeck = $state<{ list: HskListMeta; deck: HskDeckEntry } | null>(null);
 
 	onMount(async () => {
 		try {
@@ -237,13 +239,14 @@
 						<p class="mt-1.5 text-sm text-neutral-500">{list.subtitle}</p>
 
 						{#if deck && decks}
-							<a
-								href={deckUrl(decks, deck)}
+							<button
+								type="button"
+								onclick={() => (compareDeck = { list, deck })}
 								class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700"
 							>
 								<Download size={16} /> Download the deck
 								<span class="font-mono text-xs text-neutral-400">{formatBytes(deck.bytes)}</span>
-							</a>
+							</button>
 							<p class="mt-2 text-center font-mono text-[11px] text-neutral-400">
 								{deckSummary(decks, deck)}
 							</p>
@@ -374,4 +377,13 @@
 			</div>
 		</div>
 	</details>
+
+	{#if compareDeck && decks}
+		<HskDeckModal
+			list={compareDeck.list}
+			manifest={decks}
+			deck={compareDeck.deck}
+			onClose={() => (compareDeck = null)}
+		/>
+	{/if}
 </div>

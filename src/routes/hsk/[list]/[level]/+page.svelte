@@ -4,6 +4,7 @@
 	import { btnPrimary, btnSecondary } from '$lib/buttonStyles';
 	import HskWordCard from '$lib/components/HskWordCard.svelte';
 	import HskExportModal from '$lib/components/HskExportModal.svelte';
+	import HskDeckModal from '$lib/components/HskDeckModal.svelte';
 	import {
 		filterEntries,
 		formatClassifier,
@@ -18,13 +19,7 @@
 		type HskListMeta,
 		type SortMode
 	} from '$lib/hsk';
-	import {
-		deckUrl,
-		findDeck,
-		formatBytes,
-		loadHskDecks,
-		type HskDeckManifest
-	} from '$lib/hskDecks';
+	import { findDeck, formatBytes, loadHskDecks, type HskDeckManifest } from '$lib/hskDecks';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Download from '@lucide/svelte/icons/download';
 	import FileDown from '@lucide/svelte/icons/file-down';
@@ -49,6 +44,7 @@
 	let pageNo = $state(1);
 	let openWord = $state<string | null>(null);
 	let showExport = $state(false);
+	let showDeckCompare = $state(false);
 	let deckManifest = $state<HskDeckManifest | null>(null);
 
 	/**
@@ -156,13 +152,14 @@
 				<FileDown size={15} /> Export list
 			</button>
 			{#if prebuilt && deckManifest}
-				<a
+				<button
+					type="button"
 					class="{btnPrimary} inline-flex items-center gap-2"
-					href={deckUrl(deckManifest, prebuilt)}
+					onclick={() => (showDeckCompare = true)}
 				>
 					<Download size={15} /> Anki deck · all levels
 					<span class="font-mono text-xs text-neutral-400">{formatBytes(prebuilt.bytes)}</span>
-				</a>
+				</button>
 			{/if}
 		</div>
 	</div>
@@ -349,5 +346,14 @@
 		{ctx}
 		filtered={visible.length !== entries.length}
 		onClose={() => (showExport = false)}
+	/>
+{/if}
+
+{#if showDeckCompare && meta && deckManifest && prebuilt}
+	<HskDeckModal
+		list={meta}
+		manifest={deckManifest}
+		deck={prebuilt}
+		onClose={() => (showDeckCompare = false)}
 	/>
 {/if}

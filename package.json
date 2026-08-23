@@ -30,6 +30,7 @@
 		"jieba-wasm": "^2.0.0",
 		"jszip": "^3.10.1",
 		"pdf-lib": "^1.17.1",
+		"pdfjs-dist": "^6.2.108",
 		"segmentit": "^2.0.3",
 		"sql.js": "^1.10.3",
 		"svgpath": "^2.6.0",

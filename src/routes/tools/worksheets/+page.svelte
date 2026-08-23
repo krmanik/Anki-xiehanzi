@@ -9,6 +9,32 @@
 	import Download from '@lucide/svelte/icons/download';
 	import Eye from '@lucide/svelte/icons/eye';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
+	import { GlobalWorkerOptions, getDocument } from 'pdfjs-dist';
+	import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
+
+	// A blob-URL `<iframe>`/`<embed>` only shows a PDF if the browser's own PDF
+	// viewer plugin is enabled — off in some browsers, and never present in
+	// headless/automated Chromium at all, where it silently renders nothing
+	// ("Couldn't load plugin" / an aborted navigation, no error surfaced to
+	// the page). Rendering the page ourselves with pdf.js onto a canvas has no
+	// such dependency.
+	GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
+
+	async function renderPdfPreview(bytes: Uint8Array, canvas: HTMLCanvasElement): Promise<void> {
+		const loadingTask = getDocument({ data: bytes.slice() });
+		try {
+			const pdf = await loadingTask.promise;
+			const pg = await pdf.getPage(1);
+			const viewport = pg.getViewport({ scale: 2 });
+			canvas.width = viewport.width;
+			canvas.height = viewport.height;
+			const ctx = canvas.getContext('2d');
+			if (!ctx) return;
+			await pg.render({ canvasContext: ctx, viewport, canvas }).promise;
+		} finally {
+			await loadingTask.destroy();
+		}
+	}
 
 	type Template = 'practice' | 'study';
 	let template = $state<Template>('practice');
@@ -383,23 +409,22 @@
 	}
 
 	// The live preview is the real PDF for the first character only, one
-	// page, shown in the browser's own PDF viewer — pixel-accurate for free.
-	let previewUrl = $state('');
+	// page, rendered onto a canvas with pdf.js — pixel-accurate, and unlike a
+	// blob-URL iframe/embed it doesn't depend on the browser having its own
+	// PDF viewer plugin enabled.
+	let previewCanvas = $state<HTMLCanvasElement | undefined>();
+	let previewReady = $state(false);
 	let previewLoading = $state(false);
 	let previewError = $state('');
 
 	let previewToken = 0;
-	function setPreviewUrl(url: string) {
-		if (previewUrl) URL.revokeObjectURL(previewUrl);
-		previewUrl = url;
-	}
 	$effect(() => {
 		const word = firstWord;
 		const t = template;
 		const opts = t === 'study' ? studyOptions() : practiceOptions();
 		const token = ++previewToken;
 		if (!word) {
-			setPreviewUrl('');
+			previewReady = false;
 			previewError = '';
 			return;
 		}
@@ -411,10 +436,15 @@
 					t === 'study'
 						? await buildWorksheetPdf([word], opts as ReturnType<typeof studyOptions>)
 						: await buildPracticeSheetPdf([word], opts as PracticeSheetOptions);
+				if (token !== previewToken || !previewCanvas) return;
+				await renderPdfPreview(result.bytes, previewCanvas);
 				if (token !== previewToken) return;
-				setPreviewUrl(URL.createObjectURL(new Blob([result.bytes.slice()], { type: 'application/pdf' })));
+				previewReady = true;
 			} catch (e) {
-				if (token === previewToken) previewError = e instanceof Error ? e.message : String(e);
+				if (token === previewToken) {
+					previewReady = false;
+					previewError = e instanceof Error ? e.message : String(e);
+				}
 			} finally {
 				if (token === previewToken) previewLoading = false;
 			}
@@ -785,18 +815,24 @@
 				<Eye size={13} /> Preview {firstWord ? `· ${firstWord}` : ''}
 			</div>
 			<div
-				class="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50"
+				class="relative overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50"
 				style="aspect-ratio: {template === 'practice' && orientation === 'landscape' ? '297/210' : '210/297'};"
 			>
-				{#if previewUrl}
-					<iframe src={previewUrl} title="Worksheet preview" class="h-full w-full" class:opacity-50={previewLoading}></iframe>
-				{:else if previewLoading}
-					<div class="flex h-full items-center justify-center text-sm text-neutral-400">Rendering…</div>
-				{:else if previewError}
-					<div class="flex h-full items-center justify-center p-4 text-center text-sm text-red-500">{previewError}</div>
-				{:else}
-					<div class="flex h-full items-center justify-center p-4 text-center text-sm text-neutral-400">
-						Type a word or character to see a preview.
+				<canvas
+					bind:this={previewCanvas}
+					class="h-full w-full object-contain"
+					class:invisible={!previewReady}
+					class:opacity-50={previewLoading}
+				></canvas>
+				{#if !previewReady}
+					<div class="absolute inset-0 flex items-center justify-center p-4 text-center text-sm">
+						{#if previewLoading}
+							<span class="text-neutral-400">Rendering…</span>
+						{:else if previewError}
+							<span class="text-red-500">{previewError}</span>
+						{:else}
+							<span class="text-neutral-400">Type a word or character to see a preview.</span>
+						{/if}
 					</div>
 				{/if}
 			</div>

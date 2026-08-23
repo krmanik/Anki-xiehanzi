@@ -8,15 +8,22 @@
  * with this app's own data (`wordsContaining`, `getSmartSentences`) and its
  * tone-colour convention instead of plain black text.
  *
- * Every hanzi in the character card, the stroke-order row and the practice
- * grid is drawn as vector strokes (`strokePaths.ts`), not font text — the
- * point of the whole rewrite, since the embedded CJK font is only a subset
- * of the current HSK word lists (see `hskPdf.ts`). Vocabulary and example
- * sentences are still short font-drawn text, same as any other PDF table
- * this app builds.
+ * Every single hanzi anywhere on the page — the character card, the
+ * vocabulary words, the example sentences, the stroke-order row, the
+ * practice grid — is drawn as vector strokes (`strokePaths.ts`), never font
+ * text. This isn't just about the embedded CJK font being an HSK-only
+ * subset (see `hskPdf.ts`): `pdf-lib`/`fontkit`'s CID font embedder has a
+ * real bug where a page drawing more than a handful of distinct CJK glyphs
+ * via that font silently drops some of them, no error, and *neither*
+ * `subset: true` nor `subset: false` reliably avoids it once a page has
+ * enough distinct characters (confirmed with bare pdf-lib scripts, no app
+ * code — see the same fix's note in `hskPdf.ts`, which still needs the font
+ * because zhuyin isn't hanzi and has no stroke data to draw as vectors).
+ * Only the Latin text (pinyin, English, numbers) uses the embedded font
+ * here — that path has never shown any issue in testing.
  */
 
-import { PDFDocument, rgb, type Color, type PDFFont, type PDFPage } from 'pdf-lib';
+import { PDFDocument, rgb, type Color, type PDFPage } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { lookup, wordsContaining, getSmartSentences, posDisplay, type Reading } from '$lib/dict/cedict';
 import { orderReadings, senses } from '$lib/dictionary';
@@ -178,19 +185,17 @@ export async function buildWorksheetPdf(
 	const fontBytes = await loadPdfFonts();
 	const doc = await PDFDocument.create();
 	doc.registerFontkit(fontkit);
-	// `subset: true` silently drops glyphs for this font once several distinct
-	// CJK characters are drawn — a pdf-lib/fontkit bug confirmed in isolation
-	// (bare pdf-lib script, no app code): some `drawText` calls with a *subset*
-	// CJK CID font render nothing at all, with no error, while `subset: false`
-	// renders every character correctly. Latin text isn't affected.
-	const cjk = await doc.embedFont(fontBytes.cjk, { subset: false });
+	// No CJK font embedded at all — see the file-level comment. Everything
+	// drawn through `latin` here is genuinely Latin (pinyin, English, digits).
 	const latin = await doc.embedFont(fontBytes.latin, { subset: true });
 
 	doc.setTitle('Character study worksheet');
 	doc.setCreator('Anki-xiehanzi');
 	doc.setProducer('Anki-xiehanzi');
 
-	const fontFor = (script: Script): PDFFont => (script === 'cjk' ? cjk : latin);
+	// Every string that reaches `drawLine`/`drawRuns` in this file is Latin —
+	// `splitRuns`/`wrapRuns` still tag it 'latin', so this always resolves.
+	const fontFor = (_script: Script) => latin;
 	const measureAt = (size: number): Measure => (run) => fontFor(run.script).widthOfTextAtSize(run.text, size);
 
 	const drawRuns = (
@@ -212,6 +217,39 @@ export async function buildWorksheetPdf(
 		const runs = maxWidth ? truncateRuns(splitRuns(text), maxWidth, measureAt(size)) : splitRuns(text);
 		drawRuns(page, runs, x, y, size, color);
 	};
+
+	/**
+	 * Hanzi are monospace by design, so a word's width is just
+	 * `chars.length * size` — no font measurement needed since there's no
+	 * font. `boxBottomY` matches where a font's text baseline would have
+	 * landed at this `size`, which keeps every call site's existing baseline
+	 * arithmetic valid without a separate "box" coordinate concept.
+	 */
+	const drawVectorWord = async (
+		page: PDFPage,
+		text: string,
+		x: number,
+		boxBottomY: number,
+		size: number,
+		colorAt: (i: number) => Color
+	): Promise<void> => {
+		let cx = x;
+		const chars = [...text];
+		for (let i = 0; i < chars.length; i++) {
+			const paths = await loadStrokePaths(chars[i]);
+			if (paths && paths.length) {
+				await drawStrokeGlyph(page, paths, {
+					x: cx,
+					y: boxBottomY,
+					size,
+					padding: size * 0.08,
+					color: colorAt(i)
+				});
+			}
+			cx += size;
+		}
+	};
+	const vectorWordWidth = (text: string, size: number): number => [...text].length * size;
 
 	const unsupported: string[] = [];
 	const contents: CharacterContent[] = [];
@@ -254,8 +292,8 @@ export async function buildWorksheetPdf(
 		});
 		let ly = y - PAD - glyphSize - 20;
 		if (content.traditional) {
-			const w = cjk.widthOfTextAtSize(content.traditional, 13);
-			drawLine(page, content.traditional, MARGIN.x + PAD + (leftInner - w) / 2, ly, 13, FAINT);
+			const w = vectorWordWidth(content.traditional, 13);
+			await drawVectorWord(page, content.traditional, MARGIN.x + PAD + (leftInner - w) / 2, ly, 13, () => FAINT);
 			ly -= 19;
 		}
 		{
@@ -283,9 +321,10 @@ export async function buildWorksheetPdf(
 		drawLine(page, 'VOCABULARY', vocabInnerX, vy, 7.5, ACCENT_VOCAB);
 		vy -= LABEL_GAP;
 		for (const v of content.vocab) {
-			drawLine(page, v.word, vocabInnerX, vy - 13, 15, TONE[v.tone] ?? INK);
-			const wx = cjk.widthOfTextAtSize(v.word, 15);
-			drawLine(page, v.pinyin, vocabInnerX + wx + 7, vy - 12, 10, TONE[v.tone] ?? INK, vocabInnerWidth - wx - 7);
+			const wordColor = TONE[v.tone] ?? INK;
+			await drawVectorWord(page, v.word, vocabInnerX, vy - 13, 15, () => wordColor);
+			const wx = vectorWordWidth(v.word, 15);
+			drawLine(page, v.pinyin, vocabInnerX + wx + 7, vy - 12, 10, wordColor, vocabInnerWidth - wx - 7);
 			vy -= 19;
 			drawLine(page, v.meaning, vocabInnerX, vy - 8, 8, MUTED, vocabInnerWidth);
 			vy -= 20;
@@ -319,10 +358,24 @@ export async function buildWorksheetPdf(
 			});
 			const textX = exInnerX + badgeR * 2 + 6;
 			const textWidth = exInnerWidth - badgeR * 2 - 6;
+			const sentenceSize = 12;
 			let cx = textX;
 			for (const { ch, tone } of ex.chars) {
-				page.drawText(ch, { x: cx, y: ey - 12, size: 12, font: cjk, color: tone === null ? INK : (TONE[tone] ?? INK) });
-				cx += cjk.widthOfTextAtSize(ch, 12);
+				if (/\s/.test(ch)) {
+					cx += sentenceSize * 0.4;
+					continue;
+				}
+				const paths = await loadStrokePaths(ch);
+				if (paths && paths.length) {
+					await drawStrokeGlyph(page, paths, {
+						x: cx,
+						y: ey - 12,
+						size: sentenceSize,
+						padding: sentenceSize * 0.08,
+						color: tone === null ? INK : (TONE[tone] ?? INK)
+					});
+				}
+				cx += sentenceSize;
 			}
 			ey -= 25;
 			const lines = clampLines(ex.translation, textWidth, 2, measureAt(8));
@@ -414,6 +467,17 @@ export async function buildWorksheetPdf(
 			}
 			y = rowY - GAP;
 		}
+
+		// ── Footer branding ──────────────────────────────────────────────────
+		const brand = 'ANKI XIEHANZI';
+		const brandWidth = latin.widthOfTextAtSize(brand, 7);
+		page.drawText(brand, {
+			x: (A4.width - brandWidth) / 2,
+			y: MARGIN.bottom / 2 - 3.5,
+			size: 7,
+			font: latin,
+			color: FAINT
+		});
 	}
 
 	const bytes = await doc.save();

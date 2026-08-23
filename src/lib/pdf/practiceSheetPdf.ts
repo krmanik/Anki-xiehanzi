@@ -7,22 +7,29 @@
  * well-worn one, but the palette, the vector-stroke rendering and the naming
  * are this app's own.
  *
- * Every hanzi — the row label, the stroke-order preview, every guide box —
- * is drawn as vector strokes (`strokePaths.ts`), never through the embedded
- * CJK font. That font is an HSK-only subset, and `pdf-lib`/`fontkit`'s CID
+ * Two layouts share one drawing engine:
+ * - `grid` — one row per unique character, a repeatable hint/trace/blank box
+ *   sequence per row (the default).
+ * - `sentence` — the input read as one continuous line of text, copied out
+ *   box by box in reading order, repeated a few times top to bottom, the way
+ *   a copybook repeats a whole phrase rather than one character at a time.
+ *
+ * Every hanzi — row labels, stroke-order previews, every guide box — is
+ * drawn as vector strokes (`strokePaths.ts`), never through the embedded CJK
+ * font. That font is an HSK-only subset, and `pdf-lib`/`fontkit`'s CID
  * embedder silently drops glyphs once a page has more than a handful of
  * distinct characters anyway (see the file-level note in `worksheetPdf.ts`).
  * A practice sheet is exactly the case that breaks it: one page can carry
  * every character from a whole HSK level.
  */
 
-import { PDFDocument, rgb, type Color, type PDFPage } from 'pdf-lib';
+import { PDFDocument, rgb, type PDFPage } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { lookup, type Reading } from '$lib/dict/cedict';
-import { orderReadings } from '$lib/dictionary';
+import { orderReadings, senses } from '$lib/dictionary';
 import { toneOfPinyin } from '$lib/tone';
 import { A4, LANDSCAPE, INK, MARGIN, TONE, HAIRLINE, loadPdfFonts } from '$lib/hskPdf';
-import { drawPracticeCell, type PracticeGridStyle } from './pdfGrid';
+import { drawPracticeCell, hexToColor, type PracticeGridStyle } from './pdfGrid';
 import { drawStrokeGlyph, loadStrokePaths } from './strokePaths';
 
 export type PracticeGridSize = 'small' | 'medium' | 'large';
@@ -31,8 +38,10 @@ export type PhoneticsPosition = 'none' | 'above' | 'below';
 export type HintStrength = 'solid' | 'light' | 'ghost';
 export type StrokeOrderMode = 'off' | 'row' | 'per-box';
 export type TraceStrength = 'faded' | 'ghost' | 'color';
+export type PracticeLayout = 'grid' | 'sentence';
 
 export interface PracticeSheetOptions {
+	layout?: PracticeLayout;
 	gridSize?: PracticeGridSize;
 	orientation?: PracticeOrientation;
 	gridStyle?: PracticeGridStyle;
@@ -42,6 +51,8 @@ export interface PracticeSheetOptions {
 	toneColors?: boolean;
 	/** Thin rule under the pinyin, like a writing line under the label. */
 	pinyinRuled?: boolean;
+	/** `grid` layout only: a one-line English gloss under each row's pinyin. */
+	showMeaning?: boolean;
 	hintCount?: number;
 	hintStrength?: HintStrength;
 	/** Hex override; defaults to the tone colour (or ink, if tone colours are off). */
@@ -51,6 +62,8 @@ export interface PracticeSheetOptions {
 	traceStrength?: TraceStrength;
 	traceColor?: string;
 	blankCount?: number;
+	/** `sentence` layout only: how many times the line repeats down the page. */
+	repeatCount?: number;
 }
 
 export interface PracticeSheetResult {
@@ -66,28 +79,23 @@ const SO_BOX = 22;
 const SO_GAP = 5;
 const FAINT = rgb(0.62, 0.62, 0.62);
 
-const hexToColor = (hex: string | undefined, fallback: Color): Color => {
-	const m = hex?.match(/^#?([0-9a-f]{6})$/i);
-	if (!m) return fallback;
-	const n = parseInt(m[1], 16);
-	return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
-};
-
 interface RowContent {
 	ch: string;
 	tone: number;
 	pinyin: string;
+	meaning: string;
 	strokes: string[];
 }
 
-async function buildRowContent(ch: string): Promise<RowContent | null> {
+async function buildRowContent(ch: string, wantMeaning: boolean): Promise<RowContent | null> {
 	const strokes = await loadStrokePaths(ch);
 	if (!strokes || !strokes.length) return null;
 	const entry = await lookup(ch).catch(() => null);
 	const reading = orderReadings<Reading>(entry?.readings ?? [])[0];
 	const pinyin = reading?.pinyinPlain ?? '';
 	const tone = pinyin ? toneOfPinyin(pinyin.split(/\s+/)[0] ?? '') : 5;
-	return { ch, tone, pinyin, strokes };
+	const meaning = wantMeaning ? (reading ? senses(reading.definition)[0] : (entry?.commonMeaning ?? '')) : '';
+	return { ch, tone, pinyin, meaning: meaning === '#' ? '' : (meaning ?? ''), strokes };
 }
 
 function uniqueChars(words: string[]): string[] {
@@ -96,9 +104,9 @@ function uniqueChars(words: string[]): string[] {
 	return [...seen];
 }
 
-export async function buildPracticeSheetPdf(
+async function buildSentencePracticeSheet(
 	words: string[],
-	opts: PracticeSheetOptions = {}
+	opts: PracticeSheetOptions
 ): Promise<PracticeSheetResult> {
 	const gridSize = opts.gridSize ?? 'medium';
 	const boxSize = GRID_SIZE_PT[gridSize];
@@ -107,7 +115,137 @@ export async function buildPracticeSheetPdf(
 	const guideColor = hexToColor(opts.gridColor, rgb(0.7, 0.7, 0.7));
 	const phonetics = opts.phonetics ?? 'above';
 	const toneColors = opts.toneColors ?? true;
+	const repeatCount = Math.max(1, opts.repeatCount ?? 3);
+
+	const text = words.join('');
+	const chars = [...text].filter((ch) => !/\s/.test(ch));
+	if (!chars.length) throw new Error('Add some text to practice.');
+
+	const fontBytes = await loadPdfFonts();
+	const doc = await PDFDocument.create();
+	doc.registerFontkit(fontkit);
+	const latin = await doc.embedFont(fontBytes.latin, { subset: true });
+	doc.setTitle('Sentence practice sheet');
+	doc.setCreator('Anki-xiehanzi');
+	doc.setProducer('Anki-xiehanzi');
+
+	const contentWidth = paper.width - MARGIN.x * 2;
+	const boxesPerRow = Math.max(1, Math.floor((contentWidth + GAP) / (boxSize + GAP)));
+	const phoneticsHeight = phonetics === 'none' ? 0 : 13;
+	const rowHeight = boxSize + phoneticsHeight;
+
+	const unsupported: string[] = [];
+	const glyphs: { ch: string; strokes: string[] | null; pinyin: string; tone: number }[] = [];
+	const seen = new Map<string, { pinyin: string; tone: number; strokes: string[] | null }>();
+	for (const ch of chars) {
+		if (!seen.has(ch)) {
+			const strokes = await loadStrokePaths(ch);
+			if (!strokes || !strokes.length) unsupported.push(ch);
+			const entry = await lookup(ch).catch(() => null);
+			const reading = orderReadings<Reading>(entry?.readings ?? [])[0];
+			const pinyin = reading?.pinyinPlain ?? '';
+			const tone = pinyin ? toneOfPinyin(pinyin.split(/\s+/)[0] ?? '') : 5;
+			seen.set(ch, { pinyin, tone, strokes });
+		}
+		const c = seen.get(ch)!;
+		glyphs.push({ ch, ...c });
+	}
+	if (glyphs.every((g) => !g.strokes)) throw new Error('None of these characters have stroke data available.');
+
+	let page: PDFPage = doc.addPage([paper.width, paper.height]);
+	let y = paper.height - MARGIN.top;
+	const newPage = () => {
+		page = doc.addPage([paper.width, paper.height]);
+		y = paper.height - MARGIN.top;
+	};
+
+	for (let rep = 0; rep < repeatCount; rep++) {
+		const isModel = rep === 0;
+		for (let i = 0; i < glyphs.length; i += boxesPerRow) {
+			if (y - rowHeight < MARGIN.bottom) newPage();
+			const rowGlyphs = glyphs.slice(i, i + boxesPerRow);
+			let by = y;
+			if (phonetics === 'above') {
+				let tx = MARGIN.x;
+				for (const g of rowGlyphs) {
+					if (g.pinyin) {
+						const w = latin.widthOfTextAtSize(g.pinyin, 8);
+						page.drawText(g.pinyin, {
+							x: tx + (boxSize - w) / 2,
+							y: by - 9,
+							size: 8,
+							font: latin,
+							color: toneColors ? (TONE[g.tone] ?? INK) : INK
+						});
+					}
+					tx += boxSize + GAP;
+				}
+				by -= phoneticsHeight;
+			}
+			let bx = MARGIN.x;
+			for (const g of rowGlyphs) {
+				const cy = by - boxSize;
+				drawPracticeCell(page, bx, cy, boxSize, gridStyle, guideColor);
+				if (g.strokes) {
+					await drawStrokeGlyph(page, g.strokes, {
+						x: bx,
+						y: cy,
+						size: boxSize,
+						padding: boxSize * 0.1,
+						color: toneColors ? (TONE[g.tone] ?? INK) : INK,
+						opacity: isModel ? 1 : 0.18
+					});
+				}
+				bx += boxSize + GAP;
+			}
+			by -= boxSize;
+			if (phonetics === 'below') {
+				let tx = MARGIN.x;
+				for (const g of rowGlyphs) {
+					if (g.pinyin) {
+						const w = latin.widthOfTextAtSize(g.pinyin, 8);
+						page.drawText(g.pinyin, {
+							x: tx + (boxSize - w) / 2,
+							y: by - 9,
+							size: 8,
+							font: latin,
+							color: toneColors ? (TONE[g.tone] ?? INK) : INK
+						});
+					}
+					tx += boxSize + GAP;
+				}
+				by -= phoneticsHeight;
+			}
+			y = by - GAP;
+		}
+		y -= ROW_GAP - GAP;
+	}
+
+	for (const p of doc.getPages()) {
+		const brand = 'ANKI XIEHANZI';
+		const bw = latin.widthOfTextAtSize(brand, 7);
+		p.drawText(brand, { x: (paper.width - bw) / 2, y: MARGIN.bottom / 2 - 3.5, size: 7, font: latin, color: FAINT });
+	}
+
+	const bytes = await doc.save();
+	return { bytes, unsupported: [...new Set(unsupported)] };
+}
+
+export async function buildPracticeSheetPdf(
+	words: string[],
+	opts: PracticeSheetOptions = {}
+): Promise<PracticeSheetResult> {
+	if (opts.layout === 'sentence') return buildSentencePracticeSheet(words, opts);
+
+	const gridSize = opts.gridSize ?? 'medium';
+	const boxSize = GRID_SIZE_PT[gridSize];
+	const paper = opts.orientation === 'portrait' ? A4 : LANDSCAPE;
+	const gridStyle = opts.gridStyle ?? 'mi';
+	const guideColor = hexToColor(opts.gridColor, rgb(0.7, 0.7, 0.7));
+	const phonetics = opts.phonetics ?? 'above';
+	const toneColors = opts.toneColors ?? true;
 	const pinyinRuled = opts.pinyinRuled ?? true;
+	const showMeaning = opts.showMeaning ?? false;
 	const hintCount = Math.max(0, opts.hintCount ?? 1);
 	const hintStrength = opts.hintStrength ?? 'solid';
 	const strokeOrder = opts.strokeOrder ?? 'row';
@@ -135,7 +273,7 @@ export async function buildPracticeSheetPdf(
 	const unsupported: string[] = [];
 	const rows: RowContent[] = [];
 	for (const ch of chars) {
-		const content = await buildRowContent(ch);
+		const content = await buildRowContent(ch, showMeaning);
 		if (content) rows.push(content);
 		else unsupported.push(ch);
 	}
@@ -161,7 +299,8 @@ export async function buildPracticeSheetPdf(
 		const soHeight = soLines ? soLines * (SO_BOX + SO_GAP) + ROW_GAP : 0;
 		const totalBoxes = (strokeOrder === 'per-box' ? row.strokes.length : hintCount) + traceCount + blankCount;
 		const boxRows = Math.ceil(totalBoxes / boxesPerRow);
-		const phoneticsHeight = phonetics === 'none' ? 0 : 16 + (pinyinRuled ? 4 : 0);
+		const meaningHeight = showMeaning && row.meaning ? 11 : 0;
+		const phoneticsHeight = phonetics === 'none' ? 0 : 16 + (pinyinRuled ? 4 : 0) + meaningHeight;
 		const rowHeight =
 			Math.max(labelWidth, boxRows * (boxSize + GAP) - GAP) + soHeight + phoneticsHeight + ROW_GAP;
 
@@ -186,7 +325,8 @@ export async function buildPracticeSheetPdf(
 
 		let by = rowTop;
 
-		if (phonetics === 'above' && row.pinyin) {
+		const drawPinyinLine = () => {
+			if (!row.pinyin) return;
 			page.drawText(row.pinyin, { x: rowStartX, y: by - 11, size: 11, font: latin, color: pinyinColor });
 			if (pinyinRuled) {
 				page.drawLine({
@@ -196,8 +336,14 @@ export async function buildPracticeSheetPdf(
 					color: HAIRLINE
 				});
 			}
-			by -= phoneticsHeight;
-		}
+			by -= 16 + (pinyinRuled ? 4 : 0);
+			if (showMeaning && row.meaning) {
+				page.drawText(row.meaning, { x: rowStartX, y: by - 8, size: 8, font: latin, color: FAINT });
+				by -= meaningHeight;
+			}
+		};
+
+		if (phonetics === 'above') drawPinyinLine();
 
 		if (strokeOrder === 'row') {
 			for (let i = 0; i < row.strokes.length; i++) {
@@ -272,19 +418,7 @@ export async function buildPracticeSheetPdf(
 		}
 		by -= boxRows * (boxSize + GAP) - GAP;
 
-		if (phonetics === 'below' && row.pinyin) {
-			by -= 4;
-			page.drawText(row.pinyin, { x: rowStartX, y: by - 11, size: 11, font: latin, color: pinyinColor });
-			if (pinyinRuled) {
-				page.drawLine({
-					start: { x: rowStartX, y: by - 14 },
-					end: { x: rowStartX + latin.widthOfTextAtSize(row.pinyin, 11) + 40, y: by - 14 },
-					thickness: 0.75,
-					color: HAIRLINE
-				});
-			}
-			by -= phoneticsHeight;
-		}
+		if (phonetics === 'below') drawPinyinLine();
 
 		y = by - ROW_GAP;
 	}

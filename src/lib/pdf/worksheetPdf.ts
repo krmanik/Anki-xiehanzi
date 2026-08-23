@@ -41,7 +41,7 @@ import {
 	type Measure,
 	type Script
 } from '$lib/hskPdf';
-import { drawMiZiGe } from './pdfGrid';
+import { drawPracticeCell, hexToColor, type PracticeGridStyle } from './pdfGrid';
 import { drawStrokeGlyph, loadStrokePaths } from './strokePaths';
 
 export interface WorksheetOptions {
@@ -49,8 +49,24 @@ export interface WorksheetOptions {
 	boxesPerRow?: number;
 	/** How many of the practice boxes get a faint trace-over glyph (default 5). */
 	traceCount?: number;
+	/** Guide style for the practice-grid boxes (default 'mi', mi-zi-ge). */
+	gridStyle?: PracticeGridStyle;
+	/** Guide-line colour for the practice grid, as a hex string. */
+	gridColor?: string;
 	/** Draw the cumulative stroke-order row above the practice grid (default true). */
 	showStrokeOrder?: boolean;
+	/** Show the pinyin line on the character card (default true). */
+	showPinyin?: boolean;
+	/** Show the part-of-speech + meaning text on the character card (default true). */
+	showDefinition?: boolean;
+	/** Show the "words that use this character" column (default true). */
+	showVocabulary?: boolean;
+	/** How many vocabulary words to list, 0-10 (default 5). */
+	vocabCount?: number;
+	/** Show the example-sentences column (default true). */
+	showExamples?: boolean;
+	/** How many example sentences to list, 0-8 (default 4). */
+	exampleCount?: number;
 }
 
 export interface WorksheetResult {
@@ -63,8 +79,8 @@ export interface WorksheetResult {
 
 /** One rich page per character is a lot of page — cap a bulk fill from HSK. */
 const MAX_CHARACTERS = 40;
-const VOCAB_COUNT = 5;
-const SENTENCE_COUNT = 4;
+const MAX_VOCAB = 10;
+const MAX_SENTENCES = 8;
 
 const MUTED = rgb(0.55, 0.55, 0.55);
 const FAINT = rgb(0.68, 0.68, 0.68);
@@ -121,7 +137,11 @@ function uniqueChars(words: string[]): string[] {
 	return [...seen];
 }
 
-async function buildCharacterContent(ch: string): Promise<CharacterContent | null> {
+async function buildCharacterContent(
+	ch: string,
+	vocabCount: number,
+	exampleCount: number
+): Promise<CharacterContent | null> {
 	const strokes = await loadStrokePaths(ch);
 	if (!strokes || !strokes.length) return null;
 
@@ -136,8 +156,8 @@ async function buildCharacterContent(ch: string): Promise<CharacterContent | nul
 		: (entry?.commonMeaning ?? '');
 
 	const [vocabHits, sentences] = await Promise.all([
-		wordsContaining(ch, VOCAB_COUNT).catch(() => []),
-		getSmartSentences(ch, { limit: SENTENCE_COUNT }).catch(() => [])
+		vocabCount > 0 ? wordsContaining(ch, vocabCount).catch(() => []) : Promise.resolve([]),
+		exampleCount > 0 ? getSmartSentences(ch, { limit: exampleCount }).catch(() => []) : Promise.resolve([])
 	]);
 
 	return {
@@ -175,7 +195,15 @@ export async function buildWorksheetPdf(
 ): Promise<WorksheetResult> {
 	const boxesPerRow = Math.max(1, opts.boxesPerRow ?? 10);
 	const traceCount = Math.max(0, opts.traceCount ?? 5);
+	const gridStyle = opts.gridStyle ?? 'mi';
+	const guideColor = hexToColor(opts.gridColor, rgb(0.945, 0.945, 0.945));
 	const showStrokeOrder = opts.showStrokeOrder ?? true;
+	const showPinyin = opts.showPinyin ?? true;
+	const showDefinition = opts.showDefinition ?? true;
+	const showVocabulary = opts.showVocabulary ?? true;
+	const vocabCount = Math.min(MAX_VOCAB, Math.max(0, opts.vocabCount ?? 5));
+	const showExamples = opts.showExamples ?? true;
+	const exampleCount = Math.min(MAX_SENTENCES, Math.max(0, opts.exampleCount ?? 4));
 
 	const allChars = uniqueChars(words);
 	const chars = allChars.slice(0, MAX_CHARACTERS);
@@ -254,7 +282,11 @@ export async function buildWorksheetPdf(
 	const unsupported: string[] = [];
 	const contents: CharacterContent[] = [];
 	for (const ch of chars) {
-		const content = await buildCharacterContent(ch);
+		const content = await buildCharacterContent(
+			ch,
+			showVocabulary ? vocabCount : 0,
+			showExamples ? exampleCount : 0
+		);
 		if (content) contents.push(content);
 		else unsupported.push(ch);
 	}
@@ -262,14 +294,23 @@ export async function buildWorksheetPdf(
 		throw new Error('None of these characters have stroke data available.');
 	}
 
+	// Each side column only takes page space if its section is actually
+	// showing content — a reader who turns vocabulary off gets that width
+	// back for examples (or the character card), not a blank box.
+	const hasVocabCol = showVocabulary && vocabCount > 0;
+	const hasExamplesCol = showExamples && exampleCount > 0;
+	const sideCols = (hasVocabCol ? 1 : 0) + (hasExamplesCol ? 1 : 0);
+
 	const contentWidth = A4.width - MARGIN.x * 2;
-	const leftColWidth = 150;
 	const colGap = 16;
-	const rightWidth = contentWidth - leftColWidth - colGap;
 	const halfGap = 14;
-	const colWidth = (rightWidth - halfGap) / 2;
-	const vocabX = MARGIN.x + leftColWidth + colGap;
-	const examplesX = vocabX + colWidth + halfGap;
+	const leftColWidth = sideCols === 0 ? contentWidth - PAD * 2 : 150;
+	const rightWidth = contentWidth - leftColWidth - colGap;
+	const colWidth = sideCols === 2 ? (rightWidth - halfGap) / 2 : rightWidth;
+	const vocabX = hasVocabCol ? MARGIN.x + leftColWidth + colGap : 0;
+	const examplesX = hasExamplesCol
+		? MARGIN.x + leftColWidth + colGap + (hasVocabCol ? colWidth + halfGap : 0)
+		: 0;
 
 	const soPerLine = Math.max(1, Math.floor((contentWidth + SO_GAP) / (SO_BOX + SO_GAP)));
 	const soLineHeight = SO_BOX + SO_NUMBER_HEIGHT + SO_GAP;
@@ -296,100 +337,110 @@ export async function buildWorksheetPdf(
 			await drawVectorWord(page, content.traditional, MARGIN.x + PAD + (leftInner - w) / 2, ly, 13, () => FAINT);
 			ly -= 19;
 		}
-		{
+		if (showPinyin) {
 			const w = latin.widthOfTextAtSize(content.pinyin, 18);
 			drawLine(page, content.pinyin, MARGIN.x + PAD + (leftInner - w) / 2, ly, 18, TONE[content.tone] ?? INK);
 			ly -= 18;
 		}
-		if (content.pos) {
-			const label = content.pos.toUpperCase();
-			const w = latin.widthOfTextAtSize(label, 8);
-			drawLine(page, label, MARGIN.x + PAD + (leftInner - w) / 2, ly, 8, FAINT);
-			ly -= 16;
-		}
-		const meaningLines = clampLines(content.meaning, leftInner, 4, measureAt(8.5));
-		for (const line of meaningLines) {
-			drawRuns(page, line, MARGIN.x + PAD, ly, 8.5, MUTED);
-			ly -= 12.5;
+		if (showDefinition) {
+			if (content.pos) {
+				const label = content.pos.toUpperCase();
+				const w = latin.widthOfTextAtSize(label, 8);
+				drawLine(page, label, MARGIN.x + PAD + (leftInner - w) / 2, ly, 8, FAINT);
+				ly -= 16;
+			}
+			const meaningLines = clampLines(content.meaning, leftInner, 4, measureAt(8.5));
+			for (const line of meaningLines) {
+				drawRuns(page, line, MARGIN.x + PAD, ly, 8.5, MUTED);
+				ly -= 12.5;
+			}
 		}
 		const leftColHeight = headerTop - ly + PAD;
 
 		// ── Vocabulary column ───────────────────────────────────────────────
-		const vocabInnerX = vocabX + PAD;
-		const vocabInnerWidth = colWidth - PAD * 2;
-		let vy = headerTop - PAD;
-		drawLine(page, 'VOCABULARY', vocabInnerX, vy, 7.5, ACCENT_VOCAB);
-		vy -= LABEL_GAP;
-		for (const v of content.vocab) {
-			const wordColor = TONE[v.tone] ?? INK;
-			await drawVectorWord(page, v.word, vocabInnerX, vy - 13, 15, () => wordColor);
-			const wx = vectorWordWidth(v.word, 15);
-			drawLine(page, v.pinyin, vocabInnerX + wx + 7, vy - 12, 10, wordColor, vocabInnerWidth - wx - 7);
-			vy -= 19;
-			drawLine(page, v.meaning, vocabInnerX, vy - 8, 8, MUTED, vocabInnerWidth);
-			vy -= 20;
+		let vocabHeight = 0;
+		if (hasVocabCol) {
+			const vocabInnerX = vocabX + PAD;
+			const vocabInnerWidth = colWidth - PAD * 2;
+			let vy = headerTop - PAD;
+			drawLine(page, 'VOCABULARY', vocabInnerX, vy, 7.5, ACCENT_VOCAB);
+			vy -= LABEL_GAP;
+			for (const v of content.vocab) {
+				const wordColor = TONE[v.tone] ?? INK;
+				await drawVectorWord(page, v.word, vocabInnerX, vy - 13, 15, () => wordColor);
+				const wx = vectorWordWidth(v.word, 15);
+				drawLine(page, v.pinyin, vocabInnerX + wx + 7, vy - 12, 10, wordColor, vocabInnerWidth - wx - 7);
+				vy -= 19;
+				drawLine(page, v.meaning, vocabInnerX, vy - 8, 8, MUTED, vocabInnerWidth);
+				vy -= 20;
+			}
+			vocabHeight = headerTop - vy + PAD;
 		}
-		const vocabHeight = headerTop - vy + PAD;
 
 		// ── Example sentences column ────────────────────────────────────────
-		const exInnerX = examplesX + PAD;
-		const exInnerWidth = colWidth - PAD * 2;
-		let ey = headerTop - PAD;
-		drawLine(page, 'EXAMPLE SENTENCES', exInnerX, ey, 7.5, ACCENT_EXAMPLES);
-		ey -= LABEL_GAP + 2;
-		let num = 1;
-		for (const ex of content.examples) {
-			const badgeR = 6.5;
-			page.drawEllipse({
-				x: exInnerX + badgeR,
-				y: ey - 5,
-				xScale: badgeR,
-				yScale: badgeR,
-				color: INK
-			});
-			const numText = String(num++);
-			const nw = latin.widthOfTextAtSize(numText, 7);
-			page.drawText(numText, {
-				x: exInnerX + badgeR - nw / 2,
-				y: ey - 8,
-				size: 7,
-				font: latin,
-				color: rgb(1, 1, 1)
-			});
-			const textX = exInnerX + badgeR * 2 + 6;
-			const textWidth = exInnerWidth - badgeR * 2 - 6;
-			const sentenceSize = 12;
-			let cx = textX;
-			for (const { ch, tone } of ex.chars) {
-				if (/\s/.test(ch)) {
-					cx += sentenceSize * 0.4;
-					continue;
+		let examplesHeight = 0;
+		if (hasExamplesCol) {
+			const exInnerX = examplesX + PAD;
+			const exInnerWidth = colWidth - PAD * 2;
+			let ey = headerTop - PAD;
+			drawLine(page, 'EXAMPLE SENTENCES', exInnerX, ey, 7.5, ACCENT_EXAMPLES);
+			ey -= LABEL_GAP + 2;
+			let num = 1;
+			for (const ex of content.examples) {
+				const badgeR = 6.5;
+				page.drawEllipse({
+					x: exInnerX + badgeR,
+					y: ey - 5,
+					xScale: badgeR,
+					yScale: badgeR,
+					color: INK
+				});
+				const numText = String(num++);
+				const nw = latin.widthOfTextAtSize(numText, 7);
+				page.drawText(numText, {
+					x: exInnerX + badgeR - nw / 2,
+					y: ey - 8,
+					size: 7,
+					font: latin,
+					color: rgb(1, 1, 1)
+				});
+				const textX = exInnerX + badgeR * 2 + 6;
+				const textWidth = exInnerWidth - badgeR * 2 - 6;
+				const sentenceSize = 12;
+				let cx = textX;
+				for (const { ch, tone } of ex.chars) {
+					if (/\s/.test(ch)) {
+						cx += sentenceSize * 0.4;
+						continue;
+					}
+					const paths = await loadStrokePaths(ch);
+					if (paths && paths.length) {
+						await drawStrokeGlyph(page, paths, {
+							x: cx,
+							y: ey - 12,
+							size: sentenceSize,
+							padding: sentenceSize * 0.08,
+							color: tone === null ? INK : (TONE[tone] ?? INK)
+						});
+					}
+					cx += sentenceSize;
 				}
-				const paths = await loadStrokePaths(ch);
-				if (paths && paths.length) {
-					await drawStrokeGlyph(page, paths, {
-						x: cx,
-						y: ey - 12,
-						size: sentenceSize,
-						padding: sentenceSize * 0.08,
-						color: tone === null ? INK : (TONE[tone] ?? INK)
-					});
+				ey -= 25;
+				const lines = clampLines(ex.translation, textWidth, 2, measureAt(8));
+				for (const line of lines) {
+					drawRuns(page, line, textX, ey, 8, MUTED);
+					ey -= 11;
 				}
-				cx += sentenceSize;
+				ey -= 10;
 			}
-			ey -= 25;
-			const lines = clampLines(ex.translation, textWidth, 2, measureAt(8));
-			for (const line of lines) {
-				drawRuns(page, line, textX, ey, 8, MUTED);
-				ey -= 11;
-			}
-			ey -= 10;
+			examplesHeight = headerTop - ey + PAD;
 		}
-		const examplesHeight = headerTop - ey + PAD;
 
 		const headerHeight = Math.max(leftColHeight, vocabHeight, examplesHeight);
 
-		// Panel border + column dividers around the whole header-grid area.
+		// Panel border + column dividers around the whole header-grid area —
+		// one divider per active column boundary, so a hidden column doesn't
+		// leave a rule floating over nothing.
 		page.drawRectangle({
 			x: MARGIN.x,
 			y: headerTop - headerHeight,
@@ -398,18 +449,22 @@ export async function buildWorksheetPdf(
 			borderColor: HAIRLINE,
 			borderWidth: 1
 		});
-		page.drawLine({
-			start: { x: MARGIN.x + leftColWidth + colGap / 2, y: headerTop },
-			end: { x: MARGIN.x + leftColWidth + colGap / 2, y: headerTop - headerHeight },
-			thickness: 1,
-			color: HAIRLINE
-		});
-		page.drawLine({
-			start: { x: examplesX - halfGap / 2, y: headerTop },
-			end: { x: examplesX - halfGap / 2, y: headerTop - headerHeight },
-			thickness: 1,
-			color: HAIRLINE
-		});
+		if (sideCols > 0) {
+			page.drawLine({
+				start: { x: MARGIN.x + leftColWidth + colGap / 2, y: headerTop },
+				end: { x: MARGIN.x + leftColWidth + colGap / 2, y: headerTop - headerHeight },
+				thickness: 1,
+				color: HAIRLINE
+			});
+		}
+		if (sideCols === 2) {
+			page.drawLine({
+				start: { x: examplesX - halfGap / 2, y: headerTop },
+				end: { x: examplesX - halfGap / 2, y: headerTop - headerHeight },
+				thickness: 1,
+				color: HAIRLINE
+			});
+		}
 
 		y = headerTop - headerHeight - SECTION_GAP;
 
@@ -453,7 +508,7 @@ export async function buildWorksheetPdf(
 			const rowY = y - boxSize;
 			for (let col = 0; col < boxesPerRow; col++, cellIndex++) {
 				const x = MARGIN.x + col * (boxSize + GAP);
-				drawMiZiGe(page, x, rowY, boxSize);
+				drawPracticeCell(page, x, rowY, boxSize, gridStyle, guideColor);
 				if (cellIndex < traceCount) {
 					await drawStrokeGlyph(page, content.strokes, {
 						x,

@@ -8,31 +8,13 @@ import fontkit from '@pdf-lib/fontkit';
 import { HAIRLINE } from '$lib/hskPdf';
 
 const DIAGONAL = rgb(0.945, 0.945, 0.945);
-const CROSS = rgb(0.898, 0.898, 0.898);
 
-/**
- * A mi-zi-ge (米字格) practice box: a square border, two solid corner-to-corner
- * diagonals and two dashed lines through the center. Ported from the same grid
- * `StrokeAnimation.svelte` draws in SVG (2 diagonals + 2 dashed cross lines).
- */
-export function drawMiZiGe(page: PDFPage, x: number, y: number, size: number): void {
-	page.drawRectangle({ x, y, width: size, height: size, borderColor: HAIRLINE, borderWidth: 1 });
-	page.drawLine({ start: { x, y: y + size }, end: { x: x + size, y }, thickness: 1, color: DIAGONAL });
-	page.drawLine({ start: { x, y }, end: { x: x + size, y: y + size }, thickness: 1, color: DIAGONAL });
-	page.drawLine({
-		start: { x: x + size / 2, y },
-		end: { x: x + size / 2, y: y + size },
-		thickness: 1,
-		color: CROSS,
-		dashArray: [5, 4]
-	});
-	page.drawLine({
-		start: { x, y: y + size / 2 },
-		end: { x: x + size, y: y + size / 2 },
-		thickness: 1,
-		color: CROSS,
-		dashArray: [5, 4]
-	});
+/** Parse a "#rrggbb" hex string into a pdf-lib `Color`, falling back on any miss. */
+export function hexToColor(hex: string | undefined, fallback: Color): Color {
+	const m = hex?.match(/^#?([0-9a-f]{6})$/i);
+	if (!m) return fallback;
+	const n = parseInt(m[1], 16);
+	return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
 }
 
 /** A plain bordered cell, for flashcards. */

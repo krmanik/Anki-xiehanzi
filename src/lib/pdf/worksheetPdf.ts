@@ -67,6 +67,13 @@ export interface WorksheetOptions {
 	showExamples?: boolean;
 	/** How many example sentences to list, 0-8 (default 4). */
 	exampleCount?: number;
+	/**
+	 * Scales every Latin text size on the page — pinyin, part of speech,
+	 * definitions, vocabulary pinyin/meaning, example translations, section
+	 * labels (default 1). Column widths stay put; bigger text just wraps to
+	 * more lines, which the existing width-based wrapping already handles.
+	 */
+	textScale?: number;
 }
 
 export interface WorksheetResult {
@@ -204,6 +211,10 @@ export async function buildWorksheetPdf(
 	const vocabCount = Math.min(MAX_VOCAB, Math.max(0, opts.vocabCount ?? 5));
 	const showExamples = opts.showExamples ?? true;
 	const exampleCount = Math.min(MAX_SENTENCES, Math.max(0, opts.exampleCount ?? 4));
+	const ts = Math.max(0.7, Math.min(2, opts.textScale ?? 1));
+	/** Scale a Latin text size (and the line-height gap right after it, so
+	 * bigger text doesn't overlap the next line — both use the same factor). */
+	const T = (size: number) => size * ts;
 
 	const allChars = uniqueChars(words);
 	const chars = allChars.slice(0, MAX_CHARACTERS);
@@ -338,21 +349,21 @@ export async function buildWorksheetPdf(
 			ly -= 19;
 		}
 		if (showPinyin) {
-			const w = latin.widthOfTextAtSize(content.pinyin, 18);
-			drawLine(page, content.pinyin, MARGIN.x + PAD + (leftInner - w) / 2, ly, 18, TONE[content.tone] ?? INK);
-			ly -= 18;
+			const w = latin.widthOfTextAtSize(content.pinyin, T(18));
+			drawLine(page, content.pinyin, MARGIN.x + PAD + (leftInner - w) / 2, ly, T(18), TONE[content.tone] ?? INK);
+			ly -= T(18);
 		}
 		if (showDefinition) {
 			if (content.pos) {
 				const label = content.pos.toUpperCase();
-				const w = latin.widthOfTextAtSize(label, 8);
-				drawLine(page, label, MARGIN.x + PAD + (leftInner - w) / 2, ly, 8, FAINT);
-				ly -= 16;
+				const w = latin.widthOfTextAtSize(label, T(8));
+				drawLine(page, label, MARGIN.x + PAD + (leftInner - w) / 2, ly, T(8), FAINT);
+				ly -= T(16);
 			}
-			const meaningLines = clampLines(content.meaning, leftInner, 4, measureAt(8.5));
+			const meaningLines = clampLines(content.meaning, leftInner, 4, measureAt(T(8.5)));
 			for (const line of meaningLines) {
-				drawRuns(page, line, MARGIN.x + PAD, ly, 8.5, MUTED);
-				ly -= 12.5;
+				drawRuns(page, line, MARGIN.x + PAD, ly, T(8.5), MUTED);
+				ly -= T(12.5);
 			}
 		}
 		const leftColHeight = headerTop - ly + PAD;
@@ -369,10 +380,10 @@ export async function buildWorksheetPdf(
 				const wordColor = TONE[v.tone] ?? INK;
 				await drawVectorWord(page, v.word, vocabInnerX, vy - 13, 15, () => wordColor);
 				const wx = vectorWordWidth(v.word, 15);
-				drawLine(page, v.pinyin, vocabInnerX + wx + 7, vy - 12, 10, wordColor, vocabInnerWidth - wx - 7);
-				vy -= 19;
-				drawLine(page, v.meaning, vocabInnerX, vy - 8, 8, MUTED, vocabInnerWidth);
-				vy -= 20;
+				drawLine(page, v.pinyin, vocabInnerX + wx + 7, vy - 12, T(10), wordColor, vocabInnerWidth - wx - 7);
+				vy -= T(19);
+				drawLine(page, v.meaning, vocabInnerX, vy - 8, T(8), MUTED, vocabInnerWidth);
+				vy -= T(20);
 			}
 			vocabHeight = headerTop - vy + PAD;
 		}
@@ -426,10 +437,10 @@ export async function buildWorksheetPdf(
 					cx += sentenceSize;
 				}
 				ey -= 25;
-				const lines = clampLines(ex.translation, textWidth, 2, measureAt(8));
+				const lines = clampLines(ex.translation, textWidth, 2, measureAt(T(8)));
 				for (const line of lines) {
-					drawRuns(page, line, textX, ey, 8, MUTED);
-					ey -= 11;
+					drawRuns(page, line, textX, ey, T(8), MUTED);
+					ey -= T(11);
 				}
 				ey -= 10;
 			}

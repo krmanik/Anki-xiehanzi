@@ -263,10 +263,14 @@ async function buildSentencePracticeSheet(
 				by -= phoneticsHeight;
 			}
 			let bx = MARGIN.x;
-			for (const g of rowGlyphs) {
+			// Every row always spans the full page width — a short last line
+			// (or a text shorter than one row) still gets blank boxes out to
+			// the right margin instead of stopping dead after the last glyph.
+			for (let col = 0; col < boxesPerRow; col++) {
+				const g = rowGlyphs[col];
 				const cy = by - boxSize;
 				drawPracticeCell(page, bx, cy, boxSize, gridStyle, guideColor);
-				if (g.strokes) {
+				if (g?.strokes) {
 					await drawStrokeGlyph(page, g.strokes, {
 						x: bx,
 						y: cy,
@@ -408,9 +412,13 @@ export async function buildPracticeSheetPdf(
 		const soHeight = soLines ? soLines * (SO_BOX + SO_GAP) + ROW_GAP : 0;
 
 		// The natural sequence: every segment's hint (or per-box reveal) and
-		// trace boxes, back to back, then the explicit blank-box count.
+		// trace boxes, back to back, then its share of the explicit blank-box
+		// count. A word's segments never share a row — each character's own
+		// boxes are padded out to the row's right edge, so the next character
+		// always starts a fresh line instead of picking up mid-row.
 		const baseSpecs: BoxSpec[] = [];
-		for (const seg of row.segments) {
+		row.segments.forEach((seg, segIndex) => {
+			const segStart = baseSpecs.length;
 			if (strokeOrder === 'per-box') {
 				for (let i = 0; i < seg.strokes.length; i++) {
 					baseSpecs.push({ kind: 'hint', strokes: seg.strokes.slice(0, i + 1), tone: seg.tone });
@@ -419,8 +427,19 @@ export async function buildPracticeSheetPdf(
 				for (let i = 0; i < hintCount; i++) baseSpecs.push({ kind: 'hint', strokes: seg.strokes, tone: seg.tone });
 			}
 			for (let i = 0; i < traceCount; i++) baseSpecs.push({ kind: 'trace', strokes: seg.strokes, tone: seg.tone });
+			if (row.segments.length > 1) {
+				for (let i = 0; i < blankCount; i++) baseSpecs.push({ kind: 'blank' });
+				const segLen = baseSpecs.length - segStart;
+				const isLastSegment = segIndex === row.segments.length - 1;
+				const remainder = segLen % boxesPerRow;
+				if (remainder !== 0 && !isLastSegment) {
+					for (let i = 0; i < boxesPerRow - remainder; i++) baseSpecs.push({ kind: 'blank' });
+				}
+			}
+		});
+		if (row.segments.length <= 1) {
+			for (let i = 0; i < blankCount; i++) baseSpecs.push({ kind: 'blank' });
 		}
-		for (let i = 0; i < blankCount; i++) baseSpecs.push({ kind: 'blank' });
 
 		const naturalBoxRows = Math.ceil(baseSpecs.length / boxesPerRow);
 		const meaningHeight = showMeaning && row.meaning ? 11 : 0;

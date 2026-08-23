@@ -41,7 +41,6 @@
 
 	let wordsText = $state('');
 	const words = $derived(wordsText.split(/\s+/).filter(Boolean));
-	const firstWord = $derived(words[0] ?? '');
 	const charCount = $derived(new Set([...words.join('')].filter((ch) => !/\s/.test(ch))).size);
 
 	const fieldLabel = 'text-sm text-neutral-600';
@@ -73,6 +72,7 @@
 	let vocabCount = $state(5);
 	let showExamples = $state(true);
 	let exampleCount = $state(4);
+	let textScale = $state(1);
 
 	function studyOptions() {
 		return {
@@ -86,7 +86,8 @@
 			showVocabulary,
 			vocabCount,
 			showExamples,
-			exampleCount
+			exampleCount,
+			textScale
 		};
 	}
 
@@ -340,6 +341,7 @@
 				vocabCount = 5;
 				showExamples = true;
 				exampleCount = 4;
+				textScale = 1;
 			}
 		}
 	];
@@ -419,11 +421,11 @@
 
 	let previewToken = 0;
 	$effect(() => {
-		const word = firstWord;
+		const list = words;
 		const t = template;
 		const opts = t === 'study' ? studyOptions() : practiceOptions();
 		const token = ++previewToken;
-		if (!word) {
+		if (!list.length) {
 			previewReady = false;
 			previewError = '';
 			return;
@@ -432,10 +434,13 @@
 			previewLoading = true;
 			previewError = '';
 			try {
+				// The full word list, not just the first word — page 1 of the
+				// real document, so a grid/sentence sheet's preview shows every
+				// character that actually fits on that page, not one row.
 				const result =
 					t === 'study'
-						? await buildWorksheetPdf([word], opts as ReturnType<typeof studyOptions>)
-						: await buildPracticeSheetPdf([word], opts as PracticeSheetOptions);
+						? await buildWorksheetPdf(list, opts as ReturnType<typeof studyOptions>)
+						: await buildPracticeSheetPdf(list, opts as PracticeSheetOptions);
 				if (token !== previewToken || !previewCanvas) return;
 				await renderPdfPreview(result.bytes, previewCanvas);
 				if (token !== previewToken) return;
@@ -564,6 +569,15 @@
 							</label>
 						{/if}
 					</div>
+					<label class="mt-3 block max-w-xs {fieldLabel}">
+						Text size <span class="font-normal text-neutral-400">— pinyin, definitions, vocabulary, examples</span>
+						<select bind:value={textScale} class={fieldSelect}>
+							<option value={0.85}>Small</option>
+							<option value={1}>Medium</option>
+							<option value={1.25}>Large</option>
+							<option value={1.5}>Extra large</option>
+						</select>
+					</label>
 				</section>
 
 				<section class="rounded-xl border border-neutral-200 p-4">
@@ -812,7 +826,7 @@
 
 		<aside class="lg:sticky lg:top-20 lg:self-start">
 			<div class="mb-2 flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-neutral-400">
-				<Eye size={13} /> Preview {firstWord ? `· ${firstWord}` : ''}
+				<Eye size={13} /> Preview
 			</div>
 			<div
 				class="relative overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50"
@@ -836,7 +850,7 @@
 					</div>
 				{/if}
 			</div>
-			<p class="mt-2 text-xs text-neutral-400">Live preview shows the first character only — the generated file covers every word.</p>
+			<p class="mt-2 text-xs text-neutral-400">Live preview of the real file — page 1, at full size.</p>
 		</aside>
 	</div>
 </div>

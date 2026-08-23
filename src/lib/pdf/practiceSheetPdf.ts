@@ -39,9 +39,12 @@ export type HintStrength = 'solid' | 'light' | 'ghost';
 export type StrokeOrderMode = 'off' | 'row' | 'per-box';
 export type TraceStrength = 'faded' | 'ghost' | 'color';
 export type PracticeLayout = 'grid' | 'sentence';
+export type PracticeUnit = 'char' | 'word';
 
 export interface PracticeSheetOptions {
 	layout?: PracticeLayout;
+	/** `grid` layout only: one row per unique character, or one row per unique word (default 'char'). */
+	unit?: PracticeUnit;
 	gridSize?: PracticeGridSize;
 	orientation?: PracticeOrientation;
 	gridStyle?: PracticeGridStyle;
@@ -62,6 +65,18 @@ export interface PracticeSheetOptions {
 	traceStrength?: TraceStrength;
 	traceColor?: string;
 	blankCount?: number;
+	/**
+	 * `grid` layout only: how many full rows of boxes each character/word
+	 * gets, each auto-filled edge to edge (default 1 — one line of practice
+	 * per item). Ignored when `fillPage` is set.
+	 */
+	rowsPerItem?: number;
+	/**
+	 * `grid` layout only: instead of a fixed row count, give each item every
+	 * row of boxes that fits down to the bottom of the page — "one character,
+	 * one full page" — rather than a single line.
+	 */
+	fillPage?: boolean;
 	/** `sentence` layout only: how many times the line repeats down the page. */
 	repeatCount?: number;
 }
@@ -79,15 +94,23 @@ const SO_BOX = 22;
 const SO_GAP = 5;
 const FAINT = rgb(0.62, 0.62, 0.62);
 
+/** One character's own strokes and tone, inside a row that may hold several. */
+interface Segment {
+	strokes: string[];
+	tone: number;
+}
+
+/** One practice row — one character, or one whole word made of several. */
 interface RowContent {
-	ch: string;
+	/** Strokes for the small identity glyph in the row's label column. */
+	label: string[];
 	tone: number;
 	pinyin: string;
 	meaning: string;
-	strokes: string[];
+	segments: Segment[];
 }
 
-async function buildRowContent(ch: string, wantMeaning: boolean): Promise<RowContent | null> {
+async function buildCharRow(ch: string, wantMeaning: boolean): Promise<RowContent | null> {
 	const strokes = await loadStrokePaths(ch);
 	if (!strokes || !strokes.length) return null;
 	const entry = await lookup(ch).catch(() => null);
@@ -95,13 +118,70 @@ async function buildRowContent(ch: string, wantMeaning: boolean): Promise<RowCon
 	const pinyin = reading?.pinyinPlain ?? '';
 	const tone = pinyin ? toneOfPinyin(pinyin.split(/\s+/)[0] ?? '') : 5;
 	const meaning = wantMeaning ? (reading ? senses(reading.definition)[0] : (entry?.commonMeaning ?? '')) : '';
-	return { ch, tone, pinyin, meaning: meaning === '#' ? '' : (meaning ?? ''), strokes };
+	return {
+		label: strokes,
+		tone,
+		pinyin,
+		meaning: meaning === '#' ? '' : (meaning ?? ''),
+		segments: [{ strokes, tone }]
+	};
+}
+
+/**
+ * A word's row groups its characters into one label/pinyin/meaning, but each
+ * character still gets its own hint/trace box sequence — this is the
+ * "Word" family a two- or three-character word needs: one line of metadata,
+ * then a box for every character in it, not one box standing in for the
+ * whole word.
+ */
+async function buildWordRow(
+	word: string,
+	wantMeaning: boolean
+): Promise<{ row: RowContent; missing: string[] } | null> {
+	const chars = [...word].filter((ch) => !/\s/.test(ch));
+	if (!chars.length) return null;
+
+	const entry = await lookup(word).catch(() => null);
+	const reading = orderReadings<Reading>(entry?.readings ?? [])[0];
+	const pinyin = reading?.pinyinPlain ?? '';
+	const syllables = pinyin.split(/\s+/).filter(Boolean);
+	const rawMeaning = wantMeaning ? (reading ? senses(reading.definition)[0] : (entry?.commonMeaning ?? '')) : '';
+	const meaning = rawMeaning === '#' ? '' : (rawMeaning ?? '');
+
+	const strokesList = await Promise.all(chars.map((ch) => loadStrokePaths(ch)));
+	const missing: string[] = [];
+	const segments: Segment[] = [];
+	chars.forEach((ch, i) => {
+		const strokes = strokesList[i];
+		if (!strokes || !strokes.length) {
+			missing.push(ch);
+			return;
+		}
+		segments.push({ strokes, tone: syllables[i] ? toneOfPinyin(syllables[i]) : 5 });
+	});
+	if (!segments.length) return null;
+
+	const tone = syllables[0] ? toneOfPinyin(syllables[0]) : segments[0].tone;
+	return { row: { label: segments[0].strokes, tone, pinyin, meaning, segments }, missing };
 }
 
 function uniqueChars(words: string[]): string[] {
 	const seen = new Set<string>();
 	for (const word of words) for (const ch of word) if (!/\s/.test(ch)) seen.add(ch);
 	return [...seen];
+}
+
+function uniqueWords(words: string[]): string[] {
+	const seen = new Set<string>();
+	const out: string[] = [];
+	for (const w of words) {
+		const t = w.trim();
+		if (t && !seen.has(t)) {
+			seen.add(t);
+			out.push(t);
+		}
+	}
+	return out;
 }
 
 async function buildSentencePracticeSheet(
@@ -112,7 +192,7 @@ async function buildSentencePracticeSheet(
 	const boxSize = GRID_SIZE_PT[gridSize];
 	const paper = opts.orientation === 'portrait' ? A4 : LANDSCAPE;
 	const gridStyle = opts.gridStyle ?? 'mi';
-	const guideColor = hexToColor(opts.gridColor, rgb(0.7, 0.7, 0.7));
+	const guideColor = hexToColor(opts.gridColor, rgb(0.85, 0.85, 0.85));
 	const phonetics = opts.phonetics ?? 'above';
 	const toneColors = opts.toneColors ?? true;
 	const repeatCount = Math.max(1, opts.repeatCount ?? 3);
@@ -237,11 +317,12 @@ export async function buildPracticeSheetPdf(
 ): Promise<PracticeSheetResult> {
 	if (opts.layout === 'sentence') return buildSentencePracticeSheet(words, opts);
 
+	const unit = opts.unit ?? 'char';
 	const gridSize = opts.gridSize ?? 'medium';
 	const boxSize = GRID_SIZE_PT[gridSize];
 	const paper = opts.orientation === 'portrait' ? A4 : LANDSCAPE;
 	const gridStyle = opts.gridStyle ?? 'mi';
-	const guideColor = hexToColor(opts.gridColor, rgb(0.7, 0.7, 0.7));
+	const guideColor = hexToColor(opts.gridColor, rgb(0.85, 0.85, 0.85));
 	const phonetics = opts.phonetics ?? 'above';
 	const toneColors = opts.toneColors ?? true;
 	const pinyinRuled = opts.pinyinRuled ?? true;
@@ -252,9 +333,8 @@ export async function buildPracticeSheetPdf(
 	const traceCount = Math.max(0, opts.traceCount ?? 4);
 	const traceStrength = opts.traceStrength ?? 'faded';
 	const blankCount = Math.max(0, opts.blankCount ?? 3);
-
-	const chars = uniqueChars(words);
-	if (!chars.length) throw new Error('Add at least one character to practice.');
+	const rowsPerItem = Math.max(1, Math.floor(opts.rowsPerItem ?? 1));
+	const fillPage = opts.fillPage ?? false;
 
 	const fontBytes = await loadPdfFonts();
 	const doc = await PDFDocument.create();
@@ -272,10 +352,22 @@ export async function buildPracticeSheetPdf(
 
 	const unsupported: string[] = [];
 	const rows: RowContent[] = [];
-	for (const ch of chars) {
-		const content = await buildRowContent(ch, showMeaning);
-		if (content) rows.push(content);
-		else unsupported.push(ch);
+	if (unit === 'word') {
+		for (const word of uniqueWords(words)) {
+			const result = await buildWordRow(word, showMeaning);
+			if (result) {
+				rows.push(result.row);
+				unsupported.push(...result.missing);
+			} else {
+				unsupported.push(...[...word].filter((ch) => !/\s/.test(ch)));
+			}
+		}
+	} else {
+		for (const ch of uniqueChars(words)) {
+			const content = await buildCharRow(ch, showMeaning);
+			if (content) rows.push(content);
+			else unsupported.push(ch);
+		}
 	}
 	if (!rows.length) throw new Error('None of these characters have stroke data available.');
 
@@ -290,31 +382,78 @@ export async function buildPracticeSheetPdf(
 	const hintOpacity = (strength: HintStrength) => (strength === 'solid' ? 1 : strength === 'light' ? 0.35 : 0.15);
 	const traceOpacity = (strength: TraceStrength) => (strength === 'ghost' ? 0.08 : strength === 'color' ? 0.28 : 0.16);
 
-	for (const row of rows) {
-		const hintColor = hexToColor(opts.hintColor, toneColors ? (TONE[row.tone] ?? INK) : INK);
-		const traceColor = traceStrength === 'color' ? hexToColor(opts.traceColor, hintColor) : rgb(0.83, 0.83, 0.83);
-		const pinyinColor = toneColors ? (TONE[row.tone] ?? INK) : INK;
+	interface BoxSpec {
+		kind: 'hint' | 'trace' | 'blank';
+		strokes?: string[];
+		tone?: number;
+	}
 
-		const soLines = strokeOrder === 'row' ? Math.ceil(row.strokes.length / boxesPerRow) : 0;
+	for (const row of rows) {
+		const rowHintColor = hexToColor(opts.hintColor, toneColors ? (TONE[row.tone] ?? INK) : INK);
+		const pinyinColor = toneColors ? (TONE[row.tone] ?? INK) : INK;
+		const colorFor = (tone: number | undefined, base: 'hint' | 'trace') => {
+			if (base === 'trace') return traceStrength === 'color' ? hexToColor(opts.traceColor, rowHintColor) : rgb(0.83, 0.83, 0.83);
+			if (opts.hintColor) return rowHintColor;
+			return toneColors && tone !== undefined ? (TONE[tone] ?? INK) : toneColors ? rowHintColor : INK;
+		};
+
+		// One flat cumulative stroke-reveal step per character, concatenated —
+		// a two-character word gets its first character's strokes revealed
+		// one at a time, then its second's, not one shared count for both.
+		const soSteps: { strokes: string[]; tone: number }[] =
+			strokeOrder === 'row'
+				? row.segments.flatMap((seg) => seg.strokes.map((_, i) => ({ strokes: seg.strokes.slice(0, i + 1), tone: seg.tone })))
+				: [];
+		const soLines = soSteps.length ? Math.ceil(soSteps.length / boxesPerRow) : 0;
 		const soHeight = soLines ? soLines * (SO_BOX + SO_GAP) + ROW_GAP : 0;
-		const totalBoxes = (strokeOrder === 'per-box' ? row.strokes.length : hintCount) + traceCount + blankCount;
-		const boxRows = Math.ceil(totalBoxes / boxesPerRow);
+
+		// The natural sequence: every segment's hint (or per-box reveal) and
+		// trace boxes, back to back, then the explicit blank-box count.
+		const baseSpecs: BoxSpec[] = [];
+		for (const seg of row.segments) {
+			if (strokeOrder === 'per-box') {
+				for (let i = 0; i < seg.strokes.length; i++) {
+					baseSpecs.push({ kind: 'hint', strokes: seg.strokes.slice(0, i + 1), tone: seg.tone });
+				}
+			} else {
+				for (let i = 0; i < hintCount; i++) baseSpecs.push({ kind: 'hint', strokes: seg.strokes, tone: seg.tone });
+			}
+			for (let i = 0; i < traceCount; i++) baseSpecs.push({ kind: 'trace', strokes: seg.strokes, tone: seg.tone });
+		}
+		for (let i = 0; i < blankCount; i++) baseSpecs.push({ kind: 'blank' });
+
+		const naturalBoxRows = Math.ceil(baseSpecs.length / boxesPerRow);
 		const meaningHeight = showMeaning && row.meaning ? 11 : 0;
 		const phoneticsHeight = phonetics === 'none' ? 0 : 16 + (pinyinRuled ? 4 : 0) + meaningHeight;
-		const rowHeight =
-			Math.max(labelWidth, boxRows * (boxSize + GAP) - GAP) + soHeight + phoneticsHeight + ROW_GAP;
+		const naturalRowHeight =
+			Math.max(labelWidth, naturalBoxRows * (boxSize + GAP) - GAP) + soHeight + phoneticsHeight + ROW_GAP;
 
-		if (y - rowHeight < MARGIN.bottom) newPage();
+		if (y - naturalRowHeight < MARGIN.bottom) newPage();
 
 		const rowTop = y;
 
-		// ── Row label: the character on its own, plain ink, no grid ────────
-		await drawStrokeGlyph(page, row.strokes, {
+		// `rowsPerItem`/`fillPage` only ever add trailing blanks — they never
+		// cut the natural hint/trace sequence short.
+		const specs = baseSpecs.slice();
+		if (fillPage) {
+			const roomRows = Math.max(
+				naturalBoxRows,
+				Math.floor((rowTop - soHeight - phoneticsHeight - MARGIN.bottom + GAP) / (boxSize + GAP))
+			);
+			while (specs.length < roomRows * boxesPerRow) specs.push({ kind: 'blank' });
+		} else {
+			const targetRows = Math.max(naturalBoxRows, rowsPerItem);
+			while (specs.length < targetRows * boxesPerRow) specs.push({ kind: 'blank' });
+		}
+		const boxRows = Math.ceil(specs.length / boxesPerRow);
+
+		// ── Row label: the first character on its own, plain ink, no grid ──
+		await drawStrokeGlyph(page, row.label, {
 			x: MARGIN.x,
 			y: rowTop - labelWidth,
 			size: labelWidth,
 			padding: labelWidth * 0.08,
-			color: hintColor
+			color: rowHintColor
 		});
 		page.drawLine({
 			start: { x: MARGIN.x, y: rowTop - labelWidth - 3 },
@@ -345,13 +484,13 @@ export async function buildPracticeSheetPdf(
 
 		if (phonetics === 'above') drawPinyinLine();
 
-		if (strokeOrder === 'row') {
-			for (let i = 0; i < row.strokes.length; i++) {
+		if (soSteps.length) {
+			for (let i = 0; i < soSteps.length; i++) {
 				const col = i % boxesPerRow;
 				const line = Math.floor(i / boxesPerRow);
 				const bx = rowStartX + col * (SO_BOX + SO_GAP);
 				const byy = by - line * (SO_BOX + SO_GAP) - SO_BOX;
-				await drawStrokeGlyph(page, row.strokes.slice(0, i + 1), {
+				await drawStrokeGlyph(page, soSteps[i].strokes, {
 					x: bx,
 					y: byy,
 					size: SO_BOX,
@@ -363,58 +502,34 @@ export async function buildPracticeSheetPdf(
 			by -= soHeight;
 		}
 
-		let cellIndex = 0;
-		const drawCell = async (cx: number, cy: number, index: number) => {
+		for (let i = 0; i < specs.length; i++) {
+			const col = i % boxesPerRow;
+			const line = Math.floor(i / boxesPerRow);
+			const cx = rowStartX + col * (boxSize + GAP);
+			const cy = by - line * (boxSize + GAP) - boxSize;
+			const spec = specs[i];
 			drawPracticeCell(page, cx, cy, boxSize, gridStyle, guideColor);
-			if (strokeOrder === 'per-box') {
-				if (index < row.strokes.length) {
-					await drawStrokeGlyph(page, row.strokes.slice(0, index + 1), {
-						x: cx,
-						y: cy,
-						size: boxSize,
-						padding: boxSize * 0.1,
-						color: hintColor,
-						highlightLast: hintColor
-					});
-				} else if (index < row.strokes.length + traceCount) {
-					await drawStrokeGlyph(page, row.strokes, {
-						x: cx,
-						y: cy,
-						size: boxSize,
-						padding: boxSize * 0.1,
-						color: traceColor,
-						opacity: traceOpacity(traceStrength)
-					});
-				}
-				return;
-			}
-			if (index < hintCount) {
-				await drawStrokeGlyph(page, row.strokes, {
+			if (spec.kind === 'blank' || !spec.strokes) continue;
+			if (spec.kind === 'hint') {
+				await drawStrokeGlyph(page, spec.strokes, {
 					x: cx,
 					y: cy,
 					size: boxSize,
 					padding: boxSize * 0.1,
-					color: hintColor,
-					opacity: hintOpacity(hintStrength)
+					color: colorFor(spec.tone, 'hint'),
+					opacity: strokeOrder === 'per-box' ? undefined : hintOpacity(hintStrength),
+					highlightLast: strokeOrder === 'per-box' ? colorFor(spec.tone, 'hint') : undefined
 				});
-			} else if (index < hintCount + traceCount) {
-				await drawStrokeGlyph(page, row.strokes, {
+			} else {
+				await drawStrokeGlyph(page, spec.strokes, {
 					x: cx,
 					y: cy,
 					size: boxSize,
 					padding: boxSize * 0.1,
-					color: traceColor,
+					color: colorFor(spec.tone, 'trace'),
 					opacity: traceOpacity(traceStrength)
 				});
 			}
-		};
-
-		for (let i = 0; i < totalBoxes; i++, cellIndex++) {
-			const col = cellIndex % boxesPerRow;
-			const line = Math.floor(cellIndex / boxesPerRow);
-			const cx = rowStartX + col * (boxSize + GAP);
-			const cy = by - line * (boxSize + GAP) - boxSize;
-			await drawCell(cx, cy, i);
 		}
 		by -= boxRows * (boxSize + GAP) - GAP;
 

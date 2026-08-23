@@ -35,7 +35,7 @@
 	// section both draw through this, so picking a box style once applies
 	// everywhere a grid appears. ─────────────────────────────────────────
 	let gridStyle = $state<PracticeSheetOptions['gridStyle']>('mi');
-	let gridColor = $state('#b3b3b3');
+	let gridColor = $state('#d9d9d9');
 
 	// ── Study page options ────────────────────────────────────────────────
 	let boxesPerRow = $state(10);
@@ -66,6 +66,7 @@
 
 	// ── Practice sheet options ───────────────────────────────────────────
 	let layout = $state<PracticeSheetOptions['layout']>('grid');
+	let unit = $state<PracticeSheetOptions['unit']>('char');
 	let gridSize = $state<PracticeSheetOptions['gridSize']>('medium');
 	let orientation = $state<PracticeSheetOptions['orientation']>('portrait');
 	let phonetics = $state<PracticeSheetOptions['phonetics']>('above');
@@ -81,11 +82,14 @@
 	let traceStrength = $state<PracticeSheetOptions['traceStrength']>('faded');
 	let traceColor = $state('#9e9e9e');
 	let blankCount = $state(3);
+	let rowsPerItem = $state(1);
+	let fillPage = $state(false);
 	let repeatCount = $state(3);
 
 	function practiceOptions(): PracticeSheetOptions {
 		return {
 			layout,
+			unit,
 			gridSize,
 			orientation,
 			gridStyle,
@@ -102,6 +106,8 @@
 			traceStrength,
 			traceColor,
 			blankCount,
+			rowsPerItem,
+			fillPage,
 			repeatCount
 		};
 	}
@@ -123,6 +129,9 @@
 			apply: () => {
 				template = 'practice';
 				layout = 'grid';
+				unit = 'char';
+				rowsPerItem = 1;
+				fillPage = false;
 				gridSize = 'medium';
 				gridStyle = 'mi';
 				phonetics = 'above';
@@ -143,6 +152,9 @@
 			apply: () => {
 				template = 'practice';
 				layout = 'grid';
+				unit = 'char';
+				rowsPerItem = 1;
+				fillPage = false;
 				gridSize = 'medium';
 				gridStyle = 'tian';
 				phonetics = 'above';
@@ -163,6 +175,9 @@
 			apply: () => {
 				template = 'practice';
 				layout = 'grid';
+				unit = 'char';
+				rowsPerItem = 1;
+				fillPage = false;
 				gridSize = 'large';
 				gridStyle = 'hui';
 				phonetics = 'above';
@@ -183,6 +198,9 @@
 			apply: () => {
 				template = 'practice';
 				layout = 'grid';
+				unit = 'char';
+				rowsPerItem = 1;
+				fillPage = false;
 				gridSize = 'medium';
 				gridStyle = 'mi';
 				phonetics = 'above';
@@ -203,6 +221,9 @@
 			apply: () => {
 				template = 'practice';
 				layout = 'grid';
+				unit = 'char';
+				rowsPerItem = 2;
+				fillPage = false;
 				gridSize = 'small';
 				gridStyle = 'dotted';
 				phonetics = 'none';
@@ -210,7 +231,7 @@
 				hintCount = 0;
 				strokeOrderMode = 'off';
 				traceCount = 0;
-				blankCount = 14;
+				blankCount = 0;
 			}
 		},
 		{
@@ -220,12 +241,61 @@
 			apply: () => {
 				template = 'practice';
 				layout = 'sentence';
+				unit = 'char';
+				rowsPerItem = 1;
+				fillPage = false;
 				gridSize = 'medium';
 				gridStyle = 'mi';
 				orientation = 'landscape';
 				phonetics = 'above';
 				toneColors = true;
 				repeatCount = 3;
+			}
+		},
+		{
+			id: 'word-practice',
+			name: 'Word Practice',
+			description: 'One row per word — a 2-3 character word gets a box for every character in it.',
+			apply: () => {
+				template = 'practice';
+				layout = 'grid';
+				unit = 'word';
+				rowsPerItem = 1;
+				fillPage = false;
+				gridSize = 'medium';
+				gridStyle = 'mi';
+				phonetics = 'above';
+				toneColors = true;
+				showMeaning = true;
+				hintCount = 1;
+				hintStrength = 'solid';
+				strokeOrderMode = 'off';
+				traceCount = 3;
+				traceStrength = 'faded';
+				blankCount = 1;
+			}
+		},
+		{
+			id: 'full-page',
+			name: 'Full Page Practice',
+			description: 'One character (or word) fills the rest of the page with boxes.',
+			apply: () => {
+				template = 'practice';
+				layout = 'grid';
+				unit = 'char';
+				rowsPerItem = 1;
+				fillPage = true;
+				gridSize = 'medium';
+				gridStyle = 'mi';
+				phonetics = 'above';
+				toneColors = true;
+				showMeaning = false;
+				hintCount = 1;
+				hintStrength = 'solid';
+				strokeOrderMode = 'off';
+				traceCount = 4;
+				traceStrength = 'faded';
+				blankCount = 0;
 			}
 		},
 		{
@@ -559,10 +629,19 @@
 				{:else}
 					<section class="rounded-xl border border-neutral-200 p-4">
 						<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">Row content</h2>
-						<label class="flex items-center gap-2 text-sm text-neutral-600">
-							<input type="checkbox" bind:checked={showMeaning} />
-							Show English meaning under the pinyin
-						</label>
+						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<label class={fieldLabel}>
+								Group by
+								<select bind:value={unit} class={fieldSelect}>
+									<option value="char">Character — one row per character</option>
+									<option value="word">Word — one row per word, a box per character in it</option>
+								</select>
+							</label>
+							<label class="flex items-center gap-2 text-sm text-neutral-600 sm:mt-6">
+								<input type="checkbox" bind:checked={showMeaning} />
+								Show English meaning under the pinyin
+							</label>
+						</div>
 					</section>
 
 					<section class="rounded-xl border border-neutral-200 p-4">
@@ -632,12 +711,35 @@
 
 					<section class="rounded-xl border border-neutral-200 p-4">
 						<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">
-							Blank boxes <span class="font-normal normal-case text-neutral-400">— no guide at all</span>
+							Blank boxes <span class="font-normal normal-case text-neutral-400">— no guide at all, added after the hints/traces above</span>
 						</h2>
 						<label class="{fieldLabel} block max-w-[10rem]">
-							Repeat
+							Minimum
 							<input type="number" min="0" max="20" bind:value={blankCount} class={fieldInput} />
 						</label>
+					</section>
+
+					<section class="rounded-xl border border-neutral-200 p-4">
+						<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">
+							How far to fill <span class="font-normal normal-case text-neutral-400">— every row of boxes always reaches the page's right edge</span>
+						</h2>
+						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<label class={fieldLabel}>
+								Rows per character{unit === 'word' ? '/word' : ''}
+								<input
+									type="number"
+									min="1"
+									max="20"
+									bind:value={rowsPerItem}
+									disabled={fillPage}
+									class="{fieldInput} disabled:opacity-40"
+								/>
+							</label>
+							<label class="flex items-center gap-2 text-sm text-neutral-600 sm:mt-6">
+								<input type="checkbox" bind:checked={fillPage} />
+								Fill the whole page instead — one item per page
+							</label>
+						</div>
 					</section>
 				{/if}
 			{/if}

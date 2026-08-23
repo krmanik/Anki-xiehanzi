@@ -32,6 +32,7 @@
 		"pdf-lib": "^1.17.1",
 		"segmentit": "^2.0.3",
 		"sql.js": "^1.10.3",
+		"svgpath": "^2.6.0",
 		"unzipit": "^1.4.3"
 	},
 	"devDependencies": {

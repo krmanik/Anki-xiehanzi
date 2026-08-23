@@ -357,9 +357,9 @@ export function loadPdfFonts(): Promise<PdfFontBytes> {
 // Page geometry and palette
 // ---------------------------------------------------------------------------
 
-const A4 = { width: 595.28, height: 841.89 };
-const LANDSCAPE = { width: A4.height, height: A4.width };
-const MARGIN = { top: 48, bottom: 44, x: 40 };
+export const A4 = { width: 595.28, height: 841.89 };
+export const LANDSCAPE = { width: A4.height, height: A4.width };
+export const MARGIN = { top: 48, bottom: 44, x: 40 };
 
 const ROW_PAD = 6;
 const LINE_GAP = 1.6;
@@ -370,17 +370,17 @@ const ROW_FIT = 0.85;
 /** Descender allowance below the last baseline, as a fraction of type size. */
 const DESCENDER = 0.28;
 
-const TONE: Record<number, RGB> = {
+export const TONE: Record<number, RGB> = {
 	1: rgb(0.957, 0.263, 0.212), // #f44336
 	2: rgb(1, 0.596, 0), // #ff9800
 	3: rgb(0.298, 0.686, 0.314), // #4caf50
 	4: rgb(0.129, 0.588, 0.953), // #2196f3
 	5: rgb(0.62, 0.62, 0.62) // #9e9e9e
 };
-const INK = rgb(0.07, 0.07, 0.07);
+export const INK = rgb(0.07, 0.07, 0.07);
 const MUTED = rgb(0.45, 0.45, 0.45);
 const FAINT = rgb(0.62, 0.62, 0.62);
-const HAIRLINE = rgb(0.886, 0.886, 0.886);
+export const HAIRLINE = rgb(0.886, 0.886, 0.886);
 const ZEBRA = rgb(0.976, 0.976, 0.976);
 
 export interface PdfOptions {
@@ -416,7 +416,13 @@ export async function buildHskPdf(
 	progress(0.2, 'Embedding fonts…');
 	const doc = await PDFDocument.create();
 	doc.registerFontkit(fontkit);
-	const cjk = await doc.embedFont(bytes.cjk, { subset: true });
+	// `subset: true` silently drops glyphs for this font once a page draws more
+	// than a handful of distinct CJK characters — confirmed in isolation with a
+	// bare pdf-lib script (no app code involved): some `drawText` calls render
+	// nothing at all, with no error, and it gets worse as the word count grows
+	// (30 distinct words → 13 rendered). `subset: false` renders every
+	// character correctly; Latin text isn't affected either way.
+	const cjk = await doc.embedFont(bytes.cjk, { subset: false });
 	const latin = await doc.embedFont(bytes.latin, { subset: true });
 	const latinBold = await doc.embedFont(bytes.latinBold, { subset: true });
 

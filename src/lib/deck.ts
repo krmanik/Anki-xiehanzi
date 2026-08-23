@@ -526,6 +526,16 @@ export function cutParagraph(text: string): string[] {
 	return [...new Set(cutWords)];
 }
 
+/**
+ * Segment a paragraph in reading order, keeping every token — punctuation,
+ * whitespace and non-Chinese runs included, nothing deduped. `cutParagraph`
+ * throws all of that away for the deck creator's word list; a reader that
+ * echoes the original text back needs it kept.
+ */
+export function segmentOrdered(text: string): string[] {
+	return cut(Chinese.t2s(text), true);
+}
+
 // ---------------------------------------------------------------------------
 // Deck generation
 // ---------------------------------------------------------------------------

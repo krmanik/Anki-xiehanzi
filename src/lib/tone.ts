@@ -30,29 +30,44 @@ export function toneOfPinyin(syllable: string): number {
 }
 
 /**
- * Best-effort tone-coloring of a whole sentence's hanzi. Splits the sentence's
+ * Best-effort tone-pairing of a whole sentence's hanzi. Splits the sentence's
  * tone-marked pinyin into syllables and assigns them in order to the CJK
- * characters (punctuation / spaces / digits pass through uncolored). Imperfect
- * for multi-syllable characters or unusual punctuation, but good enough for an
- * example sentence. Returns HTML with `.char-toneN` spans.
+ * characters; a non-CJK character (punctuation, spaces, digits) comes back
+ * with `tone: null` so a caller can pass it through uncolored. Imperfect for
+ * multi-syllable characters or unusual punctuation, but good enough for an
+ * example sentence. Shared by `colorizeSentenceHanzi` (HTML, for the web UI)
+ * and the worksheet PDF, which draws each character in pdf-lib directly.
  */
-export function colorizeSentenceHanzi(sentence: string, pinyin: string): string {
+export function pairSentenceTones(
+	sentence: string,
+	pinyin: string
+): { ch: string; tone: number | null }[] {
 	const sylls = (pinyin ?? '')
 		.split(/\s+/)
 		// keep only syllables that contain a latin letter (drop standalone punctuation)
 		.filter((s) => /[a-zü]/i.test(s.normalize('NFD').replace(/[̀-ͯ]/g, '')));
 	let si = 0;
-	let html = '';
+	const out: { ch: string; tone: number | null }[] = [];
 	for (const ch of sentence ?? '') {
 		if (CJK.test(ch)) {
 			const tone = si < sylls.length ? toneOfPinyin(sylls[si]) : 5;
 			si++;
-			html += `<span class="ex-tone${tone}">${ch}</span>`;
+			out.push({ ch, tone });
 		} else {
-			html += ch;
+			out.push({ ch, tone: null });
 		}
 	}
-	return html;
+	return out;
+}
+
+/**
+ * Best-effort tone-coloring of a whole sentence's hanzi. Returns HTML with
+ * `.ex-toneN` spans; punctuation / spaces / digits pass through uncolored.
+ */
+export function colorizeSentenceHanzi(sentence: string, pinyin: string): string {
+	return pairSentenceTones(sentence, pinyin)
+		.map(({ ch, tone }) => (tone === null ? ch : `<span class="ex-tone${tone}">${ch}</span>`))
+		.join('');
 }
 
 /**

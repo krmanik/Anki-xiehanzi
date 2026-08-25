@@ -164,7 +164,7 @@ function charsNeeded(card: CardData, fields: FlashcardFieldId[]): string[] {
 	const chars: string[] = [];
 	if (fields.includes('hanzi-simplified')) chars.push(...(card.entry?.simplified ?? card.word));
 	if (fields.includes('hanzi-traditional')) chars.push(...(card.entry?.traditional ?? card.word));
-	if (fields.includes('stroke-order')) chars.push(...(card.entry?.simplified ?? card.word).slice(0, 1));
+	if (fields.includes('stroke-order')) chars.push(...(card.entry?.simplified ?? card.word));
 	if (fields.includes('classifier')) for (const cl of card.classifiers) chars.push(...cjkChars(cl));
 	return chars;
 }
@@ -219,10 +219,10 @@ function fixedFieldHeight(id: FlashcardFieldId, card: CardData, ctx: DrawCtx): n
 		case 'definitions':
 			return card.definitions.length * 10.5;
 		case 'stroke-order': {
-			const first = [...(card.entry?.simplified ?? card.word)][0];
-			if (!first || !card.strokes.get(first)) return 0;
+			const rows = [...(card.entry?.simplified ?? card.word)].filter((ch) => card.strokes.get(ch)?.length).length;
+			if (!rows) return 0;
 			const boxSize = (maxWidth - (ctx.steps - 1) * 3) / ctx.steps;
-			return Math.max(0, boxSize);
+			return Math.max(0, boxSize) * rows;
 		}
 		default:
 			return 0;
@@ -298,15 +298,19 @@ async function drawField(
 			ty -= 10.5;
 		}
 	} else if (id === 'stroke-order') {
-		const first = [...(card.entry?.simplified ?? card.word)][0];
-		const paths = first ? card.strokes.get(first) : null;
-		if (!paths?.length) return;
-		const boxSize = height;
-		let bx = left;
-		for (let i = 1; i <= ctx.steps; i++) {
-			const n = Math.max(1, Math.round((paths.length * i) / ctx.steps));
-			await drawStrokeGlyph(page, paths.slice(0, n), { x: bx, y: y - boxSize, size: boxSize, color: INK, padding: 2 });
-			bx += boxSize + 3;
+		const rowChars = [...(card.entry?.simplified ?? card.word)].filter((ch) => card.strokes.get(ch)?.length);
+		if (!rowChars.length) return;
+		const boxSize = height / rowChars.length;
+		let ry = y;
+		for (const ch of rowChars) {
+			const paths = card.strokes.get(ch) ?? [];
+			let bx = left;
+			for (let i = 1; i <= ctx.steps; i++) {
+				const n = Math.max(1, Math.round((paths.length * i) / ctx.steps));
+				await drawStrokeGlyph(page, paths.slice(0, n), { x: bx, y: ry - boxSize, size: boxSize, color: INK, padding: 2 });
+				bx += boxSize + 3;
+			}
+			ry -= boxSize;
 		}
 	}
 }

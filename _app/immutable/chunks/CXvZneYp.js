@@ -1,0 +1,1 @@
+import{c as e,s as t}from"./CG_9zvlc.js";import"./xihTtKlq.js";import{t as n}from"./xUE_Q98t.js";var r=new Set([`$$slots`,`$$events`,`$$legacy`]);function i(i,a){let o=t(a,r),s=[[`path`,{d:`M14 17H5`}],[`path`,{d:`M19 7h-9`}],[`circle`,{cx:`17`,cy:`17`,r:`3`}],[`circle`,{cx:`7`,cy:`7`,r:`3`}]];n(i,e({name:`settings-2`},()=>o,{get iconNode(){return s}}))}export{i as t};

@@ -6,20 +6,12 @@
 		title,
 		subtitle = '',
 		onclose,
-		children,
-		size = 'full'
+		children
 	}: {
 		title: string;
 		subtitle?: string;
 		onclose: () => void;
 		children: Snippet;
-		/**
-		 * 'compact' — a small floating card, centered with margin, never
-		 * full-screen even on mobile: for a quick lookup opened mid-read that
-		 * shouldn't take over the page. 'full' (default) — today's behavior,
-		 * full-screen below `sm:`, a centered dialog above it.
-		 */
-		size?: 'compact' | 'full';
 	} = $props();
 
 	function onkeydown(e: KeyboardEvent) {
@@ -30,22 +22,18 @@
 <svelte:window {onkeydown} />
 
 <div
-	class="fixed inset-0 z-50 flex bg-black/40 {size === 'compact'
-		? 'items-center justify-center p-4'
-		: 'sm:items-center sm:justify-center sm:p-4'}"
+	class="fixed inset-0 z-50 flex bg-black/40 sm:items-center sm:justify-center sm:p-4"
 	onclick={onclose}
 	role="presentation"
 >
 	<div
-		class="flex flex-col overflow-hidden bg-white shadow-2xl {size === 'compact'
-			? 'max-h-[80vh] w-full max-w-sm rounded-2xl'
-			: 'h-full w-full sm:h-auto sm:max-h-[85vh] sm:w-full sm:max-w-lg sm:rounded-2xl'}"
+		class="flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[85vh] sm:w-full sm:max-w-lg sm:rounded-2xl"
 		onclick={(e) => e.stopPropagation()}
 		role="presentation"
 	>
 		<div
 			class="flex items-center gap-3 border-b border-neutral-200 px-4 py-3 sm:py-3"
-			style={size === 'compact' ? '' : 'padding-top: max(0.75rem, env(safe-area-inset-top))'}
+			style="padding-top: max(0.75rem, env(safe-area-inset-top))"
 		>
 			<div class="min-w-0">
 				<h3 class="truncate font-semibold text-neutral-900">{title}</h3>
@@ -59,10 +47,7 @@
 				<X size={18} />
 			</button>
 		</div>
-		<div
-			class="overflow-y-auto p-4"
-			style={size === 'compact' ? '' : 'padding-bottom: max(1rem, env(safe-area-inset-bottom))'}
-		>
+		<div class="overflow-y-auto p-4" style="padding-bottom: max(1rem, env(safe-area-inset-bottom))">
 			{@render children()}
 		</div>
 	</div>

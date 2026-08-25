@@ -26,38 +26,13 @@
 	import { speak } from '$lib/dict/audio';
 	import { preloadSyllables } from '$lib/dict/syllableAudio';
 	import { colorizePinyinString, colorizeSentenceHanzi, toneOfPinyin } from '$lib/tone';
-	import { untrack } from 'svelte';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 
 	let {
 		word,
-		onOpenWord,
-		compact = false,
-		onExpandedChange
-	}: {
-		word: string;
-		onOpenWord?: (word: string) => void;
-		compact?: boolean;
-		/** Fires with the current `expanded` value on mount and every toggle — lets
-		 * a caller wrapping this in a modal grow the modal itself past a small
-		 * floating card once "More info" reveals the rest. */
-		onExpandedChange?: (expanded: boolean) => void;
-	} = $props();
-
-	// Compact starts collapsed to simplified/pinyin/simple+full meaning only,
-	// with everything else (traditional, chips, character breakdown, example
-	// sentences, compounds) behind "More info" — a popup opened mid-read
-	// shouldn't dump the whole dictionary entry before the reader's even asked
-	// for it. A non-compact caller (the dictionary page) gets today's full view.
-	// `compact` is a per-caller constant, not something that flips at runtime,
-	// so only its initial value matters here — the word-change effect below is
-	// what re-reads it on every new lookup.
-	let expanded = $state(untrack(() => !compact));
-
-	$effect(() => {
-		onExpandedChange?.(expanded);
-	});
+		onOpenWord
+	}: { word: string; onOpenWord?: (word: string) => void } = $props();
 
 	let entry = $state<CedictEntry | null>(null);
 	let chars = $state<CharInfo[]>([]);
@@ -103,7 +78,6 @@
 		openChar = null;
 		sentenceLimit = SENTENCE_STEP;
 		mayHaveMore = false;
-		expanded = !compact;
 
 		(async () => {
 			const [found, breakdown] = await Promise.all([lookup(w), characterBreakdown(w)]);
@@ -175,10 +149,10 @@
 							</button>
 						{/each}
 					</div>
-					{#if entry.commonMeaning}
+					{#if entry.commonMeaning && entry.commonMeaning !== '#'}
 						<p class="mt-1.5 text-[15px] text-neutral-500">{entry.commonMeaning}</p>
 					{/if}
-					{#if expanded && entry.traditional !== entry.simplified}
+					{#if entry.traditional !== entry.simplified}
 						<p class="mt-2 flex items-baseline gap-2">
 							<span class={label}>traditional</span>
 							<span class="text-2xl" lang="zh-Hant">{entry.traditional}</span>
@@ -194,24 +168,21 @@
 					>
 						<Volume2 size={14} /> Listen
 					</button>
-					{#if expanded}
-						<div class="flex flex-wrap justify-end gap-1.5">
-							{#each levels as lvl (lvl)}
-								<span class="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[11px] font-medium text-indigo-700">
-									{lvl}
-								</span>
-							{/each}
-							{#if band}<span class={chip}>{band}</span>{/if}
-							{#each entry.pos.map(posDisplay).filter(Boolean) as pos (pos)}
-								<span class={chip}>{pos}</span>
-							{/each}
-						</div>
-					{/if}
+					<div class="flex flex-wrap justify-end gap-1.5">
+						{#each levels as lvl (lvl)}
+							<span class="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[11px] font-medium text-indigo-700">
+								{lvl}
+							</span>
+						{/each}
+						{#if band}<span class={chip}>{band}</span>{/if}
+						{#each entry.pos.map(posDisplay).filter(Boolean) as pos (pos)}
+							<span class={chip}>{pos}</span>
+						{/each}
+					</div>
 				</div>
 			</div>
 
-			<!-- Readings: one block per pronunciation, its senses under it — the
-			     "full meaning" that stays visible even in a compact popup. -->
+			<!-- Readings: one block per pronunciation, its senses under it -->
 			<div class="mt-5 grid gap-4">
 				{#each readings as reading (reading.syllable)}
 					<div class="border-t border-neutral-100 pt-3 first:border-0 first:pt-0">
@@ -250,7 +221,7 @@
 				{/each}
 			</div>
 
-			{#if expanded && entry.classifiers.length}
+			{#if entry.classifiers.length}
 				<p class="mt-4 flex flex-wrap items-baseline gap-2 text-sm">
 					<span class={label}>measure word</span>
 					{#each entry.classifiers as cl (cl)}
@@ -260,19 +231,8 @@
 			{/if}
 		</header>
 
-		{#if compact}
-			<button
-				type="button"
-				onclick={() => (expanded = !expanded)}
-				class="-mt-2 flex items-center gap-1 justify-self-start text-xs font-medium text-indigo-600 hover:text-indigo-800"
-			>
-				<ChevronDown size={13} class={expanded ? 'rotate-180' : ''} />
-				{expanded ? 'Show less' : 'More info'}
-			</button>
-		{/if}
-
 		<!-- Character breakdown: the row of parts the word is written with -->
-		{#if expanded && chars.length > 1}
+		{#if chars.length > 1}
 			<section class={panel}>
 				<h2 class={label}>Characters</h2>
 				<div class="mt-3 flex flex-wrap gap-2">
@@ -302,7 +262,7 @@
 		{/if}
 
 		<!-- The expanded character -->
-		{#if expanded && openChar}
+		{#if openChar}
 			{#key openChar}
 				<section class="rounded-2xl border border-neutral-200 bg-neutral-50/60 p-4 sm:p-5">
 					<div class="mb-4 flex items-baseline gap-3">
@@ -320,7 +280,7 @@
 		{/if}
 
 		<!-- Sentences for the whole word -->
-		{#if expanded && sentences.length}
+		{#if sentences.length}
 			<section class={panel}>
 				<h2 class={label}>Example sentences</h2>
 				<ul class="mt-3 grid gap-3">
@@ -367,7 +327,7 @@
 		{/if}
 
 		<!-- Longer words built on this one -->
-		{#if expanded && compounds.length}
+		{#if compounds.length}
 			<section class={panel}>
 				<h2 class={label}>Words containing {entry.simplified}</h2>
 				<ul class="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">

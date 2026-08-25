@@ -19,6 +19,7 @@
 	import { btnPrimary, btnSecondary } from '$lib/buttonStyles';
 	import PickerModal from '$lib/components/PickerModal.svelte';
 	import WordEntry from '$lib/components/dict/WordEntry.svelte';
+	import WordPopup from '$lib/components/dict/WordPopup.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Check from '@lucide/svelte/icons/check';
 	import Layers from '@lucide/svelte/icons/layers';
@@ -45,7 +46,8 @@
 	let tokens = $state<string[]>([]);
 	let entries = $state<Map<string, CedictEntry | null>>(new Map());
 	let selected = $state<string | null>(null);
-	let popupExpanded = $state(false);
+	let anchor = $state<DOMRect | null>(null);
+	let fullWord = $state<string | null>(null);
 	let bag = $state<Set<string>>(new Set());
 	let jiebaReady = false;
 	let analyzing = $state(false);
@@ -166,9 +168,14 @@
 		}
 	}
 
-	function openWord(w: string) {
+	function openWord(w: string, rect: DOMRect) {
 		selected = w;
-		popupExpanded = false;
+		anchor = rect;
+	}
+
+	function showMore() {
+		fullWord = selected;
+		selected = null;
 	}
 
 	function toggleBag(word: string) {
@@ -326,7 +333,7 @@
 						null
 							? 'text-neutral-400 decoration-neutral-300 decoration-dashed hover:decoration-neutral-400'
 							: ''}"
-						onclick={() => openWord(token)}
+						onclick={(e) => openWord(token, (e.currentTarget as HTMLElement).getBoundingClientRect())}
 					>
 						{#each tokenChars(token, entry) as part, j (j)}
 							{#if showPinyin && part.py}
@@ -374,24 +381,34 @@
 	}
 </style>
 
-{#if selected}
-	<PickerModal title={selected} onclose={() => (selected = null)} size={popupExpanded ? 'full' : 'compact'}>
+{#if selected && anchor}
+	{#key selected}
+		<WordPopup
+			word={selected}
+			{anchor}
+			onclose={() => (selected = null)}
+			onMore={showMore}
+			onOpenWord={(w) => (selected = w)}
+			saved={bag.has(selected)}
+			onToggleSave={() => selected && toggleBag(selected)}
+			{colorize}
+		/>
+	{/key}
+{/if}
+
+{#if fullWord}
+	<PickerModal title={fullWord} onclose={() => (fullWord = null)}>
 		<button
 			type="button"
-			onclick={() => selected && toggleBag(selected)}
+			onclick={() => fullWord && toggleBag(fullWord)}
 			class="{btnSecondary} mb-3 inline-flex items-center gap-1.5 text-xs"
 		>
-			{#if selected && bag.has(selected)}
+			{#if fullWord && bag.has(fullWord)}
 				<Check size={13} /> In word list
 			{:else}
 				<Plus size={13} /> Add to word list
 			{/if}
 		</button>
-		<WordEntry
-			word={selected}
-			onOpenWord={openWord}
-			compact
-			onExpandedChange={(v) => (popupExpanded = v)}
-		/>
+		<WordEntry word={fullWord} onOpenWord={(w) => (fullWord = w)} />
 	</PickerModal>
 {/if}

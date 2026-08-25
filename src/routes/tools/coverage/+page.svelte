@@ -14,20 +14,27 @@
 	import { btnPrimary } from '$lib/buttonStyles';
 	import PickerModal from '$lib/components/PickerModal.svelte';
 	import WordEntry from '$lib/components/dict/WordEntry.svelte';
+	import WordPopup from '$lib/components/dict/WordPopup.svelte';
 
 	let text = $state('');
 	let listId = $state<HskListId>('new');
 	let index = $state<HskIndex | null>(null);
 	let result = $state<CoverageResult | null>(null);
 	let selected = $state<string | null>(null);
-	let popupExpanded = $state(false);
+	let anchor = $state<DOMRect | null>(null);
+	let fullWord = $state<string | null>(null);
 	let jiebaReady = false;
 	let analyzing = $state(false);
 	let error = $state('');
 
-	function openWord(w: string) {
+	function openWord(w: string, rect: DOMRect) {
 		selected = w;
-		popupExpanded = false;
+		anchor = rect;
+	}
+
+	function showMore() {
+		fullWord = selected;
+		selected = null;
 	}
 
 	onMount(() => {
@@ -145,7 +152,7 @@
 						{#each result.unknown as word (word)}
 							<button
 								type="button"
-								onclick={() => openWord(word)}
+								onclick={(e) => openWord(word, (e.currentTarget as HTMLElement).getBoundingClientRect())}
 								class="rounded-md border border-neutral-200 px-2.5 py-1 text-lg transition hover:border-neutral-900"
 							>
 								{word}
@@ -158,13 +165,20 @@
 	{/if}
 </div>
 
-{#if selected}
-	<PickerModal title={selected} onclose={() => (selected = null)} size={popupExpanded ? 'full' : 'compact'}>
-		<WordEntry
+{#if selected && anchor}
+	{#key selected}
+		<WordPopup
 			word={selected}
-			onOpenWord={openWord}
-			compact
-			onExpandedChange={(v) => (popupExpanded = v)}
+			{anchor}
+			onclose={() => (selected = null)}
+			onMore={showMore}
+			onOpenWord={(w) => (selected = w)}
 		/>
+	{/key}
+{/if}
+
+{#if fullWord}
+	<PickerModal title={fullWord} onclose={() => (fullWord = null)}>
+		<WordEntry word={fullWord} onOpenWord={(w) => (fullWord = w)} />
 	</PickerModal>
 {/if}

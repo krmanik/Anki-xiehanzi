@@ -269,7 +269,7 @@
 		{#if words.length}
 			<section class={panel}>
 				<h3 class={label}>Words with {char}</h3>
-				<ul class="mt-3 grid gap-1.5 sm:grid-cols-2">
+				<ul class="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
 					{#each words as word (word.simplified)}
 						<li>
 							<button

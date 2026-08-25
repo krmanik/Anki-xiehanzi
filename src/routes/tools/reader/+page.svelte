@@ -13,8 +13,7 @@
 	import { base } from '$app/paths';
 	import { initJieba, segmentOrdered } from '$lib/deck';
 	import { lookup, type CedictEntry } from '$lib/dict/cedict';
-	import { speak, stopSpeaking } from '$lib/dict/audio';
-	import { canSpeakPinyin } from '$lib/dict/syllableAudio';
+	import { speakPiper, stopPiper } from '$lib/dict/piperTts';
 	import { toneDigits } from '$lib/tone';
 	import { setPendingWords } from '$lib/hskHandoff';
 	import { btnPrimary, btnSecondary } from '$lib/buttonStyles';
@@ -24,14 +23,21 @@
 	import Check from '@lucide/svelte/icons/check';
 	import Layers from '@lucide/svelte/icons/layers';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
+	import Square from '@lucide/svelte/icons/square';
+	import Loader from '@lucide/svelte/icons/loader-circle';
+	import Sparkles from '@lucide/svelte/icons/sparkles';
+	import Captions from '@lucide/svelte/icons/captions';
+	import Palette from '@lucide/svelte/icons/palette';
 	import X from '@lucide/svelte/icons/x';
 
 	const CHINESE = /[一-龥]/;
 	const PREFS_KEY = 'xhz.reader.prefs';
+	const SAMPLE =
+		'我每天都在学习中文，因为我喜欢中国的文化和历史。今天老师教了我们十个新的汉字，虽然有点难，但是很有意思！';
 	const SIZES = [
-		{ id: 'sm', label: 'A', cls: 'text-lg', rt: 'text-[10px]' },
-		{ id: 'md', label: 'A', cls: 'text-2xl', rt: 'text-xs' },
-		{ id: 'lg', label: 'A', cls: 'text-3xl', rt: 'text-sm' }
+		{ id: 'sm', label: 'S', cls: 'text-lg', rt: 'text-[10px]' },
+		{ id: 'md', label: 'M', cls: 'text-2xl', rt: 'text-xs' },
+		{ id: 'lg', label: 'L', cls: 'text-3xl', rt: 'text-sm' }
 	] as const;
 
 	let text = $state('');
@@ -42,7 +48,8 @@
 	let jiebaReady = false;
 	let analyzing = $state(false);
 	let speaking = $state(false);
-	let speakTimer: ReturnType<typeof setTimeout> | undefined;
+	let ttsStatus = $state('');
+	let ttsPct = $state<number | undefined>(undefined);
 	let error = $state('');
 
 	let showPinyin = $state(true);
@@ -97,9 +104,15 @@
 		text = '';
 		tokens = [];
 		entries = new Map();
-		clearTimeout(speakTimer);
-		stopSpeaking();
+		void stopPiper();
 		speaking = false;
+		ttsStatus = '';
+		ttsPct = undefined;
+	}
+
+	function loadSample() {
+		text = SAMPLE;
+		analyze();
 	}
 
 	/** Per-character tone + pinyin syllable for a token, for ruby annotation. */
@@ -114,30 +127,40 @@
 		}));
 	}
 
+	/**
+	 * Real speech via Piper (`piperTts.ts`) instead of the dictionary's syllable
+	 * sprite: a passage only needs one word outside the sprite's ~1,600 clips
+	 * (喜欢's neutral-tone "huan5" has none) to fail the whole plan and fall
+	 * through to Edge TTS, which 403s outside the real Edge browser. Piper
+	 * synthesizes the text directly, so there's no fixed clip set to fall
+	 * outside of — at the cost of a one-time ~60MB voice download, cached
+	 * forever after via CacheStorage.
+	 */
 	async function readAloud() {
-		clearTimeout(speakTimer);
-		if (speaking) {
-			stopSpeaking();
+		if (speaking || ttsStatus) {
+			await stopPiper();
 			speaking = false;
+			ttsStatus = '';
+			ttsPct = undefined;
 			return;
 		}
-		const candidates = tokens
-			.filter((t) => CHINESE.test(t))
-			.map((t) => entries.get(t)?.readings[0]?.syllable)
-			.filter((s): s is string => !!s);
-		// A word missing even one syllable from the sprite (喜欢's neutral-tone
-		// "huan5" has no clip) fails the whole plan, not just that word — checked
-		// per word first so one gap drops that word instead of silencing the
-		// entire passage or falling through to Edge TTS, which 403s outside Edge.
-		const speakable = await Promise.all(candidates.map((s) => canSpeakPinyin(s)));
-		const sylls = candidates.filter((_, i) => speakable[i]).join(' ');
-		if (!sylls) return;
-		speaking = true;
+		if (!text.trim()) return;
+		ttsStatus = 'Starting…';
 		try {
-			await speak(text, { pinyin: sylls, spacing: 0.05, skipRecording: true });
-			speakTimer = setTimeout(() => (speaking = false), text.length * 400);
-		} catch {
+			await speakPiper(text, (msg, pct) => {
+				ttsStatus = msg;
+				ttsPct = pct;
+			});
+			ttsStatus = '';
+			ttsPct = undefined;
+			speaking = true;
+			const audio = (window as unknown as { __ttsAudio?: HTMLAudioElement }).__ttsAudio;
+			audio?.addEventListener('ended', () => (speaking = false), { once: true });
+		} catch (e) {
 			speaking = false;
+			ttsStatus = '';
+			ttsPct = undefined;
+			error = e instanceof Error ? e.message : String(e);
 		}
 	}
 
@@ -162,15 +185,18 @@
 	<title>Paste-text reader · Anki xiehanzi</title>
 </svelte:head>
 
-<div class="mx-auto max-w-4xl px-5 py-10 pb-28">
+<div class="mx-auto max-w-4xl px-4 py-8 pb-28 sm:px-5 sm:py-10">
 	<header class="mb-6">
-		<h1 class="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
+		<div class="flex items-center gap-2 text-indigo-600">
+			<Sparkles size={16} />
+			<span class="font-mono text-xs font-semibold tracking-[0.2em] uppercase">Reader</span>
+		</div>
+		<h1 class="mt-1 text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
 			Paste-text reader
 		</h1>
 		<p class="mt-2 max-w-2xl text-neutral-600">
 			Paste any Chinese text — an article, a chat, a book excerpt. Every word is tone-colored,
-			shows its pinyin, and opens a full dictionary entry on tap. Punctuation and everything else
-			reads back exactly as pasted.
+			shows its pinyin, and opens a full dictionary entry on tap.
 		</p>
 	</header>
 
@@ -191,6 +217,10 @@
 				<button type="button" onclick={clear} class="{btnSecondary} inline-flex items-center gap-1">
 					<X size={14} /> Clear
 				</button>
+			{:else}
+				<button type="button" onclick={loadSample} class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+					Try a sample →
+				</button>
 			{/if}
 			{#if error}<p class="text-sm text-red-600">{error}</p>{/if}
 		</div>
@@ -198,60 +228,72 @@
 
 	{#if tokens.length}
 		<div
-			class="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-neutral-100 bg-neutral-50 p-2.5"
+			class="no-scrollbar sticky top-[53px] z-20 mt-4 flex items-center gap-1.5 overflow-x-auto rounded-full border border-neutral-200 bg-white/90 p-1.5 whitespace-nowrap shadow-sm backdrop-blur"
 		>
 			<button
 				type="button"
 				aria-pressed={showPinyin}
+				title="Toggle pinyin"
 				onclick={() => (showPinyin = !showPinyin)}
-				class="rounded-md px-3 py-1.5 text-sm font-medium transition {showPinyin
+				class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition {showPinyin
 					? 'bg-neutral-900 text-white'
-					: 'bg-white text-neutral-600 hover:bg-neutral-100'}"
+					: 'text-neutral-600 hover:bg-neutral-100'}"
 			>
-				Pinyin
+				<Captions size={15} /> <span class="hidden sm:inline">Pinyin</span>
 			</button>
 			<button
 				type="button"
 				aria-pressed={colorize}
+				title="Toggle tone colors"
 				onclick={() => (colorize = !colorize)}
-				class="rounded-md px-3 py-1.5 text-sm font-medium transition {colorize
+				class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition {colorize
 					? 'bg-neutral-900 text-white'
-					: 'bg-white text-neutral-600 hover:bg-neutral-100'}"
+					: 'text-neutral-600 hover:bg-neutral-100'}"
 			>
-				Colorize
+				<Palette size={15} /> <span class="hidden sm:inline">Colorize</span>
 			</button>
 
-			<div class="ml-auto flex items-center gap-1 rounded-md bg-white p-1">
+			<div class="mx-0.5 h-5 w-px shrink-0 bg-neutral-200"></div>
+
+			<div class="flex shrink-0 items-center gap-0.5 rounded-full bg-neutral-100 p-1">
 				{#each SIZES as s (s.id)}
 					<button
 						type="button"
 						aria-pressed={sizeId === s.id}
+						title="{s.label === 'S' ? 'Small' : s.label === 'M' ? 'Medium' : 'Large'} text"
 						onclick={() => (sizeId = s.id)}
-						class="rounded px-2.5 py-1 font-semibold transition {s.id === 'sm'
-							? 'text-xs'
-							: s.id === 'lg'
-								? 'text-base'
-								: 'text-sm'} {sizeId === s.id
-							? 'bg-neutral-900 text-white'
-							: 'text-neutral-500 hover:bg-neutral-100'}"
+						class="rounded-full px-3 py-1.5 text-xs font-semibold transition {sizeId === s.id
+							? 'bg-white text-neutral-900 shadow-sm'
+							: 'text-neutral-500 hover:text-neutral-800'}"
 					>
 						{s.label}
 					</button>
 				{/each}
 			</div>
 
+			<div class="mx-0.5 h-5 w-px shrink-0 bg-neutral-200"></div>
+
 			<button
 				type="button"
 				onclick={readAloud}
-				class="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+				disabled={!!ttsStatus && !speaking}
+				class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition {speaking
+					? 'bg-indigo-600 text-white'
+					: 'text-neutral-600 hover:bg-neutral-100'}"
 			>
-				<Volume2 size={15} class={speaking ? 'animate-pulse text-neutral-900' : ''} />
-				{speaking ? 'Stop' : 'Read aloud'}
+				{#if ttsStatus}
+					<Loader size={15} class="animate-spin" />
+					<span class="whitespace-nowrap">{ttsStatus}{ttsPct != null ? ` ${ttsPct}%` : ''}</span>
+				{:else if speaking}
+					<Square size={13} class="fill-current" /> Stop
+				{:else}
+					<Volume2 size={15} /> <span class="hidden sm:inline">Read aloud</span><span class="sm:hidden">Listen</span>
+				{/if}
 			</button>
 		</div>
 
 		<div
-			class="mt-4 whitespace-pre-wrap rounded-2xl border border-neutral-200 bg-white p-5 leading-loose shadow-sm sm:p-6 {size.cls}"
+			class="mt-4 whitespace-pre-wrap rounded-2xl border border-neutral-200 bg-[#fffdf9] p-5 leading-loose shadow-sm sm:p-7 {size.cls}"
 			lang="zh-Hans"
 		>
 			{#each tokens as token, i (i)}
@@ -261,8 +303,9 @@
 				{:else}
 					<button
 						type="button"
-						class="rounded px-0.5 align-bottom transition hover:bg-neutral-100 {entry === null
-							? 'text-neutral-400 decoration-neutral-300 decoration-dashed underline-offset-4 hover:underline'
+						class="rounded px-0.5 align-bottom underline decoration-neutral-200 decoration-dotted underline-offset-4 transition hover:bg-indigo-50 hover:decoration-indigo-300 {entry ===
+						null
+							? 'text-neutral-400 decoration-neutral-300 decoration-dashed hover:decoration-neutral-400'
 							: ''}"
 						onclick={() => (selected = token)}
 					>
@@ -287,7 +330,10 @@
 </div>
 
 {#if bag.size}
-	<div class="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 backdrop-blur">
+	<div
+		class="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 backdrop-blur"
+		style="padding-bottom: env(safe-area-inset-bottom)"
+	>
 		<div class="mx-auto flex max-w-4xl items-center justify-between gap-3 px-5 py-3">
 			<span class="flex items-center gap-1.5 text-sm text-neutral-600">
 				<Layers size={15} /> {bag.size} word{bag.size === 1 ? '' : 's'} selected
@@ -298,6 +344,16 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	.no-scrollbar {
+		scrollbar-width: none;
+		-ms-overflow-style: none;
+	}
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+</style>
 
 {#if selected}
 	<PickerModal title={selected} onclose={() => (selected = null)}>

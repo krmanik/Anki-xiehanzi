@@ -331,7 +331,7 @@
 		{#if compounds.length}
 			<section class={panel}>
 				<h2 class={label}>Words containing {entry.simplified}</h2>
-				<ul class="mt-3 grid gap-1.5 sm:grid-cols-2">
+				<ul class="mt-3 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
 					{#each compounds as c (c.simplified)}
 						<li>
 							<button

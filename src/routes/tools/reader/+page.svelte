@@ -28,6 +28,7 @@
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import Captions from '@lucide/svelte/icons/captions';
 	import Palette from '@lucide/svelte/icons/palette';
+	import Pencil from '@lucide/svelte/icons/pencil';
 	import X from '@lucide/svelte/icons/x';
 
 	const CHINESE = /[一-龥]/;
@@ -49,8 +50,8 @@
 	let analyzing = $state(false);
 	let speaking = $state(false);
 	let ttsStatus = $state('');
-	let ttsPct = $state<number | undefined>(undefined);
 	let error = $state('');
+	let inputCollapsed = $state(false);
 
 	let showPinyin = $state(true);
 	let colorize = $state(true);
@@ -93,6 +94,7 @@
 			unique.forEach((w, i) => map.set(w, looked[i]));
 			entries = map;
 			tokens = cut;
+			inputCollapsed = true;
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
 		} finally {
@@ -104,10 +106,10 @@
 		text = '';
 		tokens = [];
 		entries = new Map();
+		inputCollapsed = false;
 		void stopPiper();
 		speaking = false;
 		ttsStatus = '';
-		ttsPct = undefined;
 	}
 
 	function loadSample() {
@@ -141,25 +143,24 @@
 			await stopPiper();
 			speaking = false;
 			ttsStatus = '';
-			ttsPct = undefined;
 			return;
 		}
 		if (!text.trim()) return;
 		ttsStatus = 'Starting…';
 		try {
-			await speakPiper(text, (msg, pct) => {
+			// The library's own status strings already carry a trailing "N%"
+			// while downloading (see anki-tts's `reportProgress`) — the percent
+			// argument itself is unused here, so it isn't appended a second time.
+			await speakPiper(text, (msg) => {
 				ttsStatus = msg;
-				ttsPct = pct;
 			});
 			ttsStatus = '';
-			ttsPct = undefined;
 			speaking = true;
 			const audio = (window as unknown as { __ttsAudio?: HTMLAudioElement }).__ttsAudio;
 			audio?.addEventListener('ended', () => (speaking = false), { once: true });
 		} catch (e) {
 			speaking = false;
 			ttsStatus = '';
-			ttsPct = undefined;
 			error = e instanceof Error ? e.message : String(e);
 		}
 	}
@@ -200,31 +201,43 @@
 		</p>
 	</header>
 
-	<div class="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
-		<textarea
-			bind:value={text}
-			rows={6}
-			placeholder="粘贴中文文本…"
-			lang="zh-Hans"
-			class="w-full resize-y rounded-xl border border-neutral-200 p-3 text-base text-neutral-900 outline-none placeholder:text-neutral-300 focus:border-neutral-900"
-		></textarea>
+	{#if inputCollapsed && tokens.length}
+		<button
+			type="button"
+			onclick={() => (inputCollapsed = false)}
+			class="flex w-full items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-left shadow-sm transition hover:border-neutral-900"
+		>
+			<Pencil size={14} class="shrink-0 text-neutral-400" />
+			<span class="min-w-0 flex-1 truncate text-sm text-neutral-500" lang="zh-Hans">{text}</span>
+			<span class="shrink-0 text-sm font-medium text-indigo-600">Edit</span>
+		</button>
+	{:else}
+		<div class="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
+			<textarea
+				bind:value={text}
+				rows={6}
+				placeholder="粘贴中文文本…"
+				lang="zh-Hans"
+				class="w-full resize-y rounded-xl border border-neutral-200 p-3 text-base text-neutral-900 outline-none placeholder:text-neutral-300 focus:border-neutral-900"
+			></textarea>
 
-		<div class="mt-3 flex flex-wrap items-center gap-3">
-			<button type="button" onclick={analyze} disabled={analyzing || !text.trim()} class={btnPrimary}>
-				{analyzing ? 'Reading…' : 'Read'}
-			</button>
-			{#if text}
-				<button type="button" onclick={clear} class="{btnSecondary} inline-flex items-center gap-1">
-					<X size={14} /> Clear
+			<div class="mt-3 flex flex-wrap items-center gap-3">
+				<button type="button" onclick={analyze} disabled={analyzing || !text.trim()} class={btnPrimary}>
+					{analyzing ? 'Reading…' : 'Read'}
 				</button>
-			{:else}
-				<button type="button" onclick={loadSample} class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
-					Try a sample →
-				</button>
-			{/if}
-			{#if error}<p class="text-sm text-red-600">{error}</p>{/if}
+				{#if text}
+					<button type="button" onclick={clear} class="{btnSecondary} inline-flex items-center gap-1">
+						<X size={14} /> Clear
+					</button>
+				{:else}
+					<button type="button" onclick={loadSample} class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+						Try a sample →
+					</button>
+				{/if}
+				{#if error}<p class="text-sm text-red-600">{error}</p>{/if}
+			</div>
 		</div>
-	</div>
+	{/if}
 
 	{#if tokens.length}
 		<div
@@ -283,7 +296,7 @@
 			>
 				{#if ttsStatus}
 					<Loader size={15} class="animate-spin" />
-					<span class="whitespace-nowrap">{ttsStatus}{ttsPct != null ? ` ${ttsPct}%` : ''}</span>
+					<span class="whitespace-nowrap">{ttsStatus}</span>
 				{:else if speaking}
 					<Square size={13} class="fill-current" /> Stop
 				{:else}

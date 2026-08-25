@@ -104,13 +104,13 @@
 	let hintStrength = $state<PracticeSheetOptions['hintStrength']>('solid');
 	let useHintColor = $state(false);
 	let hintColor = $state('#212121');
-	let strokeOrderMode = $state<PracticeSheetOptions['strokeOrder']>('row');
+	let strokeOrderMode = $state<PracticeSheetOptions['strokeOrder']>('off');
 	let traceCount = $state(4);
 	let traceStrength = $state<PracticeSheetOptions['traceStrength']>('faded');
 	let traceColor = $state('#9e9e9e');
-	let blankCount = $state(3);
+	let blankCount = $state(0);
 	let rowsPerItem = $state(1);
-	let fillPage = $state(false);
+	let fillPage = $state(true);
 	let repeatCount = $state(3);
 
 	function practiceOptions(): PracticeSheetOptions {
@@ -345,7 +345,7 @@
 			}
 		}
 	];
-	let activeTemplate = $state('char-grid');
+	let activeTemplate = $state('full-page');
 	function pickTemplate(t: TemplateDef) {
 		activeTemplate = t.id;
 		t.apply();
@@ -355,7 +355,6 @@
 	let building = $state(false);
 	let error = $state('');
 	let unsupported = $state<string[]>([]);
-	let truncated = $state(0);
 
 	function save(bytes: Uint8Array, name: string) {
 		const url = URL.createObjectURL(new Blob([bytes.slice()], { type: 'application/pdf' }));
@@ -372,7 +371,7 @@
 	async function build(list: string[]) {
 		return template === 'study'
 			? { ...(await buildWorksheetPdf(list, studyOptions())), name: 'worksheet.pdf' }
-			: { ...(await buildPracticeSheetPdf(list, practiceOptions())), truncated: 0, name: 'practice-sheet.pdf' };
+			: { ...(await buildPracticeSheetPdf(list, practiceOptions())), name: 'practice-sheet.pdf' };
 	}
 
 	async function generate() {
@@ -380,11 +379,9 @@
 		building = true;
 		error = '';
 		unsupported = [];
-		truncated = 0;
 		try {
 			const result = await build(words);
 			unsupported = result.unsupported;
-			truncated = result.truncated;
 			save(result.bytes, result.name);
 		} catch (e) {
 			error = e instanceof Error ? e.message : String(e);
@@ -810,12 +807,6 @@
 			</div>
 
 			{#if error}<p class="text-sm text-red-600">{error}</p>{/if}
-			{#if truncated}
-				<p class="text-sm text-amber-700">
-					Only the first 40 characters were used — one full page each adds up fast for a big list.
-					{truncated} more were dropped.
-				</p>
-			{/if}
 			{#if unsupported.length}
 				<p class="text-sm text-amber-700">
 					{unsupported.length} character{unsupported.length === 1 ? '' : 's'} skipped — no stroke

@@ -55,25 +55,25 @@
 	></textarea>
 
 	{#if index}
-		<div class="mt-2 flex flex-wrap items-center gap-2">
-			<span class="font-mono text-xs uppercase tracking-wider text-neutral-400">
+		<div class="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-neutral-100 bg-neutral-50 p-3">
+			<span class="font-mono text-xs font-medium uppercase tracking-wider text-neutral-500">
 				Or fill from
 			</span>
 			<select
 				bind:value={listId}
 				onchange={() => (level = levels[0]?.level ?? '')}
-				class="rounded-md border border-neutral-200 px-2 py-1 text-xs"
+				class="rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-sm"
 			>
 				{#each index.lists as list (list.id)}
 					<option value={list.id}>{list.name}</option>
 				{/each}
 			</select>
-			<select bind:value={level} class="rounded-md border border-neutral-200 px-2 py-1 text-xs">
+			<select bind:value={level} class="rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-sm">
 				{#each levels as l (l.level)}
 					<option value={l.level}>{levelLabel(l.level)} · {l.count}</option>
 				{/each}
 			</select>
-			<button type="button" onclick={fill} disabled={filling} class="{btnSecondary} px-3 py-1 text-xs">
+			<button type="button" onclick={fill} disabled={filling} class="{btnSecondary} px-4 py-1.5 text-sm">
 				{filling ? 'Loading…' : 'Fill'}
 			</button>
 		</div>

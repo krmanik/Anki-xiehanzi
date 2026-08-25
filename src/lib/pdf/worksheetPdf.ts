@@ -80,12 +80,10 @@ export interface WorksheetResult {
 	bytes: Uint8Array;
 	/** Characters Hanzi Writer has no stroke data for — skipped entirely. */
 	unsupported: string[];
-	/** Characters dropped past `MAX_CHARACTERS`, a full page each being heavy. */
+	/** Always 0 — kept so callers sharing a result shape with the practice sheet don't need a branch. */
 	truncated: number;
 }
 
-/** One rich page per character is a lot of page — cap a bulk fill from HSK. */
-const MAX_CHARACTERS = 40;
 const MAX_VOCAB = 10;
 const MAX_SENTENCES = 8;
 
@@ -216,9 +214,10 @@ export async function buildWorksheetPdf(
 	 * bigger text doesn't overlap the next line — both use the same factor). */
 	const T = (size: number) => size * ts;
 
-	const allChars = uniqueChars(words);
-	const chars = allChars.slice(0, MAX_CHARACTERS);
-	const truncated = allChars.length - chars.length;
+	// Every unique character gets its own page — a full HSK level (hundreds of
+	// characters) means hundreds of pages, not a silent partial export.
+	const chars = uniqueChars(words);
+	const truncated = 0;
 	if (!chars.length) throw new Error('Add at least one character to study.');
 
 	const fontBytes = await loadPdfFonts();
@@ -417,30 +416,45 @@ export async function buildWorksheetPdf(
 				});
 				const textX = exInnerX + badgeR * 2 + 6;
 				const textWidth = exInnerWidth - badgeR * 2 - 6;
-				const sentenceSize = 12;
+				const sentenceSize = 15;
 				let cx = textX;
 				for (const { ch, tone } of ex.chars) {
 					if (/\s/.test(ch)) {
 						cx += sentenceSize * 0.4;
 						continue;
 					}
-					const paths = await loadStrokePaths(ch);
-					if (paths && paths.length) {
-						await drawStrokeGlyph(page, paths, {
-							x: cx,
-							y: ey - 12,
-							size: sentenceSize,
-							padding: sentenceSize * 0.08,
-							color: tone === null ? INK : (TONE[tone] ?? INK)
-						});
+					if (/[一-鿿]/.test(ch)) {
+						const paths = await loadStrokePaths(ch);
+						if (paths && paths.length) {
+							await drawStrokeGlyph(page, paths, {
+								x: cx,
+								y: ey - 13,
+								size: sentenceSize,
+								padding: sentenceSize * 0.08,
+								color: tone === null ? INK : (TONE[tone] ?? INK)
+							});
+						}
+						cx += sentenceSize;
+					} else if (/[\x20-\x7e]/.test(ch)) {
+						// Digits and other ASCII (dates, numbers) have no stroke data —
+						// drawing nothing here, as the vector path silently did, is what
+						// left a blank gap in a date like "2020" instead of the number.
+						// The embedded font is Latin-only, so this only covers ASCII;
+						// full-width CJK punctuation (，。！？) has no glyph in either
+						// font and is dropped rather than drawn as a tofu box.
+						const size = sentenceSize * 0.8;
+						const w = latin.widthOfTextAtSize(ch, size);
+						page.drawText(ch, { x: cx, y: ey - 12, size, font: latin, color: INK });
+						cx += Math.max(w + 1, sentenceSize * 0.55);
+					} else {
+						cx += sentenceSize * 0.4;
 					}
-					cx += sentenceSize;
 				}
-				ey -= 25;
-				const lines = clampLines(ex.translation, textWidth, 2, measureAt(T(8)));
+				ey -= 28;
+				const lines = clampLines(ex.translation, textWidth, 2, measureAt(T(9)));
 				for (const line of lines) {
-					drawRuns(page, line, textX, ey, T(8), MUTED);
-					ey -= T(11);
+					drawRuns(page, line, textX, ey, T(9), MUTED);
+					ey -= T(12);
 				}
 				ey -= 10;
 			}

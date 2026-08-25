@@ -23,12 +23,12 @@
  * every character from a whole HSK level.
  */
 
-import { PDFDocument, rgb, type PDFPage } from 'pdf-lib';
+import { PDFDocument, rgb, type Color, type PDFPage } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { lookup, type Reading } from '$lib/dict/cedict';
 import { orderReadings, senses } from '$lib/dictionary';
 import { toneOfPinyin } from '$lib/tone';
-import { A4, LANDSCAPE, INK, MARGIN, TONE, HAIRLINE, loadPdfFonts } from '$lib/hskPdf';
+import { A4, LANDSCAPE, INK, MARGIN, TONE, HAIRLINE, loadPdfFonts, splitRuns } from '$lib/hskPdf';
 import { drawPracticeCell, hexToColor, type PracticeGridStyle } from './pdfGrid';
 import { drawStrokeGlyph, loadStrokePaths } from './strokePaths';
 
@@ -344,6 +344,20 @@ export async function buildPracticeSheetPdf(
 	const doc = await PDFDocument.create();
 	doc.registerFontkit(fontkit);
 	const latin = await doc.embedFont(fontBytes.latin, { subset: true });
+	// Every character on the page is a vector stroke — except cedict's own
+	// "meaning" gloss, which occasionally embeds a bare hanzi reference (e.g.
+	// "old variant of 他[ta1]"). Drawing that whole string through the Latin
+	// font produced a blank/tofu box for the embedded character; this only
+	// ever reaches the CJK font for those rare inline references.
+	const cjk = await doc.embedFont(fontBytes.cjk, { subset: false });
+	const drawMeaning = (page: PDFPage, text: string, x: number, y: number, size: number, color: Color) => {
+		let cursor = x;
+		for (const run of splitRuns(text)) {
+			const font = run.script === 'cjk' ? cjk : latin;
+			page.drawText(run.text, { x: cursor, y, size, font, color });
+			cursor += font.widthOfTextAtSize(run.text, size);
+		}
+	};
 
 	doc.setTitle('Practice sheet');
 	doc.setCreator('Anki-xiehanzi');
@@ -496,7 +510,7 @@ export async function buildPracticeSheetPdf(
 			}
 			by -= 16 + (pinyinRuled ? 4 : 0);
 			if (showMeaning && row.meaning) {
-				page.drawText(row.meaning, { x: rowStartX, y: by - 8, size: 8, font: latin, color: FAINT });
+				drawMeaning(page, row.meaning, rowStartX, by - 8, 8, FAINT);
 				by -= meaningHeight;
 			}
 		};

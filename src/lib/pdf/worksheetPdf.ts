@@ -223,17 +223,23 @@ export async function buildWorksheetPdf(
 	const fontBytes = await loadPdfFonts();
 	const doc = await PDFDocument.create();
 	doc.registerFontkit(fontkit);
-	// No CJK font embedded at all — see the file-level comment. Everything
-	// drawn through `latin` here is genuinely Latin (pinyin, English, digits).
 	const latin = await doc.embedFont(fontBytes.latin, { subset: true });
+	// Every *character* on the page is a vector stroke, per the file-level
+	// comment — but cedict's own definition text isn't always pure English:
+	// glosses like "old variant of 他[ta1]" or "surname 王" embed a bare hanzi
+	// reference, which used to draw as a blank/tofu box because every run was
+	// forced through the Latin font regardless of its script (see `fontFor`
+	// below). The embedded CJK font is only ever reached for these rare
+	// inline references — a handful of characters at most on one page — so it
+	// doesn't reintroduce the many-distinct-glyphs CID bug the vector
+	// rendering above was written to avoid.
+	const cjk = await doc.embedFont(fontBytes.cjk, { subset: false });
 
 	doc.setTitle('Character study worksheet');
 	doc.setCreator('Anki-xiehanzi');
 	doc.setProducer('Anki-xiehanzi');
 
-	// Every string that reaches `drawLine`/`drawRuns` in this file is Latin —
-	// `splitRuns`/`wrapRuns` still tag it 'latin', so this always resolves.
-	const fontFor = (_script: Script) => latin;
+	const fontFor = (script: Script) => (script === 'cjk' ? cjk : latin);
 	const measureAt = (size: number): Measure => (run) => fontFor(run.script).widthOfTextAtSize(run.text, size);
 
 	const drawRuns = (

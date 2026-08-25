@@ -20,9 +20,15 @@
 	let index = $state<HskIndex | null>(null);
 	let result = $state<CoverageResult | null>(null);
 	let selected = $state<string | null>(null);
+	let popupExpanded = $state(false);
 	let jiebaReady = false;
 	let analyzing = $state(false);
 	let error = $state('');
+
+	function openWord(w: string) {
+		selected = w;
+		popupExpanded = false;
+	}
 
 	onMount(() => {
 		loadHskIndex()
@@ -139,7 +145,7 @@
 						{#each result.unknown as word (word)}
 							<button
 								type="button"
-								onclick={() => (selected = word)}
+								onclick={() => openWord(word)}
 								class="rounded-md border border-neutral-200 px-2.5 py-1 text-lg transition hover:border-neutral-900"
 							>
 								{word}
@@ -153,7 +159,12 @@
 </div>
 
 {#if selected}
-	<PickerModal title={selected} onclose={() => (selected = null)}>
-		<WordEntry word={selected} onOpenWord={(w) => (selected = w)} />
+	<PickerModal title={selected} onclose={() => (selected = null)} size={popupExpanded ? 'full' : 'compact'}>
+		<WordEntry
+			word={selected}
+			onOpenWord={openWord}
+			compact
+			onExpandedChange={(v) => (popupExpanded = v)}
+		/>
 	</PickerModal>
 {/if}

@@ -45,6 +45,7 @@
 	let tokens = $state<string[]>([]);
 	let entries = $state<Map<string, CedictEntry | null>>(new Map());
 	let selected = $state<string | null>(null);
+	let popupExpanded = $state(false);
 	let bag = $state<Set<string>>(new Set());
 	let jiebaReady = false;
 	let analyzing = $state(false);
@@ -163,6 +164,11 @@
 			ttsStatus = '';
 			error = e instanceof Error ? e.message : String(e);
 		}
+	}
+
+	function openWord(w: string) {
+		selected = w;
+		popupExpanded = false;
 	}
 
 	function toggleBag(word: string) {
@@ -320,7 +326,7 @@
 						null
 							? 'text-neutral-400 decoration-neutral-300 decoration-dashed hover:decoration-neutral-400'
 							: ''}"
-						onclick={() => (selected = token)}
+						onclick={() => openWord(token)}
 					>
 						{#each tokenChars(token, entry) as part, j (j)}
 							{#if showPinyin && part.py}
@@ -369,7 +375,7 @@
 </style>
 
 {#if selected}
-	<PickerModal title={selected} onclose={() => (selected = null)}>
+	<PickerModal title={selected} onclose={() => (selected = null)} size={popupExpanded ? 'full' : 'compact'}>
 		<button
 			type="button"
 			onclick={() => selected && toggleBag(selected)}
@@ -381,6 +387,11 @@
 				<Plus size={13} /> Add to word list
 			{/if}
 		</button>
-		<WordEntry word={selected} onOpenWord={(w) => (selected = w)} />
+		<WordEntry
+			word={selected}
+			onOpenWord={openWord}
+			compact
+			onExpandedChange={(v) => (popupExpanded = v)}
+		/>
 	</PickerModal>
 {/if}

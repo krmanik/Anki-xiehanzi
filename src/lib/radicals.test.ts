@@ -249,6 +249,11 @@ describe('radicalDeckUrl', () => {
 		);
 	});
 
+	it('sends the premium edition to the post when there is one', () => {
+		const post = 'https://www.patreon.com/krmani/posts/kangxi-radicals-166891672';
+		expect(radicalDeckUrl({ ...manifest, post }, manifest.editions.premium!)).toBe(post);
+	});
+
 	it('sends the premium edition to the shop, never to a release asset', () => {
 		const url = radicalDeckUrl(manifest, manifest.editions.premium!);
 		expect(url).toBe(manifest.shop);
@@ -282,6 +287,21 @@ describe('premiumExtras', () => {
 			}
 		};
 		expect(premiumExtras(noGlyphs).join(' ')).not.toContain('How the glyph evolved');
+	});
+
+	it('names the printable PDFs only when the edition carries them', () => {
+		expect(premiumExtras(manifest).join(' ')).not.toContain('Print-ready');
+		const withPrint: RadicalDeckManifest = {
+			...manifest,
+			editions: {
+				...manifest.editions,
+				premium: {
+					...manifest.editions.premium!,
+					features: { ...manifest.editions.premium!.features, printables: true }
+				}
+			}
+		};
+		expect(premiumExtras(withPrint).join(' ')).toContain('Print-ready PDFs');
 	});
 
 	it('is empty when there is no premium edition or no manifest', () => {

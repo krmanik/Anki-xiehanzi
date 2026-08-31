@@ -3,6 +3,7 @@
 	"tag": "v2.4",
 	"baseUrl": "https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.4",
 	"shop": "https://www.patreon.com/cw/krmani/shop",
+	"post": "https://www.patreon.com/krmani/posts/kangxi-radicals-166891672?source=storefront",
 	"radicals": 214,
 	"audio": 214,
 	"editions": {
@@ -37,7 +38,8 @@
 				"glyphEvolution": true,
 				"panels": true,
 				"wordSense": true,
-				"fieldToggles": true
+				"fieldToggles": true,
+				"printables": true
 			}
 		}
 	},

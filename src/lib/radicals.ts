@@ -146,6 +146,8 @@ export interface RadicalDeckEdition {
 		wordSense?: boolean;
 		/** the review sidebar that shows and hides parts of the card */
 		fieldToggles?: boolean;
+		/** print-ready PDFs: the flashcard deck, the practice sheets, the poster */
+		printables?: boolean;
 	};
 }
 
@@ -156,6 +158,12 @@ export interface RadicalDeckManifest {
 	baseUrl: string;
 	/** Where the premium edition is bought. */
 	shop: string;
+	/**
+	 * The Patreon post for *this* product, when there is one. A shop front makes
+	 * a reader hunt for the radical deck among everything else on sale; the post
+	 * is the page that actually describes what they are about to buy.
+	 */
+	post?: string;
 	radicals: number;
 	audio: number;
 	editions: Partial<Record<'free' | 'premium', RadicalDeckEdition>>;
@@ -179,14 +187,15 @@ export function loadRadicalDeck(): Promise<RadicalDeckManifest | null> {
 const PATREON_SHOP = 'https://www.patreon.com/cw/krmani/shop';
 
 /**
- * Where a deck button goes: the release asset for the free edition, the shop
- * for the premium one (its `.apkg` is never published as a release).
+ * Where a deck button goes: the release asset for the free edition, and for the
+ * premium one — whose `.apkg` is never published as a release — the post that
+ * describes it, falling back to the shop front and then to Patreon itself.
  */
 export function radicalDeckUrl(
 	manifest: RadicalDeckManifest,
 	edition: RadicalDeckEdition
 ): string {
-	if (edition.premium) return manifest.shop || PATREON_SHOP;
+	if (edition.premium) return manifest.post || manifest.shop || PATREON_SHOP;
 	return `${manifest.baseUrl}/${edition.file}`;
 }
 
@@ -215,6 +224,12 @@ export function premiumExtras(manifest: RadicalDeckManifest | null): string[] {
 	}
 	if (f.fieldToggles !== false) {
 		extras.push('A sidebar that shows and hides any part of a card, front and back');
+	}
+	if (f.printables) {
+		extras.push(
+			'Print-ready PDFs — a two-sided flashcard deck, a practice sheet for every radical, ' +
+				'and a poster of all 214'
+		);
 	}
 	extras.push('Prebuilt and kept up to date — nothing to generate');
 	return extras;

@@ -675,6 +675,9 @@ const manifest = {
 	// is never published as a download.
 	baseUrl: `https://github.com/krmanik/Anki-xiehanzi/releases/download/${tag}`,
 	shop: 'https://www.patreon.com/cw/krmani/shop',
+	// The post for this product, which is where "Get premium" goes: a shop front
+	// makes a reader hunt for the radical deck among everything else on sale.
+	post: 'https://www.patreon.com/krmani/posts/kangxi-radicals-166891672?source=storefront',
 	radicals: radicals.length,
 	audio: audioCount,
 	editions: Object.fromEntries(
@@ -696,7 +699,10 @@ const manifest = {
 					// with it. Both card types are free now — the browser builds them.
 					panels: b.edition === 'premium',
 					wordSense: b.edition === 'premium',
-					fieldToggles: b.edition === 'premium'
+					fieldToggles: b.edition === 'premium',
+					// The print line (premium/print): flashcards, practice sheets and
+					// the poster, sold with the deck.
+					printables: b.edition === 'premium'
 				}
 			}
 		])

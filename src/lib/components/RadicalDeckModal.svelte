@@ -34,7 +34,11 @@
 	} = $props();
 
 	const SHOP = 'https://www.patreon.com/cw/krmani/shop';
-	const shop = $derived(deck?.shop || SHOP);
+	const POST = 'https://www.patreon.com/krmani/posts/kangxi-radicals-166891672?source=storefront';
+	// The post for this product, not the shop front: a reader who clicks "Get
+	// premium" should land on the page describing the radical deck, not on
+	// everything that is for sale.
+	const premiumUrl = $derived(deck?.post || deck?.shop || POST || SHOP);
 	const premiumCards = $derived(deck?.editions.premium?.cards ?? radicals.length * 2);
 	const glyphCount = $derived(deck?.editions.premium?.glyphs ?? 2016);
 
@@ -59,7 +63,14 @@
 			free: false,
 			premium: true
 		},
-		{ label: 'Prebuilt — no waiting on audio', free: false, premium: true }
+		{ label: 'Prebuilt — no waiting on audio', free: false, premium: true },
+		{
+			label:
+				'Print-ready PDFs — a two-sided flashcard deck, a practice sheet for every radical, ' +
+				'and a poster of all 214',
+			free: false,
+			premium: true
+		}
 	]);
 
 	let cards = $state<RadicalCardType[]>(['recognize', 'write']);
@@ -196,7 +207,7 @@
 						<td class="bg-neutral-50 px-2 py-3 text-center">
 							<a
 								class="inline-flex items-center gap-1.5 text-xs font-medium underline"
-								href={shop}
+								href={premiumUrl}
 								target="_blank"
 								rel="noopener noreferrer"
 							>
@@ -343,7 +354,7 @@
 			</button>
 			<a
 				class="{btnPrimary} inline-flex items-center gap-2"
-				href={shop}
+				href={premiumUrl}
 				target="_blank"
 				rel="noopener noreferrer"
 			>

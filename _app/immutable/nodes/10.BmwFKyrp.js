@@ -1,0 +1,19 @@
+import{Dt as e,Et as t,H as n,W as r,a as i,c as a,dt as o,ft as s,it as c,ut as l,v as u}from"../chunks/CG_9zvlc.js";import{c as d}from"../chunks/CxFknkc6.js";import"../chunks/xihTtKlq.js";import"../chunks/CyUqXXRn.js";import{t as f}from"../chunks/BOvAWBQS2.js";var p={title:`FAQ`},{title:m}=p,h=r(`<h1>Frequently Asked Questions</h1> <h3>What is Anki-xiehanzi?</h3> <p>A set of Anki decks and a free <a>deck generator</a> for learning to read,
+write and pronounce Mandarin Chinese. Cards cover simplified and traditional characters, pinyin,
+zhuyin, audio, meanings and stroke-order practice.</p> <h3>How do I import a deck into Anki?</h3> <p>Download an <code>.apkg</code> from the <a>decks page</a>, then in Anki choose <strong>File → Import</strong> and select the file. Before importing, back up your collection with scheduling
+information.</p> <h3>Can I get just one HSK level?</h3> <p>Each list is one download — New HSK (2025) or Old HSK (2012) — on the</p> <a>HSK page</a>, with audio, example sentences and stroke order already inside.
+Every level is a subdeck of it, so you can study, suspend or delete a level on its own after
+importing. Nothing is generated in your browser, so there is no wait. If you want one level as its
+own file or a different card layout, the <a>Create</a> tool can build any HSK
+level from scratch with your own fields and card types. <h3>Can I make my own deck?</h3> <p>Yes. Use the <a>Create</a> tool. Enter words, a paragraph or upload a word
+list — or pull a whole HSK / BCT / YCT level — pick your card types and fields, then generate
+an <code>.apkg</code> you can import into Anki. See <a>Export a Deck</a>.</p> <h3>Where do the words and definitions come from?</h3> <p>Definitions are from CC-CEDICT; pinyin, zhuyin and frequency are derived from it. Word lists
+cover New HSK (2025) levels 1–9, plus BCT (A/B) and YCT (1–4). Pasted paragraphs are segmented
+into words automatically.</p> <h3>Does it send my words to a server?</h3> <p>No. The deck is generated entirely in your browser. Audio and stroke data are fetched from a
+CDN during export, but your word list and the <code>.apkg</code> never leave your device.</p> <h3>Will the cards work offline?</h3> <p>Yes. The exported <code>.apkg</code> bundles its audio, fonts and stroke-order data, so cards review
+offline after import.</p> <h3>Can I customize how a card looks?</h3> <p>Yes. Choose a tone-color palette (Standard, Pleco, MDBG) and a card theme (Minimal, OLED,
+Editorial and more, each light/dark). Inside Anki, the sidebar lets you show/hide fields and
+change grid size, stroke width and hints — see <a>Studying cards</a>.</p> <h3>Does audio work in every browser?</h3> <p>Text-to-speech audio generation works best in Microsoft Edge. HSK words also pull pre-recorded
+audio when available, so other browsers still work for those. Exporting a large deck with audio
+is slower because TTS is fetched in small batches — keep the tab open until the download starts.</p> <h3>Why are some characters drawn with colored strokes?</h3> <p>Stroke colors map to the tone of the first pinyin, making tones easier to remember while you
+practice writing.</p> <h3>Is it free and open source?</h3> <p>Yes. The project is licensed under GPL-3.0. Source is on <a href="https://github.com/krmanik/Anki-xiehanzi" rel="nofollow">GitHub</a>.</p>`,1);function g(r,m){let g=i(m,[`children`,`$$slots`,`$$events`,`$$legacy`]);f(r,a(()=>g,()=>p,{children:(r,i)=>{var a=h(),f=s(o(a),4),p=s(l(f));t(),e(f);var m=s(f,4),g=s(l(m),3);t(3),e(m);var _=s(m,6),v=s(_,2),y=s(v,4),b=s(l(y)),x=s(b,4);t(),e(y);var S=s(y,16),C=s(l(S));t(),e(S),t(12),c(()=>{u(p,`href`,`${d??``}/create`),u(g,`href`,`${d??``}/hsk#decks`),u(_,`href`,`${d??``}/hsk`),u(v,`href`,`${d??``}/create`),u(b,`href`,`${d??``}/create`),u(x,`href`,`${d??``}/docs/export-deck`),u(C,`href`,`${d??``}/docs/studying`)}),n(r,a)},$$slots:{default:!0}}))}export{g as component};

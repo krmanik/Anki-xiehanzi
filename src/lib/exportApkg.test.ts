@@ -69,6 +69,37 @@ describe('most-common reading', () => {
 		expect(commonReadingIndex([])).toBe(0);
 	});
 
+	// CEDICT's pinyin array is not ordered by commonness, and the recording on a
+	// card speaks the reading the word list names — 和 is listed hé and spoken hé,
+	// but CEDICT puts hè first. Without the list reading the card coloured the
+	// hanzi from CEDICT's first and printed another one's pinyin.
+	const he: Reading[] = [
+		{ syllable: 'he4', pinyin: 'hè', pinyinPlain: 'he', zhuyin: 'ㄏㄜˋ', definition: 'to join in the singing; to chime in with others' },
+		{ syllable: 'he2', pinyin: 'hé', pinyinPlain: 'he', zhuyin: 'ㄏㄜˊ', definition: 'and; together with' },
+		{ syllable: 'He2', pinyin: 'Hé', pinyinPlain: 'He', zhuyin: 'ㄏㄜˊ', definition: 'surname He' }
+	];
+
+	it('the word list reading wins over the longest definition', () => {
+		expect(commonReadingIndex(he)).toBe(0); // longest definition — the wrong one
+		expect(commonReadingIndex(he, 'he2')).toBe(1); // numbered, as the 2012 lists carry it
+		expect(commonReadingIndex(he, 'hé')).toBe(1); // tone-marked, as the 2025 lists carry it
+	});
+
+	it('a list reading that matches in both cases takes the lowercase reading', () => {
+		// CEDICT capitalises proper-noun readings; "He2" is 和 the surname.
+		expect(commonReadingIndex(he, 'hé')).toBe(1);
+	});
+
+	it('an unknown list reading falls back to the longest definition', () => {
+		expect(commonReadingIndex(he, 'huo4')).toBe(0);
+		expect(commonReadingIndex(he, '')).toBe(0);
+	});
+
+	it('displayReadings follows the list reading', () => {
+		const w = { ...word(), readings: he, listSyllable: 'hé' } as Word;
+		expect(displayReadings(w, true).Pinyin).toBe('hé');
+	});
+
 	it('displayReadings collapses to the common reading only when asked', () => {
 		const w = { ...word(), readings, Pinyin: 'de, dí, dì' } as Word;
 		expect(displayReadings(w, false).Pinyin).toBe('de, dí, dì');
@@ -77,6 +108,52 @@ describe('most-common reading', () => {
 		expect(common.Zhuyin).toBe('ㄉㄧˊ');
 		expect(common.Syllable).toBe('di2');
 		expect(common.Definitions).toContain('genuine');
+	});
+});
+
+describe('reading order on the card', () => {
+	// The hero's hanzi is coloured by copying the tone spans out of the FIRST
+	// .meaning-container, while its pinyin comes from the common reading — so the
+	// two disagreed whenever CEDICT's order did. Ordering the containers is what
+	// keeps the colour, the pinyin and the recording talking about one reading.
+	const he: Reading[] = [
+		{ syllable: 'he4', pinyin: 'hè', pinyinPlain: 'he', zhuyin: 'ㄏㄜˋ', definition: 'to chime in' },
+		{ syllable: 'he2', pinyin: 'hé', pinyinPlain: 'he', zhuyin: 'ㄏㄜˊ', definition: 'and; together with' }
+	];
+	const he2: Word = {
+		...word(),
+		Simplified: '和',
+		Traditional: '和',
+		Pinyin: 'hè, hé',
+		Zhuyin: 'ㄏㄜˋ, ㄏㄜˊ',
+		Definitions: 'to chime in │ and; together with',
+		Syllable: 'he4, he2',
+		readings: he,
+		breakdown: [],
+		listSyllable: 'hé'
+	};
+
+	it('leads with the reading the word list names', () => {
+		const f = buildNoteFields(he2, { ...DEFAULT_TEMPLATE, commonPinyinOnly: true }, []);
+		expect(f.Pinyin).toBe('hé');
+		// The first container is what colorChars() copies into the hero.
+		expect(f.Definitions.indexOf('char-tone2')).toBeLessThan(f.Definitions.indexOf('char-tone4'));
+		expect(f.Definitions.indexOf('hé')).toBeLessThan(f.Definitions.indexOf('hè'));
+		// Every reading still ships — this reorders, it does not drop.
+		expect(f.Definitions).toContain('hè');
+	});
+
+	it('orders the joined Pinyin the same way when every reading is shown', () => {
+		const f = buildNoteFields(he2, { ...DEFAULT_TEMPLATE, commonPinyinOnly: false }, []);
+		expect(f.Pinyin).toBe('hé, hè');
+		expect(f.Zhuyin).toBe('ㄏㄜˊ, ㄏㄜˋ');
+		expect(f.Definitions.indexOf('char-tone2')).toBeLessThan(f.Definitions.indexOf('char-tone4'));
+	});
+
+	it('leaves a single-reading word alone', () => {
+		const f = buildNoteFields(word(), DEFAULT_TEMPLATE, []);
+		expect(f.Pinyin).toBe('Zhōng guó');
+		expect(f.Definitions).toContain('char-tone1');
 	});
 });
 

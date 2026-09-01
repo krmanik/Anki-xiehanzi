@@ -55,6 +55,20 @@ The deck generator is the heart of the app. Layering matters because correctness
 
 - **`src/lib/deckTemplate.ts`** — pure. Builds Anki note templates + CSS from a `TemplateOpts`. No genanki-js / sql.js / DOM / `$app/paths`. This is where card layout, element ordering, groups, and per-card-type element styles are computed. Heavily unit-tested.
 - **`src/lib/deck.ts`** — the impure orchestrator. Pulls in `genanki-js` (`.apkg` packaging), `sql.js` (dictionary DBs), `jieba-wasm` (segmentation), `@kingdanx/edge-tts-browser` (audio). Re-exports much of `deckTemplate.ts` for back-compat. **Model IDs, templates, and media list must stay identical** — extracted verbatim from the original React `create.tsx`.
+- **`src/lib/noteFields.ts`** — pure. One word → the HTML of every note field.
+  **The card leads with the reading the word list names.** CEDICT's `pinyin`
+  array is not ordered by commonness (和 lists hè first, 行 lists héng first),
+  and the hero leans on the order twice over: `colorChars()` colours the hanzi by
+  copying the tone spans out of the *first* `.meaning-container`, while the hero
+  pinyin comes from `commonReadingIndex`. When those disagreed 和 came up blue
+  for the fourth tone over a hé the recording says in the second — a buyer
+  reported exactly that. `commonReadingIndex(readings, listSyllable)` now takes
+  the list's own reading (numbered as the 2012 lists carry it, tone-marked as the
+  2025 lists do; a lowercase reading beats CEDICT's capitalised proper-noun one),
+  and `buildNoteFields` reorders the four parallel per-reading arrays so that one
+  reading sits at index 0 everywhere. Every reading still ships — this reorders,
+  it does not drop. `listSyllable` is optional: a word typed into `/create` has
+  no list behind it and falls back to the longest-definition heuristic.
 - **`src/lib/cardPresets.ts`** — pure data + builder for one-click front/back presets (Beginner / Intermediate / …). Chrome tokens (`CONTROL_BUTTONS_TOKEN`, `SEPARATOR_TOKEN`) default to the back side per Anki convention.
 - **`src/lib/tone.ts` / `tonePresets.ts`** — pure tone-color palettes + hanzi/pinyin colorization.
 - **`src/lib/cardThemes.ts`** — pure visual theme groups + element-style merging.

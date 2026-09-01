@@ -19,6 +19,23 @@ vi.mock('@kingdanx/edge-tts-browser', () => ({
 }));
 vi.mock('jieba-wasm', () => ({ default: async () => {}, cut: () => [] }));
 
+// deck.ts pulls its card media from site-relative URLs — `${base}/img/…` and
+// `${base}/data/…`, with `base` empty outside production. A browser resolves
+// those against the page; node's fetch demands an origin and threw
+// ERR_INVALID_URL for every one, so a passing run buried itself in
+// "Error fetching or adding media" stack traces. Answer them 404 instead,
+// which is the case the media loop is written to tolerate — it packs the deck
+// without those files. Serving the real bytes off `static/` is *not* the fix:
+// genanki hands the resulting node Blob to jszip, which cannot read one
+// ("Can't read the data of '0'"), and the export dies. Nothing here asserts on
+// media anyway; card content is what these tests read back out of the .apkg.
+const realFetch = globalThis.fetch;
+vi.stubGlobal('fetch', (async (input: RequestInfo | URL, init?: RequestInit) => {
+	const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+	if (!url.startsWith('/')) return realFetch(input, init);
+	return new Response(null, { status: 404 });
+}) as typeof fetch);
+
 import { generateDeck, stableDeckId, commonReadingIndex, displayReadings, buildNoteFields, renderCardHtml, noteTags, stableNoteGuid, type Word } from './deck';
 import { DEFAULT_TEMPLATE, type TabContent } from './deckTemplate';
 import type { Reading } from './dict/cedict';

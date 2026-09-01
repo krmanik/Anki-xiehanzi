@@ -39,3 +39,6 @@ hsk_sentences.db
 
 # Premium (private, not for publication)
 /premium
+
+# Local Claude Code settings (machine-specific paths).
+.claude/

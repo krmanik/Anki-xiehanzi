@@ -64,19 +64,21 @@
 		shop: 'https://www.patreon.com/cw/krmani/shop'
 	};
 
-	// The v2.3 release, still the deck a lot of people are studying: four card
-	// types per level, built by the legacy main.ipynb pipeline. Kept as a direct
-	// download because the current deck is a different shape, not a strict
-	// improvement for someone mid-collection.
+	// The v2.3 deck, a second shape of the same New HSK 2025 word list: four card
+	// types per word (meaning · pinyin & zhuyin · audio · writing), each its own
+	// subdeck, built by the legacy main.ipynb pipeline. It is not a superseded
+	// version to be filed away — it is the deck a lot of people are studying and a
+	// genuinely different way to learn the list, so it lives *inside* the New HSK
+	// card next to the one-card-per-word deck.
 	const v23 = [
 		{
-			name: 'New HSK (2025)',
+			name: 'Four card types',
 			desc: 'HSK 1–9 with simplified, traditional, pinyin, zhuyin, audio, meanings and writing.',
 			url: 'https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.3/Anki-xiehanzi.-.New.HSK.2025.apkg'
 		},
 		{
-			name: 'New HSK (2025) with sentences',
-			desc: 'Same deck with example sentences added to each note.',
+			name: 'With example sentences',
+			desc: 'The same four card types, with example sentences added to every note.',
 			url: 'https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.3/Anki-xiehanzi.-.New.HSK.2025.with.sentences.apkg'
 		}
 	];
@@ -218,7 +220,7 @@
 				{/each}
 			</div>
 		{:else}
-			<div class="mt-6 grid gap-4 sm:grid-cols-2">
+			<div class="mt-6 grid gap-4 sm:grid-cols-2 sm:items-start">
 				{#each lists as list (list.id)}
 					{@const deck = findDeck(decks, list.id)}
 					<div class="relative overflow-hidden rounded-xl border border-neutral-200 bg-white p-5">
@@ -256,6 +258,34 @@
 							>
 								Deck coming soon
 							</p>
+						{/if}
+
+						{#if list.id === 'new'}
+							<!-- Same word list, the other card design: the v2.3 deck, four cards per
+							     word. Screenshots rather than prose — it is a layout, not a feature
+							     list — taken from Anki itself by scripts/shoot-v23-cards.mjs. -->
+							<div class="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 p-3.5">
+								<h4 class="text-sm font-semibold">Four cards per word (v2.3)</h4>
+								<p class="mt-1.5 text-sm leading-relaxed text-neutral-600">
+									The other deck for this list, and still a favourite: every word becomes four
+									cards in four subdecks — meaning, pinyin &amp; zhuyin, audio, and writing on a
+									stroke grid — so each skill comes up on its own schedule.
+								</p>
+								<div class="mt-3 space-y-1.5">
+									{#each v23 as d (d.url)}
+										<a
+											href={d.url}
+											class="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 transition hover:border-neutral-900"
+										>
+											<span class="min-w-0">
+												<span class="block text-sm font-medium">{d.name}</span>
+												<span class="block text-xs text-neutral-500">{d.desc}</span>
+											</span>
+											<Download size={15} class="shrink-0 text-neutral-500" />
+										</a>
+									{/each}
+								</div>
+							</div>
 						{/if}
 
 						<!-- Levels are not separate downloads; they open the word list. -->
@@ -313,31 +343,7 @@
 		</div>
 	</section>
 
-	<section class="mt-10">
-		<h2 class="border-b border-neutral-200 pb-2 text-2xl font-bold tracking-tight">
-			Previous version (v2.3)
-		</h2>
-		<div class="mt-4 space-y-2">
-			{#each v23 as d}
-				<div
-					class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4"
-				>
-					<div class="min-w-0">
-						<h3 class="font-semibold">{d.name}</h3>
-						<p class="mt-0.5 text-sm text-neutral-600">{d.desc}</p>
-					</div>
-					<a
-						href={d.url}
-						class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm transition hover:border-neutral-900"
-					>
-						<Download size={14} /> Download .apkg
-					</a>
-				</div>
-			{/each}
-		</div>
-	</section>
-
-	<details class="group mt-8 rounded-xl border border-neutral-200">
+	<details class="group mt-10 rounded-xl border border-neutral-200">
 		<summary class="flex cursor-pointer list-none items-center justify-between p-4 font-semibold">
 			Older decks (HSK 2.0, 2021)
 			<ChevronDown size={18} class="transition group-open:rotate-180" />

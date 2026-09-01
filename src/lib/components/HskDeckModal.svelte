@@ -27,8 +27,10 @@
 		onClose: () => void;
 	} = $props();
 
+	// Both premium links point at the deck post, not the shop front: the post is
+	// what says what is in the deck, and a buyer arriving at a bare storefront
+	// has to work out which product this modal was talking about.
 	const POST = 'https://www.patreon.com/krmani/posts/anki-xie-hanzi-3-166350823';
-	const SHOP = 'https://www.patreon.com/cw/krmani/shop';
 
 	// The comparison. `free` is what the button below actually downloads.
 	const rows = $derived([
@@ -123,7 +125,7 @@
 						<td class="bg-neutral-50 px-2 py-3 text-center">
 							<a
 								class="inline-flex items-center gap-1.5 text-xs font-medium underline"
-								href={SHOP}
+								href={POST}
 								target="_blank"
 								rel="noopener noreferrer"
 							>
@@ -155,7 +157,7 @@
 			</a>
 			<a
 				class="{btnPrimary} inline-flex items-center gap-2"
-				href={SHOP}
+				href={POST}
 				target="_blank"
 				rel="noopener noreferrer"
 			>

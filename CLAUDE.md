@@ -26,6 +26,7 @@ npm run build:syllables  # regenerate static/data/audio/syllables/*.mp3 (needs t
 npm run build:radicals   # regenerate static/data/radicals/ (Wikipedia + cedict + zdic; slow first run)
 npm run build:radical-deck  # build dist-decks/Anki-xiehanzi-Kangxi-Radicals.apkg
 npm run preview:radical-card # render the cards to dist-decks/radical-card.html (design check)
+npm run shoot:card-previews  # screenshot a deck's cards from Anki (hand tool; needs Anki + AnkiConnect)
 npm run build:pdf-fonts  # regenerate static/fonts/*.ttf (needs python3 + fonttools)
 npm run dev          # vite dev server
 npm run build        # static build → build/ (adapter-static, SPA fallback 404.html)
@@ -132,13 +133,32 @@ A separate, much lighter stack from the deck generator — it must never pull th
   Output goes to `dist-decks/` (gitignored — upload as GitHub Release assets by
   hand); the only committed artefact is `static/data/hsk/decks.json`, one entry
   per list (`new`, `old`).
-- **The v2.3 decks stay linked, not rebuilt.** `DeckLibrary`'s `v23` list points
-  at the release assets of the four-card-type decks `main.ipynb` built. People
-  mid-collection should not be pushed onto a differently-shaped deck. Those two
-  downloads and the "Which list should I learn?" comparison are **always-open
-  sections at the foot of the page**, not the disclosure — nobody opens a
-  collapsible to find out which of two lists applies to them. Only the 2021
-  AnkiWeb decks stay behind `<details>`.
+- **The v2.3 decks stay linked, not rebuilt, and they live inside the New HSK
+  card.** `DeckLibrary`'s `v23` list points at the release assets of the
+  four-card-type decks `main.ipynb` built. They are **not** a superseded version
+  filed away at the foot of the page: same word list, a different card design —
+  every word becomes four cards in four subdecks (meaning · pinyin & zhuyin ·
+  audio · writing) — so they sit in the New HSK 2025 card under the one-card deck. People mid-collection
+  are also not pushed onto a differently-shaped deck. The "Which list should I
+  learn?" comparison stays an always-open section — nobody opens a collapsible to
+  find out which of two lists applies to them. Only the 2021 AnkiWeb decks stay
+  behind `<details>`.
+- **`scripts/shoot-card-previews.mjs`** (`npm run shoot:card-previews`) — a
+  hand-run tool, wired into nothing: it asks AnkiConnect for a real note's
+  `cardsInfo` — question and answer HTML exactly as Anki built them, card CSS
+  included — then shoots each side in headless Chrome with a `<base href>` of
+  Anki's own `collection.media`, so fonts, dictionary logos and the Hanzi Writer
+  engine resolve as they do in the app. Written for a card gallery on `/hsk`
+  that was then dropped (previewing the free deck beside premium argues against
+  the sale), so nothing on the site reads its output today; keep it for
+  screenshots of a card design without importing an `.apkg` by hand. Three
+  details are load-bearing: the page is **never trimmed horizontally** (a card
+  centres its hanzi and left-aligns its prose, so trimming to the ink box tips
+  the whole card sideways); the wrapper sets a **sans base font**, because
+  Anki's reviewer does and Chrome's default is serif; and shots are taken at
+  **2×**. It needs Anki running with AnkiConnect and the deck imported into the
+  open profile (premium: `node premium/run.mjs build.ts --levels 1 --audio`,
+  then import).
 - **`src/lib/hskDecks.ts`** — the manifest loader plus pure lookup/format
   helpers, keyed by list. A list with no entry falls back to the deck creator, so
   the manifest may lag behind the word lists.

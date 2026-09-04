@@ -147,16 +147,13 @@ A separate, much lighter stack from the deck generator — it must never pull th
   Output goes to `dist-decks/` (gitignored — upload as GitHub Release assets by
   hand); the only committed artefact is `static/data/hsk/decks.json`, one entry
   per list (`new`, `old`).
-- **The v2.3 decks stay linked, not rebuilt, and they live inside the New HSK
-  card.** `DeckLibrary`'s `v23` list points at the release assets of the
-  four-card-type decks `main.ipynb` built. They are **not** a superseded version
-  filed away at the foot of the page: same word list, a different card design —
-  every word becomes four cards in four subdecks (meaning · pinyin & zhuyin ·
-  audio · writing) — so they sit in the New HSK 2025 card under the one-card deck. People mid-collection
-  are also not pushed onto a differently-shaped deck. The "Which list should I
-  learn?" comparison stays an always-open section — nobody opens a collapsible to
-  find out which of two lists applies to them. Only the 2021 AnkiWeb decks stay
-  behind `<details>`.
+- **The v2.3 decks stay linked, not rebuilt.** `DeckLibrary`'s `v23` list points
+  at the release assets of the four-card-type decks `main.ipynb` built. People
+  mid-collection should not be pushed onto a differently-shaped deck. Those two
+  downloads and the "Which list should I learn?" comparison are **always-open
+  sections at the foot of the page**, not the disclosure — nobody opens a
+  collapsible to find out which of two lists applies to them. Only the 2021
+  AnkiWeb decks stay behind `<details>`.
 - **`scripts/shoot-card-previews.mjs`** (`npm run shoot:card-previews`) — a
   hand-run tool, wired into nothing: it asks AnkiConnect for a real note's
   `cardsInfo` — question and answer HTML exactly as Anki built them, card CSS

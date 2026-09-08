@@ -1,0 +1,120 @@
+{
+  "generated": "2026-09-08",
+  "currency": "USD",
+  "shop": "https://www.patreon.com/cw/krmani/shop",
+  "note": "A product with `hidden: true` is kept in this file but not shown on /shop \u2014 still in development. PLACEHOLDER PRICES. Every `price.amount` below is 0 and renders as \"See on Patreon\" until a real number is put here. Edit this file only — nothing computes a price. `image` names a file under static/img/shop/; a product with no file there falls back to a generated tile, so the grid never shows a broken image.",
+  "products": [
+    {
+      "id": "hsk-word-decks",
+      "name": "Anki xiě hànzì 3.0 — HSK word decks",
+      "tagline": "One file per HSK level. Recognition and writing, same words seen two ways.",
+      "badge": "Most popular",
+      "price": { "amount": 0, "unit": "per level" },
+      "image": "hsk-word-decks.jpg",
+      "imageAlt": "The premium HSK card: hanzi beside its readings, meaning, breakdown and example sentences.",
+      "buyUrl": "https://www.patreon.com/krmani/posts/anki-xie-hanzi-3-166350823",
+      "description": "One note per HSK word, two note types in one download: Recognition puts the word beside its readings, and Writing adds a Hanzi Writer practice grid. Importing several levels gives one deck tree, not seven, and the shared corpora and recordings are packed once instead of per level.",
+      "highlights": [
+        "Recognition and Writing subdecks in a single .apkg per level",
+        "Redesigned card: readings, common meaning, breakdown, radicals, part of speech, HSK band, frequency",
+        "A searchable dictionary built into the card — answers without leaving the review",
+        "The whole example-sentence corpus, paged in with \"Load more\" while you review",
+        "Native pronunciation audio, sentence audio included",
+        "Sidebar to show or hide any field, front and back"
+      ],
+      "specs": [
+        { "label": "Levels", "value": "HSK 1–9 (3.0)" },
+        { "label": "Format", "value": ".apkg, one per level" },
+        { "label": "Card types", "value": "Recognition + Writing" },
+        {
+          "label": "Works offline",
+          "value": "Yes — audio and dictionary ship inside"
+        }
+      ],
+      "freeAlternative": { "label": "Free HSK decks", "href": "/hsk" }
+    },
+    {
+      "id": "cloze-sentences",
+      "hidden": true,
+      "name": "HSK cloze sentence deck",
+      "tagline": "One HSK word blanked per sentence — multiple choice, typing, or reveal.",
+      "badge": "New",
+      "price": { "amount": 0 },
+      "image": "cloze-sentences.jpg",
+      "imageAlt": "A cloze card: a graded sentence with one word blanked and multiple-choice answers.",
+      "buyUrl": "https://www.patreon.com/cw/krmani/shop",
+      "description": "A Clozemaster-shaped deck built from the graded sentence corpus. Each card is a sentence with one HSK word blanked out, answered by multiple choice, by typing it, or by revealing it — words met in context rather than on their own, with the whole sentence spoken.",
+      "highlights": [
+        "Sentences graded by HSK level, so a card is made of words you have already met",
+        "Three answer modes on the same note: multiple choice, typing, reveal",
+        "Every sentence spoken",
+        "Its own note type and card design — imports beside the word decks without touching them"
+      ],
+      "specs": [
+        { "label": "Built from", "value": "The graded HSK sentence corpus" },
+        { "label": "Format", "value": ".apkg" },
+        { "label": "Answer modes", "value": "Choice · typing · reveal" }
+      ],
+      "freeAlternative": {
+        "label": "Free HSK decks",
+        "href": "/hsk"
+      }
+    },
+    {
+      "id": "kangxi-radicals",
+      "name": "The 214 Kangxi radicals — premium deck",
+      "tagline": "Every radical, how its glyph evolved, and how it is printed across East Asia.",
+      "badge": "",
+      "price": { "amount": 0 },
+      "image": "kangxi-radicals.jpg",
+      "imageAlt": "A radical card: stroke animation beside the glyph, readings, evolution and example characters.",
+      "buyUrl": "https://www.patreon.com/krmani/posts/kangxi-radicals-166891672?source=storefront",
+      "description": "The building blocks every character is filed under, prebuilt so there is no waiting on audio. Recognition and writing cards for all 214 radicals, plus everything the free browser build leaves out: 2,016 glyph images, word sense, zhuyin, codepoints and a sidebar that shows or hides any part of a card.",
+      "highlights": [
+        "All 214 radicals · 428 cards · recognition and writing as separate subdecks",
+        "2,016 glyph images — 字源演变 evolution and 字形对比 regional forms",
+        "Readings across Chinese, Vietnamese, Japanese and Korean",
+        "Animated, practisable stroke order and pronunciation audio",
+        "Word sense, zhuyin and Unicode/Kangxi codepoints",
+        "A sidebar to show and hide any part of a card, front and back",
+        "Print-ready PDFs included"
+      ],
+      "specs": [
+        { "label": "Radicals", "value": "214" },
+        { "label": "Cards", "value": "428 (Recognize + Write)" },
+        { "label": "Glyph images", "value": "2,016" },
+        { "label": "Size", "value": "About 5 MB" }
+      ],
+      "freeAlternative": {
+        "label": "Free radical deck",
+        "href": "/radicals"
+      }
+    },
+    {
+      "id": "printables",
+      "name": "Print-ready radical PDFs",
+      "tagline": "A two-sided flashcard deck, a practice sheet per radical, and a poster of all 214.",
+      "badge": "",
+      "price": { "amount": 0 },
+      "image": "printables.jpg",
+      "imageAlt": "Printed sheets: flashcards, a stroke-practice sheet and the 214-radical poster.",
+      "buyUrl": "https://www.patreon.com/cw/krmani/shop",
+      "description": "The paper half of the radical deck. Flashcards laid out so duplex printing lines the sides up, one stroke-practice sheet per radical with the guide glyph to trace, and a single poster of all 214 in Kangxi order. Also included with the premium radical deck — this is for anyone who only wants the paper.",
+      "highlights": [
+        "Two-sided flashcards, duplex-aligned",
+        "A stroke-practice sheet for every radical",
+        "A wall poster of all 214, in Kangxi order",
+        "Print at home — no cutting guides to guess at"
+      ],
+      "specs": [
+        { "label": "Format", "value": "PDF" },
+        { "label": "Covers", "value": "All 214 radicals" },
+        { "label": "Also in", "value": "The premium radical deck" }
+      ],
+      "freeAlternative": {
+        "label": "Free print tools",
+        "href": "/tools"
+      }
+    }
+  ]
+}

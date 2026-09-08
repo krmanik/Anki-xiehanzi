@@ -1,1 +1,0 @@
-import{jt as e}from"./CG_9zvlc.js";var t,n=e((()=>{t=globalThis||self}));export{n,t};

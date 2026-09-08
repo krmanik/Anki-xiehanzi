@@ -1,0 +1,1 @@
+import{Mt as e}from"./S4Govv3-.js";var t,n=e((()=>{t=globalThis||self}));export{n,t};

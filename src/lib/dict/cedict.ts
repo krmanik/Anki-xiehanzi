@@ -11,6 +11,7 @@ import Chinese from 'chinese-s2t';
 import { base } from '$app/paths';
 import pinzhu from './pinyinzhuyin';
 import { rankSentences } from './sentences';
+import { loadRadicals, radicalsByGlyph, type Radical } from '../radicals';
 import {
 	commonness,
 	hasToneMarker,
@@ -387,6 +388,9 @@ export interface CharInfo {
 	definition: string; // short gloss (first sense)
 	radical: string; // e.g. "囗"
 	decomposition: string; // ideographic description, e.g. "⿴囗玉"
+	/** The radical's own reading and meaning (辶 → chuò, "walk"), when known. */
+	radicalPinyin?: string;
+	radicalMeaning?: string;
 }
 
 /** Trim a character's CEDICT definition to a short gloss for breakdown chips. */
@@ -429,10 +433,24 @@ export async function lookupCharacters(chars: string[]): Promise<CharInfo[]> {
 	return out;
 }
 
-/** Per-character breakdown of a word (CJK characters only, in order). */
+let radicalNames: Promise<Map<string, Radical> | null> | null = null;
+
+/**
+ * Per-character breakdown of a word (CJK characters only, in order), each
+ * radical named from the radical table — a card that prints 辶 should also say
+ * it is chuò, "walk". The table is small and optional: without it the radical
+ * still prints, unnamed.
+ */
 export async function characterBreakdown(word: string): Promise<CharInfo[]> {
 	const chars = [...word.trim()].filter((c) => /[㐀-鿿豈-﫿]/.test(c));
-	return lookupCharacters(chars);
+	radicalNames ??= loadRadicals()
+		.then((index) => radicalsByGlyph(index.radicals))
+		.catch(() => null);
+	const [infos, names] = await Promise.all([lookupCharacters(chars), radicalNames]);
+	return infos.map((info) => {
+		const r = names?.get(info.radical);
+		return r ? { ...info, radicalPinyin: r.pinyin, radicalMeaning: r.meaning } : info;
+	});
 }
 
 /**

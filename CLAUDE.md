@@ -69,6 +69,26 @@ The deck generator is the heart of the app. Layering matters because correctness
   reading sits at index 0 everywhere. Every reading still ships — this reorders,
   it does not drop. `listSyllable` is optional: a word typed into `/create` has
   no list behind it and falls back to the longest-definition heuristic.
+  **Every reading can be heard.** With `readingAudio` (decks that carry audio),
+  a word with more than one reading gets a speaker after each reading's pinyin
+  in the definitions box (`readingAudioButton`): the lead reading clicks the
+  note's own replay button in `#audio` and falls back to its syllable clips;
+  every other reading plays its syllable clips back to back. The clips ship as
+  `_xhz-syl-<syllable>.mp3` (from `static/data/audio/syllables/`, identical
+  bytes in every deck, so one name per clip); `readingClipMedia()` is the list a
+  builder packs. The button sits *beside* `.pinyin` in a `.reading-line`, never
+  inside it — the card script tone-colours `.pinyin` by rebuilding it from its
+  text, which flattened the icon into the word "volume_up", and a collection
+  holding an older template keeps doing that. Its onclick carries its own code.
+  **Measure words and cross references print as the card does**
+  (`formatDefinition`): CEDICT writes `冊|册[ce4]`, traditional first and
+  numbered, and the chip said "冊/册 ce4" — it now leads with 册, keeps 冊 as an
+  aside when they differ, and says cè; `書經|书经[Shu1 jing1]` becomes
+  `书经 [Shū jīng]`. `toToneMarked` / `markNumberedPinyin` (`syllables.ts`) do
+  the conversion. **Radical chips name the radical** (辶 chuò · walk):
+  `characterBreakdown` looks each radical up in `static/data/radicals/index.json`
+  via `radicalsByGlyph`, which also maps the 15 alternate glyphs cedict uses
+  (⺼ → 肉, 釒 → 金, …).
 - **`src/lib/cardPresets.ts`** — pure data + builder for one-click front/back presets (Beginner / Intermediate / …). Chrome tokens (`CONTROL_BUTTONS_TOKEN`, `SEPARATOR_TOKEN`) default to the back side per Anki convention.
 - **`src/lib/tone.ts` / `tonePresets.ts`** — pure tone-color palettes + hanzi/pinyin colorization.
 - **`src/lib/cardThemes.ts`** — pure visual theme groups + element-style merging.
@@ -132,7 +152,11 @@ A separate, much lighter stack from the deck generator — it must never pull th
   **Audio is injected, not left to `deck.ts`.** Its browser path ends in Edge
   TTS, which is a browser API and fails under Node with "the file buffer is
   empty" on every word — a screenful of stack traces and a silent clip. The
-  builder passes `getAudio`, which tries, in order: the clip cache in
+  builder passes `getAudio`, which tries, in order (the submodule's clips are
+  ink_brush_chinese's — audio-cmn's Yue Tan, her cloned voice for words she
+  never recorded, and `words-reread.json` there for the ten she recorded in a
+  reading other than the list's, 还 said huán; refresh this cache when they
+  change, since it is read first): the clip cache in
   `.cache/hsk-audio` (keyed by word; clips from the older url-hash cache are
   moved across on sight) · **the submodule's own `New HSK (2025)/Audio` folder**,
   so a full build of that list needs no network · the CDN, for words the checkout

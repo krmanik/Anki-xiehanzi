@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
 	canSpeak,
 	clipsFor,
+	markNumberedPinyin,
 	planSpeech,
 	speechTokens,
 	toNumberedSyllable,
+	toToneMarked,
 	type ClipLength
 } from './syllables';
 
@@ -22,6 +24,33 @@ const index: Record<string, ClipLength> = {
 	fen1: 0.3,
 	dian3: 0.3
 };
+
+describe('toToneMarked', () => {
+	it('puts the mark where pinyin puts it', () => {
+		expect(toToneMarked('ben3')).toBe('běn');
+		expect(toToneMarked('hai2')).toBe('hái');
+		expect(toToneMarked('gou4')).toBe('gòu');
+		expect(toToneMarked('gui4')).toBe('guì');
+		expect(toToneMarked('liu2')).toBe('liú');
+		expect(toToneMarked('Shu1')).toBe('Shū');
+	});
+
+	it('spells ü and leaves the neutral tone unmarked', () => {
+		expect(toToneMarked('lu:4')).toBe('lǜ');
+		expect(toToneMarked('nv3')).toBe('nǚ');
+		expect(toToneMarked('de5')).toBe('de');
+	});
+
+	it('round-trips with toNumberedSyllable', () => {
+		for (const s of ['cong2', 'nv3', 'lve4', 'er4', 'zhuang1', 'ma5'])
+			expect(toNumberedSyllable(toToneMarked(s))).toBe(s);
+	});
+
+	it('marks every numbered syllable in running text', () => {
+		expect(markNumberedPinyin('Shu1 jing1')).toBe('Shū jīng');
+		expect(markNumberedPinyin('pao3 tang2 r5 de5')).toBe('pǎo táng r de');
+	});
+});
 
 describe('toNumberedSyllable', () => {
 	it('reads tone marks', () => {

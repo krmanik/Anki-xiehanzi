@@ -7,6 +7,7 @@ import {
 	glyphUrl,
 	productivityBand,
 	radicalLabel,
+	radicalsByGlyph,
 	radicalTone,
 	premiumExtras,
 	radicalDeckUrl,
@@ -307,5 +308,20 @@ describe('premiumExtras', () => {
 	it('is empty when there is no premium edition or no manifest', () => {
 		expect(premiumExtras(null)).toEqual([]);
 		expect(premiumExtras({ ...manifest, editions: { free: manifest.editions.free } })).toEqual([]);
+	});
+});
+
+describe('radicalsByGlyph', () => {
+	const walk = make({ number: 162, char: '辵', variants: ['辶'], meaning: 'walk', pinyin: 'chuò' });
+	const meat = make({ number: 130, char: '肉', variants: ['月'], meaning: 'meat', pinyin: 'ròu' });
+
+	it('finds a radical by any of its written forms', () => {
+		const map = radicalsByGlyph([walk, meat]);
+		expect(map.get('辶')?.pinyin).toBe('chuò');
+		expect(map.get('辵')?.number).toBe(162);
+	});
+
+	it('resolves the alternate forms the character table uses', () => {
+		expect(radicalsByGlyph([walk, meat]).get('⺼')?.char).toBe('肉');
 	});
 });

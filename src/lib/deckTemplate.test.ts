@@ -64,9 +64,26 @@ describe('formatDefinition', () => {
 		expect(html).toContain('cl-chip');
 		expect(html).toContain('measure word');
 		expect(html).toContain('本');
-		expect(html).toContain('ben3');
+		expect(html).toContain('běn');
+		expect(html).not.toContain('ben3');
 		// the CL fragment is removed from the sense text
 		expect(html).not.toContain('CL:');
+	});
+
+	it('leads a measure word with its simplified form', () => {
+		const html = formatDefinition('book; CL:本[ben3],冊|册[ce4]');
+		expect(html).toContain('<span class="cl-char">册</span><span class="cl-trad">冊</span>');
+		expect(html).toContain('<span class="cl-pin">cè</span>');
+		// one form only when the two spellings agree
+		expect(html).toContain('<span class="cl-char">本</span><span class="cl-pin">');
+	});
+
+	it('rewrites cross references as simplified + tone-marked pinyin', () => {
+		expect(formatDefinition('abbr. for 書經|书经[Shu1 jing1]')).toBe('abbr. for 书经 [Shū jīng]');
+		expect(formatDefinition('see 那裡|那里[na4 li3]')).toBe('see 那里 [nà lǐ]');
+		expect(formatDefinition('of; also pr. [di4]')).toContain('also pr. [dì]');
+		// a bracket that is not pinyin is left alone
+		expect(formatDefinition('a [sic] note')).toBe('a [sic] note');
 	});
 });
 

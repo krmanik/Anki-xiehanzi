@@ -331,6 +331,45 @@ export function allForms(r: Radical): string[] {
 	return [...new Set([r.char, ...r.variants, ...r.simplified, ...r.traditional])];
 }
 
+/**
+ * Radical glyphs cedict's character table uses that are not one of the 214
+ * radicals' own forms, by the Kangxi number they stand for: ⺼ is 肉 as it sits
+ * in 肚, 釒 is 金 in 銀, 巳 files under 己, 龶 is the 生 on top of 青.
+ */
+const RADICAL_ALIASES: Record<string, number> = {
+	'⺼': 130,
+	'釒': 167,
+	'巳': 49,
+	'⺊': 25,
+	'虎': 141,
+	'肀': 129,
+	'⺀': 15,
+	'民': 83,
+	'炏': 86,
+	'羋': 123,
+	'兀': 10,
+	'刁': 18,
+	'孑': 39,
+	'镸': 168,
+	'龶': 100
+};
+
+/**
+ * Every written form of every radical → that radical, so a word card can say
+ * what the 辶 in 还 is (chuò, "walk") rather than print a bare glyph.
+ */
+export function radicalsByGlyph(radicals: Radical[]): Map<string, Radical> {
+	const out = new Map<string, Radical>();
+	const byNumber = new Map(radicals.map((r) => [r.number, r]));
+	for (const r of radicals)
+		for (const g of [...allForms(r), r.kangxiForm]) if (g && !out.has(g)) out.set(g, r);
+	for (const [g, n] of Object.entries(RADICAL_ALIASES)) {
+		const r = byNumber.get(n);
+		if (r && !out.has(g)) out.set(g, r);
+	}
+	return out;
+}
+
 /** "月 · yuè · moon" — a one-line label for lists and page titles. */
 export function radicalLabel(r: Radical): string {
 	return [r.char, r.pinyin, r.meaning].filter(Boolean).join(' · ');

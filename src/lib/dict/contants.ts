@@ -1784,7 +1784,7 @@ hr {
   font-size: 0.85em;
 }
 
-.cl-simp {
+.cl-trad {
   color: var(--text2, #999);
   font-size: 0.85em;
 }

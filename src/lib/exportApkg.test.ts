@@ -39,6 +39,7 @@ vi.stubGlobal('fetch', (async (input: RequestInfo | URL, init?: RequestInit) => 
 import { generateDeck, stableDeckId, commonReadingIndex, displayReadings, buildNoteFields, renderCardHtml, noteTags, stableNoteGuid, type Word } from './deck';
 import { DEFAULT_TEMPLATE, type TabContent } from './deckTemplate';
 import type { Reading } from './dict/cedict';
+import { readingClipMedia } from './noteFields';
 
 function word(): Word {
 	return {
@@ -171,6 +172,62 @@ describe('reading order on the card', () => {
 		const f = buildNoteFields(word(), DEFAULT_TEMPLATE, []);
 		expect(f.Pinyin).toBe('Zhōng guó');
 		expect(f.Definitions).toContain('char-tone1');
+	});
+
+	it('puts a speaker after every reading when asked', () => {
+		const f = buildNoteFields(he2, DEFAULT_TEMPLATE, [], { readingAudio: true });
+		const buttons = f.Definitions.match(/<button[^>]*class="reading-say[^>]*>/g) ?? [];
+		expect(buttons).toHaveLength(2);
+		// The lead reading plays the note's own recording, its syllables as backup;
+		// the other is said from its syllables only.
+		expect(buttons[0]).toContain('data-word="1"');
+		expect(buttons[0]).toContain('data-clips="_xhz-syl-he2.mp3"');
+		expect(buttons[1]).not.toContain('data-word="1"');
+		expect(buttons[1]).toContain('data-clips="_xhz-syl-he4.mp3"');
+		expect(readingClipMedia(he2).sort()).toEqual(['_xhz-syl-he2.mp3', '_xhz-syl-he4.mp3']);
+		// The onclick is the whole player — a syntax slip there is a dead button
+		// with nothing in the console of most clients.
+		const code = buttons[0].match(/onclick="([^"]*)"/)![1];
+		expect(() => new Function('event', code)).not.toThrow();
+		// It sits beside .pinyin, which the card script rebuilds from its text.
+		expect(f.Definitions).toContain('<div class="reading-line"><div class="pinyin">hé</div><button');
+	});
+
+	it('gives a reading no speaker when a syllable has no clip', () => {
+		const f = buildNoteFields(he2, DEFAULT_TEMPLATE, [], { readingAudio: true, syllables: { he2: 0.3 } });
+		const buttons = f.Definitions.match(/<button[^>]*class="reading-say[^>]*>/g) ?? [];
+		expect(buttons).toHaveLength(1);
+		expect(buttons[0]).toContain('data-word="1"');
+		expect(readingClipMedia(he2, { he2: 0.3 })).toEqual(['_xhz-syl-he2.mp3']);
+	});
+
+	it('adds no speakers by default, or to a single-reading word', () => {
+		expect(buildNoteFields(he2, DEFAULT_TEMPLATE, []).Definitions).not.toContain('reading-say');
+		expect(buildNoteFields(word(), DEFAULT_TEMPLATE, [], { readingAudio: true }).Definitions).not.toContain(
+			'reading-say'
+		);
+		expect(readingClipMedia(word())).toEqual([]);
+	});
+});
+
+describe('radical chips', () => {
+	const huan: Word = {
+		...word(),
+		Simplified: '还',
+		breakdown: [
+			{ character: '还', pinyin: 'hái', definition: 'still', radical: '辶', decomposition: '⿺辶不', radicalPinyin: 'chuò', radicalMeaning: 'walk' }
+		]
+	};
+
+	it('name the radical beside its glyph', () => {
+		const f = buildNoteFields(huan, DEFAULT_TEMPLATE, []);
+		expect(f.Radical).toContain('<span class="radical-rad">辶</span>');
+		expect(f.Radical).toContain('<span class="radical-py">chuò</span><span class="radical-mean">walk</span>');
+	});
+
+	it('print the bare glyph when the radical table has no entry', () => {
+		const bare = { ...huan, breakdown: [{ ...huan.breakdown[0], radicalPinyin: undefined, radicalMeaning: undefined }] };
+		expect(buildNoteFields(bare, DEFAULT_TEMPLATE, []).Radical).not.toContain('radical-name');
 	});
 });
 

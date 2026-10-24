@@ -56,6 +56,43 @@ export function toNumberedSyllable(toneMarked: string): string {
 	return `${letters}${tone || '5'}`;
 }
 
+const MARKS = ['', '̄', '́', '̌', '̀', ''];
+
+/**
+ * The inverse: one numbered syllable to its tone-marked spelling, "ben3" →
+ * "běn", "lu:4" / "lv4" → "lǜ", "Shu1" → "Shū", "de5" → "de". The mark goes on
+ * a or e if there is one, on the o of "ou", otherwise on the last vowel. A
+ * token that is not numbered pinyin comes back unchanged.
+ */
+export function toToneMarked(numbered: string): string {
+	const m = /^([A-Za-z:üÜ]+?)([0-5])$/.exec(numbered ?? '');
+	if (!m) return numbered;
+	const tone = Number(m[2]);
+	const letters = m[1].replace(/u:|v/g, 'ü').replace(/U:|V/g, 'Ü');
+	const lower = letters.toLowerCase();
+	let at = lower.search(/[ae]/);
+	if (at < 0) at = lower.indexOf('ou');
+	if (at < 0) {
+		for (let i = lower.length - 1; i >= 0; i--) {
+			if ('iouü'.includes(lower[i])) {
+				at = i;
+				break;
+			}
+		}
+	}
+	if (at < 0) return letters;
+	return (letters.slice(0, at + 1) + MARKS[tone] + letters.slice(at + 1)).normalize('NFC');
+}
+
+/**
+ * Every numbered syllable in a run of text, tone-marked: CEDICT's cross
+ * references ("书经[Shu1 jing1]") and measure words ("本[ben3]") print in the
+ * numbered form, which reads like a typo next to a card's marked pinyin.
+ */
+export function markNumberedPinyin(text: string): string {
+	return (text ?? '').replace(/[A-Za-z:üÜ]+[0-5]/g, (syllable) => toToneMarked(syllable));
+}
+
 /** How each digit is read on its own. */
 const DIGITS = ['ling2', 'yi1', 'er4', 'san1', 'si4', 'wu3', 'liu4', 'qi1', 'ba1', 'jiu3'];
 

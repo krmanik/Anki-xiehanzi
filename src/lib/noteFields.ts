@@ -11,6 +11,7 @@ import { posDisplay, type Reading, type CharInfo, type ExampleSentence } from '.
 import { frequencyBand, hskLevelLabel } from './dict/meta';
 import { colorizeSentenceHanzi, colorizePinyinString } from './tone';
 import { formatDefinition, DEFAULT_TEMPLATE, type TemplateOpts } from './deckTemplate';
+import { speechTokens, type ClipLength } from './syllables';
 
 export interface Word {
 	Simplified: string;
@@ -50,6 +51,74 @@ export const EXAMPLE_TTS_BUTTON =
 	`<button type="button" class="example-tts-btn tappable" aria-label="Play sentence audio" ` +
 	`onclick="window.ttsPlay&&window.ttsPlay(this.parentElement.querySelector('.example-sim,.example-trad').textContent)">` +
 	`<i class="material-icons">volume_up</i></button>`;
+
+/**
+ * The media name a syllable clip ships under ("hai2" → `_xhz-syl-hai2.mp3`).
+ * Underscored because only a button's script names it — Check Media would
+ * otherwise call it unused — and `_xhz-` because every deck of this project
+ * that ships one ships the same bytes (static/data/audio/syllables/), so one
+ * name in a collection is one clip, whichever deck brought it.
+ */
+export function syllableMediaName(key: string): string {
+	return `_xhz-syl-${key}.mp3`;
+}
+
+/**
+ * The syllable clips that say one reading ("huan2" → [`_xhz-syl-huan2.mp3`]),
+ * or null when any syllable of it has no clip — a reading spoken with a hole in
+ * it is worse than a reading with no button. `index` is syllables.json's
+ * syllable → length map; without one every well-formed syllable counts.
+ */
+export function readingClips(syllable: string, index?: Record<string, ClipLength>): string[] | null {
+	const tokens = speechTokens(syllable);
+	if (!tokens.length || tokens.some((t) => t.kind !== 'syllable')) return null;
+	if (index && tokens.some((t) => index[t.syllable] === undefined)) return null;
+	return tokens.map((t) => syllableMediaName(t.syllable));
+}
+
+/**
+ * Speaker after a reading's pinyin in the definitions box, so a word with two
+ * or three readings can be heard in each (还 hái / huán). The reading the card
+ * leads with plays the note's own recording — it clicks the replay button Anki
+ * renders into `#audio`, the same one the hero's speaker uses — and falls back
+ * to its syllable clips when the note has none; every other reading is said
+ * from its syllable clips, back to back.
+ *
+ * The onclick carries its own code and calls nothing a card script defines, so
+ * it works on a card whose scripts never ran (see the radical deck's rules).
+ *
+ * It sits *beside* `.pinyin` (in a `.reading-line`), never inside it: the card
+ * script tone-colours a `.pinyin` by rebuilding it from its text, which turned
+ * the icon into the word "volume_up" — and a collection that kept an older
+ * template would go on doing that whatever this deck's own script says.
+ */
+export function readingAudioButton(clips: string[] | null, recording: boolean): string {
+	if (!clips && !recording) return '';
+	const play =
+		`event.stopPropagation();` +
+		`var w=this.hasAttribute('data-word')&&document.querySelector('#audio a,#audio audio');` +
+		`if(w){w.tagName=='AUDIO'?w.play():w.click();return}` +
+		`var f=(this.getAttribute('data-clips')||'').split(' '),i=0;` +
+		`(function n(){var s=f[i++];if(!s)return;var a=new Audio(s);a.onended=n;var p=a.play();if(p&&p.catch)p.catch(function(){})})()`;
+	return (
+		`<button type="button" class="reading-say tappable" aria-label="Play this reading"` +
+		(recording ? ' data-word="1"' : '') +
+		(clips ? ` data-clips="${clips.join(' ')}"` : '') +
+		` onclick="${play}"><i class="material-icons">volume_up</i></button>`
+	);
+}
+
+/** Options for `buildNoteFields` that depend on what the deck ships. */
+export interface NoteFieldOptions {
+	/**
+	 * Put a speaker after each reading's pinyin (words with more than one
+	 * reading only). Needs the syllable clips in the package — the builder adds
+	 * every name `readingClipMedia` returns.
+	 */
+	readingAudio?: boolean;
+	/** syllables.json's index, to leave out readings no clip can say. */
+	syllables?: Record<string, ClipLength>;
+}
 
 export function decodeHtmlEntities(input: string): string {
 	const htmlEntityRegex = /&#(\d+);|&([^;]+);/g;
@@ -184,7 +253,8 @@ export function displayReadings(
 export function buildNoteFields(
 	word: Word,
 	template: TemplateOpts,
-	examples: ExampleSentence[]
+	examples: ExampleSentence[],
+	opts: NoteFieldOptions = {}
 ): Record<string, string> {
 	const Simplified = word.Simplified;
 	const Traditional = word.Traditional;
@@ -224,7 +294,11 @@ export function buildNoteFields(
 		? displayReadings(word, true)
 		: { Pinyin: pin.join(', '), Zhuyin: zhu.join(', ') };
 	const definition: string[] = [];
+	const sayReadings = !!opts.readingAudio && pin.length > 1;
 	for (let i = 0; i < pin.length; i++) {
+		const say = sayReadings
+			? readingAudioButton(readingClips(syllableSp[i] ?? '', opts.syllables), i === 0)
+			: '';
 		const sp = (syllableSp[i] ?? '').split(' ');
 		let simp = '';
 		let trad = '';
@@ -241,7 +315,7 @@ export function buildNoteFields(
         <span id="char-trad-id">${trad}</span>
         <span class="sep">〕</span>
     </div>
-    <div class="pinyin">${pin[i]}</div>
+    ${say ? `<div class="reading-line"><div class="pinyin">${pin[i]}</div>${say}</div>` : `<div class="pinyin">${pin[i]}</div>`}
     <div class="zhuyin">${zhu[i]}</div>
     <div class="meaning">${formatDefinition(def[i] ?? '')}</div>
 </div>`);
@@ -263,10 +337,15 @@ export function buildNoteFields(
 	const seen = new Set<string>();
 	const radicalChips = word.breakdown
 		.filter((c) => c.radical && !seen.has(c.character) && seen.add(c.character))
-		.map(
-			(c) =>
-				`<span class="radical-chip"><span class="radical-char">${c.character}</span><span class="radical-rad">${c.radical}</span></span>`
-		)
+		.map((c) => {
+			// The radical's reading and meaning ride beside the glyph: a bare 辶 tells
+			// a learner nothing they can say or remember.
+			const name =
+				c.radicalPinyin || c.radicalMeaning
+					? `<span class="radical-name"><span class="radical-py">${c.radicalPinyin ?? ''}</span><span class="radical-mean">${c.radicalMeaning ?? ''}</span></span>`
+					: '';
+			return `<span class="radical-chip"><span class="radical-char">${c.character}</span><span class="radical-rad">${c.radical}</span>${name}</span>`;
+		})
 		.join('');
 	const radicalHtml = radicalChips
 		? `<div class="info-card-title">Radical</div><div class="radical-row">${radicalChips}</div>`
@@ -307,4 +386,15 @@ export function buildNoteFields(
 		Examples: examplesHtml,
 		Audio: `[sound:cmn-${Simplified}.mp3]`
 	};
+}
+
+/**
+ * Every syllable clip a word's reading buttons name — what a builder has to
+ * pack for `readingAudio`. Mirrors the loop in `buildNoteFields`: words with a
+ * single reading get no buttons and need nothing.
+ */
+export function readingClipMedia(word: Word, syllables?: Record<string, ClipLength>): string[] {
+	const keys = (word.Syllable ?? '').split(', ');
+	if (keys.length <= 1) return [];
+	return [...new Set(keys.flatMap((k) => readingClips(k, syllables) ?? []))];
 }

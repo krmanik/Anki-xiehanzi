@@ -55,6 +55,7 @@ import {
 
 import {
 	buildNoteFields,
+	readingClipMedia,
 	commonReadingIndex,
 	decodeHtmlEntities,
 	displayReadings,
@@ -483,7 +484,7 @@ export function renderCardHtml(opts: {
 	const tmpl = tmpls[idx] ?? tmpls[0];
 	if (!tmpl) return '';
 
-	const fmap = buildNoteFields(word, template, examples);
+	const fmap = buildNoteFields(word, template, examples, { readingAudio: includeAudio });
 	const front = fillTemplate(tmpl.qfmt, fmap);
 	let body =
 		side === 'front'
@@ -503,6 +504,8 @@ export function renderCardHtml(opts: {
 			`<script src="${data}_hanzi-writer.min.js"><\/script>`
 		)
 		.replace(/fetch\("_hanzi-writer-data\.json"\)/g, `fetch("${data}hanzi-writer-data.json")`)
+		// Reading speakers name packed syllable clips; the site serves the same files.
+		.replace(/_xhz-syl-([a-z]+[1-5])\.mp3/g, `${data}audio/syllables/$1.mp3`)
 		.replace(/src="_/g, `src="${asset}_`);
 
 	const styles = (CONSTANTS.DECK_CSS + css).replace(
@@ -722,8 +725,22 @@ export async function buildDeckPackage(opts: GenerateDeckOptions): Promise<any> 
 		}
 	}
 
+	// Each reading of a many-reading word gets a speaker, said from the syllable
+	// clips (see readingAudioButton). Only decks that carry audio get them, and a
+	// reading with a syllable the set has no clip for gets none.
+	let syllableIndex: Record<string, number> | undefined;
+	if (includeAudio) {
+		try {
+			const res = await fetch(`${host}/data/audio/syllables.json`);
+			if (res.ok) syllableIndex = (await res.json()).syllables;
+		} catch (error) {
+			console.error('Syllable index unavailable; reading speakers left out:', error);
+		}
+	}
+	const fieldOpts = { readingAudio: !!syllableIndex, syllables: syllableIndex };
+
 	words.forEach((word) => {
-		const fmap = buildNoteFields(word, template, examplesMap.get(word.Simplified) ?? []);
+		const fmap = buildNoteFields(word, template, examplesMap.get(word.Simplified) ?? [], fieldOpts);
 		const note = built.flds.map((f) => fmap[f.name] ?? '');
 		deckFor(deckOf(word)).addNote(
 			model.note(note, noteTags(word), stableNoteGuid(word, String(model.props.id)))
@@ -867,6 +884,19 @@ export async function buildDeckPackage(opts: GenerateDeckOptions): Promise<any> 
 	// Only process audio if includeAudio is true
 	if (includeAudio) {
 		await fetchAllAudio(wordFiles, opts.audioConcurrency ?? DEFAULT_AUDIO_CONCURRENCY);
+	}
+
+	// The syllable clips the reading speakers name, each once, in a fixed order.
+	if (syllableIndex) {
+		const names = [...new Set(words.flatMap((w) => readingClipMedia(w, syllableIndex)))].sort();
+		const clips = await Promise.all(
+			names.map(async (name) => {
+				const key = name.slice('_xhz-syl-'.length, -'.mp3'.length);
+				const res = await fetch(`${host}/data/audio/syllables/${key}.mp3`).catch(() => null);
+				return res?.ok ? { name, blob: await res.blob() } : null;
+			})
+		);
+		for (const clip of clips) if (clip) p.addMedia(clip.blob, clip.name);
 	}
 
 	// sidebar icons (/img) + scripts (/data)

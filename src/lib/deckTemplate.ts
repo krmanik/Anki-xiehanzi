@@ -8,6 +8,7 @@
  */
 
 import CONSTANTS from './dict/contants';
+import { markNumberedPinyin } from './syllables';
 import { resolvePalette, STANDARD_TONES, TONE_KEYS, type TonePalette } from './tonePresets';
 import { CARD_THEME_MAP, CARD_THEME_GROUP_MAP, mergeElementStyles, resolveTheme } from './cardThemes';
 
@@ -330,9 +331,21 @@ export function buildGlobalCss(t: TemplateOpts): string {
 		'.bd-def{font-size:0.66em;color:var(--text2);text-align:center;line-height:1.2;}\n' +
 		// Radical chips (国 │ 囗) — component char, a thin divider, then its radical.
 		'.radical-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:12px;}\n' +
-		'.radical-chip{display:inline-flex;align-items:center;gap:6px;font-size:0.72em;padding:4px 10px;border-radius:var(--radical-chip-radius,999px);background:var(--radical-chip-bg,var(--surface3));border:var(--radical-chip-border,1px solid var(--surface4));color:var(--text2);}\n' +
-		'.radical-chip .radical-char{font-weight:700;color:var(--text1);}\n' +
-		'.radical-chip .radical-rad{padding-left:6px;border-left:1px solid var(--surface4);font-size:1.05em;color:var(--radical-rad-color,inherit);}\n' +
+		// The radical carries its reading and meaning (辶 chuò · walk) so the chip
+		// says something a learner can use, not just a glyph.
+		'.radical-chip{display:inline-flex;align-items:center;gap:8px;font-size:0.85em;padding:6px 12px;border-radius:var(--radical-chip-radius,999px);background:var(--radical-chip-bg,var(--surface3));border:var(--radical-chip-border,1px solid var(--surface4));color:var(--text2);}\n' +
+		'.radical-chip .radical-char{font-weight:700;font-size:1.1em;color:var(--text1);}\n' +
+		'.radical-chip .radical-rad{padding-left:8px;border-left:1px solid var(--surface4);font-size:1.35em;line-height:1;color:var(--radical-rad-color,inherit);}\n' +
+		'.radical-chip .radical-name{display:inline-flex;flex-direction:column;line-height:1.15;text-align:left;}\n' +
+		'.radical-chip .radical-py{font-size:0.85em;font-weight:600;}\n' +
+		'.radical-chip .radical-mean{font-size:0.75em;opacity:0.85;}\n' +
+		// Per-reading speaker in the definitions box (noteFields readingAudioButton).
+		'.reading-line{display:flex;align-items:center;gap:6px;}\n' +
+		'.reading-say{display:inline-flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;padding:0;border:none;border-radius:50%;background:var(--surface3);color:var(--text2);cursor:pointer;}\n' +
+		// The pinyin switch hides .pinyin inline; its speaker goes with it.
+		'.reading-line .pinyin[style*="none"] + .reading-say{display:none;}\n' +
+		'.reading-say i{font-size:15px;}\n' +
+		'.reading-say:active{background:var(--surface4);}\n' +
 		// Example sentences — each sentence is a mini card (matches reference design)
 		'.examples-row{margin:6px auto;width:var(--card-w);max-width:var(--card-w);box-sizing:border-box;text-align:left;display:flex;flex-direction:column;gap:12px;}\n' +
 		'.examples-row:empty{display:none;}\n' +
@@ -460,10 +473,13 @@ export function buildCardCss(
 // Formats a raw CEDICT definition string for card display:
 //   - Extracts CL: classifier lists → rendered as measure-word chips
 //   - Splits semicolon-separated senses → numbered when multiple
+//   - Rewrites CEDICT's cross references in the reader's spelling: the
+//     simplified form only ("書經|书经" → "书经") and tone-marked pinyin
+//     ("[Shu1 jing1]" → "[Shū jīng]")
 export function formatDefinition(raw: string): string {
 	const classifiers: Array<{ chars: string; pin: string }> = [];
 
-	const cleaned = raw
+	const cleaned = crossReferences(raw)
 		.replace(/\bCL:([^;)]+)/g, (_match, list) => {
 			for (const item of list.split(',')) {
 				const t = item.trim();
@@ -488,18 +504,43 @@ export function formatDefinition(raw: string): string {
 			: defs.map((d, i) => `<span class="def-num">${i + 1}.</span> ${d}`).join('<br>');
 
 	if (classifiers.length > 0) {
-		const chips = classifiers
-			.map(({ chars, pin }) => {
-				const parts = chars.split('|');
-				const display =
-					parts.length > 1 ? `${parts[0]}<span class="cl-simp">/${parts[1]}</span>` : parts[0];
-				return `<span class="cl-chip">${display}<span class="cl-pin">${pin}</span></span>`;
-			})
-			.join('');
+		const chips = classifiers.map(({ chars, pin }) => measureWordChip(chars, pin)).join('');
 		html += `<div class="cl-row"><span class="cl-label">measure word</span>${chips}</div>`;
 	}
 
 	return html;
+}
+
+/**
+ * One measure-word chip. CEDICT writes a classifier `traditional|simplified`
+ * ("個|个[ge4]"), so read as written the chip led with the traditional form and
+ * printed the pinyin numbered — "冊/册 ce4" beside a card that says cè. It leads
+ * with the simplified form now, keeps the traditional one as an aside only when
+ * the two differ, and marks the tone.
+ */
+export function measureWordChip(chars: string, pin: string): string {
+	const [first, second] = chars.split('|');
+	const simp = second || first;
+	const trad = second && second !== first ? `<span class="cl-trad">${first}</span>` : '';
+	return `<span class="cl-chip"><span class="cl-char">${simp}</span>${trad}<span class="cl-pin">${markNumberedPinyin(pin)}</span></span>`;
+}
+
+/**
+ * CEDICT's cross references, in the spelling the rest of the card uses:
+ * `trad|simp[pin1 yin1]` → `simp [pīn yīn]`, and a bare `[pin1 yin1]` (as in
+ * "also pr. [di4]") → `[dì]`. Classifier lists are left alone — their own chips
+ * do the same job. Anything in brackets that is not numbered pinyin stays as it is.
+ */
+function crossReferences(raw: string): string {
+	const PINYIN = /^[A-Za-z:üÜ]+[0-5](?:\s+[A-Za-z:üÜ]+[0-5])*$/;
+	return raw.replace(
+		/(CL:[^;)]*)|(?:[^\s[\];,()|]+\|)?([^\s[\];,()|]*)\[([^\]]+)\]/g,
+		(match, cl, word, inner) => {
+			if (cl) return cl;
+			if (!PINYIN.test(inner.trim())) return match;
+			return `${word ? `${word} ` : ''}[${markNumberedPinyin(inner.trim())}]`;
+		}
+	);
 }
 
 // Display-field markup, shared by front and back so both honor the user's order.

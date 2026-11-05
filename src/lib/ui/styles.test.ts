@@ -30,6 +30,7 @@ describe('chipClass', () => {
 	it('uses the ink, not the pastel, when selected', () => {
 		expect(chipClass(true)).toContain('bg-sky-ink');
 		expect(chipClass(false)).toContain('bg-sunk');
+		expect(chipClass(false, true)).toContain('bg-surface');
 	});
 });
 

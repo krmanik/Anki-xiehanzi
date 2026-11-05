@@ -19,6 +19,7 @@
 	import ShareModal from '$lib/components/ShareModal.svelte';
 	import Logo from '$lib/components/shell/Logo.svelte';
 	import NavMenu from '$lib/components/shell/NavMenu.svelte';
+	import NavDropdown from '$lib/components/shell/NavDropdown.svelte';
 	import SiteFooter from '$lib/components/shell/SiteFooter.svelte';
 	import { initSharePrefs, popupHidden } from '$lib/share.svelte';
 	import { currentTheme, initTheme, toggleTheme } from '$lib/theme.svelte';
@@ -100,12 +101,16 @@
 		<nav aria-label="Main" class="ml-auto hidden items-center gap-1 lg:flex">
 			{#each TOPBAR as item (item.path)}
 				{@const on = isActive(current, item)}
-				<a
-					href={withBase(item.path, base)}
-					aria-current={on ? 'page' : undefined}
-					class="{link} {on ? 'bg-sky-soft font-semibold text-sky-ink' : 'text-muted hover:bg-sunk hover:text-ink'}"
-					>{item.label}</a
-				>
+				{#if item.children}
+					<NavDropdown {item} {current} linkClass={link} />
+				{:else}
+					<a
+						href={withBase(item.path, base)}
+						aria-current={on ? 'page' : undefined}
+						class="{link} {on ? 'bg-sky-soft font-semibold text-sky-ink' : 'text-muted hover:bg-sunk hover:text-ink'}"
+						>{item.label}</a
+					>
+				{/if}
 			{/each}
 			<a
 				href={withBase(PREMIUM.path, base)}

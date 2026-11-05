@@ -52,11 +52,17 @@
 		return [...all].sort((a, b) => (a.id === 'new' ? -1 : b.id === 'new' ? 1 : 0));
 	});
 
-	const LIST_LOOK: Record<string, { hue: Hue; glyph: string }> = {
-		new: { hue: 'rose', glyph: '新' },
-		old: { hue: 'sky', glyph: '旧' }
+	// Each list on its own soft ground, so the two cards do not read as one
+	// card twice. Literal classes: Tailwind cannot see `bg-${hue}-soft`.
+	type Look = { hue: Hue; glyph: string; panel: string; ink: string };
+	const LIST_LOOK: Record<string, Look> = {
+		new: { hue: 'rose', glyph: '新', panel: 'bg-rose-soft', ink: 'text-rose-ink' },
+		old: { hue: 'sky', glyph: '旧', panel: 'bg-sky-soft', ink: 'text-sky-ink' }
 	};
-	const look = (id: string) => LIST_LOOK[id] ?? { hue: 'lavender' as Hue, glyph: '词' };
+	const look = (id: string): Look =>
+		LIST_LOOK[id] ?? { hue: 'lavender', glyph: '词', panel: 'bg-lavender-soft', ink: 'text-lavender-ink' };
+	/** A fact on a tinted card: white pill, the card's ink. */
+	const pill = 'inline-flex items-center rounded-full bg-surface px-2.5 py-0.5 text-[13px] leading-5 font-semibold';
 
 	const levelHref = (list: HskListMeta, level: string) => `${base}/hsk/${list.id}/${level}`;
 
@@ -174,7 +180,7 @@
 				{#each lists as list (list.id)}
 					{@const deck = findDeck(decks, list.id)}
 					{@const l = look(list.id)}
-					<article class="flex flex-col rounded-panel bg-surface p-5 ring-1 ring-line ring-inset sm:p-6">
+					<article class="flex flex-col rounded-panel p-5 sm:p-6 {l.panel}">
 						<div class="flex items-center gap-3.5">
 							<IconDot hue={l.hue} size="lg" shape="tile" class="font-zh">{l.glyph}</IconDot>
 							<div class="min-w-0">
@@ -187,9 +193,9 @@
 						<!-- The deck's own word count when there is a deck: the list total
 						     differs (words with no dictionary data are left out). -->
 						<div class="mt-4 flex flex-wrap gap-1.5">
-							<Badge tint={l.hue}>{(deck?.words ?? list.total).toLocaleString()} words</Badge>
-							<Badge tint={l.hue}>{list.levels.length} levels</Badge>
-							{#if deck}<Badge tint="mint">Free</Badge>{/if}
+							<span class="{pill} {l.ink}">{(deck?.words ?? list.total).toLocaleString()} words</span>
+							<span class="{pill} {l.ink}">{list.levels.length} levels</span>
+							{#if deck}<span class="{pill} text-mint-ink">Free</span>{/if}
 						</div>
 
 						{#if deck && decks}
@@ -198,17 +204,17 @@
 								<span class="font-medium opacity-80">{formatBytes(deck.bytes)}</span>
 							</Button>
 						{:else}
-							<p class="mt-5 mb-0 rounded-card bg-sunk px-4 py-3 text-center text-muted">
+							<p class="mt-5 mb-0 rounded-card bg-surface px-4 py-3 text-center text-muted">
 								Deck coming soon.
 								<a href="{base}/create" class="font-semibold text-accent">Build it yourself</a>
 							</p>
 						{/if}
 
-						<div class="mt-5 border-t border-line pt-4">
+						<div class="mt-5 border-t border-ink/10 pt-4">
 							<SectionLabel as="h3">Word lists</SectionLabel>
 							<div class="mt-2 flex flex-wrap gap-1.5">
 								{#each list.levels as lvl (lvl.level)}
-									<a href={levelHref(list, lvl.level)} class="{chipClass(false)} no-underline"
+									<a href={levelHref(list, lvl.level)} class="{chipClass(false, true)} no-underline"
 										>{levelLabel(lvl.level)}</a
 									>
 								{/each}

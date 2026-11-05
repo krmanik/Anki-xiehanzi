@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isActive, LEARN, MAKE, PREMIUM, searchHref, stripBase, TOPBAR, withBase } from './nav';
+import { isActive, LEARN, PREMIUM, searchHref, SIDEBAR, stripBase, TOOLS, TOPBAR, withBase } from './nav';
 import { nextTheme, parsePref, resolveTheme } from './theme';
 
 const hsk = LEARN.items.find((i) => i.path === '/hsk')!;
@@ -29,7 +29,7 @@ describe('isActive', () => {
 	});
 	it('does not match a longer sibling path', () => {
 		expect(isActive('/hskfoo', hsk)).toBe(false);
-		expect(isActive('/tools/reader', MAKE.items[1])).toBe(true);
+		expect(isActive('/tools/reader', TOOLS)).toBe(true);
 	});
 	it('matches home only on the root', () => {
 		expect(isActive('/', home)).toBe(true);
@@ -39,7 +39,20 @@ describe('isActive', () => {
 });
 
 it('the top bar carries the main destinations, home being the logo', () => {
-	expect(TOPBAR.map((i) => i.path)).toEqual(['/hsk', '/dictionary', '/radicals', '/create', '/tools']);
+	expect(TOPBAR.map((i) => i.path)).toEqual(['/create', '/hsk', '/dictionary', '/radicals', '/tools']);
+});
+
+it('Tools is a submenu in the top bar and a group in the drawer', () => {
+	const tools = TOPBAR.find((i) => i.path === '/tools')!;
+	expect(tools.children?.map((c) => c.path)).toEqual([
+		'/tools/reader',
+		'/tools/coverage',
+		'/tools/worksheets',
+		'/tools/flashcards'
+	]);
+	expect(tools.children!.every((c) => c.blurb)).toBe(true);
+	expect(SIDEBAR.find((g) => g.label === 'Tools')?.items).toBe(tools.children);
+	expect(SIDEBAR[0].items[0].path).toBe('/create');
 });
 
 it('searchHref encodes the query and ignores blanks', () => {

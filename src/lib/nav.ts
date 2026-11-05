@@ -6,14 +6,20 @@
 import type { Hue } from './ui/styles';
 
 export type NavIcon = 'home' | 'layers' | 'grid' | 'book' | 'plus' | 'wrench' | 'star';
+/** The tools submenu's icons. */
+export type ToolIcon = 'reader' | 'gauge' | 'pencil' | 'cards';
 
 export interface NavItem {
 	label: string;
 	path: string;
-	icon: NavIcon;
+	icon: NavIcon | ToolIcon;
 	hue: Hue;
 	/** Older paths that should light this entry too. */
 	aliases?: string[];
+	/** One line under the label, in a submenu. */
+	blurb?: string;
+	/** A submenu: the top bar opens these instead of following `path`. */
+	children?: NavItem[];
 }
 
 export interface NavGroup {
@@ -32,24 +38,36 @@ export const LEARN: NavGroup = {
 	]
 };
 
+/** The study tools — a submenu, not a page of cards to read first. */
+export const TOOLS: NavItem = {
+	label: 'Tools',
+	path: '/tools',
+	icon: 'wrench',
+	hue: 'mint',
+	children: [
+		{ label: 'Reader', path: '/tools/reader', icon: 'reader', hue: 'sky', blurb: 'Paste text, tap any word' },
+		{ label: 'HSK coverage', path: '/tools/coverage', icon: 'gauge', hue: 'mint', blurb: 'How much of a text you know' },
+		{ label: 'Worksheets', path: '/tools/worksheets', icon: 'pencil', hue: 'apricot', blurb: 'Stroke practice to print' },
+		{ label: 'Flashcards', path: '/tools/flashcards', icon: 'cards', hue: 'rose', blurb: 'Two-sided cards to print' }
+	]
+};
+
 export const MAKE: NavGroup = {
 	label: 'Make',
-	items: [
-		{ label: 'Create a deck', path: '/create', icon: 'plus', hue: 'lavender' },
-		{ label: 'Tools', path: '/tools', icon: 'wrench', hue: 'mint' }
-	]
+	items: [{ label: 'Create a deck', path: '/create', icon: 'plus', hue: 'lavender' }]
 };
 
 export const PREMIUM: NavItem = { label: 'Premium', path: '/shop', icon: 'star', hue: 'apricot' };
 
-/** The ☰ drawer's groups. */
-export const SIDEBAR: NavGroup[] = [LEARN, MAKE];
+/** The ☰ drawer's groups: the tools are listed out, there is no hover there. */
+export const SIDEBAR: NavGroup[] = [MAKE, LEARN, { label: 'Tools', items: TOOLS.children! }];
 
 /**
  * The top bar on every page (decision D1, revised: no sidebar — one top bar,
  * links inline from 1024px, the drawer below). Home is the logo.
  */
-export const TOPBAR: NavItem[] = [LEARN.items[1], LEARN.items[3], LEARN.items[2], MAKE.items[0], MAKE.items[1]];
+// Create leads: making a deck is what the site is for.
+export const TOPBAR: NavItem[] = [MAKE.items[0], LEARN.items[1], LEARN.items[3], LEARN.items[2], TOOLS];
 
 /** Drop the base path and any trailing slash: `/Anki-xiehanzi/hsk/` → `/hsk`. */
 export function stripBase(pathname: string, base: string): string {

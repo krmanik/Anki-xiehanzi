@@ -93,11 +93,16 @@ export function buttonClass(variant: ButtonVariant = 'primary', size: ButtonSize
 	);
 }
 
-export function chipClass(selected: boolean): string {
+/** `onTint`: the chip sits on a soft panel, where grey would vanish — white instead. */
+export function chipClass(selected: boolean, onTint = false): string {
 	return cx(
 		'inline-flex min-h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition-colors',
 		FOCUS,
 		// Selected uses the ink, not the pastel: white on the pastel fails AA at 14px.
-		selected ? 'bg-sky-ink text-white' : 'bg-sunk text-muted hover:text-ink'
+		selected
+			? 'bg-sky-ink text-white'
+			: onTint
+				? 'bg-surface text-ink hover:brightness-95'
+				: 'bg-sunk text-muted hover:text-ink'
 	);
 }

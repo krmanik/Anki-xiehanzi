@@ -13,9 +13,9 @@ describe('NavMenu', () => {
 		expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('HSK lists');
 	});
 
-	it('lists Premium and the Learn / Make groups', () => {
+	it('lists Premium, the Learn / Make groups and every tool', () => {
 		render(NavMenu, { props: { current: '/create' } });
-		for (const name of ['Home', 'HSK lists', 'Radicals', 'Dictionary', 'Create a deck', 'Tools', 'Premium'])
+		for (const name of ['Home', 'HSK lists', 'Radicals', 'Dictionary', 'Create a deck', 'Reader', 'Worksheets', 'Premium'])
 			expect(screen.getByRole('link', { name })).toBeInTheDocument();
 		expect(screen.getByRole('link', { name: 'Create a deck' })).toHaveAttribute('aria-current', 'page');
 	});

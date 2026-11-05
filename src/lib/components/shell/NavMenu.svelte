@@ -4,22 +4,15 @@
   the small links at the foot. The same entries as the top bar, from nav.ts.
 -->
 <script lang="ts">
-	import type { Component } from 'svelte';
 	import { base } from '$app/paths';
 	import { goto } from '$app/navigation';
-	import House from '@lucide/svelte/icons/house';
-	import Layers from '@lucide/svelte/icons/layers';
-	import Grid2x2 from '@lucide/svelte/icons/grid-2x2';
-	import BookOpen from '@lucide/svelte/icons/book-open';
-	import SquarePlus from '@lucide/svelte/icons/square-plus';
-	import Wrench from '@lucide/svelte/icons/wrench';
-	import Star from '@lucide/svelte/icons/star';
 	import Search from '@lucide/svelte/icons/search';
 	import Moon from '@lucide/svelte/icons/moon';
 	import Sun from '@lucide/svelte/icons/sun';
 	import IconDot from '$lib/ui/IconDot.svelte';
 	import Logo from './Logo.svelte';
-	import { isActive, PREMIUM, searchHref, SIDEBAR, withBase, type NavIcon, type NavItem } from '$lib/nav';
+	import { isActive, PREMIUM, searchHref, SIDEBAR, withBase, type NavItem } from '$lib/nav';
+	import { NAV_ICONS } from './navIcons';
 	import { REPO } from '$lib/share.svelte';
 	import { currentTheme, toggleTheme } from '$lib/theme.svelte';
 
@@ -38,16 +31,6 @@
 		showThemeToggle?: boolean;
 	} = $props();
 
-	const ICONS: Record<NavIcon, Component<{ class?: string }>> = {
-		home: House,
-		layers: Layers,
-		grid: Grid2x2,
-		book: BookOpen,
-		plus: SquarePlus,
-		wrench: Wrench,
-		star: Star
-	};
-
 	let query = $state('');
 
 	function search(e: SubmitEvent) {
@@ -64,7 +47,7 @@
 </script>
 
 {#snippet entry(item: NavItem, premium = false)}
-	{@const Icon = ICONS[item.icon]}
+	{@const Icon = NAV_ICONS[item.icon]}
 	{@const on = isActive(current, item)}
 	<a
 		href={withBase(item.path, base)}

@@ -1,7 +1,7 @@
 <!--
-  The app shell's navigation: search, the Learn / Make groups, Premium, and the
-  small links at the foot. Rendered as the fixed column on wide screens and
-  inside the ☰ drawer on phones — one component, so the two never drift.
+  The full site navigation for the ☰ drawer (below 1024px, where the top bar
+  has no room for its links): search, the Learn / Make groups, Premium, and
+  the small links at the foot. The same entries as the top bar, from nav.ts.
 -->
 <script lang="ts">
 	import type { Component } from 'svelte';

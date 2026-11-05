@@ -14,13 +14,15 @@
 	import Menu from '@lucide/svelte/icons/menu';
 	import X from '@lucide/svelte/icons/x';
 	import Search from '@lucide/svelte/icons/search';
+	import Moon from '@lucide/svelte/icons/moon';
+	import Sun from '@lucide/svelte/icons/sun';
 	import ShareModal from '$lib/components/ShareModal.svelte';
 	import Logo from '$lib/components/shell/Logo.svelte';
-	import Sidebar from '$lib/components/shell/Sidebar.svelte';
+	import NavMenu from '$lib/components/shell/NavMenu.svelte';
 	import SiteFooter from '$lib/components/shell/SiteFooter.svelte';
 	import { initSharePrefs, popupHidden } from '$lib/share.svelte';
-	import { initTheme } from '$lib/theme.svelte';
-	import { isLanding, PREMIUM, stripBase, TOPBAR, withBase } from '$lib/nav';
+	import { currentTheme, initTheme, toggleTheme } from '$lib/theme.svelte';
+	import { isActive, PREMIUM, stripBase, TOPBAR, withBase } from '$lib/nav';
 
 	let { children } = $props();
 
@@ -34,7 +36,6 @@
 	let menuButton = $state<HTMLButtonElement>();
 
 	const current = $derived(stripBase(page.url.pathname, base));
-	const landing = $derived(isLanding(current));
 
 	onMount(() => {
 		// The Share entry appears only after the visitor dismisses the
@@ -71,7 +72,9 @@
 	);
 
 	const iconButton =
-		'grid size-10 place-items-center rounded-full text-muted hover:bg-sunk hover:text-ink focus-visible:outline-3 focus-visible:outline-sky';
+		'grid size-10 place-items-center rounded-full border-0 bg-transparent text-muted hover:bg-sunk hover:text-ink focus-visible:outline-3 focus-visible:outline-sky';
+	const link =
+		'rounded-full px-3.5 py-1.5 text-[15px] font-medium no-underline transition-colors focus-visible:outline-3 focus-visible:outline-sky';
 </script>
 
 <svelte:window
@@ -80,76 +83,60 @@
 	}}
 />
 
-
-{#snippet menuToggle(cls: string)}
-	<button
-		bind:this={menuButton}
-		type="button"
-		class="{iconButton} {cls}"
-		aria-label="Open menu"
-		aria-expanded={drawerOpen}
-		aria-controls="site-drawer"
-		onclick={openDrawer}
-	>
-		<Menu class="size-5" />
-	</button>
-{/snippet}
-
-{#snippet searchLink()}
-	<a href="{base}/dictionary" class={iconButton} aria-label="Look up a word">
-		<Search class="size-5" />
-	</a>
-{/snippet}
-
-{#if landing}
-	<header class="sticky top-0 z-40 border-b border-line bg-ground">
-		<div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-5">
-			<Logo />
-			<nav aria-label="Main" class="ml-auto hidden items-center gap-1 md:flex">
-				{#each TOPBAR as item (item.path)}
-					<a
-						href={withBase(item.path, base)}
-						class="rounded-full px-3.5 py-1.5 text-[15px] font-medium text-muted no-underline hover:bg-sunk hover:text-ink"
-						>{item.label}</a
-					>
-				{/each}
-				<a
-					href={withBase(PREMIUM.path, base)}
-					class="rounded-full bg-apricot-soft px-3.5 py-1.5 text-[15px] font-semibold text-apricot-ink no-underline hover:brightness-95"
-					>{PREMIUM.label}</a
-				>
-			</nav>
-			<div class="ml-auto flex items-center md:ml-0">
-				{@render searchLink()}
-				{@render menuToggle('md:hidden')}
-			</div>
-		</div>
-	</header>
-	<main class="min-h-[70vh]">{@render children()}</main>
-	<SiteFooter />
-{:else}
-	<div class="lg:grid lg:grid-cols-[248px_minmax(0,1fr)]">
-		<aside
-			class="sticky top-0 hidden h-dvh overflow-y-auto border-r border-line bg-surface lg:block"
+<header class="sticky top-0 z-40 border-b border-line bg-ground">
+	<div class="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2.5 sm:px-5">
+		<button
+			bind:this={menuButton}
+			type="button"
+			class="{iconButton} lg:hidden"
+			aria-label="Open menu"
+			aria-expanded={drawerOpen}
+			aria-controls="site-drawer"
+			onclick={openDrawer}
 		>
-			<Sidebar {current} {onshare} {showThemeToggle} />
-		</aside>
-		<div class="min-w-0">
-			<header
-				class="sticky top-0 z-40 flex items-center gap-1 border-b border-line bg-surface px-2 py-2 lg:hidden"
+			<Menu class="size-5" />
+		</button>
+		<Logo />
+		<nav aria-label="Main" class="ml-auto hidden items-center gap-1 lg:flex">
+			{#each TOPBAR as item (item.path)}
+				{@const on = isActive(current, item)}
+				<a
+					href={withBase(item.path, base)}
+					aria-current={on ? 'page' : undefined}
+					class="{link} {on ? 'bg-sky-soft font-semibold text-sky-ink' : 'text-muted hover:bg-sunk hover:text-ink'}"
+					>{item.label}</a
+				>
+			{/each}
+			<a
+				href={withBase(PREMIUM.path, base)}
+				aria-current={isActive(current, PREMIUM) ? 'page' : undefined}
+				class="{link} ml-1 bg-apricot-soft font-semibold text-apricot-ink hover:brightness-95"
+				>{PREMIUM.label}</a
 			>
-				{@render menuToggle('')}
-				<div class="mr-auto"><Logo /></div>
-				{@render searchLink()}
-			</header>
-			<main class="min-h-[70vh]">{@render children()}</main>
-			<SiteFooter />
+		</nav>
+		<div class="ml-auto flex items-center lg:ml-1">
+			<a href="{base}/dictionary" class={iconButton} aria-label="Look up a word">
+				<Search class="size-5" />
+			</a>
+			{#if showThemeToggle}
+				<button
+					type="button"
+					class="{iconButton} hidden lg:grid"
+					aria-label={currentTheme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+					onclick={toggleTheme}
+				>
+					{#if currentTheme() === 'dark'}<Sun class="size-5" />{:else}<Moon class="size-5" />{/if}
+				</button>
+			{/if}
 		</div>
 	</div>
-{/if}
+</header>
+
+<main class="min-h-[70vh]">{@render children()}</main>
+<SiteFooter />
 
 {#if drawerOpen}
-	<div class="fixed inset-0 z-50 {landing ? 'md:hidden' : 'lg:hidden'}">
+	<div class="fixed inset-0 z-50 lg:hidden">
 		<button
 			type="button"
 			class="absolute inset-0 border-0 bg-black/40"
@@ -173,12 +160,7 @@
 			>
 				<X class="size-5" />
 			</button>
-			<Sidebar
-				current={landing ? '/' : current}
-				onnavigate={() => (drawerOpen = false)}
-				{onshare}
-				{showThemeToggle}
-			/>
+			<NavMenu {current} onnavigate={() => (drawerOpen = false)} {onshare} {showThemeToggle} />
 		</div>
 	</div>
 {/if}

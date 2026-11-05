@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isActive, isLanding, LEARN, MAKE, PREMIUM, searchHref, stripBase, withBase } from './nav';
+import { isActive, LEARN, MAKE, PREMIUM, searchHref, stripBase, TOPBAR, withBase } from './nav';
 import { nextTheme, parsePref, resolveTheme } from './theme';
 
 const hsk = LEARN.items.find((i) => i.path === '/hsk')!;
@@ -38,9 +38,8 @@ describe('isActive', () => {
 	});
 });
 
-it('only the root is the landing page', () => {
-	expect(isLanding('/')).toBe(true);
-	expect(isLanding('/docs')).toBe(false);
+it('the top bar carries the main destinations, home being the logo', () => {
+	expect(TOPBAR.map((i) => i.path)).toEqual(['/hsk', '/dictionary', '/radicals', '/create', '/tools']);
 });
 
 it('searchHref encodes the query and ignores blanks', () => {

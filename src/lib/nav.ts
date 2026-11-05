@@ -42,10 +42,14 @@ export const MAKE: NavGroup = {
 
 export const PREMIUM: NavItem = { label: 'Premium', path: '/shop', icon: 'star', hue: 'apricot' };
 
+/** The ☰ drawer's groups. */
 export const SIDEBAR: NavGroup[] = [LEARN, MAKE];
 
-/** The landing page's top bar: the destinations a first-time visitor wants. */
-export const TOPBAR: NavItem[] = [LEARN.items[1], LEARN.items[3], LEARN.items[2], MAKE.items[0]];
+/**
+ * The top bar on every page (decision D1, revised: no sidebar — one top bar,
+ * links inline from 1024px, the drawer below). Home is the logo.
+ */
+export const TOPBAR: NavItem[] = [LEARN.items[1], LEARN.items[3], LEARN.items[2], MAKE.items[0], MAKE.items[1]];
 
 /** Drop the base path and any trailing slash: `/Anki-xiehanzi/hsk/` → `/hsk`. */
 export function stripBase(pathname: string, base: string): string {
@@ -63,11 +67,6 @@ export function isActive(current: string, item: Pick<NavItem, 'path' | 'aliases'
 	return [item.path, ...(item.aliases ?? [])].some((p) =>
 		p === '/' ? current === '/' : current === p || current.startsWith(`${p}/`)
 	);
-}
-
-/** The landing page has no sidebar (decision D1). */
-export function isLanding(current: string): boolean {
-	return current === '/';
 }
 
 /** The dictionary page reads its query from `?q=`. */

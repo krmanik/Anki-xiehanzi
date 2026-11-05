@@ -1,169 +1,167 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
-	import Shapes from '@lucide/svelte/icons/shapes';
-	import Languages from '@lucide/svelte/icons/languages';
-	import AudioLines from '@lucide/svelte/icons/audio-lines';
-	import Brush from '@lucide/svelte/icons/brush';
-	import SpellCheck from '@lucide/svelte/icons/spell-check';
 	import Download from '@lucide/svelte/icons/download';
-	import SquarePen from '@lucide/svelte/icons/square-pen';
-	import Book from '@lucide/svelte/icons/book';
-	import BookOpen from '@lucide/svelte/icons/book-open';
-	import ArrowRight from '@lucide/svelte/icons/arrow-right';
-	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import PenLine from '@lucide/svelte/icons/pen-line';
+	import Volume2 from '@lucide/svelte/icons/volume-2';
+	import Languages from '@lucide/svelte/icons/languages';
+	import Grid2x2 from '@lucide/svelte/icons/grid-2x2';
+	import Smartphone from '@lucide/svelte/icons/smartphone';
+	import SquarePlus from '@lucide/svelte/icons/square-plus';
+	import Check from '@lucide/svelte/icons/check';
+	import { Badge, Button, IconDot, type Hue } from '$lib/ui';
+	import HeroStudyCard from '$lib/components/home/HeroStudyCard.svelte';
+	import { findDeck, loadHskDecks, type HskDeckEntry } from '$lib/hskDecks';
 
-	const repo = 'https://github.com/krmanik/Anki-xiehanzi';
-
-	let logoEl: HTMLDivElement;
-
+	// Word and level counts come from the deck manifest, so they never drift
+	// from what the download holds.
+	let deck = $state<HskDeckEntry | null>(null);
 	onMount(async () => {
-		const HanziWriter = (await import('hanzi-writer')).default;
-		const xiehanzi = ['写', '汉', '字'];
-		const strokeColors = ['#4caf50', '#2196f3', '#4caf50'];
-		xiehanzi.forEach((hanzi, i) => {
-			const target = document.createElement('div');
-			logoEl.appendChild(target);
-			const writer = HanziWriter.create(target, hanzi, {
-				width: 72,
-				height: 72,
-				padding: 4,
-				strokeColor: strokeColors[i]
-			});
-			writer.loopCharacterAnimation();
-		});
+		deck = findDeck(await loadHskDecks(), 'new');
 	});
 
-	const features = [
-		{ title: 'HSK 3.0', icon: Shapes, description: 'Learn, read and write HSK 1–9 characters in Anki.' },
-		{ title: 'Meanings', icon: Languages, description: 'Common meanings plus full dictionary definitions.' },
-		{ title: 'Pinyin', icon: SpellCheck, description: 'Tone-marked pinyin with matching tone colors.' },
-		{ title: 'Strokes', icon: Brush, description: 'Practice stroke order for simplified and traditional.' },
-		{ title: 'Audio', icon: AudioLines, description: 'HSK recordings and text-to-speech audio.' },
-		{ title: 'Zhuyin', icon: SpellCheck, description: 'Bopomofo (zhuyin) alongside every word.' }
+	const shots = [
+		{ src: 'ankimobile0.PNG', alt: 'A card front in AnkiMobile: 今天 with its pinyin and audio', caption: 'The word, with audio', dot: 'bg-rose' },
+		{ src: 'ankimobile1.PNG', alt: 'A card back in AnkiMobile: meaning, character breakdown and examples', caption: 'Meaning, breakdown, examples', dot: 'bg-sky' },
+		{ src: 'ankimobile2.png', alt: 'Example sentences with audio on a card back in AnkiMobile', caption: 'Sentences you can hear', dot: 'bg-mint' }
 	];
 
-	const cards = [
-		{ title: 'Import', icon: Download, link: `${base}/hsk`, description: 'Download ready-made HSK 3.0 decks for Anki.' },
-		{ title: 'Create', icon: SquarePen, link: `${base}/create`, description: 'Build custom xiehanzi decks from your own words.' },
-		{ title: 'Look up', icon: BookOpen, link: `${base}/dictionary`, description: 'Search any word or character — strokes, parts, origin.' },
-		{ title: 'Guide', icon: Book, link: `${base}/docs`, description: 'See features and how to customize the decks.' }
+	const features: {
+		title: string;
+		text: string;
+		hue: Hue;
+		icon: typeof PenLine;
+		link?: { href: string; label: string };
+	}[] = [
+		{ title: 'Write every character', text: 'Draw the strokes in order on the card, with the outline to trace or hidden for recall.', hue: 'rose', icon: PenLine },
+		{ title: "Hear how it's said", text: 'A native recording for each HSK word, and every other reading too.', hue: 'mint', icon: Volume2 },
+		{ title: 'Know what it means', text: 'The common meaning first, full dictionary definitions behind it.', hue: 'sky', icon: Languages, link: { href: `${base}/dictionary`, label: 'Open the dictionary' } },
+		{ title: "See how it's built", text: 'Each character split into its parts, with its radical named.', hue: 'apricot', icon: Grid2x2 },
+		{ title: 'Study anywhere', text: 'Works offline on AnkiMobile, AnkiDroid and Anki on desktop.', hue: 'lavender', icon: Smartphone },
+		{ title: 'Use your own words', text: 'Paste a text or a word list and get a deck in the same design.', hue: 'sky', icon: SquarePlus, link: { href: `${base}/create`, label: 'Create a deck' } }
 	];
+
+	const PANEL: Record<Hue, string> = {
+		rose: 'bg-rose-soft',
+		apricot: 'bg-apricot-soft',
+		mint: 'bg-mint-soft',
+		sky: 'bg-sky-soft',
+		lavender: 'bg-lavender-soft'
+	};
 </script>
 
 <svelte:head>
-	<title>Anki xiehanzi — learn to write Chinese</title>
+	<title>Anki-xiehanzi — learn to read and write Chinese in Anki</title>
 </svelte:head>
 
-<!-- hero -->
-<header class="overflow-hidden border-b border-neutral-200">
-	<div
-		class="mx-auto grid max-w-6xl items-center gap-10 px-5 py-16 lg:grid-cols-[1.1fr_1fr] lg:gap-6 lg:py-20"
-	>
-		<div class="text-center lg:text-left">
-			<div bind:this={logoEl} class="flex justify-center gap-2 lg:justify-start"></div>
-			<p
-				class="mt-6 font-mono text-xs uppercase tracking-[0.3em] text-neutral-400 lg:justify-start"
-			>
-				Mandarin · Anki · open source
-			</p>
-			<h1 class="mt-3 text-4xl font-extrabold tracking-tight text-neutral-900 sm:text-5xl">
-				Learn to <span class="text-indigo-600">write</span> Chinese.
+<div class="mx-auto max-w-6xl px-4 sm:px-6">
+	<!-- hero -->
+	<section class="grid items-center gap-10 py-8 md:grid-cols-[1.1fr_0.9fr] md:gap-14 md:py-14">
+		<div>
+			<h1 class="m-0 text-[clamp(34px,4.6vw,54px)] leading-[1.1] font-bold tracking-tight text-ink">
+				Learn to read and <span class="text-rose-ink">write</span> Chinese in&nbsp;Anki.
 			</h1>
-			<p class="mx-auto mt-4 max-w-xl text-lg text-neutral-600 lg:mx-0">
-				Read, write and practice Mandarin by drawing strokes in Anki — with pinyin, zhuyin, audio and
-				rich dictionary meanings.
+			<p class="mt-4 mb-7 max-w-[34ch] text-lg text-muted">
+				Free HSK decks with stroke-order practice, native audio and full dictionary meanings.
 			</p>
-			<div class="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
-				<a
-					href="{base}/create"
-					class="inline-flex items-center gap-1.5 rounded-lg bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-700"
+			<div class="flex flex-wrap items-center gap-x-5 gap-y-2">
+				<Button href="{base}/hsk#decks"><Download class="size-[18px]" />Download free HSK deck</Button>
+				<Button variant="text" href="{base}/shop">See Premium<ChevronRight class="size-4" /></Button>
+				<Button variant="text" href="{base}/create">Create your own<ChevronRight class="size-4" /></Button>
+			</div>
+			<div class="mt-6 flex flex-wrap gap-1.5">
+				<Badge tint="sky"
+					>{deck ? `${deck.words.toLocaleString()} words` : 'Every HSK word'} · HSK 1–9</Badge
 				>
-					Create a deck <ArrowRight size={16} />
-				</a>
-				<a
-					href="{base}/hsk"
-					class="rounded-lg border border-neutral-300 px-5 py-2.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-900"
-					>Download decks</a
-				>
-				<!-- The shop is the only paid thing on the site and the homepage said
-				     nothing about it. It is the accented button, not the primary one:
-				     the free deck creator is still the way in, but a reader should not
-				     have to open the nav to learn a premium edition exists. -->
-				<a
-					href="{base}/shop"
-					class="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-5 py-2.5 text-sm font-medium text-indigo-700 transition hover:border-indigo-600 hover:bg-indigo-100"
-				>
-					<ShoppingBag size={16} /> Premium decks
-				</a>
+				<Badge tint="mint">Audio for every word</Badge>
+				<Badge tint="lavender">iPhone · Android · desktop</Badge>
+				<Badge tint="rose">Free and open source</Badge>
 			</div>
 		</div>
+		<div class="flex justify-center md:justify-end">
+			<HeroStudyCard />
+		</div>
+	</section>
 
-		<!-- app screenshots — same height, mobile shot layered on top, right-aligned -->
-		<div class="relative mx-auto w-fit lg:mx-0">
+	<!-- real screenshots -->
+	<section class="py-10" aria-labelledby="shots-h">
+		<h2 id="shots-h" class="m-0 text-[28px] font-bold text-ink">What a card looks like</h2>
+		<p class="mt-1 mb-6 text-muted">Real screenshots from AnkiMobile.</p>
+		<div
+			class="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0"
+		>
+			{#each shots as s (s.src)}
+				<figure class="m-0 w-[78%] shrink-0 snap-start rounded-[22px] bg-sunk p-4 pb-3 sm:w-auto">
+					<img
+						src="{base}/img/{s.src}"
+						alt={s.alt}
+						loading="lazy"
+						width="1290"
+						height="2796"
+						class="block h-auto w-full rounded-[18px]"
+					/>
+					<figcaption class="mt-2.5 flex items-center gap-2 text-[15px] font-semibold text-ink">
+						<span class="size-2.5 rounded-full {s.dot}" aria-hidden="true"></span>{s.caption}
+					</figcaption>
+				</figure>
+			{/each}
+		</div>
+	</section>
+
+	<!-- outcomes -->
+	<section class="py-10" aria-labelledby="feat-h">
+		<h2 id="feat-h" class="m-0 text-[28px] font-bold text-ink">What you'll be able to do</h2>
+		<p class="mt-1 mb-6 text-muted">Every word comes with what you need to learn it.</p>
+		<div class="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
+			{#each features as f (f.title)}
+				{@const Icon = f.icon}
+				<div class="rounded-panel p-5 {PANEL[f.hue]}">
+					<IconDot hue={f.hue}><Icon /></IconDot>
+					<h3 class="mt-3.5 mb-1 text-lg font-semibold text-ink">{f.title}</h3>
+					<p class="m-0 text-[15px] text-muted">{f.text}</p>
+					{#if f.title === "See how it's built"}
+						<div class="mt-3.5 flex items-center gap-2.5 font-zh font-bold" aria-label="好 is 女 plus 子">
+							<IconDot hue="mint" size="lg">好</IconDot>
+							<span class="text-muted" aria-hidden="true">=</span>
+							<IconDot hue="mint" class="size-10 text-lg">女</IconDot>
+							<span class="text-muted" aria-hidden="true">+</span>
+							<IconDot hue="mint" class="size-10 text-lg">子</IconDot>
+						</div>
+					{/if}
+					{#if f.link}
+						<a href={f.link.href} class="mt-3 inline-flex items-center gap-0.5 text-[15px] font-semibold text-accent no-underline hover:underline"
+							>{f.link.label}<ChevronRight class="size-4" /></a
+						>
+					{/if}
+				</div>
+			{/each}
+		</div>
+	</section>
+
+	<!-- premium -->
+	<section class="py-10">
+		<div class="grid items-center gap-8 rounded-[24px] bg-apricot-soft p-6 sm:p-9 md:grid-cols-[1fr_1.1fr]">
+			<div>
+				<span class="inline-block rounded-full bg-apricot px-2.5 py-0.5 text-[13px] font-bold text-[#4a2a00]">Premium</span>
+				<h2 class="mt-3 mb-0 text-[28px] leading-tight font-bold text-ink">
+					Separate writing cards, a dictionary inside every card
+				</h2>
+				<ul class="my-5 grid list-none gap-2.5 p-0">
+					{#each [['rose', 'Recognition and Writing cards for each word'], ['mint', 'Sentence audio for every example'], ['sky', 'Show or hide any field from a sidebar']] as [hue, line] (line)}
+						<li class="flex items-center gap-2.5 text-ink">
+							<IconDot hue={hue as Hue} size="sm"><Check /></IconDot>{line}
+						</li>
+					{/each}
+				</ul>
+				<Button href="{base}/shop">See Premium</Button>
+			</div>
 			<img
 				src="{base}/img/shop/hsk-word-decks.jpg"
-				alt="Browsing the HSK word decks in Anki"
-				class="h-64 w-auto rounded-lg border border-neutral-200 bg-white shadow-md sm:h-72 lg:h-80"
-			/>
-			<img
-				src="{base}/img/ankimobile0.PNG"
-				alt="A word card in the Anki xiehanzi deck, open in AnkiMobile"
-				class="absolute top-1/2 right-0 h-72 w-auto -translate-y-1/2 rounded-lg border-2 border-neutral-300 bg-white shadow-md sm:h-80 lg:h-[22rem]"
+				alt="The premium HSK card: hanzi beside its readings, meaning, breakdown and example sentences"
+				loading="lazy"
+				class="block h-auto w-full rounded-card shadow-[0_6px_24px_rgba(120,70,0,.12)]"
 			/>
 		</div>
-	</div>
-</header>
-
-<!-- features -->
-<section class="mx-auto max-w-6xl px-5 py-16">
-	<p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">What you get</p>
-	<h2 class="mt-2 text-2xl font-bold tracking-tight">Everything to practice hanzi</h2>
-	<div class="mt-8 grid gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 sm:grid-cols-2 lg:grid-cols-3">
-		{#each features as f}
-			<div class="bg-white p-6 transition hover:bg-neutral-50">
-				<f.icon size={22} class="text-indigo-600" />
-				<h3 class="mt-3 font-semibold">{f.title}</h3>
-				<p class="mt-1 text-sm leading-relaxed text-neutral-600">{f.description}</p>
-			</div>
-		{/each}
-	</div>
-</section>
-
-<!-- create banner -->
-<section class="mx-auto max-w-6xl px-5 pb-16">
-	<div class="flex flex-col items-center gap-4 rounded-2xl bg-neutral-900 px-6 py-12 text-center">
-		<h2 class="max-w-xl text-2xl font-bold tracking-tight text-white sm:text-3xl">
-			Generate your own Anki xiehanzi decks
-		</h2>
-		<p class="max-w-md text-neutral-400">
-			Paste words or text, pick fields and card layout, export an <code class="text-neutral-200">.apkg</code>.
-		</p>
-		<a
-			href="{base}/create"
-			class="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-neutral-900 transition hover:bg-neutral-200"
-		>
-			Create now <ArrowRight size={16} />
-		</a>
-	</div>
-</section>
-
-<!-- get started cards -->
-<section class="mx-auto max-w-6xl px-5 pb-20">
-	<p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">Get started</p>
-	<div class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-		{#each cards as c}
-			<a
-				href={c.link}
-				class="group rounded-xl border border-neutral-200 p-6 transition hover:-translate-y-0.5 hover:border-neutral-900 hover:shadow-[4px_4px_0_0_#111]"
-			>
-				<c.icon size={22} class="text-indigo-600" />
-				<h3 class="mt-3 flex items-center gap-1 font-semibold">
-					{c.title}
-					<ArrowRight size={15} class="opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
-				</h3>
-				<p class="mt-1 text-sm leading-relaxed text-neutral-600">{c.description}</p>
-			</a>
-		{/each}
-	</div>
-</section>
+	</section>
+</div>

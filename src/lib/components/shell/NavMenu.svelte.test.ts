@@ -4,17 +4,17 @@ import { fireEvent, render, screen } from '@testing-library/svelte';
 const goto = vi.fn();
 vi.mock('$app/navigation', () => ({ goto: (url: string) => goto(url) }));
 
-import Sidebar from './Sidebar.svelte';
+import NavMenu from './NavMenu.svelte';
 
-describe('Sidebar', () => {
+describe('NavMenu', () => {
 	it('marks the section of the current page, including sub-pages', () => {
-		render(Sidebar, { props: { current: '/hsk/new/3' } });
+		render(NavMenu, { props: { current: '/hsk/new/3' } });
 		const nav = screen.getByRole('navigation', { name: 'Main' });
 		expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('HSK lists');
 	});
 
 	it('lists Premium and the Learn / Make groups', () => {
-		render(Sidebar, { props: { current: '/create' } });
+		render(NavMenu, { props: { current: '/create' } });
 		for (const name of ['Home', 'HSK lists', 'Radicals', 'Dictionary', 'Create a deck', 'Tools', 'Premium'])
 			expect(screen.getByRole('link', { name })).toBeInTheDocument();
 		expect(screen.getByRole('link', { name: 'Create a deck' })).toHaveAttribute('aria-current', 'page');
@@ -22,7 +22,7 @@ describe('Sidebar', () => {
 
 	it('sends a search to the dictionary and tells the drawer to close', async () => {
 		const onnavigate = vi.fn();
-		render(Sidebar, { props: { current: '/', onnavigate } });
+		render(NavMenu, { props: { current: '/', onnavigate } });
 		const box = screen.getByRole('searchbox', { name: 'Look up a word' });
 		await fireEvent.input(box, { target: { value: '你好' } });
 		await fireEvent.submit(box.closest('form')!);
@@ -31,7 +31,7 @@ describe('Sidebar', () => {
 	});
 
 	it('hides Share until the visitor opted out of the popup, and the theme toggle unless asked', () => {
-		render(Sidebar, { props: { current: '/' } });
+		render(NavMenu, { props: { current: '/' } });
 		expect(screen.queryByRole('button', { name: 'Share' })).toBeNull();
 		expect(screen.queryByRole('button', { name: /dark mode/i })).toBeNull();
 	});

@@ -6,7 +6,7 @@
 </script>
 
 <svelte:head>
-	<title>Download Decks &amp; HSK Word Lists — Anki xiehanzi</title>
+	<title>Download Decks &amp; HSK Word Lists — Anki-xiehanzi</title>
 	<meta
 		name="description"
 		content="Ready-made Anki decks for New HSK (2025), plus every HSK word list to browse or download as CSV, Excel, Word, PDF or text."

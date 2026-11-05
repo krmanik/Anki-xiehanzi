@@ -5,6 +5,7 @@ import {
 	filterRows,
 	normalize,
 	selectionState,
+	shownFacets,
 	toggleAll,
 	toggleKey
 } from './dataTable';
@@ -82,5 +83,26 @@ describe('selection', () => {
 	it('select-all on a fully selected view clears only the visible rows', () => {
 		const next = toggleAll(new Set(['中', '女', '又']), ['中', '女']);
 		expect([...next]).toEqual(['又']);
+	});
+});
+
+describe('shownFacets', () => {
+	const chips = ['Verb', 'Noun', 'Adverb', 'Particle', 'Suffix'].map((value, i) => ({ value, count: 10 - i }));
+
+	it('shows everything when it fits or is expanded', () => {
+		expect(shownFacets(chips, 5, null, false)).toEqual({ shown: chips, hidden: 0 });
+		expect(shownFacets(chips, 2, null, true)).toEqual({ shown: chips, hidden: 0 });
+	});
+
+	it('keeps the most common and counts the rest', () => {
+		const r = shownFacets(chips, 2, null, false);
+		expect(r.shown.map((c) => c.value)).toEqual(['Verb', 'Noun']);
+		expect(r.hidden).toBe(3);
+	});
+
+	it('always shows the selected value', () => {
+		const r = shownFacets(chips, 2, 'Suffix', false);
+		expect(r.shown.map((c) => c.value)).toEqual(['Verb', 'Noun', 'Suffix']);
+		expect(r.hidden).toBe(2);
 	});
 });

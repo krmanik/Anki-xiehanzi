@@ -99,3 +99,23 @@ describe('DataTable', () => {
 		expect(screen.getByRole('checkbox', { name: 'Select 中' })).not.toBeChecked();
 	});
 });
+
+describe('DataTable facet overflow', () => {
+	it('folds rare facets behind "more"', async () => {
+		render(DataTable<W>, {
+			props: {
+				rows: words,
+				key: (w: W) => w.s,
+				text: (w: W) => w.s,
+				facets: (w: W) => w.o,
+				maxFacets: 1,
+				label: 'Words',
+				row: createRawSnippet((w: () => W) => ({ render: () => `<span>${w().s}</span>` }))
+			}
+		});
+		expect(screen.getByRole('button', { name: /^verb/i })).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: /^noun/i })).toBeNull();
+		await fireEvent.click(screen.getByRole('button', { name: '1 more…' }));
+		expect(screen.getByRole('button', { name: /^noun/i })).toBeInTheDocument();
+	});
+});

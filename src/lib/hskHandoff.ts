@@ -41,8 +41,8 @@ function parsePending(raw: string | null): PendingWords | null {
 }
 
 /**
- * Park a word list for the creator to pick up. The dictionary's word bag is the
- * producer today; `/hsk` hands out prebuilt decks instead.
+ * Park a word list for the creator to pick up. Producers: the dictionary's
+ * word bag, and the rows selected on an HSK level page ("Add to my deck").
  */
 export function setPendingWords(pending: PendingWords): void {
 	try {

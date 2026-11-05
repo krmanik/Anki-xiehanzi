@@ -77,3 +77,28 @@ export function toggleAll(selected: ReadonlySet<string>, visible: readonly strin
 	else visible.forEach((k) => next.add(k));
 	return next;
 }
+
+export interface ShownFacets {
+	shown: FacetCount[];
+	/** How many chips sit behind "More". */
+	hidden: number;
+}
+
+/**
+ * The chips to draw. An HSK level carries 30–40 parts of speech, most of them
+ * on a handful of words, so only the `max` most common show until "More" is
+ * pressed. A selected value is always shown, even when it is not among them —
+ * otherwise the active filter would have no visible chip to turn it off.
+ */
+export function shownFacets(
+	chips: readonly FacetCount[],
+	max: number,
+	selected: string | null,
+	expanded: boolean
+): ShownFacets {
+	if (expanded || chips.length <= max) return { shown: [...chips], hidden: 0 };
+	const shown = chips.slice(0, max);
+	const extra = selected === null ? undefined : chips.slice(max).find((c) => c.value === selected);
+	if (extra) shown.push(extra);
+	return { shown, hidden: chips.length - shown.length };
+}

@@ -15,6 +15,7 @@
 		facetCounts,
 		filterRows,
 		selectionState,
+		shownFacets,
 		toggleAll,
 		toggleKey
 	} from './dataTable';
@@ -29,7 +30,9 @@
 		label,
 		placeholder = 'Filter',
 		limit = 200,
+		maxFacets = 8,
 		selected = $bindable([]),
+		tools,
 		head,
 		row,
 		bulk,
@@ -49,7 +52,11 @@
 		placeholder?: string;
 		/** Rows rendered before "Show more". */
 		limit?: number;
+		/** Facet chips shown before "More". */
+		maxFacets?: number;
 		selected?: string[];
+		/** Controls beside the filter box (a sort menu). */
+		tools?: Snippet;
 		/** Column captions; rendered beside the select-all checkbox on wide screens. */
 		head?: Snippet;
 		row: Snippet<[T, boolean]>;
@@ -60,10 +67,12 @@
 	let query = $state('');
 	let facet = $state<string | null>(null);
 	let shown = $state(0);
+	let allChips = $state(false);
 
 	const sel = $derived(new Set(selected));
 	const filtered = $derived(filterRows(rows, query, text));
 	const chips = $derived(facets ? facetCounts(filtered, facets) : []);
+	const chipView = $derived(shownFacets(chips, maxFacets, facet, allChips));
 	const visible = $derived(facets ? applyFacet(filtered, facet, facets) : filtered);
 	const visibleKeys = $derived(visible.map(key));
 	const selState = $derived(selectionState(sel, visibleKeys));
@@ -85,29 +94,57 @@
 </script>
 
 <div class="flex flex-col gap-3">
-	<label
-		class="flex min-h-11 items-center gap-2.5 rounded-full bg-sunk px-4 text-muted focus-within:outline-3 focus-within:outline-sky"
-	>
-		<Search class="size-[18px] shrink-0" aria-hidden="true" />
-		<span class="sr-only">{placeholder}</span>
-		<input
-			type="search"
-			bind:value={query}
-			{placeholder}
-			class="w-full border-0 bg-transparent p-0 text-[15px] text-ink placeholder:text-muted focus:ring-0 focus:outline-none"
-		/>
-	</label>
+	<div class="flex flex-wrap items-center gap-2">
+		<label
+			class="flex min-h-11 min-w-[8rem] flex-1 items-center gap-2.5 rounded-full bg-sunk px-4 text-muted focus-within:outline-3 focus-within:outline-sky"
+		>
+			<Search class="size-[18px] shrink-0" aria-hidden="true" />
+			<span class="sr-only">{placeholder}</span>
+			<input
+				type="search"
+				bind:value={query}
+				{placeholder}
+				class="w-full border-0 bg-transparent p-0 text-[15px] text-ink placeholder:text-muted focus:ring-0 focus:outline-none"
+			/>
+		</label>
+		{#if tools}{@render tools()}{/if}
+	</div>
 
-	{#if chips.length}
-		<div class="flex flex-wrap gap-1.5" role="group" aria-label="Filter by type">
-			<Chip selected={facet === null} onclick={() => (facet = null)} count={filtered.length}>All</Chip>
-			{#each chips as c (c.value)}
-				<Chip selected={facet === c.value} onclick={() => (facet = c.value)} count={c.count}
-					>{c.value}</Chip
-				>
-			{/each}
-		</div>
-	{/if}
+	<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+		{#if chips.length}
+			<!-- One sideways-scrolling line on a phone; wraps from sm up. -->
+			<div
+				class="-mx-4 flex w-[calc(100%+2rem)] gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0"
+				role="group"
+				aria-label="Filter by type"
+			>
+				<Chip selected={facet === null} onclick={() => (facet = null)} count={filtered.length}>All</Chip>
+				{#each chipView.shown as c (c.value)}
+					<Chip selected={facet === c.value} onclick={() => (facet = c.value)} count={c.count}
+						>{c.value}</Chip
+					>
+				{/each}
+				{#if chipView.hidden}
+					<button
+						type="button"
+						class="min-h-9 rounded-full px-3 text-sm font-semibold text-accent hover:underline"
+						aria-expanded="false"
+						onclick={() => (allChips = true)}>{chipView.hidden} more…</button
+					>
+				{:else if allChips && chips.length > maxFacets}
+					<button
+						type="button"
+						class="min-h-9 rounded-full px-3 text-sm font-semibold text-accent hover:underline"
+						aria-expanded="true"
+						onclick={() => (allChips = false)}>Fewer</button
+					>
+				{/if}
+			</div>
+		{/if}
+		<span class="ml-auto text-sm text-muted" aria-live="polite"
+			>{visible.length.toLocaleString()} of {rows.length.toLocaleString()}</span
+		>
+	</div>
 
 	<div class="overflow-hidden rounded-card ring-1 ring-line ring-inset">
 		<div class="flex items-center gap-3 bg-sunk px-4 py-2.5 text-[13px] font-semibold text-muted">
@@ -120,10 +157,8 @@
 				onchange={setAll}
 				disabled={visible.length === 0}
 			/>
+			<span class={cx(head && 'sm:hidden')} aria-hidden="true">Select all</span>
 			{#if head}<div class="hidden min-w-0 flex-1 sm:block">{@render head()}</div>{/if}
-			<span class={cx('ml-auto shrink-0', head && 'sm:ml-0')}
-				>{visible.length.toLocaleString()} of {rows.length.toLocaleString()}</span
-			>
 		</div>
 		<ul class="m-0 list-none p-0" aria-label={label}>
 			{#each page as r (key(r))}

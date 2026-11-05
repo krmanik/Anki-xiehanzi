@@ -1,15 +1,20 @@
+<!--
+  One HSK level as a word list: filter, part-of-speech chips, row checkboxes.
+  A selection goes to the deck creator (`hskHandoff`) or to a file export; the
+  whole list's Anki deck is the prebuilt download for the list.
+-->
 <script lang="ts">
 	import { base } from '$app/paths';
+	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { btnPrimary, btnSecondary } from '$lib/buttonStyles';
-	import HskWordCard from '$lib/components/HskWordCard.svelte';
 	import HskExportModal from '$lib/components/HskExportModal.svelte';
 	import HskDeckModal from '$lib/components/HskDeckModal.svelte';
 	import {
-		filterEntries,
-		formatClassifier,
+		entryKey,
+		entrySearchText,
 		hanziTones,
 		levelLabel,
+		listMeaning,
 		loadHskIndex,
 		loadHskLevel,
 		pinyinTones,
@@ -20,13 +25,15 @@
 		type SortMode
 	} from '$lib/hsk';
 	import { findDeck, formatBytes, loadHskDecks, type HskDeckManifest } from '$lib/hskDecks';
-	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import { setPendingWords } from '$lib/hskHandoff';
+	import { playHskWord } from '$lib/hskAudio';
+	import { Badge, Button, chipClass, DataTable, HUES, IconDot, PageHeader, toneText } from '$lib/ui';
+	import BookOpen from '@lucide/svelte/icons/book-open';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Download from '@lucide/svelte/icons/download';
 	import FileDown from '@lucide/svelte/icons/file-down';
-	import LayoutGrid from '@lucide/svelte/icons/layout-grid';
-	import Rows3 from '@lucide/svelte/icons/rows-3';
-	import Search from '@lucide/svelte/icons/search';
-	import Palette from '@lucide/svelte/icons/palette';
+	import SquarePlus from '@lucide/svelte/icons/square-plus';
+	import Volume2 from '@lucide/svelte/icons/volume-2';
 
 	const listId = $derived(page.params.list ?? 'new');
 	const level = $derived(page.params.level ?? '1');
@@ -36,60 +43,42 @@
 	let loading = $state(true);
 	let error = $state('');
 
-	let query = $state('');
 	let sort = $state<SortMode>('list');
-	let view = $state<'cards' | 'table'>('cards');
-	let colorize = $state(true);
-	let pageSize = $state(100);
-	let pageNo = $state(1);
-	let openWord = $state<string | null>(null);
-	let showExport = $state(false);
-	let showDeckCompare = $state(false);
+	let selected = $state<string[]>([]);
+	/** What the export modal writes: the whole level, or the selection. */
+	let exporting = $state<{ entries: HskEntry[]; filtered: boolean } | null>(null);
+	let showDeck = $state(false);
 	let deckManifest = $state<HskDeckManifest | null>(null);
 
-	/**
-	 * The ready-made .apkg for this list, when one has been published. It is one
-	 * file per list, every level a subdeck — there is no per-level download.
-	 */
+	/** One .apkg per list, every level a subdeck — there is no per-level file. */
 	const prebuilt = $derived(findDeck(deckManifest, listId));
 
 	$effect(() => {
 		loadHskDecks().then((m) => (deckManifest = m));
 	});
 
-
 	const meta = $derived(lists.find((l) => l.id === listId) ?? null);
-	const levelMeta = $derived(meta?.levels.find((l) => l.level === level) ?? null);
-	const listName = $derived(meta ? `${meta.name} (${meta.year})` : listId === 'old' ? 'Old HSK' : 'New HSK');
+	const levelIndex = $derived(meta?.levels.findIndex((l) => l.level === level) ?? 0);
+	const listName = $derived(
+		meta ? `${meta.name} (${meta.year})` : listId === 'old' ? 'Old HSK' : 'New HSK'
+	);
 	const label = $derived(levelLabel(level));
 	const ctx = $derived({ listName, levelLabel: label });
 
-	const visible = $derived(sortEntries(filterEntries(entries, query), sort));
-	const pageCount = $derived(pageSize === 0 ? 1 : Math.max(1, Math.ceil(visible.length / pageSize)));
-	const pageItems = $derived(
-		pageSize === 0 ? visible : visible.slice((pageNo - 1) * pageSize, pageNo * pageSize)
-	);
-
-	// Reset paging whenever the result set changes underneath it.
-	$effect(() => {
-		query;
-		sort;
-		pageSize;
-		listId;
-		level;
-		pageNo = 1;
-	});
+	const sorted = $derived(sortEntries(entries, sort));
+	const byKey = $derived(new Map(entries.map((e) => [entryKey(e), e])));
+	const pick = (keys: string[]) => keys.map((k) => byKey.get(k)).filter((e): e is HskEntry => !!e);
 
 	$effect(() => {
 		const id = listId;
 		const lvl = level;
 		loading = true;
 		error = '';
-		openWord = null;
+		selected = [];
 		Promise.all([loadHskIndex(), loadHskLevel(id, lvl)])
 			.then(([index, data]) => {
-				// A slow fetch for a level the user has already navigated away from
-				// must not overwrite the current one.
+				// A slow fetch for a level the reader has already left must not
+				// overwrite the current one.
 				if (id !== listId || lvl !== level) return;
 				lists = index.lists;
 				entries = data;
@@ -109,251 +98,209 @@
 		const target = otherList.levels.find((l) => l.level === level) ?? otherList.levels[0];
 		return `${base}/hsk/${otherList.id}/${target.level}`;
 	});
+
+	function addToDeck(keys: string[]) {
+		const words = pick(keys).map((e) => e.s);
+		if (!words.length) return;
+		setPendingWords({
+			label: `${listName} · ${label}`,
+			words,
+			options: { audio: true, examples: true }
+		});
+		goto(`${base}/create`);
+	}
+
+	// Word · pinyin · meaning · (part of speech) · actions. On a phone the row
+	// stacks: word and pinyin, the meaning under them, actions on the right.
+	const GRID =
+		'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 sm:grid-cols-[7.5rem_8.5rem_minmax(0,1fr)_5rem] lg:grid-cols-[8.5rem_9.5rem_minmax(0,1fr)_12rem_5rem]';
+	const iconBtn =
+		'grid size-9 place-items-center rounded-full text-muted hover:bg-sunk hover:text-ink focus-visible:outline-3 focus-visible:outline-sky';
+	const selectClass =
+		'min-h-11 rounded-full border-0 bg-sunk py-0 pr-9 pl-4 text-[15px] text-ink focus:ring-3 focus:ring-sky';
 </script>
 
 <svelte:head>
-	<title>{label} word list — {listName} — Anki xiehanzi</title>
+	<title>{label} word list — {listName} — Anki-xiehanzi</title>
 	<meta
 		name="description"
-		content="All {levelMeta?.count ?? ''} {listName} {label} words with tone-coloured pinyin, zhuyin, traditional characters and meanings. Free download as CSV, Excel, Word, PDF, text or an Anki deck."
+		content="All {meta?.levels[levelIndex]?.count ?? ''} {listName} {label} words with tone-coloured pinyin, zhuyin, traditional characters and meanings. Free download as CSV, Excel, Word, PDF, text or an Anki deck."
 	/>
 </svelte:head>
 
-<section class="mx-auto max-w-6xl px-5 py-10">
-	<a
-		href="{base}/hsk"
-		class="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-neutral-400 transition hover:text-neutral-900"
+<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+	<PageHeader
+		title={label}
+		subtitle={loading ? listName : `${entries.length.toLocaleString()} words · ${listName}`}
+		crumbs={[
+			{ label: 'HSK lists', href: `${base}/hsk` },
+			{ label: listName, href: `${base}/hsk#decks` },
+			{ label }
+		]}
 	>
-		<ArrowLeft size={14} /> All word lists &amp; decks
-	</a>
-
-	<div class="mt-4 flex flex-wrap items-end justify-between gap-4">
-		<div>
-			<p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">{listName}</p>
-			<h1 class="mt-1 text-4xl font-extrabold tracking-tight">{label}</h1>
-			<p class="mt-1.5 text-sm text-neutral-500">
-				{#if loading}
-					Loading word list…
-				{:else}
-					{entries.length.toLocaleString()} words{#if query}
-						· {visible.length.toLocaleString()} matching{/if}
-				{/if}
-			</p>
-		</div>
-		<div class="flex flex-wrap gap-2">
-			{#if switchHref}
-				<a class={btnSecondary} href={switchHref}>{otherList?.name} instead</a>
-			{/if}
-			<button
-				class="{btnSecondary} inline-flex items-center gap-2"
-				onclick={() => (showExport = true)}
-				disabled={loading || !visible.length}
+		{#snippet lead()}
+			<IconDot hue={HUES[Math.max(0, levelIndex) % HUES.length]} size="lg" shape="tile"
+				>{level.replace('-', '–')}</IconDot
 			>
-				<FileDown size={15} /> Export list
-			</button>
+		{/snippet}
+		{#snippet actions()}
 			{#if prebuilt && deckManifest}
-				<button
-					type="button"
-					class="{btnPrimary} inline-flex items-center gap-2"
-					onclick={() => (showDeckCompare = true)}
-				>
-					<Download size={15} /> Anki deck · all levels
-					<span class="font-mono text-xs text-neutral-400">{formatBytes(prebuilt.bytes)}</span>
-				</button>
+				<Button size="sm" onclick={() => (showDeck = true)}>
+					<Download class="size-4" />Download deck
+					<span class="font-medium opacity-80">{formatBytes(prebuilt.bytes)}</span>
+				</Button>
 			{/if}
-		</div>
-	</div>
+			<Button
+				size="sm"
+				variant="secondary"
+				disabled={loading || !entries.length}
+				onclick={() => (exporting = { entries: sorted, filtered: false })}
+			>
+				<FileDown class="size-4" />Export list
+			</Button>
+		{/snippet}
+	</PageHeader>
 
 	{#if meta}
-		<div class="mt-6 flex flex-wrap gap-1.5">
+		<nav aria-label="Levels" class="mb-6 flex flex-wrap items-center gap-1.5">
 			{#each meta.levels as l (l.level)}
 				<a
 					href="{base}/hsk/{meta.id}/{l.level}"
-					class="rounded-lg border px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition {l.level ===
-					level
-						? 'border-neutral-900 bg-neutral-900 text-white'
-						: 'border-neutral-200 text-neutral-500 hover:border-neutral-900 hover:text-neutral-900'}"
-					>{levelLabel(l.level)}</a
+					class="{chipClass(l.level === level)} no-underline"
+					aria-current={l.level === level ? 'page' : undefined}>{levelLabel(l.level)}</a
 				>
 			{/each}
-		</div>
+			{#if switchHref && otherList}
+				<a
+					href={switchHref}
+					class="ml-1 inline-flex min-h-9 items-center gap-0.5 text-sm font-semibold text-accent no-underline hover:underline"
+					>{otherList.name} instead<ChevronRight class="size-4" /></a
+				>
+			{/if}
+		</nav>
 	{/if}
 
-	<div
-		class="sticky top-[57px] z-30 -mx-5 mt-6 border-y border-neutral-200 bg-white/90 px-5 py-3 backdrop-blur"
-	>
-		<div class="flex flex-wrap items-center gap-2">
-			<div class="relative min-w-[200px] flex-1">
-				<Search size={15} class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-				<input
-					bind:value={query}
-					type="search"
-					placeholder="Search hanzi, pinyin, zhuyin or meaning…"
-					aria-label="Search this level"
-					class="w-full rounded-lg border border-neutral-300 py-2 pl-9 pr-3 text-sm outline-none transition focus:border-neutral-900"
-				/>
-			</div>
-
-			<select
-				bind:value={sort}
-				aria-label="Sort order"
-				class="rounded-lg border border-neutral-300 py-2 pl-3 pr-8 text-sm outline-none transition focus:border-neutral-900"
-			>
-				{#each SORT_MODES as m (m.value)}
-					<option value={m.value}>{m.label}</option>
-				{/each}
-			</select>
-
-			<select
-				bind:value={pageSize}
-				aria-label="Words per page"
-				class="rounded-lg border border-neutral-300 py-2 pl-3 pr-8 text-sm outline-none transition focus:border-neutral-900"
-			>
-				<option value={50}>50 / page</option>
-				<option value={100}>100 / page</option>
-				<option value={250}>250 / page</option>
-				<option value={0}>Show all</option>
-			</select>
-
-			<div class="flex overflow-hidden rounded-lg border border-neutral-300">
-				<button
-					onclick={() => (view = 'cards')}
-					aria-label="Card view"
-					aria-pressed={view === 'cards'}
-					class="p-2 transition {view === 'cards'
-						? 'bg-neutral-900 text-white'
-						: 'text-neutral-500 hover:text-neutral-900'}"><LayoutGrid size={15} /></button
-				>
-				<button
-					onclick={() => (view = 'table')}
-					aria-label="Table view"
-					aria-pressed={view === 'table'}
-					class="p-2 transition {view === 'table'
-						? 'bg-neutral-900 text-white'
-						: 'text-neutral-500 hover:text-neutral-900'}"><Rows3 size={15} /></button
-				>
-			</div>
-
-			<button
-				onclick={() => (colorize = !colorize)}
-				aria-pressed={colorize}
-				title="Toggle tone colours"
-				class="rounded-lg border p-2 transition {colorize
-					? 'border-neutral-900 text-neutral-900'
-					: 'border-neutral-300 text-neutral-400 hover:text-neutral-900'}"
-			>
-				<Palette size={15} />
-			</button>
-		</div>
-	</div>
-
 	{#if error}
-		<p class="mt-8 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
-			Could not load {label}: {error}
-		</p>
+		<p class="rounded-card bg-rose-soft p-4 text-rose-ink">Could not load {label}: {error}</p>
 	{:else if loading}
-		<div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-			{#each Array(9) as _}
-				<div class="h-40 animate-pulse rounded-xl bg-neutral-100"></div>
-			{/each}
-		</div>
-	{:else if !visible.length}
-		<p class="mt-10 text-center text-neutral-500">
-			No word in {label} matches “{query}”.
-		</p>
-	{:else if view === 'cards'}
-		<div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-			{#each pageItems as entry, i (entry.s + entry.p)}
-				<HskWordCard
-					{entry}
-					index={(pageSize === 0 ? 0 : (pageNo - 1) * pageSize) + i + 1}
-					{colorize}
-					open={openWord === entry.s}
-					onToggle={() => (openWord = openWord === entry.s ? null : entry.s)}
-				/>
+		<div class="flex flex-col gap-3" aria-busy="true" aria-label="Loading words">
+			<div class="h-11 animate-pulse rounded-full bg-sunk"></div>
+			<div class="h-9 w-2/3 animate-pulse rounded-full bg-sunk"></div>
+			{#each Array(8) as _, i (i)}
+				<div class="h-14 animate-pulse rounded-card bg-sunk"></div>
 			{/each}
 		</div>
 	{:else}
-		<div class="mt-8 overflow-x-auto rounded-xl border border-neutral-200">
-			<table class="w-full min-w-[720px] border-collapse text-sm">
-				<thead>
-					<tr class="border-b border-neutral-200 bg-neutral-50 text-left">
-						<th class="w-12 px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-neutral-400">#</th>
-						<th class="px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-neutral-400">Word</th>
-						<th class="px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-neutral-400">Trad.</th>
-						<th class="px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-neutral-400">Pinyin</th>
-						<th class="px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-neutral-400">Zhuyin</th>
-						<th class="px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-neutral-400">Meaning</th>
-						<th class="px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-neutral-400">POS</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each pageItems as entry, i (entry.s + entry.p)}
-						<tr class="border-b border-neutral-100 last:border-0 hover:bg-neutral-50">
-							<td class="px-3 py-2 font-mono text-[11px] text-neutral-300"
-								>{(pageSize === 0 ? 0 : (pageNo - 1) * pageSize) + i + 1}</td
-							>
-							<td class="px-3 py-2 text-xl" lang="zh-Hans">
-								{#each hanziTones(entry.s, entry.p) as c}<span
-										class={colorize ? `tone${c.tone}` : ''}>{c.ch}</span
-									>{/each}
-							</td>
-							<td class="px-3 py-2 text-base text-neutral-400" lang="zh-Hant"
-								>{entry.t !== entry.s ? entry.t : ''}</td
-							>
-							<td class="whitespace-nowrap px-3 py-2">
-								{#each pinyinTones(entry.y, entry.p) as p, pi}<span
-										class={colorize ? `tone${p.tone}` : ''}>{p.text}</span
-									>{#if pi < pinyinTones(entry.y, entry.p).length - 1}&nbsp;{/if}{/each}
-							</td>
-							<td class="whitespace-nowrap px-3 py-2 font-mono text-xs text-neutral-500">{entry.z}</td>
-							<td class="px-3 py-2 text-neutral-600">
-								{entry.m}
-								{#if entry.c?.length}
-									<span class="ml-1 text-xs text-neutral-400"
-										>CL: {entry.c.map(formatClassifier).join(', ')}</span
-									>
-								{/if}
-							</td>
-							<td class="whitespace-nowrap px-3 py-2 text-xs text-neutral-500">{entry.o?.[0] ?? ''}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
-	{/if}
-
-	{#if !loading && !error && pageCount > 1}
-		<div class="mt-8 flex flex-wrap items-center justify-center gap-2">
-			<button class={btnSecondary} onclick={() => (pageNo = Math.max(1, pageNo - 1))} disabled={pageNo === 1}
-				>Previous</button
+		{#key `${listId}/${level}`}
+			<DataTable
+				rows={sorted}
+				key={entryKey}
+				text={entrySearchText}
+				facets={(e) => e.o ?? []}
+				rowLabel={(e) => e.s}
+				maxFacets={6}
+				label="{label} words"
+				placeholder="Filter words"
+				bind:selected
 			>
-			<span class="font-mono text-xs uppercase tracking-wider text-neutral-500">
-				Page {pageNo} / {pageCount}
-			</span>
-			<button
-				class={btnSecondary}
-				onclick={() => (pageNo = Math.min(pageCount, pageNo + 1))}
-				disabled={pageNo === pageCount}>Next</button
-			>
-		</div>
-	{/if}
-</section>
+				{#snippet tools()}
+					<label class="sr-only" for="hsk-sort">Sort</label>
+					<select id="hsk-sort" bind:value={sort} class={selectClass}>
+						{#each SORT_MODES as m (m.value)}
+							<option value={m.value}>{m.label}</option>
+						{/each}
+					</select>
+				{/snippet}
 
-{#if showExport}
+				{#snippet head()}
+					<div class={GRID}>
+						<span>Word</span>
+						<span>Pinyin</span>
+						<span>Meaning</span>
+						<span class="hidden lg:block">Part of speech</span>
+						<span></span>
+					</div>
+				{/snippet}
+
+				{#snippet row(e: HskEntry)}
+					{@const pinyin = pinyinTones(e.y, e.p)}
+					<div class={GRID}>
+						<div class="flex min-w-0 flex-wrap items-baseline gap-x-3 sm:contents">
+							<span class="font-zh text-2xl leading-snug" lang="zh-Hans"
+								>{#each hanziTones(e.s, e.p) as c, ci (ci)}<span class={toneText(c.tone)}
+										>{c.ch}</span
+									>{/each}</span
+							>
+							<span class="text-[15px] font-medium"
+								>{#each pinyin as py, pi (pi)}<span class={toneText(py.tone)}>{py.text}</span
+									>{#if pi < pinyin.length - 1}{' '}{/if}{/each}</span
+							>
+						</div>
+						<div class="row-span-2 flex items-center justify-end gap-0.5 sm:order-last sm:row-span-1">
+							<button
+								type="button"
+								class={iconBtn}
+								aria-label="Play {e.s}"
+								onclick={() => playHskWord(e.s, e.p)}
+							>
+								<Volume2 class="size-[18px]" />
+							</button>
+							<a
+								href="{base}/dictionary?q={encodeURIComponent(e.s)}"
+								class={iconBtn}
+								aria-label="Look up {e.s} in the dictionary"
+								title="Every reading, characters and examples"
+							>
+								<BookOpen class="size-[18px]" />
+							</a>
+						</div>
+						<p class="m-0 line-clamp-2 min-w-0 text-[15px] text-muted sm:text-ink">{listMeaning(e.m)}</p>
+						<div class="hidden flex-wrap gap-1 lg:flex">
+							{#each (e.o ?? []).slice(0, 2) as o (o)}<Badge>{o}</Badge>{/each}
+						</div>
+					</div>
+				{/snippet}
+
+				{#snippet bulk(keys, clear)}
+					<button
+						type="button"
+						class="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-ground px-4 text-sm font-semibold text-ink hover:brightness-95"
+						onclick={() => addToDeck(keys)}
+					>
+						<SquarePlus class="size-4" />Add to my deck
+					</button>
+					<button
+						type="button"
+						class="inline-flex min-h-9 items-center gap-1.5 rounded-full px-4 text-sm font-semibold text-ground ring-1 ring-ground/40 ring-inset hover:bg-ground/10"
+						onclick={() => (exporting = { entries: pick(keys), filtered: true })}
+					>
+						<FileDown class="size-4" />Export
+					</button>
+					<button
+						type="button"
+						class="min-h-9 rounded-full px-3 text-sm font-semibold text-ground/80 hover:text-ground"
+						onclick={clear}>Clear</button
+					>
+				{/snippet}
+			</DataTable>
+		{/key}
+	{/if}
+</div>
+
+{#if exporting}
 	<HskExportModal
-		entries={visible}
+		entries={exporting.entries}
 		{ctx}
-		filtered={visible.length !== entries.length}
-		onClose={() => (showExport = false)}
+		filtered={exporting.filtered}
+		onClose={() => (exporting = null)}
 	/>
 {/if}
 
-{#if showDeckCompare && meta && deckManifest && prebuilt}
+{#if showDeck && meta && deckManifest && prebuilt}
 	<HskDeckModal
 		list={meta}
 		manifest={deckManifest}
 		deck={prebuilt}
-		onClose={() => (showDeckCompare = false)}
+		onClose={() => (showDeck = false)}
 	/>
 {/if}

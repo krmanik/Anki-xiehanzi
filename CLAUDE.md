@@ -174,10 +174,11 @@ A separate, much lighter stack from the deck generator — it must never pull th
 - **The v2.3 decks stay linked, not rebuilt.** `DeckLibrary`'s `v23` list points
   at the release assets of the four-card-type decks `main.ipynb` built. People
   mid-collection should not be pushed onto a differently-shaped deck. Those two
-  downloads and the "Which list should I learn?" comparison are **always-open
-  sections at the foot of the page**, not the disclosure — nobody opens a
-  collapsible to find out which of two lists applies to them. Only the 2021
-  AnkiWeb decks stay behind `<details>`.
+  downloads are an **always-open section**, not a disclosure; only the 2021
+  AnkiWeb decks stay behind `<details>`. Which of the two lists to learn is
+  answered **on each deck card in one line** ("Taking the exam today? Pick this
+  one." / "Most textbooks still use this list.") — the separate comparison
+  section was cut because the page was too much reading.
 - **`scripts/shoot-card-previews.mjs`** (`npm run shoot:card-previews`) — a
   hand-run tool, wired into nothing: it asks AnkiConnect for a real note's
   `cardsInfo` — question and answer HTML exactly as Anki built them, card CSS
@@ -197,20 +198,27 @@ A separate, much lighter stack from the deck generator — it must never pull th
 - **`src/lib/hskDecks.ts`** — the manifest loader plus pure lookup/format
   helpers, keyed by list. A list with no entry falls back to the deck creator, so
   the manifest may lag behind the word lists.
-- **`src/lib/hskHandoff.ts`** — the sessionStorage bridge that used to carry a
-  level's word list from `/hsk` to `/create`. **Currently has no producer**: the
-  HSK export modal is file formats only now (a level's deck is the prebuilt
-  download), and `/create` builds HSK levels through its own level picker in
-  `WordSourceInput`. The consuming code in `WordSourceInput` /
-  `create/+page.svelte` is still wired up, so a new producer would just work.
+- **`src/lib/hskHandoff.ts`** — the sessionStorage bridge into `/create`,
+  consumed by `WordSourceInput`. Two producers: the dictionary's word bag, and
+  the rows selected on a level page ("Add to my deck" in the bulk bar).
 - Routes: `src/lib/components/DeckLibrary.svelte` holds the merged landing page,
-  ordered **what the project makes first** (radicals · premium · deck creator),
-  **the HSK downloads below** — one card per list with a single download button
-  and the level chips linking into the word-list browser, not into downloads
-  (`#decks` / `#lists` both still resolve to that section) — rendered by both
-  `/hsk` (canonical) and `/decks` (the older URL, kept alive). `src/routes/hsk/[list]/[level]/+page.svelte` is the level browser and
-  export. The dynamic route needs explicit `entries()` in its `+page.ts` — the
-  site is client-rendered, so the prerenderer cannot crawl to it.
+  **kept short — readers scan it**: the two HSK download cards first (one
+  download button each, level chips linking into the word-list browser, not
+  into downloads; `#decks` / `#lists` both resolve there), one row of chips for
+  what every deck holds, then three one-line cards for radicals · premium ·
+  deck creator, then v2.3 and the folded 2021 decks. Rendered by both `/hsk`
+  (canonical) and `/decks` (the older URL, kept alive). The download button
+  opens `HskDeckModal`: free-vs-premium table, then after the click a "what
+  next" step (import, phone sync, follow on Patreon for update emails).
+  `src/routes/hsk/[list]/[level]/+page.svelte` is the level page, built on
+  `DataTable` (`$lib/ui`): filter, part-of-speech chips (capped by
+  `maxFacets`, a level has 30–40 of them), sort, row checkboxes → "Add to my
+  deck" / "Export". Rows show hanzi, pinyin, `listMeaning()` (CEDICT notation
+  made plain: `CL:` dropped, `為|为[wei4]` → `为 [wèi]`) and part of speech;
+  details live in `/dictionary`, one icon away. Audio is `hskAudio.ts` — the CDN
+  recording, then syllable clips — so the page never imports `dict/cedict.ts`.
+  The dynamic route needs explicit `entries()` in its `+page.ts` — the site is
+  client-rendered, so the prerenderer cannot crawl to it.
 
 ## Dictionary (`/dictionary`)
 

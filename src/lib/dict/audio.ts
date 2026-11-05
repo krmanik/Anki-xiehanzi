@@ -18,8 +18,7 @@
 
 import { speakSyllables, stopSyllables } from './syllableAudio';
 import { isHskWord, loadHskMeanings } from './cedict';
-
-const CDN = 'https://cdn.jsdelivr.net/gh/krmanik/HSK-3.0/New%20HSK%20(2025)/Audio';
+import { hskRecordingUrl } from '../hskAudio';
 
 const cache = new Map<string, string | null>();
 let current: HTMLAudioElement | null = null;
@@ -36,7 +35,7 @@ async function recordingFor(word: string): Promise<string | null> {
 	if (known !== undefined) return known;
 	let url: string | null = null;
 	try {
-		const res = await fetch(`${CDN}/cmn-${encodeURIComponent(word)}.mp3`);
+		const res = await fetch(hskRecordingUrl(word));
 		if (res.ok) url = URL.createObjectURL(await res.blob());
 	} catch {
 		/* offline or blocked — the sprite covers it */

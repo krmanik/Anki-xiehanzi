@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+	entryKey,
+	entrySearchText,
 	filterEntries,
 	formatClassifier,
 	frequencyBand,
 	hanziTones,
 	levelLabel,
+	listMeaning,
 	pinyinTones,
 	sortEntries,
 	stripTones,
@@ -142,5 +145,51 @@ describe('formatClassifier', () => {
 		expect(formatClassifier('個|个[ge4]')).toBe('个 (ge4)');
 		expect(formatClassifier('位[wei4]')).toBe('位 (wei4)');
 		expect(formatClassifier('个')).toBe('个');
+	});
+});
+
+describe('entryKey / entrySearchText', () => {
+	const HAI = entry({
+		s: '还',
+		t: '還',
+		p: 'huan2',
+		y: 'huán',
+		m: 'to pay back',
+		r: [{ p: 'hai2', y: 'hái', z: 'ㄏㄞˊ', d: 'still; yet' }]
+	});
+
+	it('keys a word by hanzi and reading', () => {
+		expect(entryKey(HAI)).toBe('还|huan2');
+	});
+
+	it('carries both scripts, spaced and compact pinyin, and every reading', () => {
+		const text = entrySearchText(NI_HAO);
+		expect(text).toContain('nǐ hǎo');
+		expect(text).toContain('nǐhǎo');
+		expect(text).toContain('ni3 hao3');
+		const hai = entrySearchText(HAI);
+		expect(hai).toContain('還');
+		expect(hai).toContain('hái');
+		expect(hai).toContain('still; yet');
+	});
+});
+
+describe('listMeaning', () => {
+	it('drops measure words', () => {
+		expect(listMeaning('earth; ground; field; place; land; CL:片[pian4]')).toBe(
+			'earth; ground; field; place; land'
+		);
+		expect(listMeaning('book (CL:本[ben3],冊|册[ce4])')).toBe('book');
+	});
+
+	it('prints cross references in simplified with tone marks', () => {
+		expect(listMeaning('because of; for; to; variant of 為|为[wei4]')).toBe(
+			'because of; for; to; variant of 为 [wèi]'
+		);
+		expect(listMeaning('used in 傢伙|家伙[jia1 huo5]')).toBe('used in 家伙 [jiā huo]');
+	});
+
+	it('leaves brackets that are not pinyin alone', () => {
+		expect(listMeaning('to know [formal]')).toBe('to know [formal]');
 	});
 });

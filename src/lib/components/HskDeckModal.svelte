@@ -1,14 +1,18 @@
 <script lang="ts">
 	/**
-	 * Free vs premium, shown before the free `.apkg` actually downloads — the
-	 * same idea as `RadicalDeckModal`: a reader who only ever sees a "download"
-	 * button never learns premium exists. Unlike the radical deck, the free HSK
-	 * deck isn't built in the browser — it's already a prebuilt release asset —
-	 * so this modal's free side is just the direct download link, not a builder.
+	 * Free vs premium, shown before the free `.apkg` downloads — the same idea as
+	 * `RadicalDeckModal`: a reader who only ever sees a "download" button never
+	 * learns premium exists. The free HSK deck is a prebuilt release asset, so
+	 * the free side is the direct download link, not a builder.
+	 *
+	 * Pressing it switches the modal to what to do next: import, get it onto a
+	 * phone, and how to hear about updates.
 	 */
-	import { btnPrimary, btnSecondary } from '$lib/buttonStyles';
+	import { onMount } from 'svelte';
 	import { deckSummary, deckUrl, formatBytes, type HskDeckEntry, type HskDeckManifest } from '$lib/hskDecks';
 	import type { HskListMeta } from '$lib/hsk';
+	import { Button, IconDot } from '$lib/ui';
+	import Bell from '@lucide/svelte/icons/bell';
 	import Check from '@lucide/svelte/icons/check';
 	import Download from '@lucide/svelte/icons/download';
 	import Minus from '@lucide/svelte/icons/minus';
@@ -27,142 +31,176 @@
 		onClose: () => void;
 	} = $props();
 
-	// Both premium links point at the deck post, not the shop front: the post is
-	// what says what is in the deck, and a buyer arriving at a bare storefront
-	// has to work out which product this modal was talking about.
+	// Premium links point at the deck post, not the shop front: the post says
+	// what is in the deck, and a buyer arriving at a bare storefront has to work
+	// out which product this modal was talking about.
 	const POST = 'https://www.patreon.com/krmani/posts/anki-xie-hanzi-3-166350823';
+	/** Free membership: Patreon emails followers when a post (a deck update) goes up. */
+	const FOLLOW = 'https://www.patreon.com/cw/krmani';
 
-	// The comparison. `free` is what the button below actually downloads.
+	let step = $state<'choose' | 'done'>('choose');
+	let dialog = $state<HTMLElement>();
+	onMount(() => dialog?.focus());
+
+	// The comparison. `free` is what the download button actually delivers.
 	const rows = $derived([
-		{ label: `Every ${list.name} word (${list.total.toLocaleString()}), one file`, free: true, premium: true },
-		{ label: 'Native pronunciation audio', free: true, premium: true },
-		{ label: 'Example sentences, each with its own sentence audio', free: true, premium: true },
-		{
-			label: 'Full definitions, character breakdown, radical, HSK band, frequency',
-			free: true,
-			premium: true
-		},
-		{ label: 'Stroke-order practice grid', free: true, premium: true },
-		{ label: 'Sidebar to show or hide any field, front and back', free: true, premium: true },
-		{
-			label: 'Separate Recognition and Writing cards, reviewed independently',
-			free: false,
-			premium: true
-		},
-		{ label: 'Redesigned card layout', free: false, premium: true },
-		{
-			label: 'Built-in dictionary — look up any word without leaving the card',
-			free: false,
-			premium: true
-		},
-		{ label: 'The whole example-sentence corpus, "Load more" as you review', free: false, premium: true }
+		{ label: `Every ${list.name} word (${list.total.toLocaleString()}), one file`, free: true },
+		{ label: 'Native pronunciation audio', free: true },
+		{ label: 'Example sentences, each with its own audio', free: true },
+		{ label: 'Full definitions, character breakdown, radical, HSK band, frequency', free: true },
+		{ label: 'Stroke-order practice grid', free: true },
+		{ label: 'Sidebar to show or hide any field, front and back', free: true },
+		{ label: 'Separate Recognition and Writing cards, reviewed independently', free: false },
+		{ label: 'Redesigned card layout', free: false },
+		{ label: 'Built-in dictionary: look up any word without leaving the card', free: false },
+		{ label: 'The whole example-sentence corpus, "Load more" as you review', free: false }
 	]);
+
+	const steps = [
+		{
+			title: 'Open it in Anki',
+			text: 'Double-click the .apkg file, or in Anki choose File → Import. Every level arrives as its own subdeck.'
+		},
+		{
+			title: 'Put it on your phone',
+			text: 'Press Sync in Anki on your computer, then sync AnkiMobile or AnkiDroid. Or open the file on the phone itself.'
+		}
+	];
 </script>
 
+<svelte:window onkeydown={(e) => e.key === 'Escape' && onClose()} />
+
 <div
-	class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-5"
+	class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-5"
 	role="presentation"
 	onclick={(e) => e.target === e.currentTarget && onClose()}
 >
 	<div
-		class="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl bg-white p-6 shadow-xl sm:rounded-2xl"
+		bind:this={dialog}
+		tabindex="-1"
+		class="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-[24px] bg-surface p-5 text-ink shadow-xl outline-none sm:rounded-[24px] sm:p-7"
 		role="dialog"
 		aria-modal="true"
-		aria-label="Get the {list.name} deck"
+		aria-labelledby="deck-modal-title"
 	>
 		<div class="flex items-start justify-between gap-4">
 			<div>
-				<h2 class="text-xl font-bold tracking-tight">
-					{list.name} <span class="font-mono text-base font-normal text-neutral-400">{list.year}</span>
+				<h2 id="deck-modal-title" class="m-0 text-[22px] leading-tight font-bold">
+					{step === 'done' ? 'Your download has started' : `${list.name} (${list.year})`}
 				</h2>
-				<p class="mt-1 text-sm text-neutral-500">
-					Two editions of the same word list. Free downloads right here; premium is prebuilt and sold
-					separately.
+				<p class="mt-1 mb-0 text-[15px] text-muted">
+					{step === 'done'
+						? `${deck.file} · ${formatBytes(deck.bytes)}`
+						: 'The free deck downloads right here. Premium is a different deck, sold separately.'}
 				</p>
 			</div>
 			<button
+				type="button"
 				onclick={onClose}
 				aria-label="Close"
-				class="rounded-md p-1.5 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900"
+				class="grid size-10 shrink-0 place-items-center rounded-full text-muted hover:bg-sunk hover:text-ink"
 			>
-				<X size={18} />
+				<X class="size-5" />
 			</button>
 		</div>
 
-		<!-- Free vs premium, one row per thing that differs. -->
-		<div class="mt-5 overflow-hidden rounded-xl border border-neutral-200">
-			<table class="w-full text-sm">
-				<thead>
-					<tr class="border-b border-neutral-200 bg-neutral-50">
-						<th class="px-4 py-2.5 text-left font-medium text-neutral-500"></th>
-						<th class="w-24 px-2 py-2.5 text-center font-semibold">Free</th>
-						<th class="w-32 px-2 py-2.5 text-center font-semibold">
-							<span class="inline-flex items-center gap-1.5"><Sparkles size={14} /> Premium</span>
-						</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each rows as row (row.label)}
-						<tr class="border-b border-neutral-100 last:border-0">
-							<td class="px-4 py-2 text-neutral-700">{row.label}</td>
-							<td class="px-2 py-2 text-center">
-								{#if row.free}
-									<Check size={15} class="mx-auto text-neutral-900" />
-								{:else}
-									<Minus size={15} class="mx-auto text-neutral-300" />
-								{/if}
-							</td>
-							<td class="bg-neutral-50 px-2 py-2 text-center">
-								<Check size={15} class="mx-auto text-neutral-900" />
-							</td>
+		{#if step === 'choose'}
+			<div class="mt-5 overflow-hidden rounded-card ring-1 ring-line ring-inset">
+				<table class="w-full border-collapse text-[15px]">
+					<thead>
+						<tr class="bg-sunk text-sm">
+							<th class="px-4 py-2.5 text-left font-semibold text-muted">What you get</th>
+							<th class="w-20 px-2 py-2.5 text-center font-semibold">Free</th>
+							<th class="w-24 bg-apricot-soft px-2 py-2.5 text-center font-semibold text-apricot-ink">
+								Premium
+							</th>
 						</tr>
-					{/each}
-					<tr class="border-t border-neutral-200">
-						<td class="px-4 py-3 font-mono text-[11px] uppercase tracking-wider text-neutral-400">
-							{deckSummary(manifest, deck)}
-						</td>
-						<td class="px-2 py-3 text-center text-xs text-neutral-500">Ready now</td>
-						<td class="bg-neutral-50 px-2 py-3 text-center">
-							<a
-								class="inline-flex items-center gap-1.5 text-xs font-medium underline"
-								href={POST}
-								target="_blank"
-								rel="noopener noreferrer"
-							>
-								Get premium
-							</a>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
+					</thead>
+					<tbody>
+						{#each rows as row (row.label)}
+							<tr class="border-t border-line">
+								<td class="px-4 py-2">{row.label}</td>
+								<td class="px-2 py-2 text-center">
+									{#if row.free}
+										<Check class="mx-auto size-[18px] text-mint-ink" aria-label="Included" />
+									{:else}
+										<Minus class="mx-auto size-[18px] text-muted" aria-label="Not included" />
+									{/if}
+								</td>
+								<td class="bg-apricot-soft px-2 py-2 text-center">
+									<Check class="mx-auto size-[18px] text-mint-ink" aria-label="Included" />
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+			<p class="mt-3 mb-0 text-sm text-muted">{deckSummary(manifest, deck)}</p>
 
-		<p class="mt-4 text-xs text-neutral-400">
-			Premium restructures the deck itself — separate Recognition/Writing cards, a redesigned
-			layout, a searchable in-card dictionary — rather than adding fields the free deck lacks. Read
-			more in the
-			<a href={POST} target="_blank" rel="noopener noreferrer" class="underline">deck post</a>.
-		</p>
+			<!-- Premium is the filled button: the free download is right there
+			     either way, and a reader who never sees the paid edition never
+			     considers it. -->
+			<div class="mt-6 flex flex-wrap items-center justify-end gap-2">
+				<Button variant="secondary" href={deckUrl(manifest, deck)} onclick={() => (step = 'done')}>
+					<Download class="size-[18px]" />Download free deck
+					<span class="font-medium text-muted">{formatBytes(deck.bytes)}</span>
+				</Button>
+				<Button href={POST} target="_blank" rel="noopener noreferrer">
+					<Sparkles class="size-[18px]" />See Premium
+				</Button>
+			</div>
+		{:else}
+			<ol class="mt-5 mb-0 grid list-none gap-3 p-0">
+				{#each steps as s, i (s.title)}
+					<li class="flex gap-3.5 rounded-card bg-sunk p-4">
+						<IconDot hue={i === 0 ? 'sky' : 'mint'} size="sm">{i + 1}</IconDot>
+						<div>
+							<h3 class="m-0 text-base font-semibold">{s.title}</h3>
+							<p class="mt-0.5 mb-0 text-[15px] text-muted">{s.text}</p>
+						</div>
+					</li>
+				{/each}
+			</ol>
 
-		<!-- Premium is the filled button: the free download is right there either
-		     way, and a reader who never sees the paid edition never considers it. -->
-		<div class="mt-6 flex flex-wrap items-center justify-end gap-2">
-			<a
-				class="{btnSecondary} inline-flex items-center gap-2"
-				href={deckUrl(manifest, deck)}
-				onclick={onClose}
-			>
-				<Download size={15} /> Download free deck
-				<span class="font-mono text-xs text-neutral-400">{formatBytes(deck.bytes)}</span>
-			</a>
-			<a
-				class="{btnPrimary} inline-flex items-center gap-2"
-				href={POST}
-				target="_blank"
-				rel="noopener noreferrer"
-			>
-				<Sparkles size={15} /> Premium
-			</a>
-		</div>
+			<div class="mt-3 grid gap-3 sm:grid-cols-2">
+				<div class="rounded-card bg-lavender-soft p-4">
+					<h3 class="m-0 flex items-center gap-2 text-base font-semibold">
+						<Bell class="size-[18px] text-lavender-ink" />Hear about updates
+					</h3>
+					<p class="mt-1 mb-2 text-[15px] text-muted">
+						Follow on Patreon for free and get an email when a new version of the deck is out.
+					</p>
+					<a
+						href={FOLLOW}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="text-[15px] font-semibold text-lavender-ink no-underline hover:underline"
+						>Follow for free</a
+					>
+				</div>
+				<div class="rounded-card bg-apricot-soft p-4">
+					<h3 class="m-0 flex items-center gap-2 text-base font-semibold">
+						<Sparkles class="size-[18px] text-apricot-ink" />Want writing cards?
+					</h3>
+					<p class="mt-1 mb-2 text-[15px] text-muted">
+						Premium gives each word a separate Writing card and a dictionary inside every card.
+					</p>
+					<a
+						href={POST}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="text-[15px] font-semibold text-apricot-ink no-underline hover:underline"
+						>See Premium</a
+					>
+				</div>
+			</div>
+
+			<div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+				<a href={deckUrl(manifest, deck)} class="text-sm font-semibold text-accent no-underline hover:underline"
+					>Download didn't start? Try again</a
+				>
+				<Button variant="secondary" onclick={onClose}>Done</Button>
+			</div>
+		{/if}
 	</div>
 </div>

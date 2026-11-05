@@ -9,6 +9,7 @@
 
 import { base } from '$app/paths';
 import { toneDigits, toneOfPinyin } from '$lib/tone';
+import { markNumberedPinyin } from '$lib/syllables';
 
 export interface HskReading {
 	/** numbered pinyin, e.g. "hao3" */
@@ -181,4 +182,45 @@ export function formatClassifier(raw: string): string {
 	if (!m) return raw;
 	const hanzi = (m[2] || m[1]).trim();
 	return m[3] ? `${hanzi} (${m[3].trim()})` : hanzi;
+}
+
+/** Stable row id within a level (a word can be listed under two readings). */
+export function entryKey(entry: HskEntry): string {
+	return `${entry.s}|${entry.p}`;
+}
+
+/**
+ * Everything a word-list filter should find a word by, as one string: both
+ * scripts, zhuyin, the meaning, and every reading's pinyin with and without
+ * spaces — so "fazhan" finds 发展 and "hai" finds 还, whose list reading is
+ * huán. Tone marks are left in; the filter strips them.
+ */
+export function entrySearchText(entry: HskEntry): string {
+	const readings = [{ y: entry.y, p: entry.p }, ...(entry.r ?? [])];
+	const pinyin = readings.flatMap((r) => [r.y, r.y.replace(/\s+/g, ''), r.p]);
+	const senses = (entry.r ?? []).map((r) => r.d);
+	return [entry.s, entry.t, entry.z, ...pinyin, entry.m, ...senses].join(' ');
+}
+
+const NUMBERED_PINYIN = /^[A-Za-z:üÜ]+[0-5](?:\s+[A-Za-z:üÜ]+[0-5])*$/;
+
+/**
+ * A short meaning as a word list prints it: CEDICT's notation read the way the
+ * card reads it. Measure words (`CL:片[pian4]`) are dropped — the list shows
+ * them separately — and cross references lose the traditional form and get
+ * tone marks: `variant of 為|为[wei4]` → `variant of 为 [wèi]`. Plain text, not
+ * the deck's HTML (`deckTemplate.formatDefinition`), which must not change.
+ */
+export function listMeaning(raw: string): string {
+	return (raw ?? '')
+		.replace(/\bCL:[^;)]*/g, '')
+		.replace(/(?:[^\s[\];,()|]+\|)?([^\s[\];,()|]*)\[([^\]]+)\]/g, (match, word: string, inner: string) =>
+			NUMBERED_PINYIN.test(inner.trim())
+				? `${word ? `${word} ` : ''}[${markNumberedPinyin(inner.trim())}]`
+				: match
+		)
+		.replace(/\(\s*\)/g, '')
+		.replace(/;\s*;/g, ';')
+		.replace(/^[;\s,]+|[;\s,]+$/g, '')
+		.trim();
 }

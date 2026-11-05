@@ -1,12 +1,14 @@
 <script lang="ts">
 	/**
-	 * The single HSK destination.
+	 * The single HSK destination, ordered by what a visitor came for:
 	 *
-	 * Top of the page is what the project makes — the radical deck, the premium
-	 * decks, the deck creator. Below that, the two ready-made HSK decks: **one
-	 * click per list**, each `.apkg` holding every level as a subdeck (see
-	 * `$lib/hskDecks`). Levels are not separate downloads any more; they are only
-	 * links into the word-list browser.
+	 *   1. the two free HSK decks — **one click per list**, each `.apkg` holding
+	 *      every level as a subdeck (see `$lib/hskDecks`); level chips link into
+	 *      the word-list browser, not into downloads;
+	 *      Each card says in one line which list to learn; a row of chips says
+	 *      what every deck holds. Kept short on purpose — readers scan this page;
+	 *   2. what else the project makes — radicals, premium, the deck creator;
+	 *   3. the v2.3 downloads (always open) and the 2021 AnkiWeb decks (folded).
 	 *
 	 * Rendered by both `/hsk` (canonical) and `/decks` (the older URL, kept
 	 * working); `#decks` and `#lists` still resolve.
@@ -16,24 +18,23 @@
 	import { loadHskIndex, levelLabel, type HskIndex, type HskListMeta } from '$lib/hsk';
 	import HskDeckModal from '$lib/components/HskDeckModal.svelte';
 	import {
-		deckSummary,
 		findDeck,
 		formatBytes,
 		loadHskDecks,
 		type HskDeckEntry,
 		type HskDeckManifest
 	} from '$lib/hskDecks';
-	import ArrowRight from '@lucide/svelte/icons/arrow-right';
-	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import { Badge, Button, chipClass, IconDot, PageHeader, SectionLabel, type Hue } from '$lib/ui';
+		import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Download from '@lucide/svelte/icons/download';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
-	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
-	import Wand2 from '@lucide/svelte/icons/wand-2';
+	import SquarePlus from '@lucide/svelte/icons/square-plus';
 
 	let index = $state<HskIndex | null>(null);
 	let decks = $state<HskDeckManifest | null>(null);
 	let error = $state('');
-	let compareDeck = $state<{ list: HskListMeta; deck: HskDeckEntry } | null>(null);
+	let chosen = $state<{ list: HskListMeta; deck: HskDeckEntry } | null>(null);
 
 	onMount(async () => {
 		try {
@@ -51,18 +52,59 @@
 		return [...all].sort((a, b) => (a.id === 'new' ? -1 : b.id === 'new' ? 1 : 0));
 	});
 
+	const LIST_LOOK: Record<string, { hue: Hue; glyph: string }> = {
+		new: { hue: 'rose', glyph: '新' },
+		old: { hue: 'sky', glyph: '旧' }
+	};
+	const look = (id: string) => LIST_LOOK[id] ?? { hue: 'lavender' as Hue, glyph: '词' };
+
 	const levelHref = (list: HskListMeta, level: string) => `${base}/hsk/${list.id}/${level}`;
 
-	const rel = 'https://github.com/krmanik/Anki-xiehanzi/releases';
+	/** What every free deck carries, as chips: the reader scans, not reads. */
+	const contents = [
+		'Native audio',
+		'Pinyin & zhuyin',
+		'Meanings',
+		'Character breakdown',
+		'Example sentences',
+		'Stroke order',
+		'Works offline'
+	];
 
-	// Paid decks live on Patreon; the shop is the storefront, the post describes
-	// what is in the deck.
-	const premium = {
-		name: 'Anki xiě hànzì 3.0 — Premium',
-		desc: 'Premium HSK writing decks and the 214-radical deck, prebuilt and ready to import. Supports development of the free decks and the Create tool.',
-		post: 'https://www.patreon.com/krmani/posts/anki-xie-hanzi-3-166350823',
-		shop: 'https://www.patreon.com/cw/krmani/shop'
+	/** Which list to learn, said on the card itself rather than in a section of its own. */
+	const PICK: Record<string, string> = {
+		new: 'Taking the exam today? Pick this one.',
+		old: 'Most textbooks still use this list.'
 	};
+
+	const more = [
+		{
+			href: `${base}/radicals`,
+			title: 'Kangxi radicals',
+			text: 'The 214 building blocks of every character.',
+			hue: 'mint' as Hue,
+			tint: 'bg-mint-soft',
+			glyph: '部'
+		},
+		{
+			href: `${base}/shop`,
+			title: 'Premium',
+			text: 'Writing cards and a dictionary in every card.',
+			hue: 'apricot' as Hue,
+			tint: 'bg-apricot-soft',
+			glyph: null
+		},
+		{
+			href: `${base}/create`,
+			title: 'Your own words',
+			text: 'Any word list, the same card design.',
+			hue: 'lavender' as Hue,
+			tint: 'bg-lavender-soft',
+			glyph: null
+		}
+	];
+
+	const rel = 'https://github.com/krmanik/Anki-xiehanzi/releases';
 
 	// The v2.3 release, still the deck a lot of people are studying: four card
 	// types per level, built by the legacy main.ipynb pipeline. Kept as a direct
@@ -76,7 +118,7 @@
 		},
 		{
 			name: 'New HSK (2025) with sentences',
-			desc: 'Same deck with example sentences added to each note.',
+			desc: 'The same deck with example sentences added to each note.',
 			url: 'https://github.com/krmanik/Anki-xiehanzi/releases/download/v2.3/Anki-xiehanzi.-.New.HSK.2025.with.sentences.apkg'
 		}
 	];
@@ -107,283 +149,152 @@
 			ankiweb: 'https://ankiweb.net/shared/info/536858343'
 		}
 	];
+
+	const h2 = 'm-0 text-[24px] leading-tight font-bold text-ink';
+	const textLink =
+		'inline-flex items-center gap-0.5 text-[15px] font-semibold text-accent no-underline hover:underline';
 </script>
 
-<div class="mx-auto max-w-6xl px-5 py-12">
-	<p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">Decks</p>
-	<h1 class="mt-2 text-4xl font-extrabold tracking-tight sm:text-5xl">Decks &amp; word lists</h1>
-	<p class="mt-3 max-w-2xl text-neutral-600">
-		The 214 radicals, your own words, the premium decks — and the two HSK decks, each a single
-		download with every level inside.
-	</p>
+<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+	<PageHeader title="HSK decks" subtitle="Free. One file per list, every level inside." />
 
-	<!-- ------------------------------------------------------------------ -->
-	<!-- What the project makes: radicals, your own words, premium.          -->
-	<!-- ------------------------------------------------------------------ -->
-	<div class="mt-10 grid gap-4 sm:grid-cols-2">
-		<a
-			href="{base}/radicals"
-			class="group rounded-xl border border-neutral-200 p-5 transition hover:border-neutral-900 hover:shadow-[4px_4px_0_0_#111]"
-		>
-			<h3 class="flex items-center gap-2 font-semibold">
-				<span class="text-lg leading-none" lang="zh-Hans">部</span> The 214 Kangxi radicals
-			</h3>
-			<p class="mt-1.5 text-sm leading-relaxed text-neutral-600">
-				The building blocks every character is filed under — meanings, readings across East Asia,
-				stroke order, how each glyph evolved, and the characters it builds. Free to browse, and the
-				deck builds in your browser: recognition and writing cards, audio, stroke order.
-			</p>
-			<span
-				class="mt-3 inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-neutral-900"
-			>
-				Browse the radicals
-				<ArrowRight size={14} class="transition group-hover:translate-x-0.5" />
-			</span>
-		</a>
-
-		<div class="rounded-xl border border-indigo-200 bg-indigo-50/60 p-5">
-			<h3 class="flex items-center gap-2 font-semibold">
-				<Sparkles size={16} class="text-indigo-600" />
-				{premium.name}
-			</h3>
-			<p class="mt-1.5 text-sm leading-relaxed text-neutral-600">{premium.desc}</p>
-			<div class="mt-3 flex flex-wrap gap-2">
-				<a
-					href={premium.post}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="inline-flex items-center gap-1.5 rounded bg-neutral-900 px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-white transition hover:bg-neutral-700"
-				>
-					<Sparkles size={14} /> Get the deck
-				</a>
-				<a
-					href={premium.shop}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="inline-flex items-center gap-1.5 rounded border border-neutral-300 bg-white px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-neutral-700 transition hover:border-neutral-900"
-				>
-					<ShoppingBag size={14} /> Shop
-				</a>
-			</div>
-		</div>
-
-		<a
-			href="{base}/create"
-			class="group rounded-xl border border-neutral-200 p-5 transition hover:border-neutral-900 hover:shadow-[4px_4px_0_0_#111] sm:col-span-2"
-		>
-			<h3 class="flex items-center gap-2 font-semibold"><Wand2 size={16} /> Your own words</h3>
-			<p class="mt-1.5 text-sm leading-relaxed text-neutral-600">
-				Turn typed words, a pasted paragraph or an uploaded file into a custom deck — card layout,
-				tone colours, stroke practice and all.
-			</p>
-			<span
-				class="mt-3 inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-neutral-900"
-			>
-				Open the deck creator
-				<ArrowRight size={14} class="transition group-hover:translate-x-0.5" />
-			</span>
-		</a>
-	</div>
-
-	<!-- ------------------------------------------------------------------ -->
-	<!-- The HSK decks: one download per list, levels as subdecks inside.    -->
-	<!-- ------------------------------------------------------------------ -->
-	<section id="decks" class="mt-14 scroll-mt-20">
+	<!-- The two free decks. -->
+	<section id="decks" class="scroll-mt-20" aria-label="HSK decks">
 		<span id="lists" class="block scroll-mt-20"></span>
-
-		<div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-neutral-200 pb-2">
-			<h2 class="text-2xl font-bold tracking-tight">HSK decks</h2>
-			<span class="font-mono text-xs text-neutral-400">Free · one file per list</span>
-		</div>
-		<p class="mt-2 text-xs text-neutral-400">
-			Separate writing cards, a redesigned card layout and a built-in offline dictionary are in the
-			<a href={premium.post} target="_blank" rel="noopener noreferrer" class="underline">premium deck</a>.
-		</p>
-		<p class="mt-2 max-w-2xl text-sm text-neutral-500">
-			One note and one card per word — hanzi and native audio on the front; pinyin, zhuyin,
-			traditional form, common meaning, full definitions, character breakdown, radical, part of
-			speech, HSK band, frequency, example sentences and a stroke-practice grid on the back. The
-			card's sidebar switches any field on or off, and the stroke data ships inside the deck, so
-			everything works offline. Every level is a subdeck of the one import.
-		</p>
-
 		{#if error}
-			<p class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
-				Could not load the word lists: {error}
-			</p>
+			<p class="rounded-card bg-rose-soft p-4 text-rose-ink">Could not load the word lists: {error}</p>
 		{:else if !index}
-			<div class="mt-6 grid gap-4 sm:grid-cols-2">
-				{#each Array(2) as _}
-					<div class="h-44 animate-pulse rounded-xl bg-neutral-100"></div>
+			<div class="grid gap-4 md:grid-cols-2" aria-busy="true">
+				{#each Array(2) as _, i (i)}
+					<div class="h-72 animate-pulse rounded-panel bg-sunk"></div>
 				{/each}
 			</div>
 		{:else}
-			<div class="mt-6 grid gap-4 sm:grid-cols-2">
+			<div class="grid gap-4 md:grid-cols-2">
 				{#each lists as list (list.id)}
 					{@const deck = findDeck(decks, list.id)}
-					<div class="relative overflow-hidden rounded-xl border border-neutral-200 bg-white p-5">
-						<span
-							class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r {list.id === 'new'
-								? 'from-rose-500 to-orange-400'
-								: 'from-sky-500 to-cyan-400'}"
-						></span>
-						<div class="flex items-baseline justify-between gap-2">
-							<h3 class="text-xl font-extrabold tracking-tight">
-								{list.name}
-								<span class="ml-1 font-mono text-sm font-normal text-neutral-400">{list.year}</span>
-							</h3>
-							<span class="font-mono text-xs uppercase tracking-wider text-neutral-400">
-								{list.total.toLocaleString()} words
-							</span>
+					{@const l = look(list.id)}
+					<article class="flex flex-col rounded-panel bg-surface p-5 ring-1 ring-line ring-inset sm:p-6">
+						<div class="flex items-center gap-3.5">
+							<IconDot hue={l.hue} size="lg" shape="tile" class="font-zh">{l.glyph}</IconDot>
+							<div class="min-w-0">
+								<h2 class="m-0 text-[22px] leading-tight font-bold text-ink">
+									{list.name} <span class="font-semibold text-muted">({list.year})</span>
+								</h2>
+								<p class="m-0 text-[15px] text-muted">{PICK[list.id] ?? list.subtitle}</p>
+							</div>
 						</div>
-						<p class="mt-1.5 text-sm text-neutral-500">{list.subtitle}</p>
+						<!-- The deck's own word count when there is a deck: the list total
+						     differs (words with no dictionary data are left out). -->
+						<div class="mt-4 flex flex-wrap gap-1.5">
+							<Badge tint={l.hue}>{(deck?.words ?? list.total).toLocaleString()} words</Badge>
+							<Badge tint={l.hue}>{list.levels.length} levels</Badge>
+							{#if deck}<Badge tint="mint">Free</Badge>{/if}
+						</div>
 
 						{#if deck && decks}
-							<button
-								type="button"
-								onclick={() => (compareDeck = { list, deck })}
-								class="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-neutral-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-neutral-700"
-							>
-								<Download size={16} /> Download the deck
-								<span class="font-mono text-xs text-neutral-400">{formatBytes(deck.bytes)}</span>
-							</button>
-							<p class="mt-2 text-center font-mono text-[11px] text-neutral-400">
-								{deckSummary(decks, deck)}
-							</p>
+							<Button class="mt-5 w-full" onclick={() => (chosen = { list, deck })}>
+								<Download class="size-[18px]" />Download free deck
+								<span class="font-medium opacity-80">{formatBytes(deck.bytes)}</span>
+							</Button>
 						{:else}
-							<p
-								class="mt-4 rounded-lg border border-dashed border-neutral-200 px-4 py-3 text-center text-sm text-neutral-400"
-							>
-								Deck coming soon
+							<p class="mt-5 mb-0 rounded-card bg-sunk px-4 py-3 text-center text-muted">
+								Deck coming soon.
+								<a href="{base}/create" class="font-semibold text-accent">Build it yourself</a>
 							</p>
 						{/if}
 
-						<!-- Levels are not separate downloads; they open the word list. -->
-						<div class="mt-4 border-t border-neutral-100 pt-3">
-							<p class="font-mono text-[11px] uppercase tracking-wider text-neutral-400">
-								Word lists &amp; exports
-							</p>
+						<div class="mt-5 border-t border-line pt-4">
+							<SectionLabel as="h3">Word lists</SectionLabel>
 							<div class="mt-2 flex flex-wrap gap-1.5">
 								{#each list.levels as lvl (lvl.level)}
-									<a
-										href={levelHref(list, lvl.level)}
-										class="rounded-lg border border-neutral-200 px-2.5 py-1 font-mono text-xs text-neutral-500 transition hover:border-neutral-900 hover:text-neutral-900"
+									<a href={levelHref(list, lvl.level)} class="{chipClass(false)} no-underline"
+										>{levelLabel(lvl.level)}</a
 									>
-										{levelLabel(lvl.level)}
-									</a>
 								{/each}
 							</div>
 						</div>
-					</div>
+
+						<p class="mt-auto mb-0 pt-4 text-[15px] text-muted">
+							Writing cards?
+							<a href="{base}/shop" class={textLink}>See Premium<ChevronRight class="size-4" /></a>
+						</p>
+					</article>
 				{/each}
 			</div>
 
-			<p class="mt-6 font-mono text-[11px] uppercase tracking-wider text-neutral-400">
-				Import an .apkg with <strong class="font-semibold text-neutral-500">File → Import</strong> in
-				Anki · word data updated {index.generated}{#if decks}
-					· decks built {decks.generated}{/if}
-			</p>
+			<div class="mt-5 flex flex-wrap items-center gap-1.5" aria-label="In every deck">
+				<span class="mr-1 text-[15px] font-semibold text-ink">In every deck</span>
+				{#each contents as c (c)}<Badge>{c}</Badge>{/each}
+			</div>
 		{/if}
 	</section>
 
-	<!-- ------------------------------------------------------------------ -->
-	<!-- Always open: which list to learn, and the v2.3 downloads. Both are  -->
-	<!-- things a first-time visitor needs, and nobody opens a disclosure to -->
-	<!-- find out which of two decks applies to them.                        -->
-	<!-- ------------------------------------------------------------------ -->
-	<section class="mt-12">
-		<h2 class="border-b border-neutral-200 pb-2 text-2xl font-bold tracking-tight">
-			Which list should I learn?
-		</h2>
-		<div class="mt-4 grid gap-6 sm:grid-cols-2">
-			<div>
-				<h3 class="font-semibold">New HSK 3.0 (2025)</h3>
-				<p class="mt-1 text-sm leading-relaxed text-neutral-600">
-					The current standard: nine levels grouped 1–6 plus an advanced 7–9 band, ~11,000 words. Use
-					this if you are taking the exam today.
-				</p>
-			</div>
-			<div>
-				<h3 class="font-semibold">Old HSK (2012)</h3>
-				<p class="mt-1 text-sm leading-relaxed text-neutral-600">
-					The classic six-level syllabus, 5,000 words. Still the list most textbooks, graded readers
-					and older courses are built around.
-				</p>
-			</div>
+	<!-- What else the project makes. -->
+	<section class="mt-12" aria-labelledby="more-h">
+		<h2 id="more-h" class={h2}>More decks</h2>
+		<div class="mt-4 grid gap-3.5 md:grid-cols-3">
+			{#each more as m (m.href)}
+				<a href={m.href} class="group flex items-center gap-3.5 rounded-panel p-4 text-ink no-underline {m.tint}">
+					<IconDot hue={m.hue} class="font-zh">
+						{#if m.glyph}{m.glyph}{:else if m.hue === 'apricot'}<Sparkles />{:else}<SquarePlus />{/if}
+					</IconDot>
+					<div class="min-w-0 flex-1">
+						<h3 class="m-0 text-base font-semibold group-hover:underline">{m.title}</h3>
+						<p class="m-0 text-[15px] text-muted">{m.text}</p>
+					</div>
+					<ChevronRight class="size-5 shrink-0 text-muted" />
+				</a>
+			{/each}
 		</div>
 	</section>
 
-	<section class="mt-10">
-		<h2 class="border-b border-neutral-200 pb-2 text-2xl font-bold tracking-tight">
-			Previous version (v2.3)
-		</h2>
-		<div class="mt-4 space-y-2">
-			{#each v23 as d}
-				<div
-					class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-4"
-				>
-					<div class="min-w-0">
-						<h3 class="font-semibold">{d.name}</h3>
-						<p class="mt-0.5 text-sm text-neutral-600">{d.desc}</p>
-					</div>
-					<a
-						href={d.url}
-						class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm transition hover:border-neutral-900"
-					>
-						<Download size={14} /> Download .apkg
-					</a>
+	<!-- Always open: people mid-collection on v2.3 should find their deck without hunting. -->
+	<section class="mt-12" aria-labelledby="v23-h">
+		<h2 id="v23-h" class={h2}>Previous version (v2.3)</h2>
+		<p class="mt-1 mb-4 text-muted">Still on the four-card deck? Keep using it.</p>
+		<div class="grid gap-2.5 sm:grid-cols-2">
+			{#each v23 as d (d.url)}
+				<div class="flex items-center justify-between gap-3 rounded-card bg-sunk p-4" title={d.desc}>
+					<h3 class="m-0 text-base font-semibold text-ink">{d.name}</h3>
+					<Button variant="secondary" size="sm" href={d.url} aria-label="Download {d.name} (v2.3)">
+						<Download class="size-4" />.apkg
+					</Button>
 				</div>
 			{/each}
 		</div>
 	</section>
 
-	<details class="group mt-8 rounded-xl border border-neutral-200">
-		<summary class="flex cursor-pointer list-none items-center justify-between p-4 font-semibold">
+	<details class="group mt-8 rounded-card ring-1 ring-line ring-inset">
+		<summary class="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 font-semibold text-ink">
 			Older decks (HSK 2.0, 2021)
-			<ChevronDown size={18} class="transition group-open:rotate-180" />
+			<ChevronDown class="size-5 text-muted transition group-open:rotate-180" />
 		</summary>
-		<div class="border-t border-neutral-200 p-4">
-			<div class="space-y-2">
-				{#each previous as p}
-					<div
-						class="flex flex-wrap items-center justify-between gap-3 rounded border border-neutral-200 bg-neutral-50 p-3"
-					>
-						<div class="min-w-0">
-							<div class="flex items-center gap-2">
-								<h5 class="font-semibold">{p.name}</h5>
-								{#if p.tag}
-									<span
-										class="rounded-full bg-indigo-100 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-indigo-700"
-										>{p.tag}</span
-									>
-								{/if}
-							</div>
-							<p class="mt-0.5 text-sm text-neutral-600">{p.desc}</p>
+		<div class="grid gap-2.5 border-t border-line p-4">
+			{#each previous as p (p.name)}
+				<div class="flex flex-wrap items-center justify-between gap-3 rounded-card bg-sunk p-4">
+					<div class="min-w-0">
+						<div class="flex items-center gap-2">
+							<h3 class="m-0 text-base font-semibold text-ink">{p.name}</h3>
+							{#if p.tag}<Badge tint="sky">{p.tag}</Badge>{/if}
 						</div>
-						<div class="flex gap-2">
-							<a
-								href={p.ankiweb}
-								class="rounded border border-neutral-300 px-3 py-1.5 text-sm hover:border-neutral-900"
-								>AnkiWeb</a
-							>
-							<a
-								href={rel}
-								class="rounded border border-neutral-300 px-3 py-1.5 text-sm hover:border-neutral-900"
-								>GitHub</a
-							>
-						</div>
+						<p class="mt-0.5 mb-0 text-[15px] text-muted">{p.desc}</p>
 					</div>
-				{/each}
-			</div>
+					<div class="flex gap-2">
+						<Button variant="secondary" size="sm" href={p.ankiweb}>AnkiWeb</Button>
+						<Button variant="secondary" size="sm" href={rel}>GitHub</Button>
+					</div>
+				</div>
+			{/each}
 		</div>
 	</details>
 
-	{#if compareDeck && decks}
+	{#if chosen && decks}
 		<HskDeckModal
-			list={compareDeck.list}
+			list={chosen.list}
 			manifest={decks}
-			deck={compareDeck.deck}
-			onClose={() => (compareDeck = null)}
+			deck={chosen.deck}
+			onClose={() => (chosen = null)}
 		/>
 	{/if}
 </div>

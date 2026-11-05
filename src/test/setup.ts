@@ -6,6 +6,20 @@ import '@testing-library/jest-dom/vitest';
 // stub the module so mounting ExportSuccess in tests is a no-op burst.
 vi.mock('@hiseb/confetti', () => ({ default: () => {} }));
 
+// Node 25+ defines its own `localStorage`/`sessionStorage` globals (undefined
+// without --localstorage-file). Vitest copies jsdom's window onto globalThis
+// only where a key is free, so Node's empty ones win and every test touching
+// storage throws "Cannot read properties of undefined (reading 'clear')".
+// Hand jsdom's storage back.
+{
+	const jsdomWindow = (globalThis as { jsdom?: { window: Window } }).jsdom?.window;
+	for (const key of ['localStorage', 'sessionStorage'] as const) {
+		if (jsdomWindow && !globalThis[key]) {
+			Object.defineProperty(globalThis, key, { value: jsdomWindow[key], configurable: true });
+		}
+	}
+}
+
 // jsdom doesn't implement matchMedia; flowbite-svelte touches it at import.
 if (!window.matchMedia) {
 	window.matchMedia = (query: string) =>

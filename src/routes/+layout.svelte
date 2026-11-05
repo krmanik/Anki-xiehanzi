@@ -1,4 +1,11 @@
 <script lang="ts">
+	// Self-hosted fonts (bundled by Vite, so they resolve under the Pages base path).
+	// Noto Sans SC is split by unicode-range: only the chunks a page renders load.
+	import '@fontsource/poppins/400.css';
+	import '@fontsource/poppins/500.css';
+	import '@fontsource/poppins/600.css';
+	import '@fontsource/poppins/700.css';
+	import '@fontsource-variable/noto-sans-sc';
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';

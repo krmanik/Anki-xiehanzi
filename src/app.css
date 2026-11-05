@@ -7,23 +7,105 @@
 @source '../src';
 @source '../node_modules/flowbite-svelte/dist';
 
-/* flowbite-svelte default buttons use the `primary` palette; define it (indigo)
-   or those buttons render invisible (no color). */
+/* Dark mode follows `data-theme="dark"` on <html>, not the OS setting: pages
+   still hardcode light Tailwind greys, so dark stays off until the shell ships
+   a toggle (Phase 2) and pages move onto the tokens below. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* ── Design tokens ────────────────────────────────────────────────────────
+   Five soft material pastels (CharacterPop's softness, our own values), each
+   in three strengths:
+     <name>       the pastel: icon dots, writer strokes, fills under white glyphs
+     <name>-soft  a whisper of it: panels, chips, selected rows
+     <name>-ink   a deep shade for text on white or soft (WCAG AA at 15px)
+   Tones 1–4 of the site's own hanzi/pinyin are rose · apricot · mint · sky.
+   The deck templates keep their own tone palettes (tonePresets.ts) untouched. */
 @theme {
-	--color-primary-50: #eef2ff;
-	--color-primary-100: #e0e7ff;
-	--color-primary-200: #c7d2fe;
-	--color-primary-300: #a5b4fc;
-	--color-primary-400: #818cf8;
-	--color-primary-500: #6366f1;
-	--color-primary-600: #4f46e5;
-	--color-primary-700: #4338ca;
-	--color-primary-800: #3730a3;
-	--color-primary-900: #312e81;
-	--color-primary-950: #1e1b4b;
+	--font-sans: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	--font-display: 'Poppins', system-ui, sans-serif;
+	--font-zh: 'Noto Sans SC Variable', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+		sans-serif;
+
+	--radius-card: 14px;
+	--radius-panel: 18px;
+
+	/* flowbite-svelte buttons use `primary`; it is the sky scale (500 = pastel,
+	   700 = ink). Without a primary palette those buttons render invisible. */
+	--color-primary-50: #f1f6fd;
+	--color-primary-100: #ebf2fc;
+	--color-primary-200: #d3e3f8;
+	--color-primary-300: #aecbf2;
+	--color-primary-400: #85b3ec;
+	--color-primary-500: #5f9fe6;
+	--color-primary-600: #3f82d4;
+	--color-primary-700: #2a68b8;
+	--color-primary-800: #24569a;
+	--color-primary-900: #1f477d;
+	--color-primary-950: #152e52;
+}
+
+/* Theme-dependent colours resolve through variables, so one utility
+   (`bg-surface`, `text-muted`, `bg-mint-soft`) is right in both themes. */
+@theme inline {
+	--color-ground: var(--xhz-ground);
+	--color-surface: var(--xhz-surface);
+	--color-sunk: var(--xhz-sunk);
+	--color-ink: var(--xhz-ink);
+	--color-muted: var(--xhz-muted);
+	--color-line: var(--xhz-line);
+	--color-accent: var(--xhz-accent);
+	--color-on-accent: var(--xhz-on-accent);
+
+	--color-rose: var(--xhz-rose);
+	--color-rose-soft: var(--xhz-rose-soft);
+	--color-rose-ink: var(--xhz-rose-ink);
+	--color-apricot: var(--xhz-apricot);
+	--color-apricot-soft: var(--xhz-apricot-soft);
+	--color-apricot-ink: var(--xhz-apricot-ink);
+	--color-mint: var(--xhz-mint);
+	--color-mint-soft: var(--xhz-mint-soft);
+	--color-mint-ink: var(--xhz-mint-ink);
+	--color-sky: var(--xhz-sky);
+	--color-sky-soft: var(--xhz-sky-soft);
+	--color-sky-ink: var(--xhz-sky-ink);
+	--color-lavender: var(--xhz-lavender);
+	--color-lavender-soft: var(--xhz-lavender-soft);
+	--color-lavender-ink: var(--xhz-lavender-ink);
+
+	--color-tone-1: var(--xhz-rose-ink);
+	--color-tone-2: var(--xhz-apricot-ink);
+	--color-tone-3: var(--xhz-mint-ink);
+	--color-tone-4: var(--xhz-sky-ink);
+	--color-tone-5: var(--xhz-muted);
 }
 
 :root {
+	--xhz-ground: #ffffff;
+	--xhz-surface: #ffffff;
+	--xhz-sunk: #f6f7f9;
+	--xhz-ink: #22252b;
+	--xhz-muted: #5f6570;
+	--xhz-line: #eceef1;
+	--xhz-accent: #2a68b8;
+	--xhz-on-accent: #ffffff;
+
+	--xhz-rose: #e9738a;
+	--xhz-rose-soft: #fcedf0;
+	--xhz-rose-ink: #c23a55;
+	--xhz-apricot: #f2a85c;
+	--xhz-apricot-soft: #fff2e4;
+	--xhz-apricot-ink: #a35c00;
+	--xhz-mint: #52b886;
+	--xhz-mint-soft: #e8f6ef;
+	--xhz-mint-ink: #1f7f52;
+	--xhz-sky: #5f9fe6;
+	--xhz-sky-soft: #ebf2fc;
+	--xhz-sky-ink: #2a68b8;
+	--xhz-lavender: #a283db;
+	--xhz-lavender-soft: #f2edfb;
+	--xhz-lavender-ink: #6b47b0;
+
+	/* Legacy tone colours, still used by `.toneN` in pages not yet redesigned. */
 	--xie-green: #4caf50;
 	--xie-blue: #2196f3;
 	--tone-1: #f44336;
@@ -31,6 +113,30 @@
 	--tone-3: #4caf50;
 	--tone-4: #2196f3;
 	--tone-5: #9e9e9e;
+	color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+	--xhz-ground: #14161b;
+	--xhz-surface: #1c1f26;
+	--xhz-sunk: #22262e;
+	--xhz-ink: #eceef2;
+	--xhz-muted: #a2a8b3;
+	--xhz-line: #2b2f38;
+	--xhz-accent: #95bff0;
+	--xhz-on-accent: #0b1a2c;
+
+	--xhz-rose-soft: #3a2229;
+	--xhz-rose-ink: #f29bab;
+	--xhz-apricot-soft: #3a2c1c;
+	--xhz-apricot-ink: #f6c08a;
+	--xhz-mint-soft: #1b3328;
+	--xhz-mint-ink: #8ad5af;
+	--xhz-sky-soft: #1a2b42;
+	--xhz-sky-ink: #95bff0;
+	--xhz-lavender-soft: #2b2341;
+	--xhz-lavender-ink: #c3abe9;
+	color-scheme: dark;
 }
 
 /* Tone coloring for hanzi/pinyin in the app UI (mirrors the deck CSS). */
@@ -50,12 +156,20 @@
 	color: var(--tone-5);
 }
 
-body {
-	margin: 0;
-	font-family:
-		system-ui,
-		-apple-system,
-		'Segoe UI',
-		Roboto,
-		sans-serif;
+@layer base {
+	body {
+		margin: 0;
+		background: var(--xhz-ground);
+		color: var(--xhz-ink);
+		font-family: var(--font-sans);
+		font-size: 16px;
+		line-height: 1.6;
+	}
+	h1,
+	h2,
+	h3,
+	h4 {
+		font-family: var(--font-display);
+		letter-spacing: -0.01em;
+	}
 }

@@ -17,6 +17,35 @@ export function ankiClient(): AnkiConnect {
 
 let inflight: Promise<AnkiStatus> | null = null;
 
+/**
+ * Set once a connect has worked in this browser. Its only use is to let a
+ * page check Anki *without* a click: with the origin already on AnkiConnect's
+ * list, `requestPermission` answers at once with no dialog, so the page can
+ * make "Send to Anki" the main button before the reader asks. Without it no
+ * page reaches out on its own — a first connect pops prompts and must follow
+ * a click.
+ */
+const KNOWN_KEY = 'xhz.anki.known';
+export function ankiKnown(): boolean {
+	try {
+		return localStorage.getItem(KNOWN_KEY) === '1';
+	} catch {
+		return false;
+	}
+}
+function remember(ok: boolean) {
+	try {
+		if (ok) localStorage.setItem(KNOWN_KEY, '1');
+	} catch {
+		// Private mode: the reader clicks Send once per visit instead.
+	}
+}
+
+/** Check quietly if this browser has connected before; otherwise do nothing. */
+export function probeAnki(): void {
+	if (anki.status === 'idle' && ankiKnown()) void checkAnki();
+}
+
 /** Connect (asking permission if needed) and publish the result. Concurrent calls share one request. */
 export function checkAnki(): Promise<AnkiStatus> {
 	inflight ??= (async () => {
@@ -26,6 +55,7 @@ export function checkAnki(): Promise<AnkiStatus> {
 			const r = await ankiClient().connect();
 			anki.status = r.status;
 			anki.version = r.version;
+			remember(r.status === 'ready');
 		} catch (e) {
 			anki.status = 'unreachable';
 			anki.error = (e as Error).message;

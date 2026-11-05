@@ -14,6 +14,9 @@
 	import Download from '@lucide/svelte/icons/download';
 	import Eye from '@lucide/svelte/icons/eye';
 	import FileSpreadsheet from '@lucide/svelte/icons/file-spreadsheet';
+	import Send from '@lucide/svelte/icons/send';
+	import { anki, ankiClient, checkAnki, probeAnki, ANKI_STATUS_TEXT } from '$lib/anki/ankiStatus.svelte';
+	import { sendPackage, SEND_STAGE_TEXT, type SendStage } from '$lib/anki/sendDeck';
 	import SquarePlus from '@lucide/svelte/icons/square-plus';
 	import Plus from '@lucide/svelte/icons/plus';
 	import {
@@ -42,6 +45,7 @@
 	import { frequencyBand, hskLevelLabel } from '$lib/dict/meta';
 	import {
 		generateDeck,
+		generateDeckBlob,
 		initJieba,
 		loadDict,
 		loadHskWordsDict,
@@ -363,6 +367,55 @@
 		}
 	}
 
+	// Send to Anki: connect (may pop the browser's and Anki's prompts), build
+	// the same package Download builds, hand it to AnkiConnect.
+	let sendStage = $state<'idle' | 'connecting' | 'building' | SendStage | 'error'>('idle');
+	let sendError = $state('');
+	const sending = $derived(['connecting', 'building', 'storing', 'importing', 'cleaning'].includes(sendStage));
+	// Anki already answered (this visit, or a quiet check because this browser
+	// has connected before): Send is the one-click path, so it gets the filled button.
+	const sendFirst = $derived(anki.status === 'ready');
+	$effect(() => {
+		if (step === 3) probeAnki();
+	});
+	async function doSendToAnki() {
+		if (sending || isGenerating || words.length === 0) return;
+		sendError = '';
+		sendStage = 'connecting';
+		const status = anki.status === 'ready' ? 'ready' : await checkAnki();
+		if (status !== 'ready') {
+			sendStage = 'error';
+			sendError = ANKI_STATUS_TEXT[status];
+			return;
+		}
+		isGenerating = true;
+		sendStage = 'building';
+		try {
+			const blob = await generateDeckBlob({
+				words,
+				deckName,
+				includeAudio,
+				fields,
+				order,
+				tabContent,
+				hskWordsDict,
+				db: await setupSql(),
+				template,
+				onProgress: (v) => (progressbarValue = Math.min(v, 99))
+			});
+			await sendPackage(ankiClient(), { data: blob }, { onStage: (s) => (sendStage = s), showDeck: deckName });
+			progressbarValue = 0;
+		} catch (e) {
+			sendStage = 'error';
+			const err = e as { unreachable?: boolean; message?: string };
+			if (err.unreachable) anki.status = 'unreachable';
+			sendError = err.unreachable ? ANKI_STATUS_TEXT.unreachable : `Anki said: ${err.message ?? e}`;
+			progressbarValue = 0;
+		} finally {
+			isGenerating = false;
+		}
+	}
+
 	// The "Add words" panel: open until words arrive, then folded behind a button.
 	let addOpen = $state(true);
 	let addBusy = $state(false);
@@ -536,13 +589,52 @@
 						>
 					</p>
 				{:else}
-					<Button class="mt-5 w-full" onclick={doGenerateDeck} disabled={isGenerating}>
-						<Download class="size-[18px]" />{isGenerating ? 'Building…' : 'Download .apkg'}
-					</Button>
+					<!-- Send is desktop-only: phones have no AnkiConnect, and Download stays the default. -->
+					<div class="mt-5 grid gap-2 sm:grid-cols-2">
+						<Button
+							variant={sendFirst ? 'secondary' : 'primary'}
+							class="w-full {sendFirst ? 'sm:order-2' : 'sm:order-1'}"
+							onclick={doGenerateDeck}
+							disabled={isGenerating}
+						>
+							<Download class="size-[18px]" />{isGenerating && !sending ? 'Building…' : 'Download .apkg'}
+						</Button>
+						<div class="hidden sm:block {sendFirst ? 'sm:order-1' : 'sm:order-2'}">
+							<Button variant={sendFirst ? 'primary' : 'secondary'} class="w-full" onclick={doSendToAnki} disabled={isGenerating || sending}>
+								<Send class="size-[18px]" />{sending ? 'Sending…' : 'Send to Anki'}
+							</Button>
+						</div>
+					</div>
+					{#if sendStage !== 'idle' && sendStage !== 'building'}
+						<p
+							class="mt-3 mb-0 rounded-card px-4 py-3 text-[14px] {sendStage === 'error'
+								? 'bg-apricot-soft text-apricot-ink'
+								: sendStage === 'done'
+									? 'bg-mint-soft text-mint-ink'
+									: 'bg-sunk text-muted'}"
+							role="status"
+						>
+							{sendStage === 'error'
+								? sendError
+								: sendStage === 'connecting'
+									? ANKI_STATUS_TEXT.checking
+									: sendStage === 'done'
+										? `In Anki now: “${deckName}”.`
+										: SEND_STAGE_TEXT[sendStage]}
+						</p>
+					{/if}
 					{#if isGenerating || progressbarValue > 0}
 						<div class="mt-3" role="status">
 							<div class="mb-1 flex justify-between text-[13px] text-muted">
-								<span>{isGenerating ? (includeAudio ? 'Building, with audio…' : 'Building…') : 'Done'}</span>
+								<span
+									>{sending && sendStage !== 'building'
+										? 'Sending…'
+										: isGenerating
+											? includeAudio
+												? 'Building, with audio…'
+												: 'Building…'
+											: 'Done'}</span
+								>
 								<span>{progressbarValue.toFixed(0)}%</span>
 							</div>
 							<div class="h-2 overflow-hidden rounded-full bg-sunk">
@@ -558,7 +650,10 @@
 							<FileSpreadsheet class="size-4" />CSV
 						</Button>
 					</div>
-					<p class="mt-4 mb-0 text-[13.5px] text-muted">Open the file in Anki, or on a phone tap it to import.</p>
+					<p class="mt-4 mb-0 text-[13.5px] text-muted">
+						Open the file in Anki, or on a phone tap it to import.
+						<span class="hidden sm:inline">Send to Anki needs Anki open with AnkiConnect.</span>
+					</p>
 				{/if}
 			</div>
 		</section>

@@ -11,7 +11,8 @@
 
 import Chinese from 'chinese-s2t';
 import pinyin from 'chinese-to-pinyin';
-import { Deck, Model, Package } from 'genanki-js';
+import { APKG_SCHEMA, Deck, Model, Package } from 'genanki-js';
+import JSZip from 'jszip';
 import init, { cut } from 'jieba-wasm';
 import initSqlJs from 'sql.js';
 import EdgeTTSBrowser from '@kingdanx/edge-tts-browser';
@@ -941,4 +942,33 @@ export async function generateDeck(opts: GenerateDeckOptions): Promise<void> {
 	p.writeToFile(`${opts.deckName}.apkg`);
 	onProgress(100);
 	setTimeout(() => onProgress(0), 2000);
+}
+
+/**
+ * genanki's `Package#writeToFile`, returning the zip instead of saving it —
+ * for "Send to Anki", which hands the bytes to AnkiConnect. Same entries,
+ * same media index; only the zip's compression differs (DEFLATE here, since
+ * the bytes travel as base64 and the stroke data is mostly JSON).
+ */
+export async function packageBlob(p: any): Promise<Blob> {
+	const db = p.db;
+	db.run(APKG_SCHEMA);
+	p.write(db);
+	const zip = new JSZip();
+	zip.file('collection.anki2', new Uint8Array(db.export()).buffer);
+	const index: Record<number, string> = {};
+	p.media.forEach((m: { name: string; data?: unknown; filename?: string }, i: number) => {
+		zip.file(String(i), (m.filename ?? m.data) as Blob);
+		index[i] = m.name;
+	});
+	zip.file('media', JSON.stringify(index));
+	return zip.generateAsync({ type: 'blob', mimeType: 'application/apkg', compression: 'DEFLATE' });
+}
+
+/** Build the deck and return it as bytes, for "Send to Anki". */
+export async function generateDeckBlob(opts: GenerateDeckOptions): Promise<Blob> {
+	const p = await buildDeckPackage(opts);
+	const blob = await packageBlob(p);
+	opts.onProgress?.(100);
+	return blob;
 }

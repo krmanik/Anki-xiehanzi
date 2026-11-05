@@ -36,7 +36,7 @@ vi.stubGlobal('fetch', (async (input: RequestInfo | URL, init?: RequestInit) => 
 	return new Response(null, { status: 404 });
 }) as typeof fetch);
 
-import { generateDeck, stableDeckId, commonReadingIndex, displayReadings, buildNoteFields, renderCardHtml, noteTags, stableNoteGuid, type Word } from './deck';
+import { generateDeck, generateDeckBlob, stableDeckId, commonReadingIndex, displayReadings, buildNoteFields, renderCardHtml, noteTags, stableNoteGuid, type Word } from './deck';
 import { DEFAULT_TEMPLATE, type TabContent } from './deckTemplate';
 import type { Reading } from './dict/cedict';
 import { readingClipMedia } from './noteFields';
@@ -365,6 +365,38 @@ describe('generateDeck — real .apkg round-trip', () => {
 
 		cdb.close();
 		db.close();
+	}, 20000);
+
+	it('Send to Anki packs the same deck the download does', async () => {
+		const SQL = await loadSql();
+		const opts = () => ({
+			words: [word()],
+			deckName: 'send-deck',
+			includeAudio: false,
+			fields: ['Simplified', 'Pinyin', 'Definitions'],
+			tabContent: { 'Card 1': { front: ['frontSimplified'], back: ['backPinyin'], additional: [], elementStyles: {} } } as TabContent,
+			hskWordsDict: new Set<string>(),
+			db: new SQL.Database(),
+			template: undefined,
+			onProgress: () => {}
+		});
+		h.saved = null;
+		await generateDeck(opts());
+		const start = Date.now();
+		while (!h.saved && Date.now() - start < 8000) await new Promise((r) => setTimeout(r, 25));
+		const sent = await generateDeckBlob(opts());
+
+		async function contents(blob: Blob) {
+			const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+			const cdb = new SQL.Database(await zip.file('collection.anki2')!.async('uint8array'));
+			const notes = cdb.exec('SELECT guid, mid, flds, tags FROM notes')[0].values;
+			const cards = cdb.exec('SELECT did, ord FROM cards')[0].values;
+			const models = JSON.parse(cdb.exec('SELECT models FROM col')[0].values[0][0] as string);
+			for (const m of Object.values<any>(models)) delete m.mod;
+			cdb.close();
+			return { files: Object.keys(zip.files).sort(), media: await zip.file('media')!.async('string'), notes, cards, models };
+		}
+		expect(await contents(sent)).toEqual(await contents(h.saved!));
 	}, 20000);
 
 	it('renders breakdown / radical / HSK / frequency values into the note', async () => {

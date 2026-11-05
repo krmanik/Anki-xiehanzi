@@ -18,6 +18,9 @@
 	import Minus from '@lucide/svelte/icons/minus';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import X from '@lucide/svelte/icons/x';
+	import Send from '@lucide/svelte/icons/send';
+	import { anki, ankiClient, checkAnki, probeAnki, ANKI_STATUS_TEXT } from '$lib/anki/ankiStatus.svelte';
+	import { sendPackage, SEND_STAGE_TEXT, type SendStage } from '$lib/anki/sendDeck';
 
 	let {
 		list,
@@ -40,7 +43,54 @@
 
 	let step = $state<'choose' | 'done'>('choose');
 	let dialog = $state<HTMLElement>();
-	onMount(() => dialog?.focus());
+	onMount(() => {
+		dialog?.focus();
+		probeAnki();
+	});
+
+	// Send to Anki: Anki downloads the release asset itself (`storeMediaFile`
+	// with a url), so the 30–57 MB never passes through the page. One click:
+	// connect, send, and Anki opens the deck.
+	let sendStage = $state<'idle' | 'connecting' | SendStage | 'error'>('idle');
+	let sendError = $state('');
+	let sent = $state(false);
+	const sending = $derived(['connecting', 'storing', 'importing', 'cleaning'].includes(sendStage));
+	async function sendToAnki() {
+		if (sending) return;
+		sendError = '';
+		sendStage = 'connecting';
+		const status = anki.status === 'ready' ? 'ready' : await checkAnki();
+		if (status !== 'ready') {
+			sendStage = 'error';
+			sendError = ANKI_STATUS_TEXT[status];
+			return;
+		}
+		try {
+			await sendPackage(
+				ankiClient(),
+				{ url: deckUrl(manifest, deck) },
+				{ onStage: (st) => (sendStage = st), showDeck: `Anki xiehanzi::${list.name} (${list.year})` }
+			);
+			sent = true;
+			step = 'done';
+		} catch (e) {
+			sendStage = 'error';
+			const err = e as { unreachable?: boolean; message?: string };
+			if (err.unreachable) anki.status = 'unreachable';
+			sendError = err.unreachable ? ANKI_STATUS_TEXT.unreachable : `Anki said: ${err.message ?? e}`;
+		}
+	}
+	const sendText = $derived(
+		sendStage === 'error'
+			? sendError
+			: sendStage === 'connecting'
+				? ANKI_STATUS_TEXT.checking
+				: sendStage === 'storing'
+					? `Anki is downloading the deck (${formatBytes(deck.bytes)})…`
+					: sendStage === 'idle'
+						? ''
+						: SEND_STAGE_TEXT[sendStage]
+	);
 
 	// The comparison. `free` is what the download button actually delivers.
 	const rows = $derived([
@@ -56,7 +106,7 @@
 		{ label: 'The whole example-sentence corpus, "Load more" as you review', free: false }
 	]);
 
-	const steps = [
+	const allSteps = [
 		{
 			title: 'Open it in Anki',
 			text: 'Double-click the .apkg file, or in Anki choose File → Import. Every level arrives as its own subdeck.'
@@ -66,6 +116,8 @@
 			text: 'Press Sync in Anki on your computer, then sync AnkiMobile or AnkiDroid. Or open the file on the phone itself.'
 		}
 	];
+	// A sent deck is already imported: only the phone step is left.
+	const steps = $derived(sent ? allSteps.slice(1) : allSteps);
 </script>
 
 <svelte:window onkeydown={(e) => e.key === 'Escape' && onClose()} />
@@ -86,11 +138,13 @@
 		<div class="flex items-start justify-between gap-4">
 			<div>
 				<h2 id="deck-modal-title" class="m-0 text-[22px] leading-tight font-bold">
-					{step === 'done' ? 'Your download has started' : `${list.name} (${list.year})`}
+					{step === 'done' ? (sent ? 'In Anki now' : 'Your download has started') : `${list.name} (${list.year})`}
 				</h2>
 				<p class="mt-1 mb-0 text-[15px] text-muted">
 					{step === 'done'
-						? `${deck.file} · ${formatBytes(deck.bytes)}`
+						? sent
+							? 'Every level is its own subdeck. Anki has it open.'
+							: `${deck.file} · ${formatBytes(deck.bytes)}`
 						: 'The free deck downloads right here. Premium is a different deck, sold separately.'}
 				</p>
 			</div>
@@ -140,7 +194,24 @@
 			<!-- Premium is the filled button: the free download is right there
 			     either way, and a reader who never sees the paid edition never
 			     considers it. -->
+			{#if sendText}
+				<p
+					class="mt-4 mb-0 rounded-card px-4 py-3 text-[14px] {sendStage === 'error'
+						? 'bg-apricot-soft text-apricot-ink'
+						: 'bg-sunk text-muted'}"
+					role="status"
+				>
+					{sendText}
+				</p>
+			{/if}
 			<div class="mt-6 flex flex-wrap items-center justify-end gap-2">
+				<!-- Send is desktop-only (phones have no AnkiConnect). It leads once
+				     Anki has answered, since it saves the import step. -->
+				<div class="hidden sm:block {anki.status === 'ready' ? 'sm:order-first' : ''}">
+					<Button variant="secondary" onclick={sendToAnki} disabled={sending}>
+						<Send class="size-[18px]" />{sending ? 'Sending…' : 'Send to Anki'}
+					</Button>
+				</div>
 				<Button variant="secondary" href={deckUrl(manifest, deck)} onclick={() => (step = 'done')}>
 					<Download class="size-[18px]" />Download free deck
 					<span class="font-medium text-muted">{formatBytes(deck.bytes)}</span>
@@ -196,9 +267,13 @@
 			</div>
 
 			<div class="mt-6 flex flex-wrap items-center justify-between gap-3">
-				<a href={deckUrl(manifest, deck)} class="text-sm font-semibold text-accent no-underline hover:underline"
-					>Download didn't start? Try again</a
-				>
+				{#if sent}
+					<span></span>
+				{:else}
+					<a href={deckUrl(manifest, deck)} class="text-sm font-semibold text-accent no-underline hover:underline"
+						>Download didn't start? Try again</a
+					>
+				{/if}
 				<Button variant="secondary" onclick={onClose}>Done</Button>
 			</div>
 		{/if}

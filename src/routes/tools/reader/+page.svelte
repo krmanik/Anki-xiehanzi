@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { IconDot, PageHeader } from '$lib/ui';
+	import BookOpenTextIcon from '@lucide/svelte/icons/book-open-text';
 	/**
 	 * Paste-text reader: segment pasted text in reading order (unlike the deck
 	 * creator's `cutParagraph`, nothing here is deduped or filtered — punctuation
@@ -26,7 +28,6 @@
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import Square from '@lucide/svelte/icons/square';
 	import Loader from '@lucide/svelte/icons/loader-circle';
-	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import Captions from '@lucide/svelte/icons/captions';
 	import Palette from '@lucide/svelte/icons/palette';
 	import Pencil from '@lucide/svelte/icons/pencil';
@@ -37,7 +38,7 @@
 	const SAMPLE =
 		'我每天都在学习中文，因为我喜欢中国的文化和历史。今天老师教了我们十个新的汉字，虽然有点难，但是很有意思！';
 	const SIZES = [
-		{ id: 'sm', label: 'S', cls: 'text-lg', rt: 'text-[10px]' },
+		{ id: 'sm', label: 'S', cls: 'text-lg', rt: 'text-xs' },
 		{ id: 'md', label: 'M', cls: 'text-2xl', rt: 'text-xs' },
 		{ id: 'lg', label: 'L', cls: 'text-3xl', rt: 'text-sm' }
 	] as const;
@@ -199,39 +200,31 @@
 	<title>Paste-text reader · Anki xiehanzi</title>
 </svelte:head>
 
-<div class="mx-auto max-w-4xl px-4 py-8 pb-28 sm:px-5 sm:py-10">
-	<header class="mb-6">
-		<div class="flex items-center gap-2 text-indigo-600">
-			<Sparkles size={16} />
-			<span class="font-mono text-xs font-semibold tracking-[0.2em] uppercase">Reader</span>
-		</div>
-		<h1 class="mt-1 text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
-			Paste-text reader
-		</h1>
-		<p class="mt-2 max-w-2xl text-neutral-600">
-			Paste any Chinese text — an article, a chat, a book excerpt. Every word is tone-colored,
-			shows its pinyin, and opens a full dictionary entry on tap.
-		</p>
-	</header>
+<div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 pb-28">
+	<PageHeader title="Paste-text reader" subtitle="Paste Chinese text; tap any word for its entry.">
+		{#snippet lead()}
+			<IconDot hue="sky" size="lg" shape="tile"><BookOpenTextIcon /></IconDot>
+		{/snippet}
+	</PageHeader>
 
 	{#if inputCollapsed && tokens.length}
 		<button
 			type="button"
 			onclick={() => (inputCollapsed = false)}
-			class="flex w-full items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-left shadow-sm transition hover:border-neutral-900"
+			class="flex w-full items-center gap-2 rounded-card bg-surface ring-1 ring-line ring-inset px-4 py-2.5 text-left shadow-sm transition hover:bg-sky-soft"
 		>
-			<Pencil size={14} class="shrink-0 text-neutral-400" />
-			<span class="min-w-0 flex-1 truncate text-sm text-neutral-500" lang="zh-Hans">{text}</span>
-			<span class="shrink-0 text-sm font-medium text-indigo-600">Edit</span>
+			<Pencil size={14} class="shrink-0 text-muted" />
+			<span class="min-w-0 flex-1 truncate text-sm text-muted" lang="zh-Hans">{text}</span>
+			<span class="shrink-0 text-sm font-medium text-accent">Edit</span>
 		</button>
 	{:else}
-		<div class="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
+		<div class="rounded-panel border border-line bg-surface p-4 shadow-sm sm:p-5">
 			<textarea
 				bind:value={text}
 				rows={6}
 				placeholder="粘贴中文文本…"
 				lang="zh-Hans"
-				class="w-full resize-y rounded-xl border border-neutral-200 p-3 text-base text-neutral-900 outline-none placeholder:text-neutral-300 focus:border-neutral-900"
+				class="w-full resize-y rounded-card border-0 bg-sunk p-3 text-base text-ink outline-none placeholder:text-muted/70 focus:ring-3 focus:ring-sky"
 			></textarea>
 
 			<div class="mt-3 flex flex-wrap items-center gap-3">
@@ -243,18 +236,18 @@
 						<X size={14} /> Clear
 					</button>
 				{:else}
-					<button type="button" onclick={loadSample} class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+					<button type="button" onclick={loadSample} class="text-sm font-medium text-accent hover:text-sky-ink">
 						Try a sample →
 					</button>
 				{/if}
-				{#if error}<p class="text-sm text-red-600">{error}</p>{/if}
+				{#if error}<p class="text-sm text-rose-ink">{error}</p>{/if}
 			</div>
 		</div>
 	{/if}
 
 	{#if tokens.length}
 		<div
-			class="no-scrollbar sticky top-[53px] z-20 mt-4 flex items-center gap-1.5 overflow-x-auto rounded-full border border-neutral-200 bg-white/90 p-1.5 whitespace-nowrap shadow-sm backdrop-blur"
+			class="no-scrollbar sticky top-[53px] z-20 mt-4 flex items-center gap-1.5 overflow-x-auto rounded-full bg-surface/90 ring-1 ring-line ring-inset p-1.5 whitespace-nowrap shadow-sm backdrop-blur font-semibold"
 		>
 			<button
 				type="button"
@@ -262,8 +255,8 @@
 				title="Toggle pinyin"
 				onclick={() => (showPinyin = !showPinyin)}
 				class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition {showPinyin
-					? 'bg-neutral-900 text-white'
-					: 'text-neutral-600 hover:bg-neutral-100'}"
+					? 'bg-accent text-white'
+					: 'text-muted hover:bg-sunk'}"
 			>
 				<Captions size={15} /> <span class="hidden sm:inline">Pinyin</span>
 			</button>
@@ -273,15 +266,15 @@
 				title="Toggle tone colors"
 				onclick={() => (colorize = !colorize)}
 				class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition {colorize
-					? 'bg-neutral-900 text-white'
-					: 'text-neutral-600 hover:bg-neutral-100'}"
+					? 'bg-accent text-white'
+					: 'text-muted hover:bg-sunk'}"
 			>
 				<Palette size={15} /> <span class="hidden sm:inline">Colorize</span>
 			</button>
 
-			<div class="mx-0.5 h-5 w-px shrink-0 bg-neutral-200"></div>
+			<div class="mx-0.5 h-5 w-px shrink-0 bg-line"></div>
 
-			<div class="flex shrink-0 items-center gap-0.5 rounded-full bg-neutral-100 p-1">
+			<div class="flex shrink-0 items-center gap-0.5 rounded-full bg-sunk p-1">
 				{#each SIZES as s (s.id)}
 					<button
 						type="button"
@@ -289,23 +282,23 @@
 						title="{s.label === 'S' ? 'Small' : s.label === 'M' ? 'Medium' : 'Large'} text"
 						onclick={() => (sizeId = s.id)}
 						class="rounded-full px-3 py-1.5 text-xs font-semibold transition {sizeId === s.id
-							? 'bg-white text-neutral-900 shadow-sm'
-							: 'text-neutral-500 hover:text-neutral-800'}"
+							? 'bg-surface text-ink shadow-sm'
+							: 'text-muted hover:text-ink'}"
 					>
 						{s.label}
 					</button>
 				{/each}
 			</div>
 
-			<div class="mx-0.5 h-5 w-px shrink-0 bg-neutral-200"></div>
+			<div class="mx-0.5 h-5 w-px shrink-0 bg-line"></div>
 
 			<button
 				type="button"
 				onclick={readAloud}
 				disabled={!!ttsStatus && !speaking}
 				class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition {speaking
-					? 'bg-indigo-600 text-white'
-					: 'text-neutral-600 hover:bg-neutral-100'}"
+					? 'bg-accent text-white'
+					: 'text-muted hover:bg-sunk'}"
 			>
 				{#if ttsStatus}
 					<Loader size={15} class="animate-spin" />
@@ -319,7 +312,7 @@
 		</div>
 
 		<div
-			class="mt-4 whitespace-pre-wrap rounded-2xl border border-neutral-200 bg-[#fffdf9] p-5 leading-loose shadow-sm sm:p-7 {size.cls}"
+			class="mt-4 whitespace-pre-wrap rounded-panel border border-line bg-[#fffdf9] p-5 leading-loose shadow-sm sm:p-7 {size.cls}"
 			lang="zh-Hans"
 		>
 			{#each tokens as token, i (i)}
@@ -329,9 +322,9 @@
 				{:else}
 					<button
 						type="button"
-						class="rounded px-0.5 align-bottom underline decoration-neutral-200 decoration-dotted underline-offset-4 transition hover:bg-indigo-50 hover:decoration-indigo-300 {entry ===
+						class="rounded px-0.5 align-bottom underline decoration-line decoration-dotted underline-offset-4 transition hover:bg-sky-soft hover:decoration-sky {entry ===
 						null
-							? 'text-neutral-400 decoration-neutral-300 decoration-dashed hover:decoration-neutral-400'
+							? 'text-muted decoration-line decoration-dashed hover:decoration-muted'
 							: ''}"
 						onclick={(e) => openWord(token, (e.currentTarget as HTMLElement).getBoundingClientRect())}
 					>
@@ -341,7 +334,7 @@
 									>{part.ch}<rt
 										class="font-sans font-normal {size.rt} {colorize && part.tone
 											? `tone${part.tone}`
-											: 'text-neutral-400'}">{part.py}</rt
+											: 'text-muted'}">{part.py}</rt
 									></ruby
 								>
 							{:else}
@@ -357,11 +350,11 @@
 
 {#if bag.size}
 	<div
-		class="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 backdrop-blur"
+		class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 backdrop-blur"
 		style="padding-bottom: env(safe-area-inset-bottom)"
 	>
 		<div class="mx-auto flex max-w-4xl items-center justify-between gap-3 px-5 py-3">
-			<span class="flex items-center gap-1.5 text-sm text-neutral-600">
+			<span class="flex items-center gap-1.5 text-sm text-muted">
 				<Layers size={15} /> {bag.size} word{bag.size === 1 ? '' : 's'} selected
 			</span>
 			<button type="button" onclick={sendToCreator} class={btnPrimary}>

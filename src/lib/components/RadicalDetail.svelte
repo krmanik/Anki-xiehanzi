@@ -80,7 +80,7 @@
 	});
 </script>
 
-<div class="rounded-2xl border border-neutral-900 bg-white p-5 sm:p-6">
+<div class="rounded-panel bg-surface p-5 ring-1 ring-line ring-inset sm:p-6">
 	<div class="flex items-start justify-between gap-4">
 		<div class="flex items-baseline gap-4">
 			<span class="text-6xl leading-none {colorize ? `tone${tone}` : ''}" lang="zh-Hans">
@@ -90,19 +90,19 @@
 				<p class="flex items-baseline gap-2">
 					<span class="text-2xl font-semibold {colorize ? `tone${tone}` : ''}">{radical.pinyin}</span>
 					{#if radical.zhuyin}
-						<span class="text-sm text-neutral-400">{radical.zhuyin}</span>
+						<span class="text-sm text-muted">{radical.zhuyin}</span>
 					{/if}
 					<button
 						type="button"
 						onclick={playAudio}
 						aria-label="Play {radical.pinyin}"
-						class="rounded-full p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900"
+						class="rounded-full p-1 text-muted transition hover:bg-sunk hover:text-ink"
 					>
 						<Volume2 size={16} />
 					</button>
 				</p>
-				<p class="text-lg text-neutral-700">{radical.meaning}</p>
-				<p class="mt-1 font-mono text-xs uppercase tracking-wider text-neutral-400">
+				<p class="text-lg text-ink">{radical.meaning}</p>
+				<p class="mt-1 text-[13px] text-muted font-semibold">
 					Kangxi {radical.number} · {radical.strokes} stroke{radical.strokes === 1 ? '' : 's'}
 					{#if band} · {band}{/if}
 				</p>
@@ -113,7 +113,7 @@
 				type="button"
 				onclick={onClose}
 				aria-label="Close radical detail"
-				class="rounded-lg border border-neutral-200 p-1.5 text-neutral-400 transition hover:border-neutral-900 hover:text-neutral-900"
+				class="rounded-lg border border-line p-1.5 text-muted transition hover:border-sky hover:text-ink"
 			>
 				<X size={16} />
 			</button>
@@ -124,7 +124,7 @@
 		<div class="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
 			{#if radical.variants.length}
 				<span class="flex items-baseline gap-2">
-					<span class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">
+					<span class="text-[13px] text-muted font-semibold">
 						also written
 					</span>
 					<span class="text-xl" lang="zh-Hans">{radical.variants.join('   ')}</span>
@@ -132,7 +132,7 @@
 			{/if}
 			{#if radical.simplified.length}
 				<span class="flex items-baseline gap-2">
-					<span class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">
+					<span class="text-[13px] text-muted font-semibold">
 						simplified
 					</span>
 					<span class="text-xl" lang="zh-Hans">{radical.simplified.join('   ')}</span>
@@ -140,7 +140,7 @@
 			{/if}
 			{#if radical.traditional.length}
 				<span class="flex items-baseline gap-2">
-					<span class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">
+					<span class="text-[13px] text-muted font-semibold">
 						traditional
 					</span>
 					<span class="text-xl" lang="zh-Hant">{radical.traditional.join('   ')}</span>
@@ -150,24 +150,24 @@
 	{/if}
 
 	{#if radical.colloquial}
-		<p class="mt-4 inline-flex flex-wrap items-baseline gap-2 rounded-full bg-neutral-100 px-4 py-1.5 text-sm">
+		<p class="mt-4 inline-flex flex-wrap items-baseline gap-2 rounded-full bg-sunk px-4 py-1.5 text-sm">
 			<span class="text-base" lang="zh-Hans">{radical.colloquial.term}</span>
-			<span class="text-neutral-500">{radical.colloquial.pinyin}</span>
+			<span class="text-muted">{radical.colloquial.pinyin}</span>
 			{#if radical.colloquial.english}
-				<span class="italic text-neutral-400">{radical.colloquial.english}</span>
+				<span class="italic text-muted">{radical.colloquial.english}</span>
 			{/if}
 		</p>
 	{/if}
 
 	{#if radical.word}
 		<p class="mt-4 flex flex-wrap items-baseline gap-2 text-sm">
-			<span class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">
+			<span class="text-[13px] text-muted font-semibold">
 				as a word
 			</span>
 			<span class="font-medium {colorize ? `tone${tone}` : ''}">{radical.word.pinyin}</span>
-			<span class="text-neutral-600">{radical.word.meaning}</span>
+			<span class="text-muted">{radical.word.meaning}</span>
 			{#if radical.word.band}
-				<span class="rounded-full border border-neutral-200 px-2 py-0.5 text-[10px] text-neutral-400">
+				<span class="rounded-full bg-sunk px-2 py-0.5 text-xs text-muted font-semibold">
 					{radical.word.band}
 				</span>
 			{/if}
@@ -178,33 +178,33 @@
 	     height — the arrangement the deck's cards use. -->
 	<div class="mt-6 grid items-stretch gap-6 sm:grid-cols-[200px_1fr]">
 		<div class="sm:order-2">
-			<h3 class="font-mono text-[11px] uppercase tracking-[0.15em] text-neutral-400">
+			<h3 class="text-[13px] text-muted font-semibold">
 				Readings
 			</h3>
 			<!-- No 中文 row: the reading is printed once, big, in the header above. -->
 			<table class="mt-2 w-full text-sm">
 				<tbody>
 					{#if radical.hanviet}
-						<tr class="border-b border-neutral-100">
-							<th class="w-28 py-1.5 text-left font-medium text-neutral-400">Hán-Việt</th>
+						<tr class="border-b border-line">
+							<th class="w-28 py-1.5 text-left font-medium text-muted">Hán-Việt</th>
 							<td class="py-1.5">{radical.hanviet}</td>
 						</tr>
 					{/if}
 					{#if radical.kana || radical.romaji}
-						<tr class="border-b border-neutral-100">
-							<th class="py-1.5 text-left font-medium text-neutral-400">日本語</th>
+						<tr class="border-b border-line">
+							<th class="py-1.5 text-left font-medium text-muted">日本語</th>
 							<td class="py-1.5">
 								<span lang="ja">{radical.kana}</span>
-								<span class="ml-2 italic text-neutral-500">{radical.romaji}</span>
+								<span class="ml-2 italic text-muted">{radical.romaji}</span>
 							</td>
 						</tr>
 					{/if}
 					{#if radical.hangul || radical.romaja}
 						<tr>
-							<th class="py-1.5 text-left font-medium text-neutral-400">한국어</th>
+							<th class="py-1.5 text-left font-medium text-muted">한국어</th>
 							<td class="py-1.5">
 								<span lang="ko">{radical.hangul}</span>
-								<span class="ml-2 italic text-neutral-500">{radical.romaja}</span>
+								<span class="ml-2 italic text-muted">{radical.romaja}</span>
 							</td>
 						</tr>
 					{/if}
@@ -213,13 +213,13 @@
 		</div>
 
 		<div class="sm:order-1">
-			<div class="inline-block rounded-xl border border-neutral-200 p-1">
+			<div class="inline-block rounded-card border border-line p-1">
 				<div bind:this={target} class="h-[180px] w-[180px]"></div>
 			</div>
 			<button
 				type="button"
 				onclick={() => writer?.animateCharacter()}
-				class="mt-2 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-neutral-400 transition hover:text-neutral-900"
+				class="mt-2 inline-flex items-center gap-1.5 text-[13px] text-muted transition hover:text-ink font-semibold"
 			>
 				<RotateCcw size={12} /> Replay strokes
 			</button>
@@ -228,17 +228,17 @@
 
 	{#if radical.evolution.length}
 		<div class="mt-7">
-			<h3 class="font-mono text-[11px] uppercase tracking-[0.15em] text-neutral-400">
+			<h3 class="text-[13px] text-muted font-semibold">
 				Evolution
-				<span class="normal-case tracking-normal text-neutral-300" lang="zh-Hans">字源演变</span>
+				<span class="normal-case tracking-normal text-muted/70" lang="zh-Hans">字源演变</span>
 			</h3>
 			<div class="mt-2.5 flex flex-wrap gap-2">
 				{#each radical.evolution as g (g.file + g.label)}
-					<figure class="w-[86px] rounded-xl border border-neutral-200 bg-neutral-50 p-2 text-center">
+					<figure class="w-[86px] rounded-card border border-line bg-sunk p-2 text-center">
 						<img src={glyphUrl(g.file)} alt="{radical.char} — {g.label}" class="mx-auto h-14 w-14 object-contain" loading="lazy" />
-						<figcaption class="mt-1 text-[10px] leading-tight">
+						<figcaption class="mt-1 text-xs leading-tight">
 							<span class="block" lang="zh-Hans">{g.script}</span>
-							<span class="block text-neutral-400">{g.label}</span>
+							<span class="block text-muted">{g.label}</span>
 						</figcaption>
 					</figure>
 				{/each}
@@ -248,17 +248,17 @@
 
 	{#if radical.compare.length}
 		<div class="mt-7">
-			<h3 class="font-mono text-[11px] uppercase tracking-[0.15em] text-neutral-400">
+			<h3 class="text-[13px] text-muted font-semibold">
 				Regional forms
-				<span class="normal-case tracking-normal text-neutral-300" lang="zh-Hans">字形对比</span>
+				<span class="normal-case tracking-normal text-muted/70" lang="zh-Hans">字形对比</span>
 			</h3>
 			<div class="mt-2.5 flex flex-wrap gap-2">
 				{#each radical.compare as g (g.file + g.label)}
-					<figure class="w-[86px] rounded-xl border border-neutral-200 bg-neutral-50 p-2 text-center">
+					<figure class="w-[86px] rounded-card border border-line bg-sunk p-2 text-center">
 						<img src={glyphUrl(g.file)} alt="{radical.char} — {g.label}" class="mx-auto h-14 w-14 object-contain" loading="lazy" />
-						<figcaption class="mt-1 text-[10px] leading-tight">
+						<figcaption class="mt-1 text-xs leading-tight">
 							<span class="block" lang="zh-Hans">{g.region}</span>
-							<span class="block text-neutral-400">{g.label}</span>
+							<span class="block text-muted">{g.label}</span>
 						</figcaption>
 					</figure>
 				{/each}
@@ -268,26 +268,26 @@
 
 	{#if radical.examples.length}
 		<div class="mt-7">
-			<h3 class="font-mono text-[11px] uppercase tracking-[0.15em] text-neutral-400">
+			<h3 class="text-[13px] text-muted font-semibold">
 				Examples
 				{#if radical.frequency}
-					<span class="normal-case tracking-normal text-neutral-300">
+					<span class="normal-case tracking-normal text-muted/70">
 						{radical.frequency} in common use
 					</span>
 				{/if}
 			</h3>
-			<ul class="mt-2 divide-y divide-neutral-100">
+			<ul class="mt-2 divide-y divide-line">
 				{#each radical.examples as ex (ex.char)}
 					<li class="flex items-baseline gap-3 py-2">
 						<span class="min-w-[2rem] text-2xl leading-none {toneClass(ex.pinyin)}" lang="zh-Hans">
 							{ex.char}
 						</span>
 						<span class="text-sm font-medium {toneClass(ex.pinyin)}">{ex.pinyin}</span>
-						{#if ex.zhuyin}<span class="text-xs text-neutral-400">{ex.zhuyin}</span>{/if}
-						<span class="text-sm text-neutral-500">{ex.meaning}</span>
+						{#if ex.zhuyin}<span class="text-xs text-muted">{ex.zhuyin}</span>{/if}
+						<span class="text-sm text-muted">{ex.meaning}</span>
 						{#if ex.band}
 							<span
-								class="ml-auto shrink-0 rounded-full border border-neutral-200 px-2 py-0.5 text-[10px] text-neutral-400"
+								class="ml-auto shrink-0 rounded-full bg-sunk px-2 py-0.5 text-xs text-muted font-semibold"
 							>
 								{ex.band}
 							</span>
@@ -298,7 +298,7 @@
 		</div>
 	{/if}
 
-	<p class="mt-6 flex flex-wrap gap-4 border-t border-neutral-100 pt-3 font-mono text-[10px] text-neutral-300">
+	<p class="mt-6 flex flex-wrap gap-4 border-t border-line pt-3 font-mono text-xs text-muted/70">
 		<span>{radical.unicode}</span>
 		{#if radical.kangxiForm}
 			<span>

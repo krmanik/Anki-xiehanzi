@@ -5,7 +5,7 @@
 	 * lazily per radical. Nothing here touches cedict.db.
 	 */
 	import { base } from '$app/paths';
-	import { btnPrimary } from '$lib/buttonStyles';
+	import { Button, chipClass, IconDot, PageHeader, SectionLabel } from '$lib/ui';
 	import RadicalCard from '$lib/components/RadicalCard.svelte';
 	import RadicalDeckModal from '$lib/components/RadicalDeckModal.svelte';
 	import RadicalDetail from '$lib/components/RadicalDetail.svelte';
@@ -74,6 +74,8 @@
 	const onKey = (e: KeyboardEvent) => {
 		if (e.key === 'Escape' && selected !== null) selected = null;
 	};
+	const field =
+		'min-h-11 rounded-card border-0 bg-sunk px-3.5 text-[15px] text-ink placeholder:text-muted focus:ring-3 focus:ring-sky';
 </script>
 
 <svelte:window on:keydown={onKey} />
@@ -90,87 +92,53 @@
 	/>
 </svelte:head>
 
-<section class="mx-auto max-w-6xl px-5 py-10">
-	<p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">Kangxi 康熙部首</p>
-	<div class="mt-1 flex flex-wrap items-end justify-between gap-4">
-		<div>
-			<h1 class="text-4xl font-extrabold tracking-tight">The 214 radicals</h1>
-			<p class="mt-1.5 max-w-2xl text-sm text-neutral-500">
-				Every Chinese character is filed under one of these. Each entry carries its meaning and
-				readings across Chinese, Vietnamese, Japanese and Korean, how it is written, how the glyph
-				evolved from oracle bone to regular script, and the characters built from it.
-			</p>
-		</div>
-		<button
-			type="button"
-			class="{btnPrimary} inline-flex items-center gap-2"
-			onclick={() => (building = true)}
-			disabled={!radicals.length}
-		>
-			<Download size={15} /> Get the deck
-		</button>
-	</div>
+<section class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+	<PageHeader title="The 214 radicals" subtitle="Meaning, readings, stroke order and the characters built from each.">
+		{#snippet lead()}
+			<IconDot hue="apricot" size="lg" shape="tile" class="font-zh">部</IconDot>
+		{/snippet}
+		{#snippet actions()}
+			<Button onclick={() => (building = true)} disabled={!radicals.length}>
+				<Download class="size-[18px]" /> Get the deck
+			</Button>
+		{/snippet}
+	</PageHeader>
 
-	<p class="mt-3 text-xs leading-relaxed text-neutral-400">
-		Free deck builds in your browser — recognition and writing cards, audio, stroke order. Premium
-		adds the glyph images and the rest of the detail; the button compares them.
-	</p>
-
-	<div
-		class="sticky top-[57px] z-30 -mx-5 mt-6 border-y border-neutral-200 bg-white/90 px-5 py-3 backdrop-blur"
-	>
+	<div class="sticky top-14 z-30 -mx-4 bg-ground/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
 		<div class="flex flex-wrap items-center gap-2">
 			<div class="relative min-w-[220px] flex-1">
-				<Search size={15} class="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+				<Search class="pointer-events-none absolute top-1/2 left-3.5 size-[18px] -translate-y-1/2 text-muted" />
 				<input
 					bind:value={query}
 					type="search"
-					placeholder="Search radical, pinyin, meaning, reading or an example character…"
+					placeholder="Radical, pinyin, meaning or a character"
 					aria-label="Search radicals"
-					class="w-full rounded-lg border border-neutral-300 py-2 pl-9 pr-3 text-sm outline-none transition focus:border-neutral-900"
+					class="{field} w-full pl-10"
 				/>
 			</div>
 
-			<select
-				bind:value={sort}
-				aria-label="Sort order"
-				class="rounded-lg border border-neutral-300 py-2 pl-3 pr-8 text-sm outline-none transition focus:border-neutral-900"
-			>
+			<select bind:value={sort} aria-label="Sort order" class="{field} pr-9">
 				{#each RADICAL_SORTS as mode (mode.value)}
 					<option value={mode.value}>{mode.label}</option>
 				{/each}
 			</select>
 
-			<button
-				type="button"
-				onclick={() => (colorize = !colorize)}
-				aria-pressed={colorize}
-				class="inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm transition {colorize
-					? 'border-neutral-900 text-neutral-900'
-					: 'border-neutral-300 text-neutral-500 hover:border-neutral-900'}"
-			>
-				<Palette size={15} /> Tone colours
+			<button type="button" onclick={() => (colorize = !colorize)} aria-pressed={colorize} class="{chipClass(colorize)} min-h-11">
+				<Palette class="size-4" /> Tone colours
 			</button>
 		</div>
 
 		{#if counts.length}
-			<div class="mt-2.5 flex flex-wrap gap-1.5">
-				<button
-					type="button"
-					onclick={() => (strokes = null)}
-					class="rounded-lg border px-2.5 py-1 font-mono text-xs transition {strokes === null
-						? 'border-neutral-900 bg-neutral-900 text-white'
-						: 'border-neutral-200 text-neutral-500 hover:border-neutral-900 hover:text-neutral-900'}"
-				>
+			<div class="mt-2.5 flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible" role="group" aria-label="Stroke count">
+				<button type="button" onclick={() => (strokes = null)} aria-pressed={strokes === null} class="{chipClass(strokes === null)} shrink-0">
 					All
 				</button>
 				{#each counts as n (n)}
 					<button
 						type="button"
 						onclick={() => (strokes = strokes === n ? null : n)}
-						class="rounded-lg border px-2.5 py-1 font-mono text-xs transition {strokes === n
-							? 'border-neutral-900 bg-neutral-900 text-white'
-							: 'border-neutral-200 text-neutral-500 hover:border-neutral-900 hover:text-neutral-900'}"
+						aria-pressed={strokes === n}
+						class="{chipClass(strokes === n)} min-w-9 shrink-0 justify-center tabular-nums"
 						title="{n} stroke{n === 1 ? '' : 's'}"
 					>
 						{n}
@@ -181,9 +149,9 @@
 	</div>
 
 	{#if loading}
-		<p class="mt-10 text-sm text-neutral-500">Loading the radical table…</p>
+		<p class="mt-10 text-sm text-muted">Loading the radical table…</p>
 	{:else if error}
-		<p class="mt-10 text-sm text-red-600">Could not load the radicals: {error}</p>
+		<p class="mt-10 text-sm text-rose-ink">Could not load the radicals: {error}</p>
 	{:else}
 		{#if current}
 			<div class="mt-6 scroll-mt-[150px]" bind:this={panel}>
@@ -191,9 +159,7 @@
 			</div>
 		{/if}
 
-		<p class="mt-6 font-mono text-xs uppercase tracking-wider text-neutral-400">
-			{visible.length} of {radicals.length} radicals
-		</p>
+		<SectionLabel as="p" class="mt-6">{visible.length} of {radicals.length} radicals</SectionLabel>
 
 		<div
 			class="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7"
@@ -209,7 +175,7 @@
 		</div>
 
 		{#if !visible.length}
-			<p class="mt-8 text-sm text-neutral-500">
+			<p class="mt-8 text-sm text-muted">
 				Nothing matches “{query}”.
 				<button class="underline" type="button" onclick={() => { query = ''; strokes = null; }}>
 					Clear the filters
@@ -217,7 +183,7 @@
 			</p>
 		{/if}
 
-		<p class="mt-10 border-t border-neutral-200 pt-4 text-xs leading-relaxed text-neutral-400">
+		<p class="mt-10 border-t border-line pt-4 text-xs leading-relaxed text-muted">
 			Readings from
 			<a class="underline" href="https://en.wikipedia.org/wiki/Kangxi_radicals">Wikipedia</a>, example
 			glosses from CC-CEDICT, glyph images from

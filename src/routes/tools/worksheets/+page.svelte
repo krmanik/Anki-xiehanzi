@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { IconDot, PageHeader } from '$lib/ui';
+	import PencilLineIcon from '@lucide/svelte/icons/pencil-line';
 	/** One worksheet generator, one Template dropdown picking which layout it
 	 * builds — a single word list, a single options panel, a single Generate
 	 * button and preview, whichever template is selected. */
@@ -43,10 +45,10 @@
 	const words = $derived(wordsText.split(/\s+/).filter(Boolean));
 	const charCount = $derived(new Set([...words.join('')].filter((ch) => !/\s/.test(ch))).size);
 
-	const fieldLabel = 'text-sm text-neutral-600';
-	const fieldInput = 'mt-1 w-full rounded-md border border-neutral-200 px-2 py-1.5 text-sm';
-	const fieldSelect = fieldInput;
-	const colorInput = 'mt-1 h-9 w-full rounded-md border border-neutral-200';
+	const fieldLabel = 'text-sm text-muted';
+	const fieldInput = 'mt-1 w-full min-h-10 rounded-card border-0 bg-sunk px-3 text-sm text-ink focus:ring-3 focus:ring-sky';
+	const fieldSelect = fieldInput + ' pr-9';
+	const colorInput = 'mt-1 h-9 w-full rounded-md border border-line';
 
 	const GRID_STYLE_OPTIONS: { id: NonNullable<PracticeSheetOptions['gridStyle']>; label: string }[] = [
 		{ id: 'blank', label: 'Blank' },
@@ -459,37 +461,35 @@
 	<title>Worksheet generator · Anki xiehanzi</title>
 </svelte:head>
 
-<div class="mx-auto max-w-6xl px-4 py-8 sm:px-5 sm:py-10">
-	<header class="mb-6">
-		<h1 class="text-2xl font-bold tracking-tight text-neutral-900 sm:text-4xl">Worksheet generator</h1>
-		<p class="mt-2 max-w-2xl text-sm text-neutral-600 sm:text-base">
-			One word list, one PDF: a rich study page with vocabulary and example sentences, or a
-			configurable practice sheet of guide boxes — pick the template below.
-		</p>
-	</header>
+<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+	<PageHeader title="Worksheets" subtitle="Stroke practice and study pages, as a PDF.">
+		{#snippet lead()}
+			<IconDot hue="apricot" size="lg" shape="tile"><PencilLineIcon /></IconDot>
+		{/snippet}
+	</PageHeader>
 
 	<ToolWordInput bind:value={wordsText} />
 	{#if charCount}
-		<p class="mt-2 text-xs text-neutral-400">{charCount} unique character{charCount === 1 ? '' : 's'}</p>
+		<p class="mt-2 text-xs text-muted">{charCount} unique character{charCount === 1 ? '' : 's'}</p>
 	{/if}
 
 	<div class="mt-6">
-		<h2 class="mb-2 text-xs font-semibold tracking-wider text-neutral-400 uppercase">Templates</h2>
+		<h2 class="mb-2 text-[13px] font-semibold text-muted">Templates</h2>
 		<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
 			{#each TEMPLATES as t (t.id)}
 				<button
 					type="button"
 					onclick={() => pickTemplate(t)}
 					class="rounded-lg border p-3 text-left transition {activeTemplate === t.id
-						? 'border-neutral-900 bg-neutral-50'
-						: 'border-neutral-200 hover:border-neutral-400'}"
+						? 'border-transparent bg-sky-soft'
+						: 'border-line hover:border-muted'}"
 				>
-					<span class="block text-sm font-medium text-neutral-900">{t.name}</span>
-					<span class="mt-0.5 block text-xs text-neutral-500">{t.description}</span>
+					<span class="block text-sm font-medium text-ink">{t.name}</span>
+					<span class="mt-0.5 block text-xs text-muted">{t.description}</span>
 				</button>
 			{/each}
 		</div>
-		<p class="mt-2 text-xs text-neutral-400">
+		<p class="mt-2 text-xs text-muted">
 			A template just fills in a starting point — every option below stays yours to change.
 		</p>
 	</div>
@@ -502,10 +502,10 @@
 					type="button"
 					onclick={() => (gridStyle = opt.id)}
 					class="flex flex-col items-center gap-1 rounded-lg border p-2 transition {gridStyle === opt.id
-						? 'border-neutral-900 bg-neutral-50'
-						: 'border-neutral-200 hover:border-neutral-400'}"
+						? 'border-transparent bg-sky-soft'
+						: 'border-line hover:border-muted'}"
 				>
-					<svg viewBox="0 0 40 40" width="36" height="36" class="text-neutral-500">
+					<svg viewBox="0 0 40 40" width="36" height="36" class="text-muted">
 						<rect x="2" y="2" width="36" height="36" rx="3" fill="none" stroke="currentColor" stroke-width="1.75" />
 						{#if opt.id === 'tian' || opt.id === 'mi'}
 							<line x1="20" y1="2" x2="20" y2="38" stroke="currentColor" stroke-width="1" stroke-dasharray="3 2.5" />
@@ -523,7 +523,7 @@
 							<rect x="9" y="9" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.25" />
 						{/if}
 					</svg>
-					<span class="text-[11px] leading-tight text-neutral-600">{opt.label}</span>
+					<span class="text-xs leading-tight text-muted">{opt.label}</span>
 				</button>
 			{/each}
 		</div>
@@ -532,22 +532,22 @@
 	<div class="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
 		<div class="min-w-0 space-y-5">
 			{#if template === 'study'}
-				<section class="rounded-xl border border-neutral-200 p-4">
-					<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">Character card content</h2>
+				<section class="rounded-card border border-line p-4">
+					<h2 class="mb-3 text-[13px] font-semibold text-muted">Character card content</h2>
 					<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-						<label class="flex items-center gap-2 text-sm text-neutral-600">
+						<label class="flex items-center gap-2 text-sm text-muted">
 							<input type="checkbox" bind:checked={showPinyin} />
 							Pinyin
 						</label>
-						<label class="flex items-center gap-2 text-sm text-neutral-600">
+						<label class="flex items-center gap-2 text-sm text-muted">
 							<input type="checkbox" bind:checked={showDefinition} />
 							Definition
 						</label>
-						<label class="flex items-center gap-2 text-sm text-neutral-600">
+						<label class="flex items-center gap-2 text-sm text-muted">
 							<input type="checkbox" bind:checked={showVocabulary} />
 							Vocabulary
 						</label>
-						<label class="flex items-center gap-2 text-sm text-neutral-600">
+						<label class="flex items-center gap-2 text-sm text-muted">
 							<input type="checkbox" bind:checked={showExamples} />
 							Example sentences
 						</label>
@@ -567,7 +567,7 @@
 						{/if}
 					</div>
 					<label class="mt-3 block max-w-xs {fieldLabel}">
-						Text size <span class="font-normal text-neutral-400">— pinyin, definitions, vocabulary, examples</span>
+						Text size <span class="font-normal text-muted">— pinyin, definitions, vocabulary, examples</span>
 						<select bind:value={textScale} class={fieldSelect}>
 							<option value={0.85}>Small</option>
 							<option value={1}>Medium</option>
@@ -577,9 +577,9 @@
 					</label>
 				</section>
 
-				<section class="rounded-xl border border-neutral-200 p-4">
-					<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">Practice section</h2>
-					<label class="mb-3 flex items-center gap-2 text-sm text-neutral-600">
+				<section class="rounded-card border border-line p-4">
+					<h2 class="mb-3 text-[13px] font-semibold text-muted">Practice section</h2>
+					<label class="mb-3 flex items-center gap-2 text-sm text-muted">
 						<input type="checkbox" bind:checked={showStrokeOrder} />
 						Show stroke order row
 					</label>
@@ -600,8 +600,8 @@
 					{@render boxStylePicker()}
 				</section>
 			{:else}
-				<section class="rounded-xl border border-neutral-200 p-4">
-					<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">Page & grid</h2>
+				<section class="rounded-card border border-line p-4">
+					<h2 class="mb-3 text-[13px] font-semibold text-muted">Page & grid</h2>
 					<div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
 						<label class={fieldLabel}>
 							Layout
@@ -633,8 +633,8 @@
 					{@render boxStylePicker()}
 				</section>
 
-				<section class="rounded-xl border border-neutral-200 p-4">
-					<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">Pinyin</h2>
+				<section class="rounded-card border border-line p-4">
+					<h2 class="mb-3 text-[13px] font-semibold text-muted">Pinyin</h2>
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 						<label class={fieldLabel}>
 							Display
@@ -644,12 +644,12 @@
 								<option value="none">Hidden</option>
 							</select>
 						</label>
-						<label class="flex items-center gap-2 text-sm text-neutral-600 sm:mt-6">
+						<label class="flex items-center gap-2 text-sm text-muted sm:mt-6">
 							<input type="checkbox" bind:checked={toneColors} />
 							Use tone colors
 						</label>
 						{#if layout === 'grid'}
-							<label class="flex items-center gap-2 text-sm text-neutral-600 sm:mt-6">
+							<label class="flex items-center gap-2 text-sm text-muted sm:mt-6">
 								<input type="checkbox" bind:checked={pinyinRuled} />
 								Ruled line under pinyin
 							</label>
@@ -658,9 +658,9 @@
 				</section>
 
 				{#if layout === 'sentence'}
-					<section class="rounded-xl border border-neutral-200 p-4">
-						<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">
-							Repeat <span class="font-normal normal-case text-neutral-400">— how many times the line copies down the page</span>
+					<section class="rounded-card border border-line p-4">
+						<h2 class="mb-3 text-[13px] font-semibold text-muted">
+							Repeat <span class="font-normal normal-case text-muted">— how many times the line copies down the page</span>
 						</h2>
 						<label class="{fieldLabel} block max-w-[10rem]">
 							Lines
@@ -668,8 +668,8 @@
 						</label>
 					</section>
 				{:else}
-					<section class="rounded-xl border border-neutral-200 p-4">
-						<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">Row content</h2>
+					<section class="rounded-card border border-line p-4">
+						<h2 class="mb-3 text-[13px] font-semibold text-muted">Row content</h2>
 						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<label class={fieldLabel}>
 								Group by
@@ -678,15 +678,15 @@
 									<option value="word">Word — one row per word, a box per character in it</option>
 								</select>
 							</label>
-							<label class="flex items-center gap-2 text-sm text-neutral-600 sm:mt-6">
+							<label class="flex items-center gap-2 text-sm text-muted sm:mt-6">
 								<input type="checkbox" bind:checked={showMeaning} />
 								Show English meaning under the pinyin
 							</label>
 						</div>
 					</section>
 
-					<section class="rounded-xl border border-neutral-200 p-4">
-						<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">Stroke order</h2>
+					<section class="rounded-card border border-line p-4">
+						<h2 class="mb-3 text-[13px] font-semibold text-muted">Stroke order</h2>
 						<label class={fieldLabel}>
 							Mode
 							<select bind:value={strokeOrderMode} class="{fieldSelect} max-w-xs">
@@ -697,9 +697,9 @@
 						</label>
 					</section>
 
-					<section class="rounded-xl border border-neutral-200 p-4">
-						<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">
-							Hint boxes <span class="font-normal normal-case text-neutral-400">— full guide glyph</span>
+					<section class="rounded-card border border-line p-4">
+						<h2 class="mb-3 text-[13px] font-semibold text-muted">
+							Hint boxes <span class="font-normal normal-case text-muted">— full guide glyph</span>
 						</h2>
 						<div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
 							<label class={fieldLabel}>
@@ -714,7 +714,7 @@
 									<option value="ghost">Ghost</option>
 								</select>
 							</label>
-							<label class="flex items-center gap-2 text-sm text-neutral-600 sm:mt-6">
+							<label class="flex items-center gap-2 text-sm text-muted sm:mt-6">
 								<input type="checkbox" bind:checked={useHintColor} />
 								Custom color
 							</label>
@@ -724,9 +724,9 @@
 						</div>
 					</section>
 
-					<section class="rounded-xl border border-neutral-200 p-4">
-						<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">
-							Trace boxes <span class="font-normal normal-case text-neutral-400">— faded, trace-over glyph</span>
+					<section class="rounded-card border border-line p-4">
+						<h2 class="mb-3 text-[13px] font-semibold text-muted">
+							Trace boxes <span class="font-normal normal-case text-muted">— faded, trace-over glyph</span>
 						</h2>
 						<div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
 							<label class={fieldLabel}>
@@ -750,9 +750,9 @@
 						</div>
 					</section>
 
-					<section class="rounded-xl border border-neutral-200 p-4">
-						<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">
-							Blank boxes <span class="font-normal normal-case text-neutral-400">— no guide at all, added after the hints/traces above</span>
+					<section class="rounded-card border border-line p-4">
+						<h2 class="mb-3 text-[13px] font-semibold text-muted">
+							Blank boxes <span class="font-normal normal-case text-muted">— no guide at all, added after the hints/traces above</span>
 						</h2>
 						<label class="{fieldLabel} block max-w-[10rem]">
 							Minimum
@@ -760,9 +760,9 @@
 						</label>
 					</section>
 
-					<section class="rounded-xl border border-neutral-200 p-4">
-						<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">
-							How far to fill <span class="font-normal normal-case text-neutral-400">— every row of boxes always reaches the page's right edge</span>
+					<section class="rounded-card border border-line p-4">
+						<h2 class="mb-3 text-[13px] font-semibold text-muted">
+							How far to fill <span class="font-normal normal-case text-muted">— every row of boxes always reaches the page's right edge</span>
 						</h2>
 						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<label class={fieldLabel}>
@@ -776,7 +776,7 @@
 									class="{fieldInput} disabled:opacity-40"
 								/>
 							</label>
-							<label class="flex items-center gap-2 text-sm text-neutral-600 sm:mt-6">
+							<label class="flex items-center gap-2 text-sm text-muted sm:mt-6">
 								<input type="checkbox" bind:checked={fillPage} />
 								Fill the whole page instead — one item per page
 							</label>
@@ -806,9 +806,9 @@
 				</button>
 			</div>
 
-			{#if error}<p class="text-sm text-red-600">{error}</p>{/if}
+			{#if error}<p class="text-sm text-rose-ink">{error}</p>{/if}
 			{#if unsupported.length}
-				<p class="text-sm text-amber-700">
+				<p class="text-sm text-apricot-ink">
 					{unsupported.length} character{unsupported.length === 1 ? '' : 's'} skipped — no stroke
 					data available: <span lang="zh-Hans">{unsupported.join(' ')}</span>
 				</p>
@@ -816,11 +816,11 @@
 		</div>
 
 		<aside class="lg:sticky lg:top-20 lg:self-start">
-			<div class="mb-2 flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-neutral-400">
+			<div class="mb-2 flex items-center gap-1.5 text-[13px] text-muted font-semibold">
 				<Eye size={13} /> Preview
 			</div>
 			<div
-				class="relative overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50"
+				class="relative overflow-hidden rounded-card border border-line bg-sunk"
 				style="aspect-ratio: {template === 'practice' && orientation === 'landscape' ? '297/210' : '210/297'};"
 			>
 				<canvas
@@ -832,16 +832,16 @@
 				{#if !previewReady}
 					<div class="absolute inset-0 flex items-center justify-center p-4 text-center text-sm">
 						{#if previewLoading}
-							<span class="text-neutral-400">Rendering…</span>
+							<span class="text-muted">Rendering…</span>
 						{:else if previewError}
-							<span class="text-red-500">{previewError}</span>
+							<span class="text-rose-ink">{previewError}</span>
 						{:else}
-							<span class="text-neutral-400">Type a word or character to see a preview.</span>
+							<span class="text-muted">Type a word or character to see a preview.</span>
 						{/if}
 					</div>
 				{/if}
 			</div>
-			<p class="mt-2 text-xs text-neutral-400">Live preview of the real file — page 1, at full size.</p>
+			<p class="mt-2 text-xs text-muted">Live preview of the real file — page 1, at full size.</p>
 		</aside>
 	</div>
 </div>

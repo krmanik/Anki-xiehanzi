@@ -102,12 +102,12 @@
 	}
 
 	const tool =
-		'flex items-center gap-1.5 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-[11px] font-medium text-neutral-500 transition hover:border-neutral-900 hover:text-neutral-900';
+		'flex items-center gap-1.5 rounded-full bg-sunk px-2.5 py-1.5 text-[13px] font-medium text-muted transition hover:text-ink';
 </script>
 
 <div class="flex flex-col items-center gap-2">
 	<div
-		class="relative overflow-hidden rounded-xl border border-neutral-200 bg-white"
+		class="relative overflow-hidden rounded-card border border-line bg-surface"
 		style="width:{size}px;height:{size}px"
 	>
 		<!-- The grid the character is written on: quarters plus diagonals. -->
@@ -136,7 +136,7 @@
 		<div bind:this={target} class="relative touch-none"></div>
 		{#if missing}
 			<div
-				class="absolute inset-0 flex items-center justify-center text-5xl text-neutral-300"
+				class="absolute inset-0 flex items-center justify-center text-5xl text-muted/70"
 				lang="zh-Hans"
 			>
 				{char}
@@ -152,7 +152,7 @@
 			<Eye size={13} />
 			{outline ? 'Hide outline' : 'Show outline'}
 		</button>
-		<button type="button" class={tool} onclick={practise} class:!border-neutral-900={quiz}>
+		<button type="button" class={tool} onclick={practise} class:!bg-sky-soft={quiz} class:!text-sky-ink={quiz}>
 			<PencilLine size={13} /> Practise
 		</button>
 	</div>

@@ -142,11 +142,11 @@
 <div
 	bind:this={el}
 	style="top:{top}px; left:{left}px; visibility:{ready ? 'visible' : 'hidden'}"
-	class="fixed z-50 w-72 max-w-[calc(100vw-16px)] rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm shadow-xl"
+	class="fixed z-50 w-72 max-w-[calc(100vw-16px)] rounded-lg border border-apricot-soft bg-apricot-soft p-3 text-sm shadow-xl"
 	lang="zh-Hans"
 >
 	{#if loading}
-		<p class="text-neutral-400">…</p>
+		<p class="text-muted">…</p>
 	{:else if entry}
 		<div class="flex items-start justify-between gap-2">
 			<p class="flex items-baseline gap-2">
@@ -156,14 +156,14 @@
 						>{/each}
 				</span>
 				{#if entry.traditional !== entry.simplified}
-					<span class="text-base text-neutral-400" lang="zh-Hant">{entry.traditional}</span>
+					<span class="text-base text-muted" lang="zh-Hant">{entry.traditional}</span>
 				{/if}
 			</p>
 			<div class="flex shrink-0 items-center gap-1">
 				<button
 					type="button"
 					onclick={() => speak(entry!.simplified, { pinyin: readings[0]?.syllable })}
-					class="rounded p-1 text-neutral-400 transition hover:bg-amber-100 hover:text-neutral-800"
+					class="rounded p-1 text-muted transition hover:brightness-95 hover:text-ink"
 					aria-label="Listen"
 				>
 					<Volume2 size={14} />
@@ -172,9 +172,9 @@
 					<button
 						type="button"
 						onclick={onToggleSave}
-						class="rounded p-1 transition hover:bg-amber-100 {saved
-							? 'text-emerald-600'
-							: 'text-neutral-400 hover:text-neutral-800'}"
+						class="rounded p-1 transition hover:brightness-95 {saved
+							? 'text-mint-ink'
+							: 'text-muted hover:text-ink'}"
 						aria-label={saved ? 'Remove from word list' : 'Add to word list'}
 					>
 						{#if saved}<Check size={14} />{:else}<Plus size={14} />{/if}
@@ -191,41 +191,41 @@
 								? ' '
 								: ''}<span class={colorize ? `tone${p.tone}` : ''}>{p.syl}</span>{/each}
 					</p>
-					<ol class="mt-0.5 grid gap-0.5 text-neutral-700">
+					<ol class="mt-0.5 grid gap-0.5 text-ink">
 						{#each senses(reading.definition) as sense, i (i)}
 							<li class="flex gap-1.5">
-								<span class="text-neutral-400">{i + 1}.</span>
+								<span class="text-muted">{i + 1}.</span>
 								<span>{sense}</span>
 							</li>
 						{/each}
 					</ol>
 				</div>
 			{:else}
-				{#if entry.commonMeaning && entry.commonMeaning !== '#'}<p class="text-neutral-700">{entry.commonMeaning}</p>{/if}
+				{#if entry.commonMeaning && entry.commonMeaning !== '#'}<p class="text-ink">{entry.commonMeaning}</p>{/if}
 			{/each}
 		</div>
 
 		{#if entry.classifiers.length}
-			<p class="mt-2 flex flex-wrap items-baseline gap-1.5 text-xs text-neutral-500">
-				<span class="font-mono uppercase tracking-wide text-neutral-400">measure word</span>
+			<p class="mt-2 flex flex-wrap items-baseline gap-1.5 text-xs text-muted">
+				<span class="text-muted font-semibold">measure word</span>
 				{#each entry.classifiers as cl (cl)}<span lang="zh-Hans">{cl}</span>{/each}
 			</p>
 		{/if}
 
-		<div class="mt-2 flex items-center justify-between border-t border-amber-200/70 pt-2">
-			<span class="text-xs text-neutral-400"
+		<div class="mt-2 flex items-center justify-between border-t border-apricot-soft pt-2">
+			<span class="text-xs text-muted"
 				>{charCount} character{charCount === 1 ? '' : 's'}</span
 			>
 			<button
 				type="button"
 				onclick={onMore}
-				class="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-800"
+				class="flex items-center gap-1 text-xs font-medium text-accent hover:text-sky-ink"
 			>
 				More info <ArrowRight size={12} />
 			</button>
 		</div>
 	{:else if charFallback?.some((c) => c.entry)}
-		<p class="mb-2 text-xs text-neutral-400">
+		<p class="mb-2 text-xs text-muted">
 			"{word}" isn't its own word — here's each character:
 		</p>
 		<div class="grid gap-2">
@@ -236,20 +236,20 @@
 					<button
 						type="button"
 						onclick={() => onOpenWord?.(hit.ch)}
-						class="flex items-baseline gap-2 rounded px-1 py-0.5 text-left transition hover:bg-amber-100"
+						class="flex items-baseline gap-2 rounded px-1 py-0.5 text-left transition hover:brightness-95"
 					>
 						<span class="text-lg font-semibold {colorize ? `tone${hitTone}` : ''}">{hit.ch}</span>
 						{#if hitReadings[0]}<span
-								class="text-xs text-neutral-500 {colorize ? `tone${hitTone}` : ''}"
+								class="text-xs text-muted {colorize ? `tone${hitTone}` : ''}"
 								>{hitReadings[0].pinyinPlain}</span
 							>{/if}
-						<span class="min-w-0 flex-1 truncate text-xs text-neutral-600"
+						<span class="min-w-0 flex-1 truncate text-xs text-muted"
 							>{senses(hitReadings[0]?.definition ?? '')[0] ||
 								(hit.entry.commonMeaning !== '#' ? hit.entry.commonMeaning : '')}</span
 						>
 					</button>
 				{:else}
-					<p class="flex items-baseline gap-2 px-1 text-neutral-400">
+					<p class="flex items-baseline gap-2 px-1 text-muted">
 						<span class="text-lg">{hit.ch}</span>
 						<span class="text-xs">no entry</span>
 					</p>
@@ -257,6 +257,6 @@
 			{/each}
 		</div>
 	{:else}
-		<p class="text-neutral-500">No entry for "{word}"</p>
+		<p class="text-muted">No entry for "{word}"</p>
 	{/if}
 </div>

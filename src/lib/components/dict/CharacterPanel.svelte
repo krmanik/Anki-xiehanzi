@@ -136,8 +136,8 @@
 		}
 	}
 
-	const label = 'font-mono text-[10px] uppercase tracking-[0.15em] text-neutral-400';
-	const panel = 'rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5';
+	const label = 'text-[13px] text-muted font-semibold';
+	const panel = 'rounded-panel border border-line bg-surface p-4 sm:p-5';
 </script>
 
 <div class="grid gap-4 lg:grid-cols-[220px_1fr]">
@@ -147,12 +147,12 @@
 		<div class="text-center">
 			<p class="text-lg font-semibold tone{tone}">{info?.pinyin || '—'}</p>
 			{#if info?.definition}
-				<p class="text-sm text-neutral-600">{info.definition}</p>
+				<p class="text-sm text-muted">{info.definition}</p>
 			{/if}
 			<button
 				type="button"
 				onclick={() => speak(char, { pinyin: info?.pinyin?.split(/[\s/]+/)[0] })}
-				class="mx-auto mt-2 flex items-center gap-1.5 rounded-lg border border-neutral-200 px-2.5 py-1.5 text-[11px] text-neutral-500 transition hover:border-neutral-900 hover:text-neutral-900"
+				class="mx-auto mt-2 flex items-center gap-1.5 rounded-full bg-sunk px-2.5 py-1.5 text-[13px] text-muted transition hover:text-ink font-semibold"
 			>
 				<Volume2 size={13} /> Listen
 			</button>
@@ -166,16 +166,16 @@
 				<div class="flex flex-wrap items-center gap-2">
 					<h3 class={label}>Structure</h3>
 					{#if structure}
-						<span class="rounded-full bg-neutral-100 px-2.5 py-0.5 text-[11px] text-neutral-600">
+						<span class="rounded-full bg-sunk px-2.5 py-0.5 text-xs text-muted">
 							{structure}
 						</span>
 					{/if}
-					<span class="font-mono text-sm text-neutral-500" lang="zh-Hans">
+					<span class="font-mono text-sm text-muted" lang="zh-Hans">
 						{info.decomposition}
 					</span>
 				</div>
 				{#if structureText}
-					<p class="mt-2 text-sm text-neutral-700">{structureText}</p>
+					<p class="mt-2 text-sm text-ink">{structureText}</p>
 				{/if}
 
 				{#if components.length}
@@ -186,18 +186,18 @@
 							<button
 								type="button"
 								onclick={() => onOpenChar?.(part.character)}
-								class="flex items-center gap-3 rounded-xl border border-neutral-200 px-3 py-2 text-left transition hover:border-neutral-900"
+								class="flex items-center gap-3 rounded-card bg-sunk px-3 py-2 text-left transition hover:bg-sky-soft"
 							>
 								<span class="text-3xl leading-none" lang="zh-Hans">{part.character}</span>
 								<span class="min-w-0">
-									<span class="block text-xs text-neutral-500">{part.pinyin}</span>
-									<span class="block max-w-40 truncate text-xs text-neutral-700"
+									<span class="block text-xs text-muted">{part.pinyin}</span>
+									<span class="block max-w-40 truncate text-xs text-ink"
 										>{part.definition}</span
 									>
 									{#if role}
 										<span
-											class="mt-0.5 inline-block rounded-full px-1.5 py-0.5 text-[10px] font-medium
-											{role === 'semantic' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}"
+											class="mt-0.5 inline-block rounded-full px-1.5 py-0.5 text-xs font-medium
+											{role === 'semantic' ? 'bg-mint-soft text-mint-ink' : 'bg-apricot-soft text-apricot-ink'}"
 										>
 											{role === 'semantic' ? 'meaning' : 'sound'}
 										</span>
@@ -216,14 +216,14 @@
 				<div class="flex flex-wrap items-center gap-2">
 					<h3 class={label}>Origin</h3>
 					{#if etymology.t}
-						<span class="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[11px] font-medium text-indigo-700">
+						<span class="rounded-full bg-sky-soft px-2.5 py-0.5 text-xs font-medium text-sky-ink">
 							{etymologyTypeLabel(etymology.t)}
 						</span>
-						<span class="text-xs text-neutral-500">{etymologyTypeBlurb(etymology.t)}</span>
+						<span class="text-xs text-muted">{etymologyTypeBlurb(etymology.t)}</span>
 					{/if}
 				</div>
 				{#if etymology.h}
-					<p class="mt-2 text-sm text-neutral-700">{etymology.h}</p>
+					<p class="mt-2 text-sm text-ink">{etymology.h}</p>
 				{/if}
 				{#if etymology.s || etymology.p}
 					<p class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
@@ -251,13 +251,13 @@
 					<div class="flex items-center gap-3">
 						<h3 class={label}>Radical</h3>
 						<span class="text-3xl leading-none" lang="zh-Hans">{radical.char}</span>
-						<span class="text-sm text-neutral-600">
+						<span class="text-sm text-muted">
 							{radical.pinyin} · {radical.meaning}
 						</span>
 					</div>
 					<a
 						href="{base}/radicals?q={encodeURIComponent(radical.char)}"
-						class="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs text-neutral-500 transition hover:border-neutral-900 hover:text-neutral-900"
+						class="rounded-full bg-sunk px-3 py-1.5 text-[13px] text-muted transition hover:text-ink font-semibold"
 					>
 						Kangxi {radical.number} →
 					</a>
@@ -275,11 +275,11 @@
 							<button
 								type="button"
 								onclick={() => onOpenWord?.(word.simplified)}
-								class="flex w-full items-baseline gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-neutral-50"
+								class="flex w-full items-baseline gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-sunk"
 							>
 								<span class="text-lg" lang="zh-Hans">{word.simplified}</span>
-								<span class="text-xs text-neutral-500">{word.pinyin}</span>
-								<span class="min-w-0 flex-1 truncate text-xs text-neutral-600">{word.meaning}</span>
+								<span class="text-xs text-muted">{word.pinyin}</span>
+								<span class="min-w-0 flex-1 truncate text-xs text-muted">{word.meaning}</span>
 							</button>
 						</li>
 					{/each}
@@ -297,11 +297,11 @@
 							type="button"
 							onclick={() => onOpenChar?.(rel.character)}
 							title={rel.definition}
-							class="flex flex-col items-center rounded-xl border border-neutral-200 px-3 py-2 transition hover:border-neutral-900"
+							class="flex flex-col items-center rounded-card bg-sunk px-3 py-2 transition hover:bg-sky-soft"
 						>
 							<span class="text-2xl leading-none" lang="zh-Hans">{rel.character}</span>
-							<span class="text-[11px] text-neutral-500">{rel.pinyin}</span>
-							<span class="max-w-24 truncate text-[10px] text-neutral-400">{rel.definition}</span>
+							<span class="text-xs text-muted">{rel.pinyin}</span>
+							<span class="max-w-24 truncate text-xs text-muted">{rel.definition}</span>
 						</button>
 					{/each}
 				</div>
@@ -314,7 +314,7 @@
 				<h3 class={label}>In use</h3>
 				<ul class="mt-3 grid gap-3">
 					{#each sentences as sentence, i (i)}
-						<li class="border-l-2 border-neutral-100 pl-3">
+						<li class="border-l-2 border-line pl-3">
 							<button
 								type="button"
 								onclick={() =>
@@ -331,9 +331,9 @@
 							</button>
 							{#if sentence.pinyin}
 								<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-								<p class="text-xs text-neutral-500">{@html colorizePinyinString(sentence.pinyin)}</p>
+								<p class="text-xs text-muted">{@html colorizePinyinString(sentence.pinyin)}</p>
 							{/if}
-							<p class="text-sm text-neutral-600">{sentence.translation}</p>
+							<p class="text-sm text-muted">{sentence.translation}</p>
 						</li>
 					{/each}
 				</ul>
@@ -342,7 +342,7 @@
 						type="button"
 						disabled={loadingSentences}
 						onclick={() => loadSentences(char, sentenceLimit + SENTENCE_STEP, () => false)}
-						class="mt-3 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs text-neutral-500 transition hover:border-neutral-900 hover:text-neutral-900 disabled:opacity-40"
+						class="mt-3 rounded-full bg-sunk px-3 py-1.5 text-[13px] text-muted transition hover:text-ink disabled:opacity-40 font-semibold"
 					>
 						{loadingSentences ? 'Loading…' : 'Load more sentences'}
 					</button>
@@ -351,9 +351,9 @@
 		{/if}
 
 		{#if loading}
-			<p class="text-sm text-neutral-400">Loading {char}…</p>
+			<p class="text-sm text-muted">Loading {char}…</p>
 		{:else if !info}
-			<p class="text-sm text-neutral-400">
+			<p class="text-sm text-muted">
 				No character data for {char} — it may be outside the 9,500-character set.
 			</p>
 		{/if}

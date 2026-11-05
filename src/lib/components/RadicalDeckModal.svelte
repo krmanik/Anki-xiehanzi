@@ -149,15 +149,15 @@
 	onclick={(e) => e.target === e.currentTarget && !busy && onClose()}
 >
 	<div
-		class="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl bg-white p-6 shadow-xl sm:rounded-2xl"
+		class="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl bg-surface p-6 shadow-xl sm:rounded-panel"
 		role="dialog"
 		aria-modal="true"
 		aria-label="Get the radical deck"
 	>
 		<div class="flex items-start justify-between gap-4">
 			<div>
-				<h2 class="text-xl font-bold tracking-tight">The 214 radicals, as a deck</h2>
-				<p class="mt-1 text-sm text-neutral-500">
+				<h2 class="m-0 text-xl font-bold text-ink">The 214 radicals, as a deck</h2>
+				<p class="mt-1 text-sm text-muted">
 					Two editions, one note type each — import either, or both.
 				</p>
 			</div>
@@ -165,48 +165,48 @@
 				onclick={onClose}
 				disabled={busy}
 				aria-label="Close"
-				class="rounded-md p-1.5 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900 disabled:opacity-40"
+				class="rounded-md p-1.5 text-muted transition hover:bg-sunk hover:text-ink disabled:opacity-40"
 			>
 				<X size={18} />
 			</button>
 		</div>
 
 		<!-- Free vs premium, one row per thing that differs. -->
-		<div class="mt-5 overflow-hidden rounded-xl border border-neutral-200">
+		<div class="mt-5 overflow-hidden rounded-card border border-line">
 			<table class="w-full text-sm">
 				<thead>
-					<tr class="border-b border-neutral-200 bg-neutral-50">
-						<th class="px-4 py-2.5 text-left font-medium text-neutral-500"></th>
+					<tr class="border-b border-line bg-sunk">
+						<th class="px-4 py-2.5 text-left font-medium text-muted"></th>
 						<th class="w-24 px-2 py-2.5 text-center font-semibold">Free</th>
-						<th class="w-32 px-2 py-2.5 text-center font-semibold">
+						<th class="w-32 bg-apricot-soft px-2 py-2.5 text-center font-semibold text-apricot-ink">
 							<span class="inline-flex items-center gap-1.5"><Sparkles size={14} /> Premium</span>
 						</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each rows as row (row.label)}
-						<tr class="border-b border-neutral-100 last:border-0">
-							<td class="px-4 py-2 text-neutral-700">{row.label}</td>
+						<tr class="border-b border-line last:border-0">
+							<td class="px-4 py-2 text-ink">{row.label}</td>
 							<td class="px-2 py-2 text-center">
 								{#if row.free}
-									<Check size={15} class="mx-auto text-neutral-900" />
+									<Check size={15} class="mx-auto text-mint-ink" />
 								{:else}
-									<Minus size={15} class="mx-auto text-neutral-300" />
+									<Minus size={15} class="mx-auto text-muted/70" />
 								{/if}
 							</td>
-							<td class="bg-neutral-50 px-2 py-2 text-center">
-								<Check size={15} class="mx-auto text-neutral-900" />
+							<td class="bg-apricot-soft px-2 py-2 text-center">
+								<Check size={15} class="mx-auto text-apricot-ink" />
 							</td>
 						</tr>
 					{/each}
-					<tr class="border-t border-neutral-200">
-						<td class="px-4 py-3 font-mono text-[11px] uppercase tracking-wider text-neutral-400">
+					<tr class="border-t border-line">
+						<td class="px-4 py-3 text-[13px] text-muted font-semibold">
 							{premiumCards} cards either way
 						</td>
-						<td class="px-2 py-3 text-center text-xs text-neutral-500">Built here</td>
-						<td class="bg-neutral-50 px-2 py-3 text-center">
+						<td class="px-2 py-3 text-center text-xs text-muted">Built here</td>
+						<td class="bg-apricot-soft px-2 py-3 text-center">
 							<a
-								class="inline-flex items-center gap-1.5 text-xs font-medium underline"
+								class="inline-flex items-center gap-1.5 text-xs font-semibold text-apricot-ink underline"
 								href={premiumUrl}
 								target="_blank"
 								rel="noopener noreferrer"
@@ -221,42 +221,40 @@
 
 		<!-- The free build. -->
 		<div class="mt-6 flex flex-wrap items-baseline justify-between gap-2">
-			<h3 class="font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">
+			<h3 class="text-[13px] text-muted font-semibold">
 				Your free deck
 			</h3>
 			<button
 				type="button"
 				onclick={() => (showOptions = !showOptions)}
-				class="inline-flex items-center gap-1.5 text-xs text-neutral-500 underline transition hover:text-neutral-900"
+				class="inline-flex items-center gap-1.5 text-xs text-muted underline transition hover:text-ink"
 			>
 				<Settings2 size={13} />
 				{showOptions ? 'Hide options' : 'Options'}
 			</button>
 		</div>
 
-		<p class="mt-1.5 text-sm text-neutral-500">
+		<p class="mt-1.5 text-sm text-muted">
 			{cards.length === 2 ? 'Recognition and writing cards' : cards.length ? `${cards[0] === 'recognize' ? 'Recognition' : 'Writing'} card only` : 'No cards picked'},
 			{audio ? 'with audio' : 'silent'}, built in your browser — {estimate}. Nothing is uploaded.
 		</p>
 
 		{#if showOptions}
-			<div class="mt-4 rounded-xl border border-neutral-200 p-4">
-				<h4 class="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Cards</h4>
+			<div class="mt-4 rounded-card border border-line p-4">
+				<h4 class="text-[13px] text-muted font-semibold">Cards</h4>
 				<div class="mt-2 grid gap-2 sm:grid-cols-2">
 					{#each RADICAL_CARD_TYPES as card (card.value)}
 						<button
 							type="button"
 							onclick={() => toggleCard(card.value)}
 							aria-pressed={cards.includes(card.value)}
-							class="rounded-lg border p-3 text-left transition {cards.includes(card.value)
-								? 'border-neutral-900 bg-neutral-900 text-white'
-								: 'border-neutral-200 hover:border-neutral-900'}"
+							class="rounded-card p-3 text-left transition {cards.includes(card.value)
+								? 'bg-sky-soft text-sky-ink ring-2 ring-sky ring-inset'
+								: 'bg-sunk text-ink hover:brightness-95'}"
 						>
 							<div class="text-sm font-semibold">{card.name}</div>
 							<div
-								class="mt-0.5 text-[11px] leading-snug {cards.includes(card.value)
-									? 'text-neutral-300'
-									: 'text-neutral-500'}"
+								class="mt-0.5 text-xs leading-snug text-muted"
 							>
 								{card.value === 'recognize'
 									? 'See the radical, recall its meaning and reading.'
@@ -266,59 +264,59 @@
 					{/each}
 				</div>
 				{#if !cards.length}
-					<p class="mt-2 text-xs text-red-600">Pick at least one card.</p>
+					<p class="mt-2 text-xs text-rose-ink">Pick at least one card.</p>
 				{/if}
 
-				<h4 class="mt-5 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">
+				<h4 class="mt-5 text-[13px] text-muted font-semibold">
 					On the back
 				</h4>
 				<div class="mt-2 grid gap-2 sm:grid-cols-2">
-					<label class="flex items-center gap-2 text-sm text-neutral-700">
-						<input type="checkbox" bind:checked={audio} class="h-4 w-4 accent-neutral-900" />
+					<label class="flex items-center gap-2 text-sm text-ink">
+						<input type="checkbox" bind:checked={audio} class="h-4 w-4 accent-sky-ink" />
 						Pronunciation audio
 					</label>
-					<label class="flex items-center gap-2 text-sm text-neutral-700">
-						<input type="checkbox" bind:checked={strokeOrder} class="h-4 w-4 accent-neutral-900" />
+					<label class="flex items-center gap-2 text-sm text-ink">
+						<input type="checkbox" bind:checked={strokeOrder} class="h-4 w-4 accent-sky-ink" />
 						Stroke order
 					</label>
-					<label class="flex items-center gap-2 text-sm text-neutral-700">
-						<input type="checkbox" bind:checked={readings} class="h-4 w-4 accent-neutral-900" />
+					<label class="flex items-center gap-2 text-sm text-ink">
+						<input type="checkbox" bind:checked={readings} class="h-4 w-4 accent-sky-ink" />
 						East Asian readings
 					</label>
-					<label class="flex items-center gap-2 text-sm text-neutral-700">
-						<input type="checkbox" bind:checked={colloquial} class="h-4 w-4 accent-neutral-900" />
+					<label class="flex items-center gap-2 text-sm text-ink">
+						<input type="checkbox" bind:checked={colloquial} class="h-4 w-4 accent-sky-ink" />
 						Teaching name (月字旁)
 					</label>
-					<label class="flex items-center gap-2 text-sm text-neutral-700">
-						<input type="checkbox" bind:checked={examples} class="h-4 w-4 accent-neutral-900" />
+					<label class="flex items-center gap-2 text-sm text-ink">
+						<input type="checkbox" bind:checked={examples} class="h-4 w-4 accent-sky-ink" />
 						Characters built with it
 					</label>
-					<label class="flex items-center gap-2 text-sm text-neutral-700">
-						<input type="checkbox" bind:checked={toneColors} class="h-4 w-4 accent-neutral-900" />
+					<label class="flex items-center gap-2 text-sm text-ink">
+						<input type="checkbox" bind:checked={toneColors} class="h-4 w-4 accent-sky-ink" />
 						Tone-coloured pinyin
 					</label>
 				</div>
 
 				{#if filtered}
-					<h4 class="mt-5 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">
+					<h4 class="mt-5 text-[13px] text-muted font-semibold">
 						Which radicals
 					</h4>
 					<div class="mt-2 space-y-2">
-						<label class="flex items-center gap-2 text-sm text-neutral-700">
+						<label class="flex items-center gap-2 text-sm text-ink">
 							<input
 								type="radio"
 								bind:group={wholeTable}
 								value={true}
-								class="h-4 w-4 accent-neutral-900"
+								class="h-4 w-4 accent-sky-ink"
 							/>
 							All {radicals.length}
 						</label>
-						<label class="flex items-center gap-2 text-sm text-neutral-700">
+						<label class="flex items-center gap-2 text-sm text-ink">
 							<input
 								type="radio"
 								bind:group={wholeTable}
 								value={false}
-								class="h-4 w-4 accent-neutral-900"
+								class="h-4 w-4 accent-sky-ink"
 							/>
 							Just the {visible.length} on screen
 						</label>
@@ -329,11 +327,11 @@
 
 		{#if status}
 			<div class="mt-4">
-				<p class="text-sm text-neutral-500">{status}</p>
+				<p class="text-sm text-muted">{status}</p>
 				{#if busy}
-					<div class="mt-1.5 h-1 overflow-hidden rounded-full bg-neutral-100">
+					<div class="mt-1.5 h-1 overflow-hidden rounded-full bg-sunk">
 						<div
-							class="h-full rounded-full bg-neutral-900 transition-all"
+							class="h-full rounded-full bg-accent transition-all"
 							style="width:{progress}%"
 						></div>
 					</div>

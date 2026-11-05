@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { IconDot, PageHeader } from '$lib/ui';
+	import GaugeIcon from '@lucide/svelte/icons/gauge';
 	/**
 	 * HSK coverage analyzer: segment pasted text, classify each unique word
 	 * against an HSK standard, and show what fraction of the text each level
@@ -81,28 +83,24 @@
 	<title>HSK coverage analyzer · Anki xiehanzi</title>
 </svelte:head>
 
-<div class="mx-auto max-w-3xl px-5 py-10">
-	<header class="mb-6">
-		<h1 class="text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
-			HSK coverage analyzer
-		</h1>
-		<p class="mt-2 max-w-2xl text-neutral-600">
-			Paste a paragraph to see how much of it falls inside an HSK list, level by level, and
-			what falls outside it.
-		</p>
-	</header>
+<div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+	<PageHeader title="HSK coverage" subtitle="How much of a text sits inside each HSK level.">
+		{#snippet lead()}
+			<IconDot hue="mint" size="lg" shape="tile"><GaugeIcon /></IconDot>
+		{/snippet}
+	</PageHeader>
 
 	<textarea
 		bind:value={text}
 		rows={6}
 		placeholder="粘贴一段中文…"
 		lang="zh-Hans"
-		class="w-full rounded-xl border border-neutral-200 p-3 text-base text-neutral-900 outline-none placeholder:text-neutral-300 focus:border-neutral-900"
+		class="w-full rounded-card border-0 bg-sunk p-3 text-base text-ink outline-none placeholder:text-muted/70 focus:ring-3 focus:ring-sky"
 	></textarea>
 
 	<div class="mt-3 flex flex-wrap items-center gap-3">
 		{#if index}
-			<select bind:value={listId} class="rounded-md border border-neutral-200 px-2 py-1.5 text-sm">
+			<select bind:value={listId} class="min-h-10 rounded-card border-0 bg-surface py-1.5 pr-9 pl-3 text-sm text-ink ring-1 ring-line ring-inset focus:ring-3 focus:ring-sky">
 				{#each index.lists as list (list.id)}
 					<option value={list.id}>{list.name}</option>
 				{/each}
@@ -111,12 +109,12 @@
 		<button type="button" onclick={analyze} disabled={analyzing || !text.trim()} class={btnPrimary}>
 			{analyzing ? 'Analyzing…' : 'Analyze'}
 		</button>
-		{#if error}<p class="text-sm text-red-600">{error}</p>{/if}
+		{#if error}<p class="text-sm text-rose-ink">{error}</p>{/if}
 	</div>
 
 	{#if result}
 		<div class="mt-8">
-			<p class="text-sm text-neutral-600">
+			<p class="text-sm text-muted">
 				<strong>{knownCount}</strong> of <strong>{result.total}</strong> unique words are in
 				{listName}
 				({result.total ? Math.round((knownCount / result.total) * 100) : 0}%).
@@ -125,13 +123,13 @@
 			<div class="mt-4 space-y-2">
 				{#each result.byLevel as row (row.level)}
 					<div class="flex items-center gap-3">
-						<span class="w-20 shrink-0 font-mono text-xs uppercase tracking-wider text-neutral-500">
+						<span class="w-20 shrink-0 text-[13px] text-muted font-semibold">
 							{levelLabel(row.level)}
 						</span>
-						<div class="h-2 flex-1 overflow-hidden rounded-full bg-neutral-100">
-							<div class="h-full rounded-full bg-neutral-900" style="width:{row.percent}%"></div>
+						<div class="h-2 flex-1 overflow-hidden rounded-full bg-sunk">
+							<div class="h-full rounded-full bg-accent" style="width:{row.percent}%"></div>
 						</div>
-						<span class="w-16 shrink-0 text-right text-xs text-neutral-500">
+						<span class="w-16 shrink-0 text-right text-xs text-muted">
 							{row.count} · {Math.round(row.percent)}%
 						</span>
 					</div>
@@ -141,7 +139,7 @@
 			{#if result.unknown.length}
 				<div class="mt-8">
 					<div class="flex items-center justify-between gap-3">
-						<h2 class="font-mono text-xs uppercase tracking-wider text-neutral-400">
+						<h2 class="text-[13px] text-muted font-semibold">
 							Beyond {listName} ({result.unknown.length})
 						</h2>
 						<button type="button" onclick={sendUnknown} class={btnPrimary}>
@@ -153,7 +151,7 @@
 							<button
 								type="button"
 								onclick={(e) => openWord(word, (e.currentTarget as HTMLElement).getBoundingClientRect())}
-								class="rounded-md border border-neutral-200 px-2.5 py-1 text-lg transition hover:border-neutral-900"
+								class="rounded-md border border-line px-2.5 py-1 text-lg transition hover:border-sky"
 							>
 								{word}
 							</button>

@@ -120,19 +120,19 @@
 		}
 	}
 
-	const label = 'font-mono text-[10px] uppercase tracking-[0.15em] text-neutral-400';
-	const chip = 'rounded-full border border-neutral-200 px-2.5 py-0.5 text-[11px] text-neutral-500';
-	const panel = 'rounded-2xl border border-neutral-200 bg-white p-4 sm:p-5';
+	const label = 'text-[13px] text-muted font-semibold';
+	const chip = 'rounded-full bg-sunk px-2.5 py-0.5 text-xs text-muted font-semibold';
+	const panel = 'rounded-panel border border-line bg-surface p-4 sm:p-5';
 </script>
 
 {#if loading}
-	<p class="text-sm text-neutral-400">Looking up {word}…</p>
+	<p class="text-sm text-muted">Looking up {word}…</p>
 {:else if !entry}
-	<p class="text-sm text-neutral-500">Nothing found for “{word}”.</p>
+	<p class="text-sm text-muted">Nothing found for “{word}”.</p>
 {:else}
 	<article class="grid gap-4">
 		<!-- Header: the word, its readings, what it is -->
-		<header class="rounded-2xl border border-neutral-900 bg-white p-5 sm:p-6">
+		<header class="rounded-panel border border-line bg-surface p-5 sm:p-6">
 			<div class="flex flex-wrap items-start justify-between gap-4">
 				<div>
 					<div class="flex flex-wrap items-baseline gap-1" lang="zh-Hans">
@@ -140,7 +140,7 @@
 							<button
 								type="button"
 								onclick={() => (openChar = openChar === ch ? null : ch)}
-								class="rounded-lg px-1 text-6xl leading-none transition hover:bg-neutral-100 tone{tones[
+								class="rounded-lg px-1 text-6xl leading-none transition hover:bg-sunk tone{tones[
 									i
 								] ?? 5}"
 								title="Show {ch} in full"
@@ -150,7 +150,7 @@
 						{/each}
 					</div>
 					{#if entry.commonMeaning && entry.commonMeaning !== '#'}
-						<p class="mt-1.5 text-[15px] text-neutral-500">{entry.commonMeaning}</p>
+						<p class="mt-1.5 text-[15px] text-muted">{entry.commonMeaning}</p>
 					{/if}
 					{#if entry.traditional !== entry.simplified}
 						<p class="mt-2 flex items-baseline gap-2">
@@ -164,13 +164,13 @@
 					<button
 						type="button"
 						onclick={() => speak(entry!.simplified, { pinyin: readings[0]?.syllable })}
-						class="flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs text-neutral-500 transition hover:border-neutral-900 hover:text-neutral-900"
+						class="flex items-center gap-1.5 rounded-full bg-sunk px-3 py-1.5 text-[13px] text-muted transition hover:text-ink font-semibold"
 					>
 						<Volume2 size={14} /> Listen
 					</button>
 					<div class="flex flex-wrap justify-end gap-1.5">
 						{#each levels as lvl (lvl)}
-							<span class="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[11px] font-medium text-indigo-700">
+							<span class="rounded-full bg-sky-soft px-2.5 py-0.5 text-xs font-medium text-sky-ink">
 								{lvl}
 							</span>
 						{/each}
@@ -185,14 +185,14 @@
 			<!-- Readings: one block per pronunciation, its senses under it -->
 			<div class="mt-5 grid gap-4">
 				{#each readings as reading (reading.syllable)}
-					<div class="border-t border-neutral-100 pt-3 first:border-0 first:pt-0">
+					<div class="border-t border-line pt-3 first:border-0 first:pt-0">
 						<p class="flex flex-wrap items-baseline gap-3">
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							<span class="text-2xl font-semibold"
 								>{@html colorizePinyinString(reading.pinyinPlain)}</span
 							>
 							{#if reading.zhuyin}
-								<span class="text-sm text-neutral-400">{plainZhuyin(reading.zhuyin)}</span>
+								<span class="text-sm text-muted">{plainZhuyin(reading.zhuyin)}</span>
 							{/if}
 							<!-- This reading, not the word's most common one: the sprite can say
 							     either, so the button beside fèn must not play fēn. -->
@@ -204,15 +204,15 @@
 										skipRecording: reading.syllable !== readings[0]?.syllable
 									})}
 								aria-label="Play {reading.pinyinPlain}"
-								class="text-neutral-300 transition hover:text-neutral-900"
+								class="text-muted/70 transition hover:text-ink"
 							>
 								<Volume2 size={14} />
 							</button>
 						</p>
-						<ol class="mt-1.5 grid gap-1 text-[15px] text-neutral-700">
+						<ol class="mt-1.5 grid gap-1 text-[15px] text-ink">
 							{#each senses(reading.definition) as sense, i (i)}
 								<li class="flex gap-2">
-									<span class="font-mono text-[11px] leading-6 text-neutral-300">{i + 1}</span>
+									<span class="font-mono text-xs leading-6 text-muted/70">{i + 1}</span>
 									<span>{sense}</span>
 								</li>
 							{/each}
@@ -241,19 +241,19 @@
 						<button
 							type="button"
 							onclick={() => (openChar = openChar === ch.character ? null : ch.character)}
-							class="flex items-center gap-3 rounded-xl border px-3 py-2 text-left transition
+							class="flex items-center gap-3 rounded-card border px-3 py-2 text-left transition
 							{openChar === ch.character
-								? 'border-neutral-900 bg-neutral-50'
-								: 'border-neutral-200 hover:border-neutral-900'}"
+								? 'border-transparent bg-sky-soft'
+								: 'border-line hover:border-sky'}"
 						>
 							<span class="text-3xl leading-none" lang="zh-Hans">{ch.character}</span>
 							<span class="min-w-0">
-								<span class="block text-xs text-neutral-500">{ch.pinyin}</span>
-								<span class="block max-w-44 truncate text-xs text-neutral-700">{ch.definition}</span>
+								<span class="block text-xs text-muted">{ch.pinyin}</span>
+								<span class="block max-w-44 truncate text-xs text-ink">{ch.definition}</span>
 							</span>
 							<ChevronDown
 								size={14}
-								class="shrink-0 text-neutral-300 {openChar === ch.character ? 'rotate-180' : ''}"
+								class="shrink-0 text-muted/70 {openChar === ch.character ? 'rotate-180' : ''}"
 							/>
 						</button>
 					{/each}
@@ -264,7 +264,7 @@
 		<!-- The expanded character -->
 		{#if openChar}
 			{#key openChar}
-				<section class="rounded-2xl border border-neutral-200 bg-neutral-50/60 p-4 sm:p-5">
+				<section class="rounded-panel border border-line bg-sunk p-4 sm:p-5">
 					<div class="mb-4 flex items-baseline gap-3">
 						<h2 class={label}>Character</h2>
 						<span class="text-xl" lang="zh-Hans">{openChar}</span>
@@ -285,8 +285,8 @@
 				<h2 class={label}>Example sentences</h2>
 				<ul class="mt-3 grid gap-3">
 					{#each sentences as sentence, i (i)}
-						<li class="flex gap-3 border-l-2 border-neutral-100 pl-3">
-							<span class="font-mono text-[11px] leading-7 text-neutral-300">{i + 1}</span>
+						<li class="flex gap-3 border-l-2 border-line pl-3">
+							<span class="font-mono text-xs leading-7 text-muted/70">{i + 1}</span>
 							<div class="min-w-0">
 								<button
 									type="button"
@@ -304,11 +304,11 @@
 								</button>
 								{#if sentence.pinyin}
 									<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-									<p class="text-xs text-neutral-500">
+									<p class="text-xs text-muted">
 										{@html colorizePinyinString(sentence.pinyin)}
 									</p>
 								{/if}
-								<p class="text-sm text-neutral-600">{sentence.translation}</p>
+								<p class="text-sm text-muted">{sentence.translation}</p>
 							</div>
 						</li>
 					{/each}
@@ -318,7 +318,7 @@
 						type="button"
 						disabled={loadingSentences}
 						onclick={() => showSentences(word, sentenceLimit + SENTENCE_STEP, () => false)}
-						class="mt-3 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs text-neutral-500 transition hover:border-neutral-900 hover:text-neutral-900 disabled:opacity-40"
+						class="mt-3 rounded-full bg-sunk px-3 py-1.5 text-[13px] text-muted transition hover:text-ink disabled:opacity-40 font-semibold"
 					>
 						{loadingSentences ? 'Loading…' : 'Load more sentences'}
 					</button>
@@ -336,11 +336,11 @@
 							<button
 								type="button"
 								onclick={() => onOpenWord?.(c.simplified)}
-								class="flex w-full items-baseline gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-neutral-50"
+								class="flex w-full items-baseline gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-sunk"
 							>
 								<span class="text-lg" lang="zh-Hans">{c.simplified}</span>
-								<span class="text-xs text-neutral-500">{c.pinyin}</span>
-								<span class="min-w-0 flex-1 truncate text-xs text-neutral-600">{c.meaning}</span>
+								<span class="text-xs text-muted">{c.pinyin}</span>
+								<span class="min-w-0 flex-1 truncate text-xs text-muted">{c.meaning}</span>
 							</button>
 						</li>
 					{/each}

@@ -50,25 +50,25 @@
 		bind:value
 		rows={8}
 		placeholder="One word or character per line — or paste a list"
-		class="w-full rounded-xl border border-neutral-200 p-3 font-mono text-sm text-neutral-900 outline-none placeholder:text-neutral-300 focus:border-neutral-900"
+		class="w-full rounded-card border-0 bg-sunk p-3 text-[15px] text-ink outline-none placeholder:text-muted/70 focus:ring-3 focus:ring-sky"
 		lang="zh-Hans"
 	></textarea>
 
 	{#if index}
-		<div class="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-neutral-100 bg-neutral-50 p-3">
-			<span class="font-mono text-xs font-medium uppercase tracking-wider text-neutral-500">
+		<div class="mt-4 flex flex-wrap items-center gap-3 rounded-lg border border-line bg-sunk p-3">
+			<span class="text-[13px] font-medium text-muted">
 				Or fill from
 			</span>
 			<select
 				bind:value={listId}
 				onchange={() => (level = levels[0]?.level ?? '')}
-				class="rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-sm"
+				class="min-h-10 rounded-card border-0 bg-surface py-1.5 pr-9 pl-3 text-sm text-ink ring-1 ring-line ring-inset focus:ring-3 focus:ring-sky"
 			>
 				{#each index.lists as list (list.id)}
 					<option value={list.id}>{list.name}</option>
 				{/each}
 			</select>
-			<select bind:value={level} class="rounded-md border border-neutral-200 bg-white px-3 py-1.5 text-sm">
+			<select bind:value={level} class="min-h-10 rounded-card border-0 bg-surface py-1.5 pr-9 pl-3 text-sm text-ink ring-1 ring-line ring-inset focus:ring-3 focus:ring-sky">
 				{#each levels as l (l.level)}
 					<option value={l.level}>{levelLabel(l.level)} · {l.count}</option>
 				{/each}
@@ -79,5 +79,5 @@
 		</div>
 	{/if}
 
-	{#if error}<p class="mt-2 text-xs text-red-600">{error}</p>{/if}
+	{#if error}<p class="mt-2 text-xs text-rose-ink">{error}</p>{/if}
 </div>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { IconDot, PageHeader } from '$lib/ui';
+	import GalleryVerticalEndIcon from '@lucide/svelte/icons/gallery-vertical-end';
 	/** Two-sided printable flashcard PDF — full control over what's on each
 	 * side, a template gallery of starting points (every option stays
 	 * editable after picking one, same convention as /tools/worksheets),
@@ -36,8 +38,8 @@
 	let wordsText = $state('');
 	const words = $derived(wordsText.split(/\s+/).filter(Boolean));
 
-	const fieldLabel = 'text-sm text-neutral-600';
-	const fieldInput = 'mt-1 w-full rounded-md border border-neutral-200 px-2 py-1.5 text-sm';
+	const fieldLabel = 'text-sm text-muted';
+	const fieldInput = 'mt-1 w-full min-h-10 rounded-card border-0 bg-sunk px-3 text-sm text-ink focus:ring-3 focus:ring-sky';
 
 	let front = $state<FlashcardFieldId[]>(['hanzi-simplified']);
 	let back = $state<FlashcardFieldId[]>(['pinyin', 'meaning']);
@@ -233,48 +235,46 @@
 	<title>Printable flashcards · Anki xiehanzi</title>
 </svelte:head>
 
-<div class="mx-auto max-w-6xl px-4 py-8 sm:px-5 sm:py-10">
-	<header class="mb-6">
-		<h1 class="text-2xl font-bold tracking-tight text-neutral-900 sm:text-4xl">Printable flashcards</h1>
-		<p class="mt-2 max-w-2xl text-sm text-neutral-600 sm:text-base">
-			A two-sided flashcard PDF, laid out so a long-edge duplex print lines every card's back up
-			under its front. Pick what's on each side, a card style and how many fit on a sheet.
-		</p>
-	</header>
+<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+	<PageHeader title="Printable flashcards" subtitle="Two-sided cards that line up on a duplex print.">
+		{#snippet lead()}
+			<IconDot hue="rose" size="lg" shape="tile"><GalleryVerticalEndIcon /></IconDot>
+		{/snippet}
+	</PageHeader>
 
 	<ToolWordInput bind:value={wordsText} />
 
 	<div class="mt-6">
-		<h2 class="mb-2 text-xs font-semibold tracking-wider text-neutral-400 uppercase">Templates</h2>
+		<h2 class="mb-2 text-[13px] font-semibold text-muted">Templates</h2>
 		<div class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
 			{#each TEMPLATES as t (t.id)}
 				<button
 					type="button"
 					onclick={() => pickTemplate(t)}
 					class="rounded-lg border p-3 text-left transition {activeTemplate === t.id
-						? 'border-neutral-900 bg-neutral-50'
-						: 'border-neutral-200 hover:border-neutral-400'}"
+						? 'border-transparent bg-sky-soft'
+						: 'border-line hover:border-muted'}"
 				>
-					<span class="block text-sm font-medium text-neutral-900">{t.name}</span>
-					<span class="mt-0.5 block text-xs text-neutral-500">{t.description}</span>
+					<span class="block text-sm font-medium text-ink">{t.name}</span>
+					<span class="mt-0.5 block text-xs text-muted">{t.description}</span>
 				</button>
 			{/each}
 		</div>
-		<p class="mt-2 text-xs text-neutral-400">
+		<p class="mt-2 text-xs text-muted">
 			A template just fills in a starting point — every option below stays yours to change.
 		</p>
 	</div>
 
 	<div class="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
 		<div class="min-w-0 space-y-5">
-			<section class="rounded-xl border border-neutral-200 p-4">
-				<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">Card content</h2>
+			<section class="rounded-card border border-line p-4">
+				<h2 class="mb-3 text-[13px] font-semibold text-muted">Card content</h2>
 				<div class="grid gap-4 sm:grid-cols-2">
 					<div>
-						<p class="mb-2 text-sm font-medium text-neutral-800">Front</p>
+						<p class="mb-2 text-sm font-medium text-ink">Front</p>
 						<div class="space-y-1.5">
 							{#each FLASHCARD_FIELDS as f (f.id)}
-								<label class="flex items-center gap-2 text-sm text-neutral-600">
+								<label class="flex items-center gap-2 text-sm text-muted">
 									<input
 										type="checkbox"
 										checked={front.includes(f.id)}
@@ -286,10 +286,10 @@
 						</div>
 					</div>
 					<div>
-						<p class="mb-2 text-sm font-medium text-neutral-800">Back</p>
+						<p class="mb-2 text-sm font-medium text-ink">Back</p>
 						<div class="space-y-1.5">
 							{#each FLASHCARD_FIELDS as f (f.id)}
-								<label class="flex items-center gap-2 text-sm text-neutral-600">
+								<label class="flex items-center gap-2 text-sm text-muted">
 									<input
 										type="checkbox"
 										checked={back.includes(f.id)}
@@ -309,26 +309,26 @@
 				{/if}
 			</section>
 
-			<section class="rounded-xl border border-neutral-200 p-4">
-				<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">Card style</h2>
+			<section class="rounded-card border border-line p-4">
+				<h2 class="mb-3 text-[13px] font-semibold text-muted">Card style</h2>
 				<div class="grid grid-cols-3 gap-2">
 					{#each CARD_STYLES as s (s.id)}
 						<button
 							type="button"
 							onclick={() => (cardStyle = s.id)}
 							class="rounded-lg border p-3 text-left transition {cardStyle === s.id
-								? 'border-neutral-900 bg-neutral-50'
-								: 'border-neutral-200 hover:border-neutral-400'}"
+								? 'border-transparent bg-sky-soft'
+								: 'border-line hover:border-muted'}"
 						>
-							<span class="block text-sm font-medium text-neutral-900">{s.label}</span>
-							<span class="mt-0.5 block text-xs text-neutral-500">{s.description}</span>
+							<span class="block text-sm font-medium text-ink">{s.label}</span>
+							<span class="mt-0.5 block text-xs text-muted">{s.description}</span>
 						</button>
 					{/each}
 				</div>
 			</section>
 
-			<section class="rounded-xl border border-neutral-200 p-4">
-				<h2 class="mb-3 text-xs font-semibold tracking-wider text-neutral-400 uppercase">Sheet layout</h2>
+			<section class="rounded-card border border-line p-4">
+				<h2 class="mb-3 text-[13px] font-semibold text-muted">Sheet layout</h2>
 				<div class="grid grid-cols-2 gap-4 sm:w-1/2">
 					<label class={fieldLabel}>
 						Columns
@@ -362,9 +362,9 @@
 				</button>
 			</div>
 
-			{#if error}<p class="text-sm text-red-600">{error}</p>{/if}
+			{#if error}<p class="text-sm text-rose-ink">{error}</p>{/if}
 			{#if unsupported.length}
-				<p class="text-sm text-amber-700">
+				<p class="text-sm text-apricot-ink">
 					{unsupported.length} character{unsupported.length === 1 ? '' : 's'} have no stroke data and
 					print blank: <span lang="zh-Hans">{unsupported.join(' ')}</span>
 				</p>
@@ -373,28 +373,28 @@
 
 		<aside class="lg:sticky lg:top-20 lg:self-start">
 			<div class="mb-2 flex items-center justify-between gap-2">
-				<div class="flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-neutral-400">
+				<div class="flex items-center gap-1.5 text-[13px] text-muted font-semibold">
 					<Eye size={13} /> Preview
 				</div>
-				<div class="flex rounded-md border border-neutral-200 text-xs">
+				<div class="flex rounded-md border border-line text-xs">
 					<button
 						type="button"
 						onclick={() => (previewSide = 'front')}
-						class="px-2 py-1 {previewSide === 'front' ? 'bg-neutral-900 text-white' : 'text-neutral-600'}"
+						class="px-2 py-1 {previewSide === 'front' ? 'bg-accent text-white' : 'text-muted'}"
 					>
 						Front
 					</button>
 					<button
 						type="button"
 						onclick={() => (previewSide = 'back')}
-						class="px-2 py-1 {previewSide === 'back' ? 'bg-neutral-900 text-white' : 'text-neutral-600'}"
+						class="px-2 py-1 {previewSide === 'back' ? 'bg-accent text-white' : 'text-muted'}"
 					>
 						Back
 					</button>
 				</div>
 			</div>
 			<div
-				class="relative overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50"
+				class="relative overflow-hidden rounded-card border border-line bg-sunk"
 				style="aspect-ratio: 210/297;"
 			>
 				<canvas
@@ -406,16 +406,16 @@
 				{#if !previewReady}
 					<div class="absolute inset-0 flex items-center justify-center p-4 text-center text-sm">
 						{#if previewLoading}
-							<span class="text-neutral-400">Rendering…</span>
+							<span class="text-muted">Rendering…</span>
 						{:else if previewError}
-							<span class="text-red-500">{previewError}</span>
+							<span class="text-rose-ink">{previewError}</span>
 						{:else}
-							<span class="text-neutral-400">Type a word or character to see a preview.</span>
+							<span class="text-muted">Type a word or character to see a preview.</span>
 						{/if}
 					</div>
 				{/if}
 			</div>
-			<p class="mt-2 text-xs text-neutral-400">Live preview of the real file — first sheet, at full size.</p>
+			<p class="mt-2 text-xs text-muted">Live preview of the real file — first sheet, at full size.</p>
 		</aside>
 	</div>
 </div>

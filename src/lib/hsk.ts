@@ -224,3 +224,16 @@ export function listMeaning(raw: string): string {
 		.replace(/^[;\s,]+|[;\s,]+$/g, '')
 		.trim();
 }
+
+/**
+ * The one line a word row prints. Candidates in order; a gloss wrapped in
+ * quotes is unwrapped, and cedict's placeholder `#` (了, 龙 …) is skipped for
+ * the next candidate instead of being shown as the meaning.
+ */
+export function rowMeaning(candidates: (string | null | undefined)[]): string {
+	for (const raw of candidates) {
+		const text = listMeaning((raw ?? '').trim().replace(/^"(.*)"$/s, '$1'));
+		if (text && !/^[#\s;|│]+$/.test(text)) return text;
+	}
+	return '';
+}

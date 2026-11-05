@@ -8,6 +8,7 @@ import {
 	hanziTones,
 	levelLabel,
 	listMeaning,
+	rowMeaning,
 	pinyinTones,
 	sortEntries,
 	stripTones,
@@ -191,5 +192,20 @@ describe('listMeaning', () => {
 
 	it('leaves brackets that are not pinyin alone', () => {
 		expect(listMeaning('to know [formal]')).toBe('to know [formal]');
+	});
+});
+
+describe('rowMeaning', () => {
+	it('skips the cedict placeholder for the next candidate', () => {
+		expect(rowMeaning(['#', '#', '(completed action marker)'])).toBe('(completed action marker)');
+	});
+	it('unwraps a quoted gloss', () => {
+		expect(rowMeaning(['"of; structural particle"'])).toBe('of; structural particle');
+	});
+	it('cleans cedict notation', () => {
+		expect(rowMeaning([undefined, 'book; CL:本[ben3]'])).toBe('book');
+	});
+	it('is empty when nothing is usable', () => {
+		expect(rowMeaning(['', '#', null])).toBe('');
 	});
 });

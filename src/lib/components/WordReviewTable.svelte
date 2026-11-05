@@ -1,6 +1,7 @@
 <!--
   The words in the deck: one row each, paged, with a bulk delete once rows are
-  ticked. Export lives on its own step now; this is only the list.
+  ticked. The rows scroll inside their own box; the pager is bound out so the
+  page can pin it to the bottom bar beside Next.
 -->
 <script lang="ts">
 	import WordCard from '$lib/components/WordCard.svelte';
@@ -11,21 +12,21 @@
 
 	let {
 		words = $bindable(),
+		page = $bindable(1),
+		pageSize = $bindable(25),
 		template,
 		palette,
 		hskWordsDict
 	}: {
 		words: Word[];
+		page?: number;
+		pageSize?: number;
 		template: TemplateOpts;
 		palette: TonePalette;
 		hskWordsDict: Set<string>;
 	} = $props();
 
-	const PAGE_SIZES = [10, 25, 50, 100, 500];
-
 	let selected = $state<Set<Word>>(new Set());
-	let currentPage = $state(1);
-	let rowsPerPage = $state(25);
 
 	function toggleRow(word: Word) {
 		const next = new Set(selected);
@@ -48,15 +49,15 @@
 		}
 	}
 
-	let totalPages = $derived(Math.max(1, Math.ceil(words.length / rowsPerPage)));
-	// Deleting the last rows of the last page would leave an empty page behind.
-	$effect(() => {
-		if (currentPage > totalPages) currentPage = totalPages;
-	});
-	let pagedWords = $derived(words.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage));
+	let pagedWords = $derived(words.slice((page - 1) * pageSize, page * pageSize));
 
-	const pager =
-		'grid size-9 place-items-center rounded-full border-0 bg-sunk text-ink hover:bg-line disabled:opacity-40';
+	// A new page starts at its first row, not wherever the last one was scrolled to.
+	let box = $state<HTMLDivElement>();
+	$effect(() => {
+		void page;
+		void pageSize;
+		box?.scrollTo?.({ top: 0 });
+	});
 </script>
 
 {#if words.length === 0}
@@ -79,7 +80,10 @@
 		{/if}
 	</div>
 
-	<div class="grid gap-2">
+	<div
+		bind:this={box}
+		class="-mx-1 grid max-h-[max(18rem,calc(100dvh-16rem))] grid-cols-1 gap-2 overflow-y-auto overscroll-contain px-1 py-0.5"
+	>
 		{#each pagedWords as word (word)}
 			<WordCard
 				{word}
@@ -92,36 +96,4 @@
 			/>
 		{/each}
 	</div>
-
-	{#if words.length > PAGE_SIZES[0]}
-		<div class="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-muted">
-			<label class="flex items-center gap-2">
-				Per page
-				<select
-					bind:value={rowsPerPage}
-					onchange={() => (currentPage = 1)}
-					class="min-h-9 rounded-full border-0 bg-sunk py-0 pr-8 pl-3 text-sm text-ink"
-				>
-					{#each PAGE_SIZES as n (n)}<option value={n}>{n}</option>{/each}
-				</select>
-			</label>
-			<div class="flex items-center gap-2">
-				<button
-					type="button"
-					class={pager}
-					aria-label="Previous page"
-					disabled={currentPage <= 1}
-					onclick={() => (currentPage -= 1)}>‹</button
-				>
-				<span>{currentPage} / {totalPages}</span>
-				<button
-					type="button"
-					class={pager}
-					aria-label="Next page"
-					disabled={currentPage >= totalPages}
-					onclick={() => (currentPage += 1)}>›</button
-				>
-			</div>
-		</div>
-	{/if}
 {/if}

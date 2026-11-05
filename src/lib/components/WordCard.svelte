@@ -1,11 +1,13 @@
 <script lang="ts">
 	import type { Word } from '$lib/deck';
+	import { commonReadingIndex } from '$lib/noteFields';
 	import { frequencyBand } from '$lib/dict/meta';
 	import { colorizeHanzi } from '$lib/tone';
 	import type { TonePalette, ToneKey } from '$lib/tonePresets';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import Badge from '$lib/ui/Badge.svelte';
+	import { rowMeaning } from '$lib/hsk';
 
 	let {
 		word,
@@ -40,7 +42,9 @@
 		}
 	}
 
-	const firstSyllable = $derived(word.readings[0]?.syllable ?? '');
+	const commonReading = $derived(word.readings[commonReadingIndex(word.readings, word.listSyllable)]);
+	const allReadings = $derived(word.readings.map((r) => r.pinyin.replace(/<[^>]*>/g, '')).join(' · '));
+	const firstSyllable = $derived(commonReading?.syllable ?? '');
 	const simpChars = $derived(colorizeHanzi(word.Simplified, firstSyllable));
 	const tradChars = $derived(colorizeHanzi(word.Traditional, firstSyllable));
 	const levelLabel = $derived.by(() => {
@@ -49,12 +53,14 @@
 		return nums.length ? `HSK ${nums.join('·')}` : '';
 	});
 	const freqLabel = $derived(frequencyBand(word.rank) ?? '');
-	const commonMeaning = $derived(word.commonMeaning || word.readings[0]?.definition || '');
+	const commonMeaning = $derived(
+		rowMeaning([word.SimpleMeaning, word.commonMeaning, ...word.readings.map((r) => r.definition)])
+	);
 </script>
 
 <!-- One word on the review list: a row to scan, not a card to read. -->
 <div
-	class="flex items-center gap-3 rounded-card px-3 py-2.5 ring-1 ring-inset transition-colors sm:px-4 {selected
+	class="flex min-w-0 items-center gap-3 rounded-card px-3 py-2.5 ring-1 ring-inset transition-colors sm:px-4 {selected
 		? 'bg-sky-soft ring-sky'
 		: 'bg-surface ring-line'}"
 >
@@ -66,20 +72,21 @@
 		class="size-4 shrink-0 accent-sky-ink"
 	/>
 
-	<span class="shrink-0 font-zh text-2xl leading-tight font-medium">
+	<span class="shrink-0 font-zh text-2xl leading-tight font-medium sm:min-w-28">
 		{#each simpChars as c}<span class={colorize ? `tone${c.tone}` : ''} style={toneStyle(c.tone)}>{c.ch}</span
 			>{/each}{#if word.Traditional && word.Traditional !== word.Simplified}<span
-				class="ml-1 text-lg text-muted">〔{word.Traditional}〕</span
+				class="ml-1 hidden text-lg text-muted sm:inline">〔{word.Traditional}〕</span
 			>{/if}
 	</span>
 
 	<div class="min-w-0 flex-1">
-		<div class="flex flex-wrap items-center gap-x-2 text-sm text-muted">
-			{#each word.readings as r, i (i)}
-				<span>{@html r.pinyin}</span>{#if i < word.readings.length - 1}<span aria-hidden="true">·</span>{/if}
-			{/each}
+		<div class="flex items-center gap-x-2 overflow-hidden text-sm whitespace-nowrap text-muted">
+			<!-- The common reading only — the one the card leads with. All of them are on the card. -->
+			{#if commonReading}
+				<span title={word.readings.length > 1 ? allReadings : undefined}>{@html commonReading.pinyin}</span>
+			{/if}
 			{#if levelLabel}<Badge tint="sky">{levelLabel}</Badge>{/if}
-			{#if freqLabel}<Badge tint="apricot">{freqLabel}</Badge>{/if}
+			{#if freqLabel}<span class="hidden sm:contents"><Badge tint="apricot">{freqLabel}</Badge></span>{/if}
 		</div>
 		{#if commonMeaning}
 			<p class="m-0 truncate text-[15px] text-ink" title={commonMeaning}>{commonMeaning}</p>

@@ -7,9 +7,10 @@
 	import WordReviewTable from '$lib/components/WordReviewTable.svelte';
 	import CreateSteps from '$lib/components/create/CreateSteps.svelte';
 	import StylePresets from '$lib/components/create/StylePresets.svelte';
+	import StepBar from '$lib/components/create/StepBar.svelte';
 	import PresetConfirmModal from '$lib/components/PresetConfirmModal.svelte';
 	import { Button, buttonClass, Badge, IconDot, PageHeader, Switch } from '$lib/ui';
-	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import Pager from '$lib/ui/Pager.svelte';
 	import Download from '@lucide/svelte/icons/download';
 	import Eye from '@lucide/svelte/icons/eye';
 	import FileSpreadsheet from '@lucide/svelte/icons/file-spreadsheet';
@@ -65,6 +66,8 @@
 	// pick once you know what you are studying.
 	const STEPS = ['Words', 'Card style', 'Export'];
 	let step = $state(1);
+	let wordPage = $state(1);
+	let wordPageSize = $state(25);
 	let showCustomizer = $state(false);
 	let showPreview = $state(false);
 	let showSettingsPreview = $state(false);
@@ -388,12 +391,6 @@
 	<title>Create a deck · Anki-xiehanzi</title>
 </svelte:head>
 
-{#snippet next(label: string, to: number, disabled = false)}
-	<div class="mt-6 flex justify-end">
-		<Button {disabled} onclick={() => (step = to)}>{label}<ArrowRight class="size-[18px]" /></Button>
-	</div>
-{/snippet}
-
 <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
 	<PageHeader title="Create a deck" subtitle="Your words, the same card design as the HSK decks.">
 		{#snippet lead()}
@@ -410,8 +407,12 @@
 			<h2 class={h2}>Add words</h2>
 			<WordSourceInput bind:words {onimport} />
 		</div>
-		<WordReviewTable bind:words {template} {palette} {hskWordsDict} />
-		{@render next('Next: card style', 2, words.length === 0)}
+		<WordReviewTable bind:words bind:page={wordPage} bind:pageSize={wordPageSize} {template} {palette} {hskWordsDict} />
+		<StepBar next={{ label: 'Next: card style', short: 'Card style', onclick: () => (step = 2), disabled: words.length === 0 }}>
+			{#if words.length > 10}
+				<Pager bind:page={wordPage} bind:size={wordPageSize} total={words.length} />
+			{/if}
+		</StepBar>
 	</section>
 
 	{#if step === 2}
@@ -488,7 +489,7 @@
 			</div>
 
 			<!-- Live preview: right column from lg, under the panel on phones. -->
-			<aside class="space-y-3 lg:row-span-2 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+			<aside class="space-y-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-10rem)] lg:overflow-y-auto">
 				{#if tabContent[tabs[activeTab]]}
 					<LivePreview
 						tabName={tabs[activeTab]}
@@ -503,9 +504,8 @@
 					/>
 				{/if}
 			</aside>
-			<!-- After the preview on phones, under the panel from lg. -->
-			<div class="-mt-6 lg:col-start-1 lg:row-start-2">{@render next('Next: export', 3)}</div>
 		</section>
+		<StepBar back={{ label: 'Words', onclick: () => (step = 1) }} next={{ label: 'Next: export', short: 'Export', onclick: () => (step = 3) }} />
 	{/if}
 
 	{#if step === 3}
@@ -559,6 +559,7 @@
 				{/if}
 			</div>
 		</section>
+		<StepBar back={{ label: 'Card style', onclick: () => (step = 2) }} />
 	{/if}
 
 	{#if showCustomizer && tabContent[tabs[activeTab]]}

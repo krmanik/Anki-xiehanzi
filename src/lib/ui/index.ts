@@ -7,4 +7,5 @@ export { default as DataTable } from './DataTable.svelte';
 export { default as IconDot } from './IconDot.svelte';
 export { default as PageHeader } from './PageHeader.svelte';
 export { default as SectionLabel } from './SectionLabel.svelte';
+export { default as Switch } from './Switch.svelte';
 export * from './styles';

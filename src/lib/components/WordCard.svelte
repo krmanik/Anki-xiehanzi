@@ -1,12 +1,11 @@
 <script lang="ts">
 	import type { Word } from '$lib/deck';
-	import { posDisplay } from '$lib/dict/cedict';
 	import { frequencyBand } from '$lib/dict/meta';
 	import { colorizeHanzi } from '$lib/tone';
 	import type { TonePalette, ToneKey } from '$lib/tonePresets';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
-	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
+	import Badge from '$lib/ui/Badge.svelte';
 
 	let {
 		word,
@@ -51,104 +50,63 @@
 	});
 	const freqLabel = $derived(frequencyBand(word.rank) ?? '');
 	const commonMeaning = $derived(word.commonMeaning || word.readings[0]?.definition || '');
-	const hasDict = $derived(word.readings.some((r) => r.definition));
 </script>
 
+<!-- One word on the review list: a row to scan, not a card to read. -->
 <div
-	class="rounded-lg border p-4 transition {selected
-		? 'border-neutral-900 bg-neutral-50'
-		: 'border-neutral-200'}"
+	class="flex items-center gap-3 rounded-card px-3 py-2.5 ring-1 ring-inset transition-colors sm:px-4 {selected
+		? 'bg-sky-soft ring-sky'
+		: 'bg-surface ring-line'}"
 >
-	<div class="flex items-start gap-3">
-		<input
-			type="checkbox"
-			checked={selected}
-			onchange={onToggle}
-			class="mt-1.5 h-4 w-4 shrink-0 accent-neutral-900"
-		/>
+	<input
+		type="checkbox"
+		checked={selected}
+		onchange={onToggle}
+		aria-label="Select {word.Simplified}"
+		class="size-4 shrink-0 accent-sky-ink"
+	/>
 
-		<div class="min-w-0 flex-1">
-			<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-				<span class="text-2xl font-semibold leading-tight">
-					{#each simpChars as c}<span class={colorize ? `tone${c.tone}` : ''} style={toneStyle(c.tone)}>{c.ch}</span>{/each}
-				</span>
-				{#if word.Traditional && word.Traditional !== word.Simplified}
-					<span class="text-xl text-neutral-400">〔</span>
-					<span class="text-xl leading-tight">
-						{#each tradChars as c}<span class={colorize ? `tone${c.tone}` : ''} style={toneStyle(c.tone)}>{c.ch}</span>{/each}
-					</span>
-					<span class="text-xl text-neutral-400">〕</span>
-				{/if}
-			</div>
+	<span class="shrink-0 font-zh text-2xl leading-tight font-medium">
+		{#each simpChars as c}<span class={colorize ? `tone${c.tone}` : ''} style={toneStyle(c.tone)}>{c.ch}</span
+			>{/each}{#if word.Traditional && word.Traditional !== word.Simplified}<span
+				class="ml-1 text-lg text-muted">〔{word.Traditional}〕</span
+			>{/if}
+	</span>
 
-			<div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-neutral-600">
-				{#each word.readings as r, i}
-					<span>{@html r.pinyin}</span>
-					<span class="text-neutral-400">{@html r.zhuyin}</span>
-					{#if i < word.readings.length - 1}<span class="text-neutral-300">·</span>{/if}
-				{/each}
-			</div>
-
-			{#if levelLabel || freqLabel || word.pos.length || word.classifiers.length}
-				<div class="mt-2 flex flex-wrap gap-1.5">
-					{#if levelLabel}
-						<span class="rounded-full bg-neutral-900 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-white">{levelLabel}</span>
-					{/if}
-					{#if freqLabel}
-						<span class="rounded-full bg-amber-100 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-amber-700">{freqLabel}</span>
-					{/if}
-					{#each word.pos as p}
-						<span class="rounded-full border border-neutral-300 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-neutral-600">{posDisplay(p)}</span>
-					{/each}
-					{#each word.classifiers as cl}
-						<span class="rounded-full bg-indigo-50 px-2 py-0.5 font-mono text-[10px] tracking-wider text-indigo-700">CL {cl}</span>
-					{/each}
-				</div>
-			{/if}
-
-			{#if commonMeaning}
-				<p class="mt-2 text-[15px] leading-snug text-neutral-900">{commonMeaning}</p>
-			{/if}
-
-			{#if hasDict}
-				<details class="group mt-2">
-					<summary class="flex w-fit cursor-pointer list-none items-center gap-1 font-mono text-xs uppercase tracking-wider text-neutral-400 hover:text-neutral-700">
-						Dictionary <ChevronDown size={13} class="transition group-open:rotate-180" />
-					</summary>
-					<div class="mt-2 space-y-1.5 border-l-2 border-neutral-200 pl-3">
-						{#each word.readings as r}
-							{#if r.definition}
-								<div class="text-sm">
-									<span class="text-neutral-500">{@html r.pinyin}</span>
-									<span class="text-neutral-700"> — {r.definition}</span>
-								</div>
-							{/if}
-						{/each}
-					</div>
-				</details>
-			{/if}
+	<div class="min-w-0 flex-1">
+		<div class="flex flex-wrap items-center gap-x-2 text-sm text-muted">
+			{#each word.readings as r, i (i)}
+				<span>{@html r.pinyin}</span>{#if i < word.readings.length - 1}<span aria-hidden="true">·</span>{/if}
+			{/each}
+			{#if levelLabel}<Badge tint="sky">{levelLabel}</Badge>{/if}
+			{#if freqLabel}<Badge tint="apricot">{freqLabel}</Badge>{/if}
 		</div>
+		{#if commonMeaning}
+			<p class="m-0 truncate text-[15px] text-ink" title={commonMeaning}>{commonMeaning}</p>
+		{/if}
+	</div>
 
-		<div class="flex shrink-0 flex-col gap-1">
-			{#if onPlay}
-				<button
-					onclick={play}
-					disabled={playing}
-					aria-label="play audio"
-					class="rounded p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900 disabled:opacity-40"
-				>
-					<Volume2 size={16} class={playing ? 'animate-pulse' : ''} />
-				</button>
-			{/if}
-			{#if onDelete}
-				<button
-					onclick={onDelete}
-					aria-label="delete word"
-					class="rounded p-1.5 text-neutral-400 hover:bg-red-50 hover:text-red-600"
-				>
-					<Trash2 size={16} />
-				</button>
-			{/if}
-		</div>
+	<div class="flex shrink-0 items-center">
+		{#if onPlay}
+			<button
+				type="button"
+				onclick={play}
+				disabled={playing}
+				aria-label="play audio"
+				class="grid size-9 place-items-center rounded-full border-0 bg-transparent text-muted hover:bg-sunk hover:text-ink disabled:opacity-40"
+			>
+				<Volume2 class="size-4 {playing ? 'animate-pulse' : ''}" />
+			</button>
+		{/if}
+		{#if onDelete}
+			<button
+				type="button"
+				onclick={onDelete}
+				aria-label="delete word"
+				class="grid size-9 place-items-center rounded-full border-0 bg-transparent text-muted hover:bg-rose-soft hover:text-rose-ink"
+			>
+				<Trash2 class="size-4" />
+			</button>
+		{/if}
 	</div>
 </div>

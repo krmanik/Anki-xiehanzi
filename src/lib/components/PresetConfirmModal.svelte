@@ -5,12 +5,15 @@
 	let {
 		preset,
 		activeTabName,
+		replaceLabel,
 		onreplace,
 		onadd,
 		oncancel
 	}: {
 		preset: CardPreset;
 		activeTabName: string;
+		/** Overrides `Replace "<tab>"` (the create page's tiles replace every card type). */
+		replaceLabel?: string;
 		onreplace: () => void;
 		onadd: () => void;
 		oncancel: () => void;
@@ -28,7 +31,7 @@
 		</div>
 		<div class="flex gap-2 border-t border-neutral-200 px-4 py-3">
 			<button class={btnPrimary} onclick={onreplace}>
-				Replace "{activeTabName}"
+				{replaceLabel ?? `Replace "${activeTabName}"`}
 			</button>
 			<button class={btnSecondary} onclick={onadd}>Add new</button>
 			<button class="ml-auto text-xs text-neutral-500 hover:text-neutral-900" onclick={oncancel}>

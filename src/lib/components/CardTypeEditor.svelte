@@ -168,7 +168,7 @@
 </script>
 
 <div class="mt-6 flex items-center gap-3">
-	<h2 class="text-xl font-semibold">Create Card Types</h2>
+	<h3 class="m-0 text-lg font-semibold text-ink">Card types and fields</h3>
 	<button
 		onclick={onshowcustomizer}
 		class="ml-auto flex items-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-1.5 text-sm text-neutral-600 transition hover:border-neutral-900 hover:text-neutral-900"
@@ -177,10 +177,7 @@
 		Advanced customisation
 	</button>
 </div>
-<p class="mb-2 text-sm text-neutral-500">
-	Each card type is one Anki template. Drag to set field order, then choose which fields show
-	on the front and back. The preview updates live.
-</p>
+<p class="mb-2 text-sm text-muted">Each card type is one card per word in Anki.</p>
 
 <div class="mb-4 flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
 	<button
@@ -250,7 +247,7 @@
 			<!-- field editor -->
 			<div>
 				<p class="mb-2 text-xs text-neutral-500">Tick a field to show it on the front and/or back of this card type.</p>
-				<p class="mb-2 border-l-2 border-red-400 pl-2 text-xs text-red-600">Drag a field by its handle to reorder it.</p>
+				<p class="mb-2 text-xs text-muted">Drag a field by its handle to reorder it.</p>
 				<div
 					class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 pb-1 font-mono text-[10px] uppercase tracking-wider text-neutral-400"
 				>

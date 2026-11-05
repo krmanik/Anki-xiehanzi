@@ -1,7 +1,10 @@
+<!--
+  The words in the deck: one row each, paged, with a bulk delete once rows are
+  ticked. Export lives on its own step now; this is only the list.
+-->
 <script lang="ts">
-	import { Button, Progressbar, Select } from 'flowbite-svelte';
 	import WordCard from '$lib/components/WordCard.svelte';
-	import { btnPrimary, btnSecondary, btnDanger } from '$lib/buttonStyles';
+	import { buttonClass } from '$lib/ui';
 	import { playWordAudio, type Word } from '$lib/deck';
 	import type { TemplateOpts } from '$lib/deck';
 	import type { TonePalette } from '$lib/tonePresets';
@@ -10,31 +13,19 @@
 		words = $bindable(),
 		template,
 		palette,
-		hskWordsDict,
-		includeAudio,
-		progressbarValue,
-		isGenerating,
-		onexportcsv,
-		onpreview,
-		ongenerate
+		hskWordsDict
 	}: {
 		words: Word[];
 		template: TemplateOpts;
 		palette: TonePalette;
 		hskWordsDict: Set<string>;
-		includeAudio: boolean;
-		progressbarValue: number;
-		isGenerating: boolean;
-		onexportcsv: () => void;
-		onpreview: () => void;
-		ongenerate: () => void;
 	} = $props();
 
-	const rowsPerPageOptions = [5, 10, 25, 50, 100, 500].map((n) => ({ value: n, name: String(n) }));
+	const PAGE_SIZES = [10, 25, 50, 100, 500];
 
 	let selected = $state<Set<Word>>(new Set());
 	let currentPage = $state(1);
-	let rowsPerPage = $state(10);
+	let rowsPerPage = $state(25);
 
 	function toggleRow(word: Word) {
 		const next = new Set(selected);
@@ -43,8 +34,7 @@
 		selected = next;
 	}
 
-	function deleteSelectedWord() {
-		if (selected.size === 0) return;
+	function deleteSelected() {
 		words = words.filter((w) => !selected.has(w));
 		selected = new Set();
 	}
@@ -58,47 +48,38 @@
 		}
 	}
 
-	function cancelSelection() {
-		selected = new Set();
-	}
-
 	let totalPages = $derived(Math.max(1, Math.ceil(words.length / rowsPerPage)));
-	let pagedWords = $derived(
-		words.slice((currentPage - 1) * rowsPerPage, (currentPage - 1) * rowsPerPage + rowsPerPage)
-	);
+	// Deleting the last rows of the last page would leave an empty page behind.
+	$effect(() => {
+		if (currentPage > totalPages) currentPage = totalPages;
+	});
+	let pagedWords = $derived(words.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage));
+
+	const pager =
+		'grid size-9 place-items-center rounded-full border-0 bg-sunk text-ink hover:bg-line disabled:opacity-40';
 </script>
 
-<Progressbar progress={progressbarValue} class="my-4" />
-<p class="mb-2 text-sm text-gray-500">
-	{#if progressbarValue > 0}
-		{progressbarValue.toFixed(1)}% - {includeAudio ? 'Processing audio...' : 'Processing...'}
-	{:else}
-		{includeAudio ? 'Ready to generate (includes audio)' : 'Ready to generate (no audio)'}
-	{/if}
-</p>
-
-<div class="my-4 flex flex-wrap items-center justify-between gap-2">
-	<div class="flex gap-2">
-		<button class={btnDanger} onclick={deleteSelectedWord}>Delete</button>
-		<button class={btnSecondary} onclick={cancelSelection}>Cancel</button>
-	</div>
-	<div class="flex gap-2">
-		<button class={btnSecondary} onclick={onexportcsv} disabled={words.length === 0}>Export CSV</button>
-		<button class={btnSecondary} onclick={onpreview} disabled={words.length === 0 || isGenerating}>
-			Preview
-		</button>
-		<button class={btnPrimary} onclick={ongenerate} disabled={words.length === 0 || isGenerating}>
-			{isGenerating ? 'Generating…' : 'Generate'}
-		</button>
-	</div>
-</div>
-
 {#if words.length === 0}
-	<p class="rounded-lg border border-dashed border-neutral-300 py-10 text-center text-sm text-neutral-400">
-		No words yet. Add words above to build your deck.
-	</p>
+	<p class="m-0 rounded-panel bg-sunk px-4 py-10 text-center text-muted">No words yet.</p>
 {:else}
-	<div class="grid gap-3">
+	<div class="mb-3 flex min-h-9 flex-wrap items-center gap-2">
+		<h3 class="m-0 text-base font-semibold text-ink">
+			{words.length.toLocaleString()} word{words.length === 1 ? '' : 's'}
+		</h3>
+		{#if selected.size}
+			<span class="text-sm text-muted">· {selected.size} selected</span>
+			<button type="button" class="{buttonClass('secondary', 'sm')} ml-auto" onclick={() => (selected = new Set())}
+				>Clear</button
+			>
+			<button
+				type="button"
+				class="{buttonClass('secondary', 'sm')} text-rose-ink"
+				onclick={deleteSelected}>Delete {selected.size}</button
+			>
+		{/if}
+	</div>
+
+	<div class="grid gap-2">
 		{#each pagedWords as word (word)}
 			<WordCard
 				{word}
@@ -111,32 +92,36 @@
 			/>
 		{/each}
 	</div>
-{/if}
 
-<div class="my-4 flex items-center justify-between">
-	<div class="flex items-center gap-2">
-		<span class="text-sm text-gray-500">Rows per page</span>
-		<div class="w-24">
-			<Select
-				items={rowsPerPageOptions}
-				bind:value={rowsPerPage}
-				onchange={() => (currentPage = 1)}
-			/>
+	{#if words.length > PAGE_SIZES[0]}
+		<div class="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-muted">
+			<label class="flex items-center gap-2">
+				Per page
+				<select
+					bind:value={rowsPerPage}
+					onchange={() => (currentPage = 1)}
+					class="min-h-9 rounded-full border-0 bg-sunk py-0 pr-8 pl-3 text-sm text-ink"
+				>
+					{#each PAGE_SIZES as n (n)}<option value={n}>{n}</option>{/each}
+				</select>
+			</label>
+			<div class="flex items-center gap-2">
+				<button
+					type="button"
+					class={pager}
+					aria-label="Previous page"
+					disabled={currentPage <= 1}
+					onclick={() => (currentPage -= 1)}>‹</button
+				>
+				<span>{currentPage} / {totalPages}</span>
+				<button
+					type="button"
+					class={pager}
+					aria-label="Next page"
+					disabled={currentPage >= totalPages}
+					onclick={() => (currentPage += 1)}>›</button
+				>
+			</div>
 		</div>
-	</div>
-	<div class="flex items-center gap-2">
-		<Button
-			size="xs"
-			color="alternative"
-			disabled={currentPage <= 1}
-			onclick={() => (currentPage = currentPage - 1)}>Prev</Button
-		>
-		<span class="text-sm">Page {currentPage} / {totalPages}</span>
-		<Button
-			size="xs"
-			color="alternative"
-			disabled={currentPage >= totalPages}
-			onclick={() => (currentPage = currentPage + 1)}>Next</Button
-		>
-	</div>
-</div>
+	{/if}
+{/if}

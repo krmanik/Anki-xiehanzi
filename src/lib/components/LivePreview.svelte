@@ -27,7 +27,7 @@
 	} = $props();
 </script>
 
-<p class="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Live preview — {tabName}</p>
+<p class="m-0 mb-2 text-sm font-semibold text-muted">Preview · {tabName}</p>
 <CardPreview
 	label="Front"
 	side="front"

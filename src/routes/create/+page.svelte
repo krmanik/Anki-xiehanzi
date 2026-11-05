@@ -1,17 +1,31 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Checkbox, Input } from 'flowbite-svelte';
 	import AppearancePanel from '$lib/components/AppearancePanel.svelte';
 	import CardTypeEditor from '$lib/components/CardTypeEditor.svelte';
 	import LivePreview from '$lib/components/LivePreview.svelte';
 	import WordSourceInput from '$lib/components/WordSourceInput.svelte';
 	import WordReviewTable from '$lib/components/WordReviewTable.svelte';
-	import StepNav from '$lib/components/StepNav.svelte';
+	import CreateSteps from '$lib/components/create/CreateSteps.svelte';
+	import StylePresets from '$lib/components/create/StylePresets.svelte';
+	import PresetConfirmModal from '$lib/components/PresetConfirmModal.svelte';
+	import { Button, buttonClass, Badge, IconDot, PageHeader, Switch } from '$lib/ui';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import Download from '@lucide/svelte/icons/download';
+	import Eye from '@lucide/svelte/icons/eye';
+	import FileSpreadsheet from '@lucide/svelte/icons/file-spreadsheet';
+	import SquarePlus from '@lucide/svelte/icons/square-plus';
+	import {
+		defaultDeckName,
+		matchPreset,
+		presetNeedsAudio,
+		presetToCard,
+		type CardPreset
+	} from '$lib/cardPresets';
+	import type { PendingWords } from '$lib/hskHandoff';
 	import CardCustomizer from '$lib/components/CardCustomizer.svelte';
 	import ExportPreview from '$lib/components/ExportPreview.svelte';
 	import ExportSuccess from '$lib/components/ExportSuccess.svelte';
 	import { popupHidden } from '$lib/share.svelte';
-	import { peekPendingWords } from '$lib/hskHandoff';
 	import {
 		CARD_STYLE_LS_KEY,
 		CARD_TABS_LS_KEY,
@@ -38,7 +52,7 @@
 	} from '$lib/deck';
 
 	let words = $state<Word[]>([]);
-	let deckName = $state('Anki xiehanzi');
+	let deckName = $state(defaultDeckName(new Date()));
 	// Ordered list of card items: note fields + the writing component, all
 	// reorderable. `fields` (the apkg note fields) is derived from it.
 	let order = $state<string[]>([...DEFAULT_ORDER]);
@@ -47,14 +61,16 @@
 	let fields = $derived(order.filter((o) => o !== WRITING && o !== CONTROL_BUTTONS_TOKEN && o !== SEPARATOR_TOKEN));
 	let includeAudio = $state(false);
 	let template = $state<TemplateOpts>({ ...DEFAULT_TEMPLATE });
-	let page = $state(1);
+	// Words → Card style → Export. Words come first: the card is easier to
+	// pick once you know what you are studying.
+	const STEPS = ['Words', 'Card style', 'Export'];
+	let step = $state(1);
 	let showCustomizer = $state(false);
 	let showPreview = $state(false);
 	let showSettingsPreview = $state(false);
 	let settingsPreviewWords = $state<Word[]>([]);
 	let loadingSettingsPreview = $state(false);
-	let appearanceOpen = $state(true);
-	let mobileTab = $state<'customize' | 'preview'>('customize');
+	let appearanceOpen = $state(false);
 	let hskWordsDict = $state<Set<string>>(new Set());
 
 	let activeTab = $state(0);
@@ -62,8 +78,6 @@
 	let tabContent = $state<TabContent>({
 		'Card 1': newCard()
 	});
-
-	const prevNextButtonText = ['', 'Create Card Types', 'Input Chinese Characters'];
 
 	// active card preview: ordered ids (fields + writing) selected on each side
 	const frontItems = $derived(
@@ -161,13 +175,6 @@
 	});
 
 	onMount(async () => {
-		deckName = `Anki xiehanzi ${new Date().toISOString().slice(0, 10)} ${Math.floor(Date.now() / 1000)}`;
-
-		// Arriving from an HSK level: open the word step so WordSourceInput mounts
-		// and picks the handed-over list up (it consumes the entry; we only peek).
-		const pending = peekPendingWords();
-		if (pending) page = 2;
-
 		// Restore saved card style from localStorage.
 		try {
 			const saved = localStorage.getItem(CARD_STYLE_LS_KEY);
@@ -202,16 +209,60 @@
 			}
 		}
 		stylesRestored = true;
-
-		// Deck features requested by the HSK page. Applied after the localStorage
-		// restores above so they are not overwritten by the saved layout.
-		if (pending?.options.audio) includeAudio = true;
-		if (pending?.options.examples) showExamplesOnEveryCard();
+		if (pendingImport) applyImport(pendingImport);
 
 		loadDict();
 		initJieba();
 		hskWordsDict = await loadHskWordsDict();
 	});
+
+	// A list handed over from /hsk or the dictionary. WordSourceInput consumes
+	// it in its own onMount, which runs before this page's — so the options are
+	// parked and applied after the localStorage restores, which would otherwise
+	// overwrite them.
+	let pendingImport: PendingWords | null = null;
+	function onimport(pending: PendingWords) {
+		deckName = defaultDeckName(new Date(), pending.label);
+		if (stylesRestored) applyImport(pending);
+		else pendingImport = pending;
+	}
+	function applyImport(pending: PendingWords) {
+		pendingImport = null;
+		if (pending.options.audio) includeAudio = true;
+		if (pending.options.examples) showExamplesOnEveryCard();
+	}
+
+	// ---- card style tiles ----
+	const preset = $derived(matchPreset(tabs.map((t) => tabContent[t]).filter(Boolean)));
+	let confirmPreset = $state<CardPreset | null>(null);
+
+	function uniqueTabName(name: string) {
+		if (!tabs.includes(name)) return name;
+		let n = 2;
+		while (tabs.includes(`${name} ${n}`)) n++;
+		return `${name} ${n}`;
+	}
+
+	/** Make the deck this preset: one card type. Audio is the switch's call, not the tile's. */
+	function usePreset(p: CardPreset) {
+		tabs = [p.name];
+		tabContent = { [p.name]: presetToCard(p) };
+		activeTab = 0;
+	}
+
+	function addPresetCard(p: CardPreset) {
+		const name = uniqueTabName(p.name);
+		tabs = [...tabs, name];
+		tabContent = { ...tabContent, [name]: presetToCard(p) };
+		activeTab = tabs.length - 1;
+		if (presetNeedsAudio(p) && !includeAudio) includeAudio = true;
+	}
+
+	// A tile replaces a preset without asking; a hand-edited card asks first.
+	function pickPreset(p: CardPreset) {
+		if (preset) usePreset(p);
+		else confirmPreset = p;
+	}
 
 	async function openSettingsPreview() {
 		loadingSettingsPreview = true;
@@ -328,96 +379,186 @@
 			showPreview = false;
 		}
 	}
+
+	const panel = 'rounded-panel bg-surface p-5 ring-1 ring-line ring-inset sm:p-6';
+	const h2 = 'm-0 mb-4 text-[20px] leading-tight font-bold text-ink';
 </script>
 
 <svelte:head>
-	<title>Create Deck — Anki xiehanzi</title>
+	<title>Create a deck · Anki-xiehanzi</title>
 </svelte:head>
 
-<section class="mx-auto max-w-5xl px-5 py-10">
-	<p class="font-mono text-xs uppercase tracking-[0.2em] text-neutral-400">Deck generator</p>
-	<h1 class="mb-6 mt-2 text-4xl font-extrabold tracking-tight">Create Deck</h1>
+{#snippet next(label: string, to: number, disabled = false)}
+	<div class="mt-6 flex justify-end">
+		<Button {disabled} onclick={() => (step = to)}>{label}<ArrowRight class="size-[18px]" /></Button>
+	</div>
+{/snippet}
 
-	{#if page === 1}
-		<div class="mb-4 flex overflow-hidden rounded-lg border border-neutral-200 lg:hidden">
-			<button
-				class="flex-1 py-2 text-sm font-medium transition {mobileTab === 'customize' ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:bg-neutral-50'}"
-				onclick={() => (mobileTab = 'customize')}>Customize</button>
-			<button
-				class="flex-1 py-2 text-sm font-medium transition {mobileTab === 'preview' ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:bg-neutral-50'}"
-				onclick={() => (mobileTab = 'preview')}>Preview</button>
+<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+	<PageHeader title="Create a deck" subtitle="Your words, the same card design as the HSK decks.">
+		{#snippet lead()}
+			<IconDot hue="lavender" size="lg" shape="tile"><SquarePlus /></IconDot>
+		{/snippet}
+	</PageHeader>
+
+	<CreateSteps bind:step steps={STEPS} done={(n) => (n === 1 ? words.length > 0 : n === 2 ? step === 3 : false)} />
+
+	<!-- 1 · Words. Kept mounted (hidden) so a running import or the
+	     hand-off from /hsk is not cut off by switching steps. -->
+	<section class={step === 1 ? '' : 'hidden'} aria-label="Words">
+		<div class="{panel} mb-4">
+			<h2 class={h2}>Add words</h2>
+			<WordSourceInput bind:words {onimport} />
 		</div>
-		<div class="lg:flex lg:items-start lg:gap-8">
-		<div class="{mobileTab === 'preview' ? 'hidden lg:block' : ''} min-w-0 flex-1">
-			<h2 class="mt-6 text-xl font-semibold">Enter Deck Title</h2>
-			<Input class="w-3/5" placeholder="Text input" bind:value={deckName} />
+		<WordReviewTable bind:words {template} {palette} {hskWordsDict} />
+		{@render next('Next: card style', 2, words.length === 0)}
+	</section>
 
-			<div class="mt-4 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
-				<div class="flex items-center gap-3">
-					<Checkbox bind:checked={includeAudio}>Include Audio (Text-to-Speech)</Checkbox>
-					{#if !includeAudio}
-						<span class="ml-auto text-xs text-neutral-400">Faster without audio</span>
-					{/if}
+	{#if step === 2}
+		<section class="grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_340px]" aria-label="Card style">
+			<div class="min-w-0">
+				<div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-panel bg-sunk p-4">
+					<div class="min-w-0">
+						<p class="m-0 font-semibold text-ink">
+							{words.length.toLocaleString()} word{words.length === 1 ? '' : 's'}
+						</p>
+						{#if words.length}
+							<p class="m-0 mt-1 truncate font-zh text-lg text-muted">
+								{words
+									.slice(0, 16)
+									.map((w) => w.Simplified)
+									.join(' ')}{words.length > 16 ? ' …' : ''}
+							</p>
+						{/if}
+					</div>
+					<button type="button" class={buttonClass('text', 'sm')} onclick={() => (step = 1)}
+						>{words.length ? 'Edit words' : 'Add words'}</button
+					>
 				</div>
-				{#if includeAudio}
-					<div class="mt-2 text-xs text-amber-600">⚠️ Requires internet · may take longer · use Microsoft Edge</div>
-				{/if}
+
+				<div class={panel}>
+					<h2 class={h2}>How do you want to study them?</h2>
+					<StylePresets selected={preset?.id ?? null} onpick={pickPreset} />
+
+					<div class="mt-4 divide-y divide-line border-t border-line">
+						<Switch
+							bind:checked={includeAudio}
+							label="Audio"
+							hint="A recording for each word. Slower to build; best in Edge."
+						/>
+						<Switch
+							bind:checked={() => !template.mono, (v) => (template.mono = !v)}
+							label="Tone colours"
+							hint="Colour hanzi and pinyin by tone"
+						>
+							{#snippet extra()}
+								<span class="flex gap-1" aria-hidden="true">
+									{#each ['1', '2', '3', '4'] as const as t (t)}
+										<i class="size-4 rounded-full" style="background:{palette[t]}"></i>
+									{/each}
+								</span>
+							{/snippet}
+						</Switch>
+					</div>
+
+					<details class="group mt-1 border-t border-line pt-3">
+						<summary class="cursor-pointer py-1 text-[15px] font-semibold text-ink">
+							Advanced: fields, order, look
+						</summary>
+						<div class="mt-3">
+							<AppearancePanel
+								bind:template
+								bind:open={appearanceOpen}
+								{palette}
+								{examplesUsed}
+								loadingPreview={loadingSettingsPreview}
+								onpreview={openSettingsPreview}
+							/>
+							<CardTypeEditor
+								bind:tabs
+								bind:tabContent
+								bind:activeTab
+								bind:order
+								bind:includeAudio
+								onshowcustomizer={() => (showCustomizer = true)}
+							/>
+						</div>
+					</details>
+				</div>
 			</div>
 
-			<AppearancePanel
-				bind:template
-				bind:open={appearanceOpen}
-				{palette}
-				{examplesUsed}
-				loadingPreview={loadingSettingsPreview}
-				onpreview={openSettingsPreview}
-			/>
-
-			<CardTypeEditor
-				bind:tabs
-				bind:tabContent
-				bind:activeTab
-				bind:order
-				bind:includeAudio
-				onshowcustomizer={() => (showCustomizer = true)}
-			/>
-		</div>
-		<!-- Sticky live preview — right column on lg+, preview tab on mobile -->
-		<div class="{mobileTab === 'customize' ? 'hidden lg:block' : ''} w-full space-y-3 lg:w-[320px] lg:shrink-0 lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto lg:pt-9">
-			{#if tabContent[tabs[activeTab]]}
-				<LivePreview
-					tabName={tabs[activeTab]}
-					{template}
-					{palette}
-					{order}
-					{frontItems}
-					{backItems}
-					elementStyles={activeStyles}
-					groups={activeGroups}
-					exampleSentences={previewExamples}
-				/>
-			{/if}
-		</div>
-		</div>
+			<!-- Live preview: right column from lg, under the panel on phones. -->
+			<aside class="space-y-3 lg:row-span-2 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+				{#if tabContent[tabs[activeTab]]}
+					<LivePreview
+						tabName={tabs[activeTab]}
+						{template}
+						{palette}
+						{order}
+						{frontItems}
+						{backItems}
+						elementStyles={activeStyles}
+						groups={activeGroups}
+						exampleSentences={previewExamples}
+					/>
+				{/if}
+			</aside>
+			<!-- After the preview on phones, under the panel from lg. -->
+			<div class="-mt-6 lg:col-start-1 lg:row-start-2">{@render next('Next: export', 3)}</div>
+		</section>
 	{/if}
 
-	{#if page === 2}
-		<div>
-			<WordSourceInput bind:words />
+	{#if step === 3}
+		<section class="max-w-2xl" aria-label="Export">
+			<div class={panel}>
+				<label class="block">
+					<span class="mb-1.5 block text-sm font-semibold text-ink">Deck name</span>
+					<input
+						class="block min-h-11 w-full rounded-card border-0 bg-sunk px-3.5 text-[15px] text-ink focus:ring-3 focus:ring-sky"
+						bind:value={deckName}
+					/>
+				</label>
 
-			<WordReviewTable
-				bind:words
-				{template}
-				{palette}
-				{hskWordsDict}
-				{includeAudio}
-				{progressbarValue}
-				{isGenerating}
-				onexportcsv={exportCSV}
-				onpreview={() => (showPreview = true)}
-				ongenerate={doGenerateDeck}
-			/>
-		</div>
+				<div class="mt-4 flex flex-wrap gap-1.5">
+					<Badge tint="sky">{words.length.toLocaleString()} words</Badge>
+					<Badge tint="lavender">{preset ? preset.name : `${tabs.length} card type${tabs.length === 1 ? '' : 's'}`}</Badge>
+					<Badge tint={includeAudio ? 'mint' : 'neutral'}>{includeAudio ? 'Audio' : 'No audio'}</Badge>
+				</div>
+
+				{#if words.length === 0}
+					<p class="mt-5 mb-0 rounded-card bg-apricot-soft px-4 py-3 text-apricot-ink">
+						No words yet.
+						<button type="button" class="border-0 bg-transparent p-0 font-semibold underline" onclick={() => (step = 1)}
+							>Add words</button
+						>
+					</p>
+				{:else}
+					<Button class="mt-5 w-full" onclick={doGenerateDeck} disabled={isGenerating}>
+						<Download class="size-[18px]" />{isGenerating ? 'Building…' : 'Download .apkg'}
+					</Button>
+					{#if isGenerating || progressbarValue > 0}
+						<div class="mt-3" role="status">
+							<div class="mb-1 flex justify-between text-[13px] text-muted">
+								<span>{isGenerating ? (includeAudio ? 'Building, with audio…' : 'Building…') : 'Done'}</span>
+								<span>{progressbarValue.toFixed(0)}%</span>
+							</div>
+							<div class="h-2 overflow-hidden rounded-full bg-sunk">
+								<div class="h-full rounded-full bg-mint transition-[width]" style="width:{progressbarValue}%"></div>
+							</div>
+						</div>
+					{/if}
+					<div class="mt-3 flex flex-wrap gap-2">
+						<Button variant="secondary" size="sm" onclick={() => (showPreview = true)} disabled={isGenerating}>
+							<Eye class="size-4" />Preview every card
+						</Button>
+						<Button variant="secondary" size="sm" onclick={exportCSV}>
+							<FileSpreadsheet class="size-4" />CSV
+						</Button>
+					</div>
+					<p class="mt-4 mb-0 text-[13.5px] text-muted">Open the file in Anki, or on a phone tap it to import.</p>
+				{/if}
+			</div>
+		</section>
 	{/if}
 
 	{#if showCustomizer && tabContent[tabs[activeTab]]}
@@ -429,6 +570,23 @@
 			bind:order
 			{fieldLabels}
 			onclose={() => (showCustomizer = false)}
+		/>
+	{/if}
+
+	{#if confirmPreset}
+		<PresetConfirmModal
+			preset={confirmPreset}
+			activeTabName={tabs[activeTab]}
+			replaceLabel={tabs.length > 1 ? 'Replace all card types' : `Replace "${tabs[0]}"`}
+			onreplace={() => {
+				usePreset(confirmPreset!);
+				confirmPreset = null;
+			}}
+			onadd={() => {
+				addPresetCard(confirmPreset!);
+				confirmPreset = null;
+			}}
+			oncancel={() => (confirmPreset = null)}
 		/>
 	{/if}
 
@@ -466,6 +624,4 @@
 	{#if showSuccess}
 		<ExportSuccess deckName={exportedDeckName} onClose={() => (showSuccess = false)} />
 	{/if}
-
-	<StepNav bind:page labels={prevNextButtonText} maxPage={2} />
-</section>
+</div>

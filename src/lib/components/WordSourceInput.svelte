@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { Input, Fileupload, Progressbar, Textarea } from 'flowbite-svelte';
-	import { btnPrimary } from '$lib/buttonStyles';
-	import { takePendingWords } from '$lib/hskHandoff';
+	import { buttonClass, chipClass } from '$lib/ui';
+	import { takePendingWords, type PendingWords } from '$lib/hskHandoff';
 	import BreakWordsModal from '$lib/components/BreakWordsModal.svelte';
 	import {
 		cutParagraph,
@@ -14,7 +13,14 @@
 		type Word
 	} from '$lib/deck';
 
-	let { words = $bindable() }: { words: Word[] } = $props();
+	let {
+		words = $bindable(),
+		onimport
+	}: {
+		words: Word[];
+		/** A list handed over from /hsk or the dictionary is being loaded. */
+		onimport?: (pending: PendingWords) => void;
+	} = $props();
 
 	// Progress/status are reactive $state; writing them every word forces a Svelte
 	// re-render + style/layout per iteration. Update once per stride instead — the
@@ -22,12 +28,12 @@
 	const PROGRESS_STRIDE = 25;
 
 	const selectionTypes = [
-		{ value: 'Word', name: 'Word' },
-		{ value: 'Paragraph', name: 'Paragraph' },
+		{ value: 'Word', name: 'Type words' },
+		{ value: 'Paragraph', name: 'Paste text' },
 		{ value: 'File', name: 'File' },
-		{ value: 'HSK', name: 'HSK Level' },
-		{ value: 'BCT', name: 'BCT Level' },
-		{ value: 'YCT', name: 'YCT Level' }
+		{ value: 'HSK', name: 'HSK' },
+		{ value: 'BCT', name: 'BCT' },
+		{ value: 'YCT', name: 'YCT' }
 	];
 	let selectType = $state('Word');
 
@@ -130,6 +136,7 @@
 	onMount(async () => {
 		const pending = takePendingWords();
 		if (!pending) return;
+		onimport?.(pending);
 		selectType = 'HSK';
 		importedFrom = pending.label;
 		hskProcessing = true;
@@ -277,198 +284,126 @@
 			showBreakToast = true;
 		}
 	}
+
+	const field =
+		'block w-full min-w-0 rounded-card border-0 bg-sunk px-3.5 min-h-11 text-[15px] text-ink placeholder:text-muted focus:ring-3 focus:ring-sky';
+	const hint = 'mt-2 mb-3 text-[13.5px] text-muted';
 </script>
 
-<h2 class="text-xl font-semibold">Enter Chinese Characters</h2>
+{#snippet progress(label: string, pct: number)}
+	<div class="mt-3" role="status">
+		<div class="mb-1 flex justify-between text-[13px] text-muted">
+			<span>{label}</span><span>{pct}%</span>
+		</div>
+		<div class="h-2 overflow-hidden rounded-full bg-sunk">
+			<div class="h-full rounded-full bg-mint transition-[width]" style="width:{pct}%"></div>
+		</div>
+	</div>
+{/snippet}
 
-<div class="my-4 inline-flex overflow-hidden rounded-lg border border-neutral-300">
-	{#each selectionTypes as st}
+{#snippet levels(all: string[], picked: Set<string>, prefix: string, toggle: (l: string) => void)}
+	<div class="flex flex-wrap gap-1.5">
+		{#each all as lvl (lvl)}
+			<button type="button" aria-pressed={picked.has(lvl)} onclick={() => toggle(lvl)} class={chipClass(picked.has(lvl))}>
+				{prefix}
+				{lvl}
+			</button>
+		{/each}
+	</div>
+{/snippet}
+
+<div class="mb-4 flex flex-wrap gap-1.5" role="group" aria-label="Where the words come from">
+	{#each selectionTypes as st (st.value)}
 		<button
-			class="px-4 py-1.5 text-sm {selectType === st.value
-				? 'bg-neutral-900 text-white'
-				: 'text-neutral-600 hover:bg-neutral-100'}"
+			type="button"
+			aria-pressed={selectType === st.value}
+			class={chipClass(selectType === st.value)}
 			onclick={() => (selectType = st.value)}>{st.name}</button
 		>
 	{/each}
 </div>
 
 {#if selectType === 'Word'}
-	<div class="my-4 flex items-center gap-3">
-		<Input
-			class="w-3/5"
+	<form
+		class="flex gap-2"
+		onsubmit={(e) => {
+			e.preventDefault();
+			searchAndAdd(wordValue);
+		}}
+	>
+		<input
+			class={field}
 			placeholder="Type a word, e.g. 中国"
+			aria-label="Word"
 			bind:value={wordValue}
-			onkeydown={(e) => e.key === 'Enter' && searchAndAdd(wordValue)}
 		/>
-		<button class={btnPrimary} onclick={() => searchAndAdd(wordValue)}>Add</button>
-	</div>
+		<button type="submit" class={buttonClass()}>Add</button>
+	</form>
 {/if}
 
 {#if selectType === 'File'}
-	<div class="my-4">
-		<Fileupload accept="text/*" onchange={handleFileChange} />
-		{#if fileProcessing || fileProgress > 0}
-			<div class="mt-3">
-				<div class="mb-1 flex justify-between text-xs text-neutral-500">
-					<span>{fileProcessing ? 'Processing…' : 'Completed'}</span>
-					<span>{fileProgress}%</span>
-				</div>
-				<Progressbar progress={fileProgress} />
-			</div>
-		{:else}
-			<p class="mt-1 text-sm text-neutral-500">
-				{fileStatus || 'Upload a text file with one word per line.'}
-			</p>
-		{/if}
-	</div>
+	<input
+		type="file"
+		accept="text/*"
+		aria-label="Word list file"
+		onchange={handleFileChange}
+		class="block w-full text-sm text-muted file:mr-3 file:min-h-10 file:cursor-pointer file:rounded-full file:border-0 file:bg-sky-soft file:px-4 file:font-semibold file:text-sky-ink"
+	/>
+	{#if fileProcessing || fileProgress > 0}
+		{@render progress(fileProcessing ? 'Processing…' : 'Done', fileProgress)}
+	{:else}
+		<p class={hint}>{fileStatus || 'A text file, one word per line.'}</p>
+	{/if}
 {/if}
 
 {#if selectType === 'HSK'}
-	<div class="my-4">
-		{#if importedFrom}
-			<p class="mb-3 rounded-lg border border-indigo-200 bg-indigo-50/60 p-3 text-sm text-neutral-700">
-				Imported from <strong>{importedFrom}</strong> — carry on customising the cards below, or add
-				more levels here.
-			</p>
-		{/if}
-		<p class="mb-2 text-sm text-neutral-500">
-			Pick one or more HSK levels — every word at those levels is added to your deck,
-			most-common first.
+	{#if importedFrom}
+		<p class="mt-0 mb-3 rounded-card bg-mint-soft px-4 py-2.5 text-[15px] text-mint-ink">
+			From <strong>{importedFrom}</strong>
 		</p>
-		<div class="mb-3 flex flex-wrap gap-2">
-			{#each HSK_LEVELS as lvl (lvl)}
-				<button
-					type="button"
-					onclick={() => toggleLevel(lvl)}
-					class="rounded-lg border px-3 py-1.5 text-sm transition {selectedLevels.has(lvl)
-						? 'border-neutral-900 bg-neutral-900 text-white'
-						: 'border-neutral-300 text-neutral-600 hover:border-neutral-900'}"
-				>
-					HSK {lvl}
-				</button>
-			{/each}
-		</div>
-		<button
-			class={btnPrimary}
-			onclick={addWordsByLevel}
-			disabled={selectedLevels.size === 0 || hskProcessing}
-		>
-			{hskProcessing ? 'Adding…' : 'Add words'}
-		</button>
-		{#if hskProcessing || hskProgress > 0}
-			<div class="mt-3">
-				<div class="mb-1 flex justify-between text-xs text-neutral-500">
-					<span>{hskStatus}</span>
-					<span>{hskProgress}%</span>
-				</div>
-				<Progressbar progress={hskProgress} />
-			</div>
-		{/if}
-	</div>
+	{/if}
+	{@render levels(HSK_LEVELS, selectedLevels, 'HSK', toggleLevel)}
+	<p class={hint}>Every word at those levels, most common first.</p>
+	<button class={buttonClass()} onclick={addWordsByLevel} disabled={selectedLevels.size === 0 || hskProcessing}>
+		{hskProcessing ? 'Adding…' : 'Add words'}
+	</button>
+	{#if hskProcessing || hskProgress > 0}{@render progress(hskStatus, hskProgress)}{/if}
 {/if}
 
 {#if selectType === 'BCT'}
-	<div class="my-4">
-		<p class="mb-2 text-sm text-neutral-500">
-			Pick BCT level A (600 words) or B (4000 words) — every word at that level is added to
-			your deck.
-		</p>
-		<div class="mb-3 flex flex-wrap gap-2">
-			{#each BCT_LEVELS as lvl (lvl)}
-				<button
-					type="button"
-					onclick={() => toggleBctLevel(lvl)}
-					class="rounded-lg border px-3 py-1.5 text-sm transition {selectedBctLevels.has(lvl)
-						? 'border-neutral-900 bg-neutral-900 text-white'
-						: 'border-neutral-300 text-neutral-600 hover:border-neutral-900'}"
-				>
-					BCT {lvl}
-				</button>
-			{/each}
-		</div>
-		<button
-			class={btnPrimary}
-			onclick={addWordsByBct}
-			disabled={selectedBctLevels.size === 0 || bctProcessing}
-		>
-			{bctProcessing ? 'Adding…' : 'Add words'}
-		</button>
-		{#if bctProcessing || bctProgress > 0}
-			<div class="mt-3">
-				<div class="mb-1 flex justify-between text-xs text-neutral-500">
-					<span>{bctStatus}</span>
-					<span>{bctProgress}%</span>
-				</div>
-				<Progressbar progress={bctProgress} />
-			</div>
-		{/if}
-	</div>
+	{@render levels(BCT_LEVELS, selectedBctLevels, 'BCT', toggleBctLevel)}
+	<p class={hint}>A is 600 words, B is 4,000.</p>
+	<button class={buttonClass()} onclick={addWordsByBct} disabled={selectedBctLevels.size === 0 || bctProcessing}>
+		{bctProcessing ? 'Adding…' : 'Add words'}
+	</button>
+	{#if bctProcessing || bctProgress > 0}{@render progress(bctStatus, bctProgress)}{/if}
 {/if}
 
 {#if selectType === 'YCT'}
-	<div class="my-4">
-		<p class="mb-2 text-sm text-neutral-500">
-			Pick one or more YCT levels (1–4) — every word at those levels is added to your deck.
-		</p>
-		<div class="mb-3 flex flex-wrap gap-2">
-			{#each YCT_LEVELS as lvl (lvl)}
-				<button
-					type="button"
-					onclick={() => toggleYctLevel(lvl)}
-					class="rounded-lg border px-3 py-1.5 text-sm transition {selectedYctLevels.has(lvl)
-						? 'border-neutral-900 bg-neutral-900 text-white'
-						: 'border-neutral-300 text-neutral-600 hover:border-neutral-900'}"
-				>
-					YCT {lvl}
-				</button>
-			{/each}
-		</div>
-		<button
-			class={btnPrimary}
-			onclick={addWordsByYct}
-			disabled={selectedYctLevels.size === 0 || yctProcessing}
-		>
-			{yctProcessing ? 'Adding…' : 'Add words'}
-		</button>
-		{#if yctProcessing || yctProgress > 0}
-			<div class="mt-3">
-				<div class="mb-1 flex justify-between text-xs text-neutral-500">
-					<span>{yctStatus}</span>
-					<span>{yctProgress}%</span>
-				</div>
-				<Progressbar progress={yctProgress} />
-			</div>
-		{/if}
-	</div>
+	{@render levels(YCT_LEVELS, selectedYctLevels, 'YCT', toggleYctLevel)}
+	<p class={hint}>Every word at those levels.</p>
+	<button class={buttonClass()} onclick={addWordsByYct} disabled={selectedYctLevels.size === 0 || yctProcessing}>
+		{yctProcessing ? 'Adding…' : 'Add words'}
+	</button>
+	{#if yctProcessing || yctProgress > 0}{@render progress(yctStatus, yctProgress)}{/if}
 {/if}
 
 {#if selectType === 'Paragraph'}
-	<div class="my-4">
-		<Textarea
-			class="w-full"
-			rows={6}
-			placeholder="Paste Chinese text — it will be segmented into words."
-			bind:value={texAreaValue}
-		/>
-		<div class="mt-2">
-			<button
-				class={btnPrimary}
-				onclick={generateFromParagraph}
-				disabled={!texAreaValue.trim() || paragraphProcessing}
-			>
-				{paragraphProcessing ? 'Processing…' : 'Generate words'}
-			</button>
-		</div>
-		{#if paragraphProcessing || paragraphProgress > 0}
-			<div class="mt-3">
-				<div class="mb-1 flex justify-between text-xs text-neutral-500">
-					<span>{paragraphStatus}</span>
-					<span>{paragraphProgress}%</span>
-				</div>
-				<Progressbar progress={paragraphProgress} />
-			</div>
-		{/if}
-	</div>
+	<textarea
+		class="{field} min-h-36 py-3"
+		rows={6}
+		aria-label="Chinese text"
+		placeholder="Paste Chinese text — it is split into words."
+		bind:value={texAreaValue}
+	></textarea>
+	<button
+		class="{buttonClass()} mt-2"
+		onclick={generateFromParagraph}
+		disabled={!texAreaValue.trim() || paragraphProcessing}
+	>
+		{paragraphProcessing ? 'Processing…' : 'Split into words'}
+	</button>
+	{#if paragraphProcessing || paragraphProgress > 0}{@render progress(paragraphStatus, paragraphProgress)}{/if}
 {/if}
 
 {#if showBreakToast}

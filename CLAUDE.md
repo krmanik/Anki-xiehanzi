@@ -95,6 +95,18 @@ The deck generator is the heart of the app. Layering matters because correctness
 - **`src/lib/dict/cedict.ts`** — impure dictionary layer. Loads `cedict.db` + `hsk_sentences.db` (SQLite via sql.js, unzipped from `static/data/*.zip`) plus JSON glosses. Provides lookup, POS, classifiers, HSK level, frequency, per-reading definitions, example sentences.
 - **`src/lib/dict/sentences.ts`** — pure example-sentence ranking (difficulty + length score); DB lookup stays in `cedict.ts`.
 - **`src/routes/create/+page.svelte`** — the UI orchestrator (~400 lines) wiring all of the above: word/paragraph/file input → segmentation → dict lookup → live `CardPreview` → `.apkg` export. The bulk of the UI lives in extracted components under `src/lib/components/` (`WordSourceInput`, `WordReviewTable`, `CardCustomizer`, `AppearancePanel`, `ExportPreview`, `ExportSuccess`, …).
+  **Three steps: Words → Card style → Export** (`create/CreateSteps`). Words
+  come first and stay mounted (hidden) on the other steps, so the `/hsk`
+  hand-off and a running import are never cut off — `WordSourceInput` consumes
+  the hand-off in its own `onMount` (which runs before the page's) and reports
+  it through `onimport`. Card style leads with **tiles** (`STYLE_PRESETS` in
+  `cardPresets.ts`: Standard = `newCard()`, Beginner, Writing, Reading,
+  Sentences, HSK Exam); `matchPreset` lights the tile the deck is, and a
+  hand-edited deck gets a replace/add confirm instead. Tiles never touch the
+  audio switch. The field matrix, appearance panel and customiser sit under
+  "Advanced". The deck name (`defaultDeckName`: "My words — 6 Nov", "HSK 3 —
+  6 Nov") and download live on Export; deck ids hash the name, so a second
+  export the same day updates the same deck.
 
 ## HSK browser (`/hsk`)
 

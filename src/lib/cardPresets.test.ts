@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { CARD_PRESETS, presetToCard, presetNeedsAudio } from './cardPresets';
+import {
+	CARD_PRESETS,
+	defaultDeckName,
+	matchPreset,
+	presetNeedsAudio,
+	presetToCard,
+	STANDARD_PRESET,
+	STYLE_PRESETS
+} from './cardPresets';
+import { newCard } from './cardEditorModel';
 
 describe('card presets', () => {
 	it('exposes the six named presets', () => {
@@ -46,5 +55,39 @@ describe('card presets', () => {
 	it('flags presets that include the Audio field', () => {
 		expect(presetNeedsAudio(CARD_PRESETS.find((p) => p.id === 'beginner')!)).toBe(true);
 		expect(presetNeedsAudio(CARD_PRESETS.find((p) => p.id === 'reading')!)).toBe(false);
+	});
+});
+
+
+describe('style tiles', () => {
+	it('Standard is the card a new deck starts with', () => {
+		expect(matchPreset([newCard()])).toBe(STANDARD_PRESET);
+	});
+
+	it('leads with Standard and keeps Intermediate for the advanced picker', () => {
+		expect(STYLE_PRESETS.map((p) => p.id)).toEqual(['standard', 'beginner', 'writing', 'reading', 'examples', 'hsk']);
+	});
+
+	it('matches a preset whatever order its fields were ticked in', () => {
+		const writing = presetToCard(STYLE_PRESETS.find((p) => p.id === 'writing')!);
+		expect(matchPreset([{ front: writing.front, back: [...writing.back].reverse() }])?.id).toBe('writing');
+	});
+
+	it('is no preset once a field changes or a second card type exists', () => {
+		const card = newCard();
+		expect(matchPreset([{ ...card, back: card.back.slice(1) }])).toBeNull();
+		expect(matchPreset([card, card])).toBeNull();
+		expect(matchPreset([])).toBeNull();
+	});
+});
+
+describe('defaultDeckName', () => {
+	const nov6 = new Date(2026, 10, 6);
+	it('names the deck after the day, not a timestamp', () => {
+		expect(defaultDeckName(nov6)).toBe('My words — 6 Nov');
+		expect(defaultDeckName(nov6, 'Dictionary · 3 words')).toBe('My words — 6 Nov');
+	});
+	it('names an HSK hand-off after its level', () => {
+		expect(defaultDeckName(nov6, 'New HSK (2025) · HSK 3')).toBe('HSK 3 — 6 Nov');
 	});
 });

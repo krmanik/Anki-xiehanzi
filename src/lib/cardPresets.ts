@@ -105,3 +105,78 @@ export function presetToCard(preset: CardPreset): PresetCard {
 export function presetNeedsAudio(preset: CardPreset): boolean {
 	return preset.front.includes(F.AUDIO) || preset.back.includes(F.AUDIO);
 }
+
+/**
+ * The card a new deck starts with (`newCard()` in `cardEditorModel`): the
+ * hanzi on the front, every reading and meaning on the back — the same card
+ * the HSK decks ship. A tile of its own so the default is a choice the reader
+ * can see, not "nothing picked".
+ */
+export const STANDARD_PRESET: CardPreset = {
+	id: 'standard',
+	name: 'Standard',
+	description: 'Word → every reading and meaning, like the HSK decks',
+	front: [F.SIMPLIFIED, ...CHROME],
+	back: [
+		F.SIMPLIFIED,
+		F.TRADITIONAL,
+		F.PINYIN,
+		F.ZHUYIN,
+		F.PART_OF_SPEECH,
+		F.SIMPLE_MEANING,
+		F.DEFINITIONS,
+		...CHROME,
+		F.AUDIO
+	]
+};
+
+const byId = (id: string) => CARD_PRESETS.find((p) => p.id === id)!;
+
+/**
+ * The tiles `/create` leads with, in the order a reader weighs them.
+ * Intermediate stays in the Advanced picker: it is Standard minus a few fields.
+ */
+export const STYLE_PRESETS: CardPreset[] = [
+	STANDARD_PRESET,
+	byId('beginner'),
+	byId('writing'),
+	byId('reading'),
+	byId('examples'),
+	byId('hsk')
+];
+
+const sameSet = (a: string[], b: string[]) => a.length === b.length && new Set([...a, ...b]).size === a.length;
+
+/**
+ * Which preset a deck is, if any: exactly one card type whose front and back
+ * hold the preset's fields (order aside — position comes from the field order).
+ * `null` once the reader has edited fields or added a second card type.
+ */
+export function matchPreset(
+	cards: { front: string[]; back: string[] }[],
+	presets: CardPreset[] = STYLE_PRESETS
+): CardPreset | null {
+	if (cards.length !== 1) return null;
+	const [card] = cards;
+	return (
+		presets.find((p) => {
+			const c = presetToCard(p);
+			return sameSet(c.front, card.front) && sameSet(c.back, card.back);
+		}) ?? null
+	);
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/**
+ * A deck title a person would pick ("My words — 6 Nov", "HSK 3 — 6 Nov"),
+ * not a timestamp. `source` is the hand-off label ("New HSK (2025) · HSK 3");
+ * an HSK list names the deck after its level, anything else is "My words".
+ * Deck ids come from the name, so a second export the same day lands in the
+ * same deck — and note GUIDs are stable, so it updates rather than duplicates.
+ */
+export function defaultDeckName(now: Date, source?: string): string {
+	const day = `${now.getDate()} ${MONTHS[now.getMonth()]}`;
+	const level = source && /HSK/.test(source) ? source.split(' · ').pop()!.trim() : '';
+	return `${level || 'My words'} — ${day}`;
+}

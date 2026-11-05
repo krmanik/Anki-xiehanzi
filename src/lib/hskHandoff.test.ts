@@ -55,6 +55,26 @@ describe('hskHandoff', () => {
 		expect(peekPendingWords()).toBeNull();
 	});
 
+	it('carries where to go next, a deck name and whole card settings', () => {
+		const settings = {
+			includeAudio: true,
+			tabs: ['Standard'],
+			tabContent: { Standard: { front: ['frontSimplified'], back: [], additional: [], elementStyles: {} } },
+			order: ['Simplified'],
+			template: { mono: false }
+		};
+		put({ label: 'x', words: ['爱'], then: 'send', deckName: 'HSK 3 — 6 Nov', settings });
+		expect(takePendingWords()).toMatchObject({ then: 'send', deckName: 'HSK 3 — 6 Nov', settings });
+	});
+
+	it('drops an unknown next step and half a set of settings', () => {
+		put({ label: 'x', words: ['爱'], then: 'explode', deckName: '  ', settings: { tabs: ['A'] } });
+		const got = takePendingWords()!;
+		expect(got.then).toBeUndefined();
+		expect(got.deckName).toBeUndefined();
+		expect(got.settings).toBeUndefined();
+	});
+
 	it('clears a malformed entry so it cannot wedge the next visit', () => {
 		put('not json');
 		expect(takePendingWords()).toBeNull();

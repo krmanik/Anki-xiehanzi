@@ -238,6 +238,39 @@ A separate, much lighter stack from the deck generator — it must never pull th
   The dynamic route needs explicit `entries()` in its `+page.ts` — the site is
   client-rendered, so the prerenderer cannot crawl to it.
 
+## My words (`/words`) and Send to Anki
+
+- **`src/lib/myWords.ts`** — pure parsing/merging plus thin localStorage
+  helpers. Three things live there: **saved decks** (every Download or Send
+  on `/create` saves the words + card settings under the **deck name**, which
+  is the key because the deck id hashes the name — one entry is one deck in
+  Anki), the **draft** (the words on `/create` right now, auto-restored on the
+  next visit with a "Start over" button; cleared once the deck is saved) and
+  the dictionary's **word bag** (`BAG_KEY`, written by `/dictionary`). Words
+  are stored as strings and looked up again on reopen — a `Word` carries every
+  field's HTML and thousands would not fit. A draft about to be replaced by a
+  hand-off is saved as a deck first, never thrown away. Backup / Restore is a
+  JSON file; restore **merges** (same name → newer `savedAt` wins, and a
+  winner with no settings keeps the loser's).
+- **The hand-off carries a next step** (`PendingWords.then`): `export` lands
+  on Export once the words are in (the level page's "Add to my deck", the
+  dictionary, a reopened deck), `send` also presses Send. A reopened deck
+  carries `deckName` + `settings` (validated by `parseSettings` — all or
+  nothing). `WordSourceInput.importPending()` is the one import path.
+- **Send never goes blind** (user ask, 2026-11-06: a click "may overwrite or
+  save to another deck"). Send opens `SendToAnkiModal`: Anki's own
+  `deckNames`, or a new deck by name (pre-filled with the page's name; a name
+  Anki already has resolves to that deck, case-insensitively, and the note
+  says so). The page's deck name becomes the chosen deck. A gear button beside
+  Send always opens it; its Settings hold "Open it in Anki" and "Ask every
+  time" (`xhz.anki.send`; off → Send goes straight to the page's name). The
+  HSK modal uses it `fixed`: the deck name is inside the release file, so it
+  only says where it goes and whether it is already there. The copy states
+  what a send really does: note GUIDs are model + word, so a word already in
+  the collection is **updated where it is** (cards keep their deck and
+  reviews) and only new words land in the chosen deck. Pure half:
+  `src/lib/anki/sendTarget.ts`.
+
 ## Dictionary (`/dictionary`)
 
 A lookup page in the shape of the hanzi-slides character deck: search a word,

@@ -5,7 +5,7 @@
  */
 import type { Hue } from './ui/styles';
 
-export type NavIcon = 'home' | 'layers' | 'grid' | 'book' | 'plus' | 'wrench' | 'star';
+export type NavIcon = 'home' | 'layers' | 'grid' | 'book' | 'plus' | 'wrench' | 'star' | 'bookmark';
 /** The tools submenu's icons. */
 export type ToolIcon = 'reader' | 'gauge' | 'pencil' | 'cards';
 
@@ -54,7 +54,10 @@ export const TOOLS: NavItem = {
 
 export const MAKE: NavGroup = {
 	label: 'Make',
-	items: [{ label: 'Create a deck', path: '/create', icon: 'plus', hue: 'lavender' }]
+	items: [
+		{ label: 'Create a deck', path: '/create', icon: 'plus', hue: 'lavender' },
+		{ label: 'My words', path: '/words', icon: 'bookmark', hue: 'rose' }
+	]
 };
 
 export const PREMIUM: NavItem = { label: 'Premium', path: '/shop', icon: 'star', hue: 'apricot' };

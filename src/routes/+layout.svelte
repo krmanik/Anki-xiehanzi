@@ -17,6 +17,7 @@
 	import Moon from '@lucide/svelte/icons/moon';
 	import Sun from '@lucide/svelte/icons/sun';
 	import ShareModal from '$lib/components/ShareModal.svelte';
+	import Bookmark from '@lucide/svelte/icons/bookmark';
 	import Logo from '$lib/components/shell/Logo.svelte';
 	import NavMenu from '$lib/components/shell/NavMenu.svelte';
 	import NavDropdown from '$lib/components/shell/NavDropdown.svelte';
@@ -122,6 +123,15 @@
 		<div class="ml-auto flex items-center lg:ml-1">
 			<a href="{base}/dictionary" class={iconButton} aria-label="Look up a word">
 				<Search class="size-5" />
+			</a>
+			<a
+				href="{base}/words"
+				class={iconButton}
+				aria-label="My words"
+				title="My words"
+				aria-current={current === '/words' ? 'page' : undefined}
+			>
+				<Bookmark class="size-5" />
 			</a>
 			{#if showThemeToggle}
 				<button

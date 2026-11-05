@@ -5,7 +5,16 @@
  * parked in sessionStorage and consumed once by WordSourceInput on mount.
  */
 
+import { parseSettings, type DeckSettings } from './myWords';
+
 export const PENDING_WORDS_KEY = 'xiehanzi:pending-words';
+
+/**
+ * Where the creator goes once the words are in. Absent: stay on Words.
+ * `export` skips Card style (the default card is what most people want);
+ * `send` also presses Send to Anki — the producer's button already said so.
+ */
+export type PendingThen = 'export' | 'send';
 
 /** Deck features the HSK page can ask the creator to switch on. */
 export interface PendingOptions {
@@ -20,6 +29,11 @@ export interface PendingWords {
 	label: string;
 	words: string[];
 	options: PendingOptions;
+	then?: PendingThen;
+	/** Reopening a saved deck: keep its name, so a send updates that deck. */
+	deckName?: string;
+	/** Reopening a saved deck: its card types, fields and look. */
+	settings?: DeckSettings;
 }
 
 function parsePending(raw: string | null): PendingWords | null {
@@ -27,7 +41,7 @@ function parsePending(raw: string | null): PendingWords | null {
 	try {
 		const parsed = JSON.parse(raw) as Partial<PendingWords>;
 		if (!Array.isArray(parsed?.words) || parsed.words.length === 0) return null;
-		return {
+		const pending: PendingWords = {
 			label: String(parsed.label ?? 'word list'),
 			words: parsed.words.map(String),
 			options: {
@@ -35,6 +49,11 @@ function parsePending(raw: string | null): PendingWords | null {
 				examples: parsed.options?.examples === true
 			}
 		};
+		if (parsed.then === 'export' || parsed.then === 'send') pending.then = parsed.then;
+		if (typeof parsed.deckName === 'string' && parsed.deckName.trim()) pending.deckName = parsed.deckName;
+		const settings = parseSettings(parsed.settings);
+		if (settings) pending.settings = settings;
+		return pending;
 	} catch {
 		return null;
 	}
@@ -42,7 +61,8 @@ function parsePending(raw: string | null): PendingWords | null {
 
 /**
  * Park a word list for the creator to pick up. Producers: the dictionary's
- * word bag, and the rows selected on an HSK level page ("Add to my deck").
+ * word bag, the rows selected on an HSK level page ("Add to my deck" /
+ * "Send to Anki"), and a saved deck reopened from My words.
  */
 export function setPendingWords(pending: PendingWords): void {
 	try {

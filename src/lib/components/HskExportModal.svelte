@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { btnPrimary, btnSecondary } from '$lib/buttonStyles';
+	import { Button, chipClass, SectionLabel, Switch } from '$lib/ui';
 	import type { HskEntry } from '$lib/hsk';
 	import {
 		buildRows,
@@ -117,72 +117,68 @@
 	}
 </script>
 
+<svelte:window onkeydown={(e) => e.key === 'Escape' && onClose()} />
+
 <div
-	class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-5"
+	class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-5"
 	role="presentation"
 	onclick={(e) => e.target === e.currentTarget && onClose()}
 >
 	<div
-		class="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-2xl bg-white p-6 shadow-xl sm:rounded-2xl"
+		class="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-[24px] bg-surface p-5 text-ink shadow-xl sm:rounded-[24px] sm:p-7"
 		role="dialog"
 		aria-modal="true"
 		aria-label="Download word list"
 	>
 		<div class="flex items-start justify-between gap-4">
 			<div>
-				<h2 class="text-xl font-bold tracking-tight">Download {ctx.levelLabel}</h2>
-				<p class="mt-1 text-sm text-neutral-500">
+				<h2 class="m-0 text-[22px] leading-tight font-bold">Download {ctx.levelLabel}</h2>
+				<p class="mt-1 mb-0 text-[15px] text-muted">
 					{entries.length.toLocaleString()}
 					{filtered ? 'matching words' : 'words'} · {ctx.listName}
 				</p>
 			</div>
 			<button
+				type="button"
 				onclick={onClose}
 				aria-label="Close"
-				class="rounded-md p-1.5 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900"
+				class="grid size-10 shrink-0 place-items-center rounded-full text-muted hover:bg-sunk hover:text-ink"
 			>
-				<X size={18} />
+				<X class="size-5" />
 			</button>
 		</div>
 
-		<h3 class="mt-6 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">Format</h3>
-		<div class="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
+		<SectionLabel as="h3" class="mt-6 mb-2">Format</SectionLabel>
+		<div class="grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup" aria-label="Format">
 			{#each EXPORT_FORMATS as f (f.id)}
+				{@const on = format === f.id}
 				<button
 					type="button"
+					role="radio"
+					aria-checked={on}
 					onclick={() => {
 						format = f.id;
 						status = '';
 					}}
-					class="rounded-lg border p-3 text-left transition {format === f.id
-						? 'border-neutral-900 bg-neutral-900 text-white'
-						: 'border-neutral-200 hover:border-neutral-900'}"
+					class="rounded-card p-3 text-left transition-colors focus-visible:outline-3 focus-visible:outline-sky {on
+						? 'bg-sky-soft ring-2 ring-sky-ink ring-inset'
+						: 'bg-sunk hover:brightness-95'}"
 				>
-					<div class="text-sm font-semibold">{f.label}</div>
-					<div
-						class="mt-0.5 text-[11px] leading-snug {format === f.id
-							? 'text-neutral-300'
-							: 'text-neutral-500'}"
-					>
-						{f.hint}
-					</div>
+					<span class="block text-[15px] font-semibold {on ? 'text-sky-ink' : 'text-ink'}">{f.label}</span>
+					<span class="mt-0.5 block text-[13px] leading-snug {on ? 'text-sky-ink/80' : 'text-muted'}">{f.hint}</span>
 				</button>
 			{/each}
 		</div>
 
 		{#if fielded}
-			<h3 class="mt-6 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">Fields</h3>
-			<p class="mt-1 text-xs text-neutral-500">
-				Tick what you want in the file. The order is fixed; the columns you leave out are dropped.
-			</p>
-			<div class="mt-2 flex flex-wrap gap-1.5">
+			<SectionLabel as="h3" class="mt-6 mb-2">Fields</SectionLabel>
+			<div class="flex flex-wrap gap-1.5">
 				{#each EXPORT_COLUMNS as col (col.key)}
 					<button
 						type="button"
+						aria-pressed={columnKeys.includes(col.key)}
 						onclick={() => toggleColumn(col.key)}
-						class="rounded-full border px-3 py-1 text-xs transition {columnKeys.includes(col.key)
-							? 'border-neutral-900 bg-neutral-100 text-neutral-900'
-							: 'border-neutral-200 text-neutral-400 hover:border-neutral-400'}"
+						class={chipClass(columnKeys.includes(col.key))}
 					>
 						{col.label}
 					</button>
@@ -191,52 +187,32 @@
 		{/if}
 
 		{#if format === 'pdf'}
-			<h3 class="mt-5 font-mono text-[11px] uppercase tracking-[0.2em] text-neutral-400">Page</h3>
-			<div class="mt-2 space-y-2">
-				<label class="flex items-center gap-2 text-sm text-neutral-700">
-					<input type="checkbox" bind:checked={colorPdf} class="h-4 w-4 accent-neutral-900" />
-					Tone-coloured hanzi and pinyin
-				</label>
-				<label class="flex items-center gap-2 text-sm text-neutral-700">
-					<input type="checkbox" bind:checked={pdfLandscape} class="h-4 w-4 accent-neutral-900" />
-					Landscape A4
-					<span class="text-neutral-500">— more room once you add fields</span>
-				</label>
+			<div class="mt-4 divide-y divide-line border-t border-line">
+				<Switch bind:checked={colorPdf} label="Tone colours" hint="Colour hanzi and pinyin by tone" />
+				<Switch bind:checked={pdfLandscape} label="Landscape" hint="More room for extra fields" />
 			</div>
-			<p class="mt-3 text-xs leading-relaxed text-neutral-500">
-				Columns are sized from their widest entry and every row is the same height, so the page
-				reads as a grid. Written directly as a PDF with the Chinese fonts embedded — characters
-				render anywhere and the text stays selectable. The fonts are fetched once (about 4 MB) the
-				first time you export a PDF.
-			</p>
+			<p class="mt-2 mb-0 text-[13.5px] text-muted">Chinese fonts are embedded; about 4 MB, fetched once.</p>
 		{:else if format === 'json'}
-			<p class="mt-6 text-xs leading-relaxed text-neutral-500">
-				Every field of every word, including all readings and their full definitions — the field
-				picker does not apply.
-			</p>
+			<p class="mt-5 mb-0 text-[13.5px] text-muted">Every field and every reading. No field picker.</p>
 		{/if}
 
 		{#if status}
-			<div class="mt-4">
-				<p class="text-sm text-neutral-500">{status}</p>
+			<div class="mt-4" role="status">
+				<p class="m-0 text-[14px] text-muted">{status}</p>
 				{#if busy && progress > 0}
-					<div class="mt-1.5 h-1 overflow-hidden rounded-full bg-neutral-100">
-						<div class="h-full rounded-full bg-neutral-900 transition-all" style="width:{progress}%"></div>
+					<div class="mt-1.5 h-2 overflow-hidden rounded-full bg-sunk">
+						<div class="h-full rounded-full bg-mint transition-[width]" style="width:{progress}%"></div>
 					</div>
 				{/if}
 			</div>
 		{/if}
 
 		<div class="mt-6 flex flex-wrap items-center justify-end gap-2">
-			<button class={btnSecondary} onclick={onClose}>Cancel</button>
-			<button
-				class="{btnPrimary} inline-flex items-center gap-2"
-				onclick={run}
-				disabled={busy || (fielded && columnKeys.length === 0)}
-			>
-				<Download size={15} />
+			<Button variant="secondary" onclick={onClose}>Cancel</Button>
+			<Button onclick={run} disabled={busy || (fielded && columnKeys.length === 0)}>
+				<Download class="size-[18px]" />
 				{busy ? 'Preparing…' : `Download .${EXPORT_FORMATS.find((f) => f.id === format)?.ext}`}
-			</button>
+			</Button>
 		</div>
 	</div>
 </div>

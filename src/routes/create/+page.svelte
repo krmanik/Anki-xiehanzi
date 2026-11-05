@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { base } from '$app/paths';
 	import AppearancePanel from '$lib/components/AppearancePanel.svelte';
 	import CardTypeEditor from '$lib/components/CardTypeEditor.svelte';
 	import LivePreview from '$lib/components/LivePreview.svelte';
@@ -17,6 +18,9 @@
 	import Send from '@lucide/svelte/icons/send';
 	import { anki, ankiClient, checkAnki, probeAnki, ANKI_STATUS_TEXT } from '$lib/anki/ankiStatus.svelte';
 	import { sendPackage, SEND_STAGE_TEXT, type SendStage } from '$lib/anki/sendDeck';
+	import { loadSendPrefs } from '$lib/anki/sendTarget';
+	import SendToAnkiModal from '$lib/components/SendToAnkiModal.svelte';
+	import Settings2 from '@lucide/svelte/icons/settings-2';
 	import SquarePlus from '@lucide/svelte/icons/square-plus';
 	import Plus from '@lucide/svelte/icons/plus';
 	import {
@@ -26,7 +30,8 @@
 		presetToCard,
 		type CardPreset
 	} from '$lib/cardPresets';
-	import type { PendingWords } from '$lib/hskHandoff';
+	import { peekPendingWords, type PendingThen, type PendingWords } from '$lib/hskHandoff';
+	import { loadDraft, saveDeck, saveDraft, type DeckSettings } from '$lib/myWords';
 	import CardCustomizer from '$lib/components/CardCustomizer.svelte';
 	import ExportPreview from '$lib/components/ExportPreview.svelte';
 	import ExportSuccess from '$lib/components/ExportSuccess.svelte';
@@ -197,6 +202,17 @@
 		}
 		stylesRestored = true;
 		if (pendingImport) applyImport(pendingImport);
+		// Nothing handed over: pick up the words left here last time.
+		else if (leftover && words.length === 0) {
+			restoredDraft = true;
+			void wordInput?.importPending({
+				label: 'your unfinished list',
+				words: leftover.words,
+				options: { audio: false, examples: false },
+				deckName: leftover.deckName || undefined,
+				settings: leftover.settings
+			});
+		}
 
 		loadDict();
 		initJieba();
@@ -208,15 +224,99 @@
 	// parked and applied after the localStorage restores, which would otherwise
 	// overwrite them.
 	let pendingImport: PendingWords | null = null;
+	/** Where to go once the handed-over words are in (`hskHandoff`). */
+	let afterImport: PendingThen | null = null;
+	let deckSource = '';
 	function onimport(pending: PendingWords) {
-		deckName = defaultDeckName(new Date(), pending.label);
+		deckName = pending.deckName ?? defaultDeckName(new Date(), pending.label);
+		afterImport = pending.then ?? null;
+		if (!restoredDraft) deckSource = pending.label;
 		if (stylesRestored) applyImport(pending);
 		else pendingImport = pending;
 	}
 	function applyImport(pending: PendingWords) {
 		pendingImport = null;
+		if (pending.settings) {
+			applySettings(pending.settings);
+			return;
+		}
 		if (pending.options.audio) includeAudio = true;
 		if (pending.options.examples) showExamplesOnEveryCard();
+	}
+	/** A saved deck or a draft: the card exactly as it was built. */
+	function applySettings(saved: DeckSettings) {
+		template = { ...DEFAULT_TEMPLATE, ...saved.template };
+		tabs = [...saved.tabs];
+		tabContent = saved.tabContent;
+		order = [...saved.order];
+		includeAudio = saved.includeAudio;
+		activeTab = 0;
+	}
+	function onAddDone() {
+		addOpen = false;
+		const then = afterImport;
+		afterImport = null;
+		if (!then || words.length === 0) return;
+		step = 3;
+		if (then === 'send') pressSend();
+	}
+
+	// ---- My words: the draft, and every built deck ----
+	// Read before the children mount: WordSourceInput takes the hand-off in its
+	// own onMount. An unfinished list about to be replaced by a hand-off is
+	// kept as a saved deck rather than thrown away.
+	const arriving = peekPendingWords();
+	const leftover = loadDraft();
+	if (leftover && arriving) {
+		saveDeck({
+			name: leftover.deckName || defaultDeckName(new Date(leftover.savedAt)),
+			words: leftover.words,
+			savedAt: leftover.savedAt,
+			settings: leftover.settings
+		});
+		saveDraft(null);
+	}
+	let wordInput = $state<ReturnType<typeof WordSourceInput>>();
+	let restoredDraft = $state(false);
+	let savedToMyWords = $state(false);
+	const currentSettings = (): DeckSettings =>
+		$state.snapshot({ includeAudio, tabs, tabContent, order, template }) as DeckSettings;
+
+	// Keep the words on this page in the draft; clear it when they are all removed.
+	let draftArmed = false;
+	$effect(() => {
+		const list = words.map((w) => w.Simplified);
+		const name = deckName;
+		const settings = currentSettings();
+		if (!stylesRestored) return;
+		if (list.length) {
+			draftArmed = true;
+			saveDraft({ words: list, deckName: name, savedAt: Date.now(), settings });
+		} else if (draftArmed) saveDraft(null);
+	});
+
+	/** A deck was built: keep it under its name, the draft is no longer needed. */
+	function rememberDeck() {
+		saveDeck({
+			name: deckName,
+			words: words.map((w) => w.Simplified),
+			savedAt: Date.now(),
+			source: deckSource || undefined,
+			settings: currentSettings()
+		});
+		// Built and kept: nothing unfinished any more, until the next edit.
+		saveDraft(null);
+		draftArmed = false;
+		savedToMyWords = true;
+	}
+
+	function startOver() {
+		words = [];
+		restoredDraft = false;
+		deckSource = '';
+		deckName = defaultDeckName(new Date());
+		saveDraft(null);
+		addOpen = true;
 	}
 
 	// ---- card style tiles ----
@@ -359,6 +459,7 @@
 				template,
 				onProgress: (v) => (progressbarValue = v)
 			});
+			rememberDeck();
 			exportedDeckName = deckName;
 			if (!popupHidden()) showSuccess = true;
 		} finally {
@@ -378,7 +479,21 @@
 	$effect(() => {
 		if (step === 3) probeAnki();
 	});
-	async function doSendToAnki() {
+	// Send asks where the deck goes (unless the reader switched that off); the
+	// settings button beside it always asks.
+	let showSend = $state(false);
+	function pressSend() {
+		const prefs = loadSendPrefs();
+		if (prefs.ask) showSend = true;
+		else void doSendToAnki(prefs.openAfter);
+	}
+	/** Connect (prompts on a first visit), then Anki's own deck list. */
+	async function loadAnkiDecks(): Promise<string[]> {
+		const status = anki.status === 'ready' ? 'ready' : await checkAnki();
+		if (status !== 'ready') throw new Error(ANKI_STATUS_TEXT[status]);
+		return ankiClient().call<string[]>('deckNames');
+	}
+	async function doSendToAnki(openAfter = true) {
 		if (sending || isGenerating || words.length === 0) return;
 		sendError = '';
 		sendStage = 'connecting';
@@ -403,7 +518,11 @@
 				template,
 				onProgress: (v) => (progressbarValue = Math.min(v, 99))
 			});
-			await sendPackage(ankiClient(), { data: blob }, { onStage: (s) => (sendStage = s), showDeck: deckName });
+			await sendPackage(ankiClient(), { data: blob }, {
+				onStage: (s) => (sendStage = s),
+				showDeck: openAfter ? deckName : undefined
+			});
+			rememberDeck();
 			progressbarValue = 0;
 		} catch (e) {
 			sendStage = 'error';
@@ -450,10 +569,13 @@
 					<button type="button" class={buttonClass('text', 'sm')} onclick={() => (addOpen = false)}>Done</button>
 				{/if}
 			</div>
-			<WordSourceInput bind:words bind:busy={addBusy} {onimport} ondone={() => (addOpen = false)} />
+			<WordSourceInput bind:this={wordInput} bind:words bind:busy={addBusy} {onimport} ondone={onAddDone} />
 		</div>
 		<WordReviewTable bind:words bind:page={wordPage} bind:pageSize={wordPageSize} {template} {palette} {hskWordsDict}>
 			{#snippet actions()}
+				{#if restoredDraft && !addBusy}
+					<button type="button" class={buttonClass('text', 'sm')} onclick={startOver}>Start over</button>
+				{/if}
 				{#if !showAdd}
 					<button type="button" class={buttonClass('soft', 'sm')} onclick={() => (addOpen = true)}>
 						<Plus class="size-4" />Add words
@@ -579,6 +701,11 @@
 					<Badge tint="sky">{words.length.toLocaleString()} words</Badge>
 					<Badge tint="lavender">{preset ? preset.name : `${tabs.length} card type${tabs.length === 1 ? '' : 's'}`}</Badge>
 					<Badge tint={includeAudio ? 'mint' : 'neutral'}>{includeAudio ? 'Audio' : 'No audio'}</Badge>
+					{#if savedToMyWords}
+						<a href="{base}/words" class="ml-auto self-center text-[13.5px] font-semibold text-accent no-underline hover:underline"
+							>Saved in My words</a
+						>
+					{/if}
 				</div>
 
 				{#if words.length === 0}
@@ -599,10 +726,20 @@
 						>
 							<Download class="size-[18px]" />{isGenerating && !sending ? 'Building…' : 'Download .apkg'}
 						</Button>
-						<div class="hidden sm:block {sendFirst ? 'sm:order-1' : 'sm:order-2'}">
-							<Button variant={sendFirst ? 'primary' : 'secondary'} class="w-full" onclick={doSendToAnki} disabled={isGenerating || sending}>
+						<div class="hidden gap-2 sm:flex {sendFirst ? 'sm:order-1' : 'sm:order-2'}">
+							<Button variant={sendFirst ? 'primary' : 'secondary'} class="flex-1" onclick={pressSend} disabled={isGenerating || sending}>
 								<Send class="size-[18px]" />{sending ? 'Sending…' : 'Send to Anki'}
 							</Button>
+							<button
+								type="button"
+								class="grid size-11 shrink-0 place-items-center rounded-full text-muted ring-[1.5px] ring-line ring-inset hover:bg-sunk hover:text-ink disabled:opacity-50"
+								aria-label="Send settings"
+								title="Which deck, and send settings"
+								onclick={() => (showSend = true)}
+								disabled={isGenerating || sending}
+							>
+								<Settings2 class="size-[18px]" />
+							</button>
 						</div>
 					</div>
 					{#if sendStage !== 'idle' && sendStage !== 'building'}
@@ -717,6 +854,20 @@
 			{palette}
 			isGenerating={false}
 			onclose={() => (showSettingsPreview = false)}
+		/>
+	{/if}
+
+	{#if showSend}
+		<SendToAnkiModal
+			{deckName}
+			subtitle="{words.length.toLocaleString()} word{words.length === 1 ? '' : 's'}"
+			loadDecks={loadAnkiDecks}
+			onsend={(name, prefs) => {
+				showSend = false;
+				deckName = name;
+				void doSendToAnki(prefs.openAfter);
+			}}
+			onclose={() => (showSend = false)}
 		/>
 	{/if}
 

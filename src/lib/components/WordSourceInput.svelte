@@ -141,9 +141,13 @@
 	// A level opened from /hsk hands its word list over in sessionStorage — too
 	// many words for a query string. Consume it once, on arrival.
 	let importedFrom = $state('');
-	onMount(async () => {
+	onMount(() => {
 		const pending = takePendingWords();
-		if (!pending) return;
+		if (pending) void importPending(pending);
+	});
+
+	/** Load a handed-over list (or a restored draft) with the HSK progress bar. */
+	export async function importPending(pending: PendingWords) {
 		onimport?.(pending);
 		selectType = 'HSK';
 		importedFrom = pending.label;
@@ -158,7 +162,7 @@
 			hskProcessing = false;
 		}
 		ondone?.();
-	});
+	}
 
 	// ---- BCT levels ----
 	const BCT_LEVELS = ['A', 'B'];

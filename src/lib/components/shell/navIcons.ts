@@ -8,6 +8,7 @@ import BookOpenText from '@lucide/svelte/icons/book-open-text';
 import SquarePlus from '@lucide/svelte/icons/square-plus';
 import Wrench from '@lucide/svelte/icons/wrench';
 import Star from '@lucide/svelte/icons/star';
+import Bookmark from '@lucide/svelte/icons/bookmark';
 import Gauge from '@lucide/svelte/icons/gauge';
 import PencilLine from '@lucide/svelte/icons/pencil-line';
 import GalleryVerticalEnd from '@lucide/svelte/icons/gallery-vertical-end';
@@ -21,6 +22,7 @@ export const NAV_ICONS: Record<NavIcon | ToolIcon, Component<{ class?: string }>
 	plus: SquarePlus,
 	wrench: Wrench,
 	star: Star,
+	bookmark: Bookmark,
 	reader: BookOpenText,
 	gauge: Gauge,
 	pencil: PencilLine,

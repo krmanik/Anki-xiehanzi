@@ -20,6 +20,7 @@
 	import { frequencyBand, levelLabels, queryKind, type SearchHit } from '$lib/dictionary';
 	import { colorizeHanzi } from '$lib/tone';
 	import { setPendingWords } from '$lib/hskHandoff';
+	import { BAG_KEY } from '$lib/myWords';
 	import { buttonClass, chipClass, IconDot, PageHeader } from '$lib/ui';
 	import BookOpen from '@lucide/svelte/icons/book-open';
 	import Search from '@lucide/svelte/icons/search';
@@ -28,7 +29,6 @@
 	import Check from '@lucide/svelte/icons/check';
 	import Layers from '@lucide/svelte/icons/layers';
 
-	const BAG_KEY = 'xiehanzi:dict-bag';
 	const RECENT_KEY = 'xiehanzi:dict-recent';
 
 	const EXAMPLES = ['好', '分', '爱', 'nihao', 'xue2', 'water', 'to love'];
@@ -152,7 +152,8 @@
 		setPendingWords({
 			label: `Dictionary · ${bag.length} word${bag.length === 1 ? '' : 's'}`,
 			words: bag,
-			options: { audio: true, examples: true }
+			options: { audio: true, examples: true },
+			then: 'export'
 		});
 		void goto(`${base}/create`);
 	}

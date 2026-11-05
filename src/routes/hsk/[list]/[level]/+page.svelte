@@ -25,13 +25,14 @@
 		type SortMode
 	} from '$lib/hsk';
 	import { findDeck, formatBytes, loadHskDecks, type HskDeckManifest } from '$lib/hskDecks';
-	import { setPendingWords } from '$lib/hskHandoff';
+	import { setPendingWords, type PendingThen } from '$lib/hskHandoff';
 	import { playHskWord } from '$lib/hskAudio';
 	import { Badge, Button, chipClass, DataTable, HUES, IconDot, PageHeader, toneText } from '$lib/ui';
 	import BookOpen from '@lucide/svelte/icons/book-open';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Download from '@lucide/svelte/icons/download';
 	import FileDown from '@lucide/svelte/icons/file-down';
+	import Send from '@lucide/svelte/icons/send';
 	import SquarePlus from '@lucide/svelte/icons/square-plus';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 
@@ -99,13 +100,18 @@
 		return `${base}/hsk/${otherList.id}/${target.level}`;
 	});
 
-	function addToDeck(keys: string[]) {
+	/**
+	 * The creator loads the words and goes straight to Export with the standard
+	 * card (`then: 'export'`); Send also presses Send to Anki there.
+	 */
+	function addToDeck(keys: string[], then: PendingThen = 'export') {
 		const words = pick(keys).map((e) => e.s);
 		if (!words.length) return;
 		setPendingWords({
 			label: `${listName} · ${label}`,
 			words,
-			options: { audio: true, examples: true }
+			options: { audio: true, examples: true },
+			then
 		});
 		goto(`${base}/create`);
 	}
@@ -268,6 +274,14 @@
 						onclick={() => addToDeck(keys)}
 					>
 						<SquarePlus class="size-4" />Add to my deck
+					</button>
+					<!-- Desktop only: phones have no AnkiConnect. -->
+					<button
+						type="button"
+						class="hidden min-h-9 items-center gap-1.5 rounded-full px-4 text-sm font-semibold text-ground ring-1 ring-ground/40 ring-inset hover:bg-ground/10 sm:inline-flex"
+						onclick={() => addToDeck(keys, 'send')}
+					>
+						<Send class="size-4" />Send to Anki
 					</button>
 					<button
 						type="button"

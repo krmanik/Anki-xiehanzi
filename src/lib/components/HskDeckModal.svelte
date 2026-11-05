@@ -21,6 +21,9 @@
 	import Send from '@lucide/svelte/icons/send';
 	import { anki, ankiClient, checkAnki, probeAnki, ANKI_STATUS_TEXT } from '$lib/anki/ankiStatus.svelte';
 	import { sendPackage, SEND_STAGE_TEXT, type SendStage } from '$lib/anki/sendDeck';
+	import { loadSendPrefs } from '$lib/anki/sendTarget';
+	import SendToAnkiModal from './SendToAnkiModal.svelte';
+	import Settings2 from '@lucide/svelte/icons/settings-2';
 
 	let {
 		list,
@@ -55,7 +58,20 @@
 	let sendError = $state('');
 	let sent = $state(false);
 	const sending = $derived(['connecting', 'storing', 'importing', 'cleaning'].includes(sendStage));
-	async function sendToAnki() {
+	/** The deck name inside the release file — what Anki will call it. */
+	const ankiDeck = $derived(`Anki xiehanzi::${list.name} (${list.year})`);
+	let showSend = $state(false);
+	function pressSend() {
+		const prefs = loadSendPrefs();
+		if (prefs.ask) showSend = true;
+		else void sendToAnki(prefs.openAfter);
+	}
+	async function loadAnkiDecks(): Promise<string[]> {
+		const status = anki.status === 'ready' ? 'ready' : await checkAnki();
+		if (status !== 'ready') throw new Error(ANKI_STATUS_TEXT[status]);
+		return ankiClient().call<string[]>('deckNames');
+	}
+	async function sendToAnki(openAfter = true) {
 		if (sending) return;
 		sendError = '';
 		sendStage = 'connecting';
@@ -69,7 +85,7 @@
 			await sendPackage(
 				ankiClient(),
 				{ url: deckUrl(manifest, deck) },
-				{ onStage: (st) => (sendStage = st), showDeck: `Anki xiehanzi::${list.name} (${list.year})` }
+				{ onStage: (st) => (sendStage = st), showDeck: openAfter ? ankiDeck : undefined }
 			);
 			sent = true;
 			step = 'done';
@@ -120,7 +136,7 @@
 	const steps = $derived(sent ? allSteps.slice(1) : allSteps);
 </script>
 
-<svelte:window onkeydown={(e) => e.key === 'Escape' && onClose()} />
+<svelte:window onkeydown={(e) => e.key === 'Escape' && !showSend && onClose()} />
 
 <div
 	class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-5"
@@ -207,14 +223,23 @@
 			<div class="mt-6 flex flex-wrap items-center justify-end gap-2">
 				<!-- Send is desktop-only (phones have no AnkiConnect). It leads once
 				     Anki has answered, since it saves the import step. -->
-				<div class="hidden sm:block {anki.status === 'ready' ? 'sm:order-first' : ''}">
-					<Button variant="secondary" onclick={sendToAnki} disabled={sending}>
+				<div class="hidden gap-1.5 sm:flex {anki.status === 'ready' ? 'sm:order-first' : ''}">
+					<Button variant="secondary" onclick={pressSend} disabled={sending}>
 						<Send class="size-[18px]" />{sending ? 'Sending…' : 'Send to Anki'}
 					</Button>
+					<button
+						type="button"
+						class="grid size-11 shrink-0 place-items-center rounded-full text-muted ring-[1.5px] ring-line ring-inset hover:bg-sunk hover:text-ink disabled:opacity-50"
+						aria-label="Send settings"
+						title="Where it goes, and send settings"
+						onclick={() => (showSend = true)}
+						disabled={sending}
+					>
+						<Settings2 class="size-[18px]" />
+					</button>
 				</div>
 				<Button variant="secondary" href={deckUrl(manifest, deck)} onclick={() => (step = 'done')}>
 					<Download class="size-[18px]" />Download free deck
-					<span class="font-medium text-muted">{formatBytes(deck.bytes)}</span>
 				</Button>
 				<Button href={POST} target="_blank" rel="noopener noreferrer">
 					<Sparkles class="size-[18px]" />See Premium
@@ -279,3 +304,17 @@
 		{/if}
 	</div>
 </div>
+
+{#if showSend}
+	<SendToAnkiModal
+		fixed
+		deckName={ankiDeck}
+		subtitle="{deck.words.toLocaleString()} words · Anki downloads {formatBytes(deck.bytes)}"
+		loadDecks={loadAnkiDecks}
+		onsend={(_, prefs) => {
+			showSend = false;
+			void sendToAnki(prefs.openAfter);
+		}}
+		onclose={() => (showSend = false)}
+	/>
+{/if}

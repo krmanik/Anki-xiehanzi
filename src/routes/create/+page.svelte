@@ -15,6 +15,7 @@
 	import Eye from '@lucide/svelte/icons/eye';
 	import FileSpreadsheet from '@lucide/svelte/icons/file-spreadsheet';
 	import SquarePlus from '@lucide/svelte/icons/square-plus';
+	import Plus from '@lucide/svelte/icons/plus';
 	import {
 		defaultDeckName,
 		matchPreset,
@@ -103,27 +104,6 @@
 		})
 	);
 
-	// Fetch real sentences for the live preview word (中国) when the field is used,
-	// re-fetching when the length/count options change.
-	let previewExamples = $state<ExampleSentence[]>([]);
-	$effect(() => {
-		const o = template.exampleOptions;
-		const used = examplesUsed;
-		const args = { limit: o.count, minChars: o.minChars, maxChars: o.maxChars };
-		if (!used) {
-			previewExamples = [];
-			return;
-		}
-		let cancelled = false;
-		getSmartSentences('中国', args)
-			.then((r) => {
-				if (!cancelled) previewExamples = r;
-			})
-			.catch(() => {});
-		return () => {
-			cancelled = true;
-		};
-	});
 
 	// Sync Audio field with includeAudio checkbox (Audio sits before the writing component)
 	$effect(() => {
@@ -383,6 +363,11 @@
 		}
 	}
 
+	// The "Add words" panel: open until words arrive, then folded behind a button.
+	let addOpen = $state(true);
+	let addBusy = $state(false);
+	const showAdd = $derived(addOpen || addBusy || words.length === 0);
+
 	const panel = 'rounded-panel bg-surface p-5 ring-1 ring-line ring-inset sm:p-6';
 	const h2 = 'm-0 mb-4 text-[20px] leading-tight font-bold text-ink';
 </script>
@@ -403,11 +388,26 @@
 	<!-- 1 · Words. Kept mounted (hidden) so a running import or the
 	     hand-off from /hsk is not cut off by switching steps. -->
 	<section class={step === 1 ? '' : 'hidden'} aria-label="Words">
-		<div class="{panel} mb-4">
-			<h2 class={h2}>Add words</h2>
-			<WordSourceInput bind:words {onimport} />
+		<!-- Folds away once a batch lands, so the words get the screen; it stays
+		     mounted (hidden) so a running import keeps going. -->
+		<div class="{panel} mb-4 {showAdd ? '' : 'hidden'}">
+			<div class="mb-4 flex items-center justify-between gap-3">
+				<h2 class="{h2} mb-0">Add words</h2>
+				{#if words.length && !addBusy}
+					<button type="button" class={buttonClass('text', 'sm')} onclick={() => (addOpen = false)}>Done</button>
+				{/if}
+			</div>
+			<WordSourceInput bind:words bind:busy={addBusy} {onimport} ondone={() => (addOpen = false)} />
 		</div>
-		<WordReviewTable bind:words bind:page={wordPage} bind:pageSize={wordPageSize} {template} {palette} {hskWordsDict} />
+		<WordReviewTable bind:words bind:page={wordPage} bind:pageSize={wordPageSize} {template} {palette} {hskWordsDict}>
+			{#snippet actions()}
+				{#if !showAdd}
+					<button type="button" class={buttonClass('soft', 'sm')} onclick={() => (addOpen = true)}>
+						<Plus class="size-4" />Add words
+					</button>
+				{/if}
+			{/snippet}
+		</WordReviewTable>
 		<StepBar next={{ label: 'Next: card style', short: 'Card style', onclick: () => (step = 2), disabled: words.length === 0 }}>
 			{#if words.length > 10}
 				<Pager bind:page={wordPage} bind:size={wordPageSize} total={words.length} />
@@ -489,10 +489,14 @@
 			</div>
 
 			<!-- Live preview: right column from lg, under the panel on phones. -->
-			<aside class="space-y-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-10rem)] lg:overflow-y-auto">
+			<aside class="space-y-3 p-px lg:sticky lg:top-20 lg:max-h-[calc(100vh-10rem)] lg:overflow-y-auto">
 				{#if tabContent[tabs[activeTab]]}
 					<LivePreview
+						{words}
 						tabName={tabs[activeTab]}
+						{tabContent}
+						{fields}
+						{includeAudio}
 						{template}
 						{palette}
 						{order}
@@ -500,7 +504,6 @@
 						{backItems}
 						elementStyles={activeStyles}
 						groups={activeGroups}
-						exampleSentences={previewExamples}
 					/>
 				{/if}
 			</aside>

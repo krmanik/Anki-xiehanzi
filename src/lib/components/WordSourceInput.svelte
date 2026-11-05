@@ -15,11 +15,17 @@
 
 	let {
 		words = $bindable(),
-		onimport
+		busy = $bindable(false),
+		onimport,
+		ondone
 	}: {
 		words: Word[];
+		/** True while any batch (file, list, paragraph, hand-off) is being looked up. */
+		busy?: boolean;
 		/** A list handed over from /hsk or the dictionary is being loaded. */
 		onimport?: (pending: PendingWords) => void;
+		/** A batch finished (not a single typed word) — the page may fold the panel. */
+		ondone?: () => void;
 	} = $props();
 
 	// Progress/status are reactive $state; writing them every word forces a Svelte
@@ -74,6 +80,7 @@
 		fileProgress = 100;
 		fileProcessing = false;
 		fileStatus = 'Completed';
+		ondone?.();
 	}
 
 	function handleFileChange(e: Event) {
@@ -128,6 +135,7 @@
 		} finally {
 			hskProcessing = false;
 		}
+		ondone?.();
 	}
 
 	// A level opened from /hsk hands its word list over in sessionStorage — too
@@ -149,6 +157,7 @@
 		} finally {
 			hskProcessing = false;
 		}
+		ondone?.();
 	});
 
 	// ---- BCT levels ----
@@ -192,6 +201,7 @@
 		} finally {
 			bctProcessing = false;
 		}
+		ondone?.();
 	}
 
 	// ---- YCT levels ----
@@ -235,6 +245,7 @@
 		} finally {
 			yctProcessing = false;
 		}
+		ondone?.();
 	}
 
 	// ---- paragraph + break flow ----
@@ -282,8 +293,12 @@
 		if (failed.length > 0) {
 			translateFailedWords = failed;
 			showBreakToast = true;
-		}
+		} else ondone?.();
 	}
+
+	$effect(() => {
+		busy = fileProcessing || hskProcessing || bctProcessing || yctProcessing || paragraphProcessing;
+	});
 
 	const field =
 		'block w-full min-w-0 rounded-card border-0 bg-sunk px-3.5 min-h-11 text-[15px] text-ink placeholder:text-muted focus:ring-3 focus:ring-sky';
@@ -413,6 +428,7 @@
 		ondismiss={() => {
 			showBreakToast = false;
 			translateFailedWords = [];
+			ondone?.();
 		}}
 		onadd={(n) => (paragraphStatus += ` Added ${n} character${n === 1 ? '' : 's'}.`)}
 	/>

@@ -4,6 +4,7 @@
   page can pin it to the bottom bar beside Next.
 -->
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import WordCard from '$lib/components/WordCard.svelte';
 	import { buttonClass } from '$lib/ui';
 	import { playWordAudio, type Word } from '$lib/deck';
@@ -16,7 +17,8 @@
 		pageSize = $bindable(25),
 		template,
 		palette,
-		hskWordsDict
+		hskWordsDict,
+		actions
 	}: {
 		words: Word[];
 		page?: number;
@@ -24,6 +26,8 @@
 		template: TemplateOpts;
 		palette: TonePalette;
 		hskWordsDict: Set<string>;
+		/** Buttons at the right of the header, when no rows are ticked. */
+		actions?: Snippet;
 	} = $props();
 
 	let selected = $state<Set<Word>>(new Set());
@@ -77,6 +81,8 @@
 				class="{buttonClass('secondary', 'sm')} text-rose-ink"
 				onclick={deleteSelected}>Delete {selected.size}</button
 			>
+		{:else if actions}
+			<div class="ml-auto flex gap-2">{@render actions()}</div>
 		{/if}
 	</div>
 

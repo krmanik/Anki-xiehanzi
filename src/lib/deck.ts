@@ -517,7 +517,7 @@ export function renderCardHtml(opts: {
 		`url(${asset}_MaterialIcons-Regular.woff2)`
 	);
 	return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<style>html,body{margin:0;}${styles}</style></head>
+<style>html,body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}${styles}</style></head>
 <body class="card">${PREVIEW_PERSISTENCE_SHIM}${body}</body></html>`;
 }
 

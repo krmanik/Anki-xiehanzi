@@ -10,6 +10,7 @@
  * Flags:
  *   --list new|old     only this list
  *   --limit N          first N words per level (testing)
+ *   --levels 1,2       only these levels (testing)
  *   --no-audio         skip the audio field entirely
  *   --no-examples      skip example sentences
  *   --audio-concurrency N   clips in flight (default 48)
@@ -17,6 +18,10 @@
  *   --out DIR          output directory (default dist-decks/)
  *   --tag TAG          release tag the manifest points at
  *   --manifest-only    rewrite the manifest from the files already in --out
+ *
+ * A test build (`--limit` or `--levels`) leaves the manifest alone — it would
+ * otherwise point the site at a partial deck — and ships stroke data for its own
+ * characters only, so it stays a few MB instead of ~13.
  *
  * **One file per list, one note and one card per word**, with a subdeck per HSK
  * level inside it — the successor to the decks `main.ipynb` published, minus
@@ -86,6 +91,8 @@ const withAudio = !args['no-audio'];
 const withExamples = !args['no-examples'];
 const layoutOpts = { audio: withAudio, examples: withExamples };
 const tag = args.tag ?? defaultTag();
+const onlyLevels = args.levels ? new Set(String(args.levels).split(',')) : null;
+const testBuild = Boolean(args.limit || onlyLevels);
 const cacheDir = args['audio-cache']
 	? resolve(isAbsolute(args['audio-cache']) ? '/' : root, args['audio-cache'])
 	: join(root, '.cache', 'hsk-audio');
@@ -299,6 +306,7 @@ async function buildList(listId) {
 	const levelOf = new Map();
 	const words = [];
 	for (const level of LISTS[listId].levels) {
+		if (onlyLevels && !onlyLevels.has(level)) continue;
 		for (const w of loadLevelWords(listId, level)) {
 			if (levelOf.has(w)) continue;
 			levelOf.set(w, level);
@@ -340,6 +348,7 @@ async function buildList(listId) {
 		// No browser to be polite for: the CDN serves ~28 clips/s at this depth,
 		// against ~4/s at the in-browser default.
 		audioConcurrency: Number(args['audio-concurrency'] ?? 48),
+		subsetStrokes: testBuild,
 		onProgress: (value) => {
 			const pct = Math.floor(value);
 			if (pct >= lastPrint + 5) {
@@ -446,5 +455,6 @@ await deck.loadDict();
 const started = Date.now();
 const built = [];
 for (const listId of targets) built.push(await buildList(listId));
-writeManifest(built);
+if (testBuild) console.log('\ntest build — manifest left alone');
+else writeManifest(built);
 console.log(`done in ${Math.round((Date.now() - started) / 1000)}s`);

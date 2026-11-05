@@ -559,9 +559,13 @@ export function segmentOrdered(text: string): string[] {
  * The complete file has neither failure: one name, one content, stored once
  * however many decks a collection holds.
  */
-async function buildHanziData(): Promise<string> {
+async function buildHanziData(only?: Set<string>): Promise<string> {
 	const res = await fetch(`${host}/data/hanzi-writer-data.json`);
-	return res.text();
+	if (!only) return res.text();
+	const all = await res.json();
+	const subset: Record<string, unknown> = {};
+	for (const ch of only) if (all[ch]) subset[ch] = all[ch];
+	return JSON.stringify(subset);
 }
 
 
@@ -647,6 +651,12 @@ export interface GenerateDeckOptions {
 	 * `say`) instead.
 	 */
 	getAudio?: (word: string) => Promise<Blob | null>;
+	/**
+	 * Ship stroke data for this deck's own characters only — test builds, where
+	 * the whole 32 MB file is most of the download. Never for a release: see
+	 * `buildHanziData` for what a subset breaks.
+	 */
+	subsetStrokes?: boolean;
 	onProgress?: (value: number) => void;
 	// Smart example-sentence fetcher (injectable for tests). Defaults to the
 	// hsk_sentences.db lookup, loaded lazily only when the Examples field is used.
@@ -772,7 +782,11 @@ export async function buildDeckPackage(opts: GenerateDeckOptions): Promise<any> 
 	if (usesWriter) {
 		dataFiles.push('_hanzi-writer.min.js');
 		try {
-			const dataJson = await buildHanziData();
+			const dataJson = await buildHanziData(
+				opts.subsetStrokes
+					? new Set(words.flatMap((w) => [...`${w.Simplified}${w.Traditional ?? ''}`]))
+					: undefined
+			);
 			p.addMedia(dataJson, '_hanzi-writer-data.json');
 		} catch (error) {
 			console.error('Failed to build offline Hanzi Writer data:', error);

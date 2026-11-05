@@ -67,8 +67,11 @@ The deck generator is the heart of the app. Layering matters because correctness
   2025 lists do; a lowercase reading beats CEDICT's capitalised proper-noun one),
   and `buildNoteFields` reorders the four parallel per-reading arrays so that one
   reading sits at index 0 everywhere. Every reading still ships — this reorders,
-  it does not drop. `listSyllable` is optional: a word typed into `/create` has
-  no list behind it and falls back to the longest-definition heuristic.
+  it does not drop. `lookupWord` fills `listSyllable` from `hsk_words.json`
+  (`listReadingOf` in `dict/cedict.ts`, the HSK 2025 list's `pinyin_tone`:
+  了 le, 的 de) — for `/create` and the offline deck builder alike; a word on no
+  HSK list falls back to the longest-definition heuristic. The `/create` word
+  rows print only this reading.
   **Every reading can be heard.** With `readingAudio` (decks that carry audio),
   a word with more than one reading gets a speaker after each reading's pinyin
   in the definitions box (`readingAudioButton`): the lead reading clicks the
@@ -107,6 +110,9 @@ The deck generator is the heart of the app. Layering matters because correctness
   "Advanced". The deck name (`defaultDeckName`: "My words — 6 Nov", "HSK 3 —
   6 Nov") and download live on Export; deck ids hash the name, so a second
   export the same day updates the same deck.
+  Every step ends in `create/StepBar`, pinned to the bottom of the viewport
+  (Back · middle slot · Next); on Words the middle slot is the word `Pager`
+  (`$lib/ui/Pager.svelte`) and the rows scroll in their own box above it.
 
 ## HSK browser (`/hsk`)
 

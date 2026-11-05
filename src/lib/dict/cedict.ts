@@ -28,6 +28,8 @@ let SQL: any = null;
 let cedictDb: any = null;
 let sentencesDb: any = null;
 let hskWords: Map<string, string> | null = null;
+/** word -> the reading the HSK 2025 list gives it ("le" for 了, "hé" for 和). */
+let hskReadings: Map<string, string> | null = null;
 let yctWords: Map<string, string> | null = null;
 let bctFallbackGlosses: Map<string, string> | null = null;
 
@@ -35,6 +37,7 @@ let bctFallbackGlosses: Map<string, string> | null = null;
 export async function loadHskMeanings(): Promise<void> {
 	if (hskWords) return;
 	hskWords = new Map();
+	hskReadings = new Map();
 	try {
 		const res = await fetch(`${base}/data/hsk_words.json`);
 		if (res.ok) {
@@ -45,6 +48,9 @@ export async function loadHskMeanings(): Promise<void> {
 					if (entry?.word && entry?.meaning && !hskWords.has(entry.word)) {
 						hskWords.set(entry.word, String(entry.meaning).trim());
 					}
+					if (entry?.word && entry?.pinyin_tone && !hskReadings.has(entry.word)) {
+						hskReadings.set(entry.word, String(entry.pinyin_tone).trim());
+					}
 				}
 			}
 			console.log(`HSK simple meanings loaded: ${hskWords.size}`);
@@ -52,6 +58,15 @@ export async function loadHskMeanings(): Promise<void> {
 	} catch (e) {
 		console.log('Failed to load hsk_words.json', e);
 	}
+}
+
+/**
+ * The reading the HSK list names for a word, tone-marked, or undefined. CEDICT
+ * does not order readings by commonness (了 lists liǎo, 的 dí), so this is what
+ * `commonReadingIndex` leads with — see `Word.listSyllable`.
+ */
+export function listReadingOf(word: string): string | undefined {
+	return hskReadings?.get(word.trim()) || undefined;
 }
 
 export function simpleMeaningOf(word: string): string {

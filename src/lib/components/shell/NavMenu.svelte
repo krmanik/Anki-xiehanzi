@@ -56,7 +56,7 @@
 		class="flex min-h-10 items-center gap-3 rounded-full px-2.5 py-1 text-[15px] font-medium no-underline transition-colors focus-visible:outline-3 focus-visible:outline-sky {on
 			? 'bg-sky-soft font-semibold text-sky-ink'
 			: shop
-				? 'bg-apricot-soft font-semibold text-apricot-ink hover:brightness-95'
+				? 'bg-lavender-soft font-semibold text-lavender-ink hover:brightness-95'
 				: 'text-ink hover:bg-sunk'}"
 	>
 		<IconDot hue={item.hue} size="sm"><Icon /></IconDot>

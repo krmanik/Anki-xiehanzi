@@ -117,7 +117,7 @@
 			<a
 				href={withBase(SHOP.path, base)}
 				aria-current={isActive(current, SHOP) ? 'page' : undefined}
-				class="{link} ml-1 bg-apricot-soft font-semibold text-apricot-ink hover:brightness-95"
+				class="{link} ml-1 bg-lavender-soft font-semibold text-lavender-ink hover:brightness-95"
 				>{SHOP.label}</a
 			>
 		</nav>

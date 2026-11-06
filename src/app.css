@@ -13,12 +13,17 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 /* ── Design tokens ────────────────────────────────────────────────────────
-   Five clean hues from Radix Colors (crimson, orange, green, blue, violet —
-   the first soft pastels read dull), each in three strengths:
-     <name>       the pastel: icon dots, writer strokes, fills under white glyphs
-     <name>-soft  a whisper of it: panels, chips, selected rows (Radix step 3)
-     <name>-ink   a deep shade for text on white or soft (Radix step 11, darkened
-                where needed to pass WCAG AA 4.5:1 on its own soft tint)
+   Bright and cool. Five hues set in OKLCH so each sits at the same lightness
+   and chroma for its role, on cool slate neutrals. Hue angles follow the
+   clean, bright sets of Tailwind v4 and Apple's system colours: pink 4°,
+   orange 48°, emerald 165°, blue 259°, violet 293°.
+   Orange is the hard one: at text lightness, orange hues of 55–70° turn
+   brown and their tints read beige. So its ink is a vivid red-orange and
+   its tint a pale peach, and big surfaces (Premium) use violet, not orange.
+   Each hue in three strengths:
+     <name>       the hue: icon dots, writer strokes, fills under white glyphs
+     <name>-soft  a whisper of it, same hue (L .97): panels, chips, selected rows
+     <name>-ink   a deep shade for text (WCAG AA on white and on its soft)
    Tones 1–4 of the site's own hanzi/pinyin are rose · apricot · mint · sky.
    The deck templates keep their own tone palettes (tonePresets.ts) untouched. */
 @theme {
@@ -30,19 +35,19 @@
 	--radius-card: 14px;
 	--radius-panel: 18px;
 
-	/* flowbite-svelte buttons use `primary`; it is Radix blue (500 = step 9,
-	   700 = step 11). Without a primary palette those buttons render invisible. */
-	--color-primary-50: #f4faff;
-	--color-primary-100: #e6f4fe;
-	--color-primary-200: #d5efff;
-	--color-primary-300: #acd8fc;
-	--color-primary-400: #5eb1ef;
-	--color-primary-500: #0090ff;
-	--color-primary-600: #0588f0;
-	--color-primary-700: #0d74ce;
-	--color-primary-800: #0b5fae;
-	--color-primary-900: #113264;
-	--color-primary-950: #0d2847;
+	/* flowbite-svelte buttons use `primary`; it is the blue (sky) scale, 500 =
+	   sky, 700 = sky-ink. Without a primary palette those buttons render invisible. */
+	--color-primary-50: #f2f7fe;
+	--color-primary-100: #e0ecfe;
+	--color-primary-200: #c7dcfe;
+	--color-primary-300: #9cc3fe;
+	--color-primary-400: #66a1fe;
+	--color-primary-500: #3384fe;
+	--color-primary-600: #0270fb;
+	--color-primary-700: #0164e2;
+	--color-primary-800: #0050b9;
+	--color-primary-900: #063d8b;
+	--color-primary-950: #092754;
 }
 
 /* Theme-dependent colours resolve through variables, so one utility
@@ -83,28 +88,28 @@
 :root {
 	--xhz-ground: #ffffff;
 	--xhz-surface: #ffffff;
-	--xhz-sunk: #f6f7f9;
-	--xhz-ink: #22252b;
-	--xhz-muted: #5f6570;
-	--xhz-line: #eceef1;
-	--xhz-accent: #0d74ce;
+	--xhz-sunk: #f4f7fb;
+	--xhz-ink: #1b222e;
+	--xhz-muted: #596475;
+	--xhz-line: #e4e8ef;
+	--xhz-accent: #0164e2;
 	--xhz-on-accent: #ffffff;
 
-	--xhz-rose: #e93d82;
-	--xhz-rose-soft: #ffe9f0;
-	--xhz-rose-ink: #cb1d63;
-	--xhz-apricot: #f76b15;
-	--xhz-apricot-soft: #ffefd6;
-	--xhz-apricot-ink: #b34400;
-	--xhz-mint: #30a46c;
-	--xhz-mint-soft: #e6f6eb;
-	--xhz-mint-ink: #1b7a4f;
-	--xhz-sky: #0090ff;
-	--xhz-sky-soft: #e6f4fe;
-	--xhz-sky-ink: #0b6bc0;
-	--xhz-lavender: #6e56cf;
-	--xhz-lavender-soft: #f4f0fe;
-	--xhz-lavender-ink: #6550b9;
+	--xhz-rose: #f73c81;
+	--xhz-rose-soft: #fef1f4;
+	--xhz-rose-ink: #cb0b62;
+	--xhz-apricot: #fd7920;
+	--xhz-apricot-soft: #fef5f0;
+	--xhz-apricot-ink: #bf5502;
+	--xhz-mint: #08ba87;
+	--xhz-mint-soft: #e8fdf3;
+	--xhz-mint-ink: #057c59;
+	--xhz-sky: #3384fe;
+	--xhz-sky-soft: #f0f6ff;
+	--xhz-sky-ink: #0164e2;
+	--xhz-lavender: #905efe;
+	--xhz-lavender-soft: #f5f4fe;
+	--xhz-lavender-ink: #7839e6;
 
 	/* Legacy tone colours, still used by `.toneN` in pages not yet redesigned. */
 	--xie-green: #4caf50;
@@ -118,25 +123,25 @@
 }
 
 :root[data-theme='dark'] {
-	--xhz-ground: #14161b;
-	--xhz-surface: #1c1f26;
-	--xhz-sunk: #22262e;
-	--xhz-ink: #eceef2;
-	--xhz-muted: #a2a8b3;
-	--xhz-line: #2b2f38;
-	--xhz-accent: #70b8ff;
+	--xhz-ground: #0c1016;
+	--xhz-surface: #151a22;
+	--xhz-sunk: #1c222b;
+	--xhz-ink: #ebeff4;
+	--xhz-muted: #a3abb9;
+	--xhz-line: #282e38;
+	--xhz-accent: #8cb9ff;
 	--xhz-on-accent: #0b1a2c;
 
-	--xhz-rose-soft: #381525;
-	--xhz-rose-ink: #ff92ad;
-	--xhz-apricot-soft: #331e0b;
-	--xhz-apricot-ink: #ffa057;
-	--xhz-mint-soft: #132d21;
-	--xhz-mint-ink: #3dd68c;
-	--xhz-sky-soft: #0d2847;
-	--xhz-sky-ink: #70b8ff;
-	--xhz-lavender-soft: #291f43;
-	--xhz-lavender-ink: #baa7ff;
+	--xhz-rose-soft: #2a181c;
+	--xhz-rose-ink: #fe9cb5;
+	--xhz-apricot-soft: #251c18;
+	--xhz-apricot-ink: #ffae85;
+	--xhz-mint-soft: #11241c;
+	--xhz-mint-ink: #6ce5b5;
+	--xhz-sky-soft: #122239;
+	--xhz-sky-ink: #8cb9ff;
+	--xhz-lavender-soft: #231c39;
+	--xhz-lavender-ink: #c0b0fe;
 	color-scheme: dark;
 }
 

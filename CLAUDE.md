@@ -790,7 +790,7 @@ Data assets the app fetches at runtime live in `static/data/` (`cedict.db.zip`, 
   avatar menu (My decks, My words, Log out), then GitHub, then the moon/sun
   theme icon — the theme is live in production for logged-in readers, dev
   builds show it logged out too. No search icon: Dictionary is in the top bar. Top bar: Create · HSK · Dictionary · Radicals · Tools · Premium (`SHOP` in
-  `nav.ts`, the apricot pill, links `/shop`).
+  `nav.ts`, the violet pill, links `/shop`).
 - **`/account` lists only owned decks** — the shop lists the rest. Empty →
   "No decks yet" + Browse the shop. `membershipLabel` is `''` for someone with
   no membership and no purchase, and no badge is drawn.

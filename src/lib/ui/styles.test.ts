@@ -30,6 +30,11 @@ describe('buttonClass', () => {
 		expect(buttonClass('text', 'sm')).toContain('min-h-9');
 		expect(buttonClass('text')).not.toContain('px-5');
 	});
+	it('tints a soft button by hue, sky by default', () => {
+		expect(buttonClass('soft')).toContain('bg-sky-soft');
+		expect(buttonClass('soft', 'md', 'apricot')).toContain('bg-apricot-soft');
+		expect(buttonClass('soft', 'md', 'apricot')).toContain('text-apricot-ink');
+	});
 });
 
 describe('chipClass', () => {

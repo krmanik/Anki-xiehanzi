@@ -14,6 +14,7 @@
  */
 
 import { base } from '$app/paths';
+import type { Hue } from '$lib/ui/styles';
 
 export interface ShopPrice {
 	/** In `currency` units. 0 means "not priced yet" — see `formatPrice`. */
@@ -155,6 +156,18 @@ const TILE_GLYPHS: Record<string, string> = {
 
 export function tileGlyph(product: ShopProduct): string {
 	return TILE_GLYPHS[product.id] ?? '汉';
+}
+
+/** One theme hue per product: the fallback tile's ground and the card's badge. */
+const TILE_HUES: Record<string, Hue> = {
+	'hsk-word-decks': 'sky',
+	'cloze-sentences': 'lavender',
+	'kangxi-radicals': 'apricot',
+	printables: 'mint',
+};
+
+export function tileHue(product: ShopProduct): Hue {
+	return TILE_HUES[product.id] ?? 'rose';
 }
 
 /** Free-alternative links are site-relative in the manifest. */

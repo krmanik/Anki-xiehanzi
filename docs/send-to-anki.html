@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="../img/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta
+			name="description"
+			content="Learn, read, write and practice Mandarin by drawing strokes in Anki"
+		/>
+		<script>
+			// Before first paint, so a dark page never flashes white. Mirrors
+			// src/lib/theme.ts: key `xhz.theme`, unset means light for now.
+			try {
+				var t = localStorage.getItem('xhz.theme');
+				if (t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches))
+					document.documentElement.dataset.theme = 'dark';
+			} catch (e) {}
+		</script>
+		<link href="../_app/immutable/entry/start.BJ49jmAe.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/DmQLSnrx.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/DHjIL5fg.js" rel="modulepreload">
+		<link href="../_app/immutable/entry/app.yRXgKpnA.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/xihTtKlq.js" rel="modulepreload">
+		<link href="../_app/immutable/nodes/0.lkbw0xZ1.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/CyVNPLKO.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/EdJaFIZE.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/CXXsInyr.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/2hhWAPNG.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/CQBz5Xwj.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/D_gzXPDL.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/xTppSBCJ.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/D5cLNN_r.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/DEDCB4xj.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/BFUxNeSR.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/9r8fj3t1.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/Dn0tkGvZ.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/B-yCaI7D.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/B_K55924.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/BzoHYn3X.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/CKOxzezv.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/qATSKooy.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/tRZqFqHi.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/3nHXdTyt.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/CLQXaeFT.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/rQ83hJA8.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/BPyCNiOj.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/DmEfe4Hp.js" rel="modulepreload">
+		<link href="../_app/immutable/nodes/2.JAKNkEl1.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/BjqjDfSU2.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/hRHxutBE2.js" rel="modulepreload">
+		<link href="../_app/immutable/nodes/14.vMA_2SVv.js" rel="modulepreload">
+		<link href="../_app/immutable/chunks/BXHO4qX_.js" rel="modulepreload">
+		
+		<link href="../_app/immutable/assets/ShareButtons.ikjU0SfR.css" rel="stylesheet">
+		<link href="../_app/immutable/assets/0.DApNhGKy.css" rel="stylesheet">
+		<link href="../_app/immutable/assets/MarkdownLayout.BJ3M2OxJ.css" rel="stylesheet">
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">
+			<script>
+				{
+					__sveltekit_c82exg = {
+						base: new URL("..", location).pathname.slice(0, -1),
+						assets: "/Anki-xiehanzi"
+					};
+
+					const element = document.currentScript.parentElement;
+
+					Promise.all([
+						import("../_app/immutable/entry/start.BJ49jmAe.js"),
+						import("../_app/immutable/entry/app.yRXgKpnA.js")
+					]).then(([kit, app]) => {
+						kit.start(app, element);
+					});
+				}
+			</script>
+		</div>
+	</body>
+</html>

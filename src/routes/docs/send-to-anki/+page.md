@@ -30,7 +30,15 @@ Both choices are remembered, so later sends go straight through.
 
 ## 3. Send
 
-Pick a deck, or type a new name, then **Confirm and send**. If a word is already in your collection, it gets updated where it is, and its reviews are kept. New words go into the deck you picked.
+Pick a deck, or type a new name, then **Confirm and send**. Every word goes into the deck you picked. When it's done, the page says how many words were new and how many were updated.
+
+- **Send the same deck again** after changing its words or card style: its cards update in place and keep their reviews. Edits you made to those cards in Anki are replaced. A card type you removed stays in Anki with its reviews.
+- **Each deck is separate.** A word in two of your decks is a card in each. Sending one deck never changes another deck's cards or design.
+- **Filtered decks** can't take new cards, so they aren't in the list.
+
+### "Anki made duplicate cards"
+
+Anki itself can create a second copy of cards after a card style changes. It's an Anki bug that shows up in small collections. In Anki, go to **Tools → Check Database**. It deletes the copies and keeps your reviews.
 
 ## "Could not reach Anki"
 

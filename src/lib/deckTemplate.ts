@@ -873,7 +873,10 @@ export function buildNoteTemplates(opts: {
 	let ri = 0;
 	let ci = 0;
 	for (const card in tabContent) {
-		req.push([ri, 'any', [ri]]);
+		// Field 0 (Simplified) is never empty, so every card type makes a card for
+		// every word. `[ri]` required field ri, so a fifth card type was dropped
+		// for any word without a part of speech.
+		req.push([ri, 'any', [0]]);
 		ri++;
 		const ct = `ct${ci}`;
 		ci++;
@@ -1226,18 +1229,67 @@ export function deckFieldsFromOrder(order: string[]): string[] {
 	return order.filter((o) => o !== 'writingComponent' && o !== CONTROL_BUTTONS_TOKEN && o !== SEPARATOR_TOKEN);
 }
 
-/** The genanki `Model` props for a deck, plus whether its cards use the writer. */
-export function deckModelProps(opts: Parameters<typeof buildNoteTemplates>[0]): {
+/**
+ * Every field a `/create` deck's note type carries, in this order, whatever its
+ * cards show. Anki's importer matches a note type on its field names *in order*
+ * plus its card names; a note type whose fields followed the card layout
+ * changed schema whenever a field was shown, hidden or dragged, and the next
+ * send then **skipped every word already in Anki** — measured, not assumed.
+ * The card templates still print only what the reader picked.
+ */
+export const DECK_NOTE_FIELDS: readonly string[] = Object.values(FIELDS);
+
+const fnv1a = (seed: string, h = 0x811c9dc5) => {
+	for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 0x01000193);
+	return h >>> 0;
+};
+
+/** A deck name as Anki compares it: Anki's deck names are case-insensitive. */
+const deckKey = (deckName: string) =>
+	deckName.normalize('NFC').trim().replace(/\s*::\s*/g, '::').toLowerCase();
+
+/**
+ * The note type id of a `/create` deck, seeded on the deck's name. **Each deck
+ * has a note type of its own** (user choice, 2026-11-06: "every deck
+ * complete"): a word's GUID is seeded on the note type, so every word of a
+ * send lands in the chosen deck, a second deck holding the same word gets a
+ * note of its own, and one deck's design never restyles another's. Sending the
+ * same deck again reaches the same note type and updates it in place.
+ *
+ * In [4·10⁹, 4·10⁹ + 2³²): clear of the shared `DECK_MODELS` and the radical
+ * note types (~1.97·10⁹) and of Anki's own millisecond-timestamp ids (~1.7·10¹²).
+ */
+export function deckNoteTypeId(deckName: string): string {
+	return String(4_000_000_000 + fnv1a(`xiehanzi-note-type:${deckKey(deckName)}`));
+}
+
+/** Anki addresses note types by name too, so each deck's gets its own. */
+export function deckNoteTypeName(deckName: string): string {
+	return `Anki-xiehanzi · ${deckName.trim()}`;
+}
+
+/**
+ * The genanki `Model` props for a deck, plus whether its cards use the writer.
+ * With `deckName` it is that `/create` deck's own note type (`deckNoteTypeId`,
+ * `DECK_NOTE_FIELDS`); without, one of the two shared `DECK_MODELS` the
+ * prebuilt HSK decks keep.
+ */
+export function deckModelProps(opts: Parameters<typeof buildNoteTemplates>[0] & { deckName?: string }): {
 	model: DeckModelProps;
 	usesWriter: boolean;
 } {
 	const built = buildNoteTemplates(opts);
-	const m = opts.includeAudio ? DECK_MODELS.audio : DECK_MODELS.noAudio;
+	const m =
+		opts.deckName !== undefined
+			? { id: deckNoteTypeId(opts.deckName), name: deckNoteTypeName(opts.deckName) }
+			: opts.includeAudio
+				? DECK_MODELS.audio
+				: DECK_MODELS.noAudio;
 	return {
 		model: {
 			name: m.name,
 			id: m.id,
-			flds: built.flds,
+			flds: opts.deckName !== undefined ? DECK_NOTE_FIELDS.map((name) => ({ name })) : built.flds,
 			css: CONSTANTS.DECK_CSS + built.css,
 			req: built.req,
 			tmpls: built.tmpls
@@ -1251,6 +1303,8 @@ export function deckModelProps(opts: Parameters<typeof buildNoteTemplates>[0]): 
  * settings My words keeps — what "update card design" pushes into Anki.
  */
 export function savedDeckModel(s: {
+	/** The deck's name: its note type is seeded on it (`deckNoteTypeId`). */
+	deckName: string;
 	includeAudio: boolean;
 	order: string[];
 	tabContent: TabContent;
@@ -1261,6 +1315,7 @@ export function savedDeckModel(s: {
 		order: s.order,
 		tabContent: s.tabContent,
 		includeAudio: s.includeAudio,
-		template: s.template
+		template: s.template,
+		deckName: s.deckName
 	});
 }

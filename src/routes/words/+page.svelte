@@ -75,7 +75,7 @@
 	async function openDesign(deck: SavedDeck) {
 		if (!deck.settings) return;
 		const { savedDeckModel, DECK_IMG_MEDIA, deckDataMedia } = await import('$lib/deckTemplate');
-		const { model, usesWriter } = savedDeckModel(deck.settings);
+		const { model, usesWriter } = savedDeckModel({ ...deck.settings, deckName: deck.name });
 		design = {
 			deckName: deck.name,
 			wanted: model,

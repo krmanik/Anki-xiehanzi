@@ -22,7 +22,7 @@
 	import Send from '@lucide/svelte/icons/send';
 	import { anki, ankiClient, checkAnki, probeAnki, ANKI_STATUS_TEXT } from '$lib/anki/ankiStatus.svelte';
 	import { sendPackage, SEND_STAGE_TEXT, type SendStage } from '$lib/anki/sendDeck';
-	import { deckQuery } from '$lib/anki/sendTarget';
+	import { deckQuery, layoutNote } from '$lib/anki/sendTarget';
 	import SendToAnkiModal from './SendToAnkiModal.svelte';
 	import UpdateDesignModal from './UpdateDesignModal.svelte';
 	import AnkiSetupLink from './AnkiSetupLink.svelte';
@@ -72,10 +72,34 @@
 	async function countAnkiNotes(deck: string): Promise<number> {
 		return (await ankiClient().call<number[]>('findNotes', { query: deckQuery(deck) })).length;
 	}
-	async function loadAnkiDecks(): Promise<string[]> {
+	async function loadAnkiDecks(): Promise<{ decks: string[]; filtered: string[] }> {
 		const status = anki.status === 'ready' ? 'ready' : await checkAnki();
 		if (status !== 'ready') throw new Error(ANKI_STATUS_TEXT[status]);
-		return ankiClient().call<string[]>('deckNames');
+		const { sendableDecks } = await import('$lib/anki/sendDeck');
+		return sendableDecks(ankiClient());
+	}
+	/**
+	 * The release file's note type is one of the shared ids. A collection holding
+	 * that id in another layout (an older deck, or a `/create` deck from before
+	 * each got its own) makes Anki's importer skip every word already on it —
+	 * say so before the send rather than report success after.
+	 */
+	async function checkLayout(): Promise<string | null> {
+		const [{ hskDeckModel }, { toInstalled }, { planAlign }] = await Promise.all([
+			import('$lib/hskDeckLayout'),
+			import('$lib/anki/designSync'),
+			import('$lib/anki/noteTypeAlign')
+		]);
+		const { model } = hskDeckModel({ audio: manifest.options.audio, examples: manifest.options.examples });
+		let raw: unknown[];
+		try {
+			raw = await ankiClient().call<unknown[]>('findModelsById', { modelIds: [Number(model.id)] });
+		} catch {
+			return null; // not in the collection: nothing to clash with
+		}
+		if (!raw?.[0]) return null;
+		const plan = planAlign(toInstalled(raw[0]), model);
+		return plan.same ? null : layoutNote(plan.modelName);
 	}
 	async function sendToAnki(openAfter = true) {
 		if (sending) return;
@@ -348,7 +372,8 @@
 		deckName={ankiDeck}
 		subtitle="{deck.words.toLocaleString()} words · Anki downloads {formatBytes(deck.bytes)}"
 		loadDecks={loadAnkiDecks}
-			countNotes={countAnkiNotes}
+		countNotes={countAnkiNotes}
+		checkTarget={checkLayout}
 		onsend={(_, prefs) => {
 			showSend = false;
 			void sendToAnki(prefs.openAfter);

@@ -55,7 +55,8 @@ import {
 	type TemplateOpts,
 	type CardElementId,
 	type CardElementStyles,
-	type ElementStyle
+	type ElementStyle,
+	type DeckModelProps
 } from './deckTemplate';
 
 import {
@@ -649,6 +650,20 @@ export interface GenerateDeckOptions {
 	 * Defaults to `deckName` for every word.
 	 */
 	deckFor?: (word: Word) => string;
+	/**
+	 * The `/create` deck this package is: it gets that deck's own note type
+	 * (`deckNoteTypeId`). Usually `deckName`; Send to Anki builds into a
+	 * holding deck and moves the cards after, so it passes the target here.
+	 * Left out, the package uses the shared `DECK_MODELS` (the HSK release
+	 * builder).
+	 */
+	noteTypeDeck?: string;
+	/**
+	 * Last change to the note type before it is packaged — Send to Anki uses it
+	 * to keep the card types the collection's copy already has, so Anki's
+	 * importer sees the same schema and updates instead of skipping.
+	 */
+	shapeModel?: (model: DeckModelProps) => DeckModelProps;
 	/** How many audio clips to fetch at once (default DEFAULT_AUDIO_CONCURRENCY). */
 	audioConcurrency?: number;
 	/**
@@ -686,17 +701,18 @@ export async function buildDeckPackage(opts: GenerateDeckOptions): Promise<any> 
 
 	onProgress(0);
 
-	// One note type carrying every card type, on one of the two ids every
-	// existing deck was built with (`DECK_MODELS`).
+	// One note type carrying every card type: the deck's own (`noteTypeDeck`),
+	// or one of the two shared ids the prebuilt HSK decks keep (`DECK_MODELS`).
 	const spec = deckModelProps({
 		fields,
 		order: opts.order,
 		tabContent,
 		includeAudio,
-		template
+		template,
+		deckName: opts.noteTypeDeck
 	});
-	const model = new Model(spec.model);
-	const built = spec.model;
+	const built = opts.shapeModel ? opts.shapeModel(spec.model) : spec.model;
+	const model = new Model(built);
 
 	const usesWriter = spec.usesWriter;
 

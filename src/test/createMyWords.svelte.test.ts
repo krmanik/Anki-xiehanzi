@@ -36,10 +36,20 @@ vi.mock('hanzi-writer', () => ({
 }));
 
 const { sendPackage, ankiCall } = vi.hoisted(() => ({
-	sendPackage: vi.fn(async (..._args: unknown[]) => {}),
-	ankiCall: vi.fn(async (_action: string) => ['Default', 'Boya', 'Boya::Book 1'] as unknown)
+	sendPackage: vi.fn(async (..._args: unknown[]) => ({ added: 2 })),
+	ankiCall: vi.fn(async (action: string) => {
+		// A first send: Anki has no note type for this deck yet.
+		if (action === 'findModelsById') throw new Error('model was not found: 1');
+		if (action === 'findNotes') return [];
+		return ['Default', 'Boya', 'Boya::Book 1'] as unknown;
+	})
 }));
-vi.mock('$lib/anki/sendDeck', () => ({ sendPackage, SEND_STAGE_TEXT: {} }));
+vi.mock('$lib/anki/sendDeck', () => ({
+	sendPackage,
+	SEND_STAGE_TEXT: {},
+	holdingDeckName: () => '_xhz-incoming-1',
+	sendableDecks: async (client: { call: (a: string) => Promise<string[]> }) => ({ decks: await client.call('deckNames'), filtered: [] })
+}));
 vi.mock('$lib/anki/ankiStatus.svelte', () => ({
 	anki: { status: 'idle' },
 	ankiClient: () => ({ call: ankiCall }),
@@ -110,7 +120,11 @@ describe('Create page — hand-off next steps', () => {
 		await waitFor(() => expect(sendPackage).toHaveBeenCalled());
 		const name = (screen.getByLabelText('Deck name') as HTMLInputElement).value;
 		expect(name).toBe('Boya::Book 1');
-		expect(sendPackage.mock.calls[0][2]).toMatchObject({ showDeck: name });
+		// Built into a holding deck, moved into the chosen one, on that deck's own note type.
+		expect(sendPackage.mock.calls[0][2]).toMatchObject({ showDeck: name, moveTo: { from: '_xhz-incoming-1', to: name } });
+		const { deckNoteTypeId } = await import('$lib/deckTemplate');
+		expect(sendPackage.mock.calls[0][2]).toMatchObject({ noteType: deckNoteTypeId(name) });
+		expect(await screen.findByText(/2 words added to “Boya › Book 1”/)).toBeInTheDocument();
 		await waitFor(() => expect(savedDecks()).toHaveLength(1));
 		expect(savedDecks()[0]).toMatchObject({ name, words: ['会', '发展'], source: 'New HSK (2025) · HSK 3' });
 	});

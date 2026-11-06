@@ -18,8 +18,9 @@
 	import FileSpreadsheet from '@lucide/svelte/icons/file-spreadsheet';
 	import Send from '@lucide/svelte/icons/send';
 	import { anki, ankiClient, checkAnki, probeAnki, ANKI_STATUS_TEXT } from '$lib/anki/ankiStatus.svelte';
-	import { sendPackage, SEND_STAGE_TEXT, type SendStage } from '$lib/anki/sendDeck';
-	import { deckQuery } from '$lib/anki/sendTarget';
+	import { holdingDeckName, sendableDecks, sendPackage, SEND_STAGE_TEXT, type SendStage } from '$lib/anki/sendDeck';
+	import { alignNoteType } from '$lib/anki/noteTypeAlign';
+	import { deckQuery, legacyNote, legacyQuery, sentNote } from '$lib/anki/sendTarget';
 	import SendToAnkiModal from '$lib/components/SendToAnkiModal.svelte';
 	import AnkiSetupLink from '$lib/components/AnkiSetupLink.svelte';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
@@ -45,7 +46,7 @@
 		type CardElementStyles,
 		type TemplateOpts
 	} from '$lib/deck';
-	import { deckFieldsFromOrder } from '$lib/deckTemplate';
+	import { deckFieldsFromOrder, deckModelProps } from '$lib/deckTemplate';
 	import { FIELDS, WRITING, DEFAULT_ORDER, newCard, fieldLabels } from '$lib/cardEditorModel';
 	import { resolvePalette } from '$lib/tonePresets';
 	import { posDisplay } from '$lib/dict/cedict';
@@ -466,6 +467,9 @@
 			await generateDeck({
 				words,
 				deckName,
+				// The deck's own note type, as Send gives it, so a downloaded deck
+				// and a sent one are the same deck in Anki.
+				noteTypeDeck: deckName,
 				includeAudio,
 				fields,
 				order,
@@ -505,15 +509,22 @@
 	async function countAnkiNotes(deck: string): Promise<number> {
 		return (await ankiClient().call<number[]>('findNotes', { query: deckQuery(deck) })).length;
 	}
+	/** A deck an older version filled gets its words a second time; say so first. */
+	async function checkAnkiTarget(deck: string): Promise<string | null> {
+		return legacyNote((await ankiClient().call<number[]>('findNotes', { query: legacyQuery(deck) })).length);
+	}
 	/** Connect (prompts on a first visit), then Anki's own deck list. */
-	async function loadAnkiDecks(): Promise<string[]> {
+	async function loadAnkiDecks(): Promise<{ decks: string[]; filtered: string[] }> {
 		const status = anki.status === 'ready' ? 'ready' : await checkAnki();
 		if (status !== 'ready') throw new Error(ANKI_STATUS_TEXT[status]);
-		return ankiClient().call<string[]>('deckNames');
+		return sendableDecks(ankiClient());
 	}
+	/** What the finished send did, shown in place of the progress line. */
+	let sendDone = $state('');
 	async function doSendToAnki(openAfter = true) {
 		if (sending || isGenerating || words.length === 0) return;
 		sendError = '';
+		sendDone = '';
 		sendStage = 'connecting';
 		const status = anki.status === 'ready' ? 'ready' : await checkAnki();
 		if (status !== 'ready') {
@@ -523,10 +534,22 @@
 		}
 		isGenerating = true;
 		sendStage = 'building';
+		// Fixed for the whole send, whatever the page does meanwhile.
+		const target = deckName;
+		const total = words.length;
 		try {
+			const client = ankiClient();
+			// This deck's note type as Anki holds it, lined up with this design
+			// first — otherwise a send after a card-type change is skipped by
+			// Anki's importer word for word (see noteTypeAlign.ts).
+			const { model } = deckModelProps({ fields, order, tabContent, includeAudio, template, deckName: target });
+			const aligned = await alignNoteType(client, model);
+			const holding = holdingDeckName();
 			const blob = await generateDeckBlob({
 				words,
-				deckName,
+				deckName: holding,
+				noteTypeDeck: target,
+				shapeModel: aligned?.shape,
 				includeAudio,
 				fields,
 				order,
@@ -536,13 +559,24 @@
 				template,
 				onProgress: (v) => (progressbarValue = Math.min(v, 99))
 			});
-			await sendPackage(ankiClient(), { data: blob }, {
+			const result = await sendPackage(client, { data: blob }, {
 				onStage: (s) => (sendStage = s),
-				showDeck: openAfter ? deckName : undefined,
+				showDeck: openAfter ? target : undefined,
+				moveTo: { from: holding, to: target },
+				noteType: model.id,
+				cardTypes: aligned ? aligned.plan.templateOrder.length : model.tmpls.length,
 				// Anki downloads the 32 MB stroke file itself (once per collection)
 				// rather than receiving it in the package — see sendDeck.ts.
 				fetchFromUrl: { '_hanzi-writer-data.json': new URL(`${base}/data/hanzi-writer-data.json`, location.href).href }
 			});
+			sendDone = sentNote(
+				target,
+				total,
+				result.added,
+				aligned?.plan.keepTemplates.map((t) => t.name),
+				result.duplicates
+			);
+			sendStage = 'done';
 			rememberDeck();
 			progressbarValue = 0;
 		} catch (e) {
@@ -783,7 +817,7 @@
 								: sendStage === 'connecting'
 									? ANKI_STATUS_TEXT.checking
 									: sendStage === 'done'
-										? `In Anki now: “${deckName}”.`
+										? sendDone || `In Anki now: “${deckName}”.`
 										: SEND_STAGE_TEXT[sendStage]}
 							{#if sendStage === 'error'}<AnkiSetupLink />{/if}
 						</p>
@@ -891,6 +925,7 @@
 			subtitle="{words.length.toLocaleString()} word{words.length === 1 ? '' : 's'}"
 			loadDecks={loadAnkiDecks}
 			countNotes={countAnkiNotes}
+			checkTarget={checkAnkiTarget}
 			onsend={(name, prefs) => {
 				showSend = false;
 				deckName = name;

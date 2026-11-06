@@ -30,6 +30,7 @@
  * Pure apart from the injected client, so it runs in the node test project.
  */
 import type { AnkiConnect } from './ankiConnect';
+import { deckQuery } from './sendTarget';
 
 /** The add-on runs every action on Anki's main thread; a big import blocks it for a while. */
 const STORE_TIMEOUT = 5 * 60_000;
@@ -61,6 +62,59 @@ export interface SendOptions {
 	 * whose download fails stays in the package.
 	 */
 	fetchFromUrl?: Record<string, string>;
+	/**
+	 * The package's cards sit in the holding deck `from`; after the import they
+	 * move to `to` and the holding deck is deleted. Anki's importer copies the
+	 * package deck's description onto a deck of the same name — genanki writes
+	 * an empty one, so importing straight into a reader's existing deck wiped
+	 * the description they wrote. Moving cards touches nothing but the cards,
+	 * and the holding deck says exactly how many notes were new.
+	 */
+	moveTo?: { from: string; to: string };
+	/**
+	 * The package's note type id. With it, `added` counts only notes that were
+	 * not there before (a new card type also puts cards for old notes in the
+	 * holding deck), and the send checks for duplicate cards afterwards.
+	 */
+	noteType?: string | number;
+	/** How many card types that note type has after the send. */
+	cardTypes?: number;
+}
+
+export interface SendResult {
+	/** Notes the import added (only known with `moveTo`). */
+	added?: number;
+	/**
+	 * Anki left a note with two cards of one card type — an Anki 25.09 bug
+	 * (see `hasDuplicateCards`). Its Check Database deletes them.
+	 */
+	duplicates?: boolean;
+}
+
+/**
+ * Whether any note of this note type has two cards of the same card type.
+ *
+ * Anki 25.09 makes them itself: when a note type's cards are not stored note by
+ * note (a card type added later gets later ids) and SQLite reads them in id
+ * order — which it does in a small collection once statistics exist — editing a
+ * template makes Anki regenerate every card it failed to group. Reproduced on
+ * Anki's stock "Basic" with 20 notes: add a card type, edit a template, 40 cards
+ * become 80. A send that changes the design edits the templates, so it can set
+ * this off; Check Database deletes the copies ("cards with duplicate
+ * template"). Counted per card type rather than read with `cardsInfo`, which
+ * would ship every card's rendered HTML.
+ */
+export async function hasDuplicateCards(client: AnkiConnect, noteType: string | number, cardTypes: number): Promise<boolean> {
+	const notes = (await client.call<number[]>('findNotes', { query: `mid:${noteType}` })).length;
+	for (let i = 1; i <= cardTypes; i++) {
+		if ((await client.call<number[]>('findCards', { query: `mid:${noteType} card:${i}` })).length > notes) return true;
+	}
+	return false;
+}
+
+/** A holding deck name no reader would have; `_` sorts it out of the way if a send is cut off. */
+export function holdingDeckName(now = Date.now()): string {
+	return `_xhz-incoming-${now}`;
 }
 
 /**
@@ -129,8 +183,27 @@ async function mediaNames(client: AnkiConnect): Promise<Set<string>> {
 	}
 }
 
+/**
+ * Anki's decks split into the ones a send can go into and filtered decks —
+ * which an import cannot fill: Anki's importer makes "Name 1730…" beside a
+ * filtered deck instead (measured). `getDeckConfig` answers a filtered deck
+ * with the deck itself, `dyn` set.
+ */
+export async function sendableDecks(client: AnkiConnect): Promise<{ decks: string[]; filtered: string[] }> {
+	const names = await client.call<string[]>('deckNames');
+	const confs = await client.multi<{ dyn?: unknown } | false>(names.map((deck) => ({ action: 'getDeckConfig', params: { deck } })));
+	const decks: string[] = [];
+	const filtered: string[] = [];
+	names.forEach((n, i) => {
+		const c = confs[i];
+		(c && !(c instanceof Error) && c.dyn ? filtered : decks).push(n);
+	});
+	return { decks, filtered };
+}
+
 /** Store, import, clean up. Throws an `AnkiConnectError` (or the add-on's own message) on failure. */
-export async function sendPackage(client: AnkiConnect, source: PackageSource, opts: SendOptions = {}): Promise<void> {
+export async function sendPackage(client: AnkiConnect, source: PackageSource, opts: SendOptions = {}): Promise<SendResult> {
+	const result: SendResult = {};
 	const stage = opts.onStage ?? (() => {});
 	const asked = opts.fileName ?? tempPackageName();
 
@@ -155,6 +228,16 @@ export async function sendPackage(client: AnkiConnect, source: PackageSource, op
 		params = { filename: asked, data: toBase64(bytes) };
 	}
 	const stored = (await client.call<string | null>('storeMediaFile', params, STORE_TIMEOUT)) || asked;
+	let moveError: Error | null = null;
+	// The note type's notes before the import, so only new ones count as added.
+	let before: Set<number> | undefined;
+	if (opts.moveTo && opts.noteType !== undefined) {
+		try {
+			before = new Set(await client.call<number[]>('findNotes', { query: `mid:${opts.noteType}` }));
+		} catch {
+			before = undefined;
+		}
+	}
 
 	try {
 		const dir = await client.call<string>('getMediaDirPath');
@@ -164,10 +247,26 @@ export async function sendPackage(client: AnkiConnect, source: PackageSource, op
 		if (!ok) throw new Error('Anki has no profile open. Open your profile in Anki, then try again.');
 	} finally {
 		stage('cleaning');
+		// Even after a failed import: whatever landed must not stay in the holding deck.
+		if (opts.moveTo) {
+			try {
+				await moveCards(client, opts.moveTo, result, before);
+			} catch (e) {
+				if (!moveError) moveError = e as Error;
+			}
+		}
 		try {
 			await client.call('deleteMediaFile', { filename: stored });
 		} catch {
 			// The import's own error is the one worth reporting.
+		}
+	}
+	if (moveError) throw moveError;
+	if (opts.noteType !== undefined && opts.cardTypes && opts.cardTypes > 1) {
+		try {
+			result.duplicates = await hasDuplicateCards(client, opts.noteType, opts.cardTypes);
+		} catch {
+			// Only a check: the deck is in.
 		}
 	}
 	if (opts.showDeck) {
@@ -180,6 +279,26 @@ export async function sendPackage(client: AnkiConnect, source: PackageSource, op
 		}
 	}
 	stage('done');
+	return result;
+}
+
+async function moveCards(
+	client: AnkiConnect,
+	move: { from: string; to: string },
+	result: SendResult,
+	before?: Set<number>
+): Promise<void> {
+	const q = deckQuery(move.from);
+	const notes = await client.call<number[]>('findNotes', { query: q });
+	result.added = before ? notes.filter((n) => !before.has(n)).length : notes.length;
+	const cards = await client.call<number[]>('findCards', { query: q });
+	if (cards.length) await client.call('changeDeck', { cards, deck: move.to });
+	// Only once the cards are out: `deleteDecks` takes a deck's cards with it.
+	if ((await client.call<number[]>('findCards', { query: q })).length) {
+		throw new Error(`Some cards are still in the holding deck “${move.from}”. Move them in Anki's browser, then delete that deck.`);
+	}
+	// Empty by now, so `cardsToo` deletes nothing; the add-on refuses without it.
+	await client.call('deleteDecks', { decks: [move.from], cardsToo: true });
 }
 
 /** The reader-facing line for each stage. */

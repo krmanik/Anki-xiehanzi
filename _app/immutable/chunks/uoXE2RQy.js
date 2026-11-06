@@ -1,0 +1,1 @@
+import{c as e,s as t}from"./BwlOBz9E.js";import"./xihTtKlq.js";import{t as n}from"./CES-AjNU.js";var r=new Set([`$$slots`,`$$events`,`$$legacy`]);function i(i,a){let o=t(a,r),s=[[`rect`,{width:`18`,height:`18`,x:`3`,y:`3`,rx:`2`}],[`path`,{d:`M8 12h8`}],[`path`,{d:`M12 8v8`}]];n(i,e({name:`square-plus`},()=>o,{get iconNode(){return s}}))}export{i as t};

@@ -1,1 +1,0 @@
-import{c as e,s as t}from"./DHjIL5fg.js";import"./xihTtKlq.js";import{t as n}from"./CyVNPLKO.js";var r=new Set([`$$slots`,`$$events`,`$$legacy`]);function i(i,a){let o=t(a,r),s=[[`path`,{d:`M12 3v18`}],[`path`,{d:`M3 12h18`}],[`rect`,{x:`3`,y:`3`,width:`18`,height:`18`,rx:`2`}]];n(i,e({name:`grid-2x2`},()=>o,{get iconNode(){return s}}))}export{i as t};

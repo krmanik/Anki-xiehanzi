@@ -1,1 +1,0 @@
-import{c as e,s as t}from"./DHjIL5fg.js";import"./xihTtKlq.js";import{t as n}from"./CyVNPLKO.js";var r=new Set([`$$slots`,`$$events`,`$$legacy`]);function i(i,a){let o=t(a,r),s=[[`path`,{d:`m12 14 4-4`}],[`path`,{d:`M3.34 19a10 10 0 1 1 17.32 0`}]];n(i,e({name:`gauge`},()=>o,{get iconNode(){return s}}))}export{i as t};

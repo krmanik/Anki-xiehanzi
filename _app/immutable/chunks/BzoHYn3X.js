@@ -1,1 +1,0 @@
-import{c as e,s as t}from"./DHjIL5fg.js";import"./xihTtKlq.js";import{t as n}from"./CyVNPLKO.js";var r=new Set([`$$slots`,`$$events`,`$$legacy`]);function i(i,a){let o=t(a,r),s=[[`path`,{d:`m16 17 5-5-5-5`}],[`path`,{d:`M21 12H9`}],[`path`,{d:`M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4`}]];n(i,e({name:`log-out`},()=>o,{get iconNode(){return s}}))}export{i as t};

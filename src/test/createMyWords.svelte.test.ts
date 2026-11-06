@@ -97,11 +97,12 @@ describe('Create page — hand-off next steps', () => {
 		const user = userEvent.setup();
 		render(Page);
 		const dialog = await screen.findByRole('dialog', { name: 'Send to Anki' });
-		// Anki's own decks are listed; the page's name is offered as a new deck.
-		expect(await within(dialog).findByRole('radio', { name: 'Boya' })).toBeInTheDocument();
-		expect((within(dialog).getByLabelText('New deck name') as HTMLInputElement).value).toMatch(/^HSK 3 — /);
-		await user.click(within(dialog).getByRole('radio', { name: 'Book 1' }));
-		expect(within(dialog).getByText(/Adds new words to “Boya › Book 1”/)).toBeInTheDocument();
+		// The page's name is offered as a new deck; Anki's own decks are one tap away.
+		expect(((await within(dialog).findByLabelText('New deck name')) as HTMLInputElement).value).toMatch(/^HSK 3 — /);
+		await user.click(within(dialog).getByRole('button', { name: 'Existing deck' }));
+		expect(within(dialog).getByRole('radio', { name: 'Boya' })).toBeInTheDocument();
+		await user.click(within(dialog).getByRole('radio', { name: /Book 1/ }));
+		expect(within(dialog).getByText(/New words go into “Boya › Book 1”/)).toBeInTheDocument();
 		expect(within(dialog).getByRole('note')).toHaveTextContent(/May overwrite/);
 		expect(sendPackage).not.toHaveBeenCalled();
 		await user.click(within(dialog).getByRole('button', { name: 'Confirm and send' }));
@@ -120,7 +121,7 @@ describe('Create page — hand-off next steps', () => {
 		const user = userEvent.setup();
 		render(Page);
 		const dialog = await screen.findByRole('dialog', { name: 'Send to Anki' });
-		await within(dialog).findByRole('radio', { name: 'Boya' });
+		await within(dialog).findByLabelText('New deck name');
 		expect(sendPackage).not.toHaveBeenCalled();
 		await user.click(within(dialog).getByRole('button', { name: 'Create and send' }));
 		await waitFor(() => expect(sendPackage).toHaveBeenCalled());

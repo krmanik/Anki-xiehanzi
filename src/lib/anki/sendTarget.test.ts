@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
 	deckLabel,
+	deckQuery,
+	heldNote,
 	filterDecks,
 	findDeck,
 	parseSendPrefs,
@@ -43,8 +45,20 @@ describe('sendTarget', () => {
 		expect(targetNote({ kind: 'new', name: ' ' })).toBeNull();
 	});
 
-	it('defaults the settings: ask, then open the deck', () => {
-		expect(parseSendPrefs(null)).toEqual({ ask: true, openAfter: true });
-		expect(parseSendPrefs({ ask: false, openAfter: 'x' })).toEqual({ ask: false, openAfter: true });
+	it('has no setting to skip the deck check; an old stored "ask" is dropped', () => {
+		expect(parseSendPrefs(null)).toEqual({ openAfter: true });
+		expect(parseSendPrefs({ ask: false, openAfter: 'x' })).toEqual({ openAfter: true });
+		expect(parseSendPrefs({ ask: false, openAfter: false })).toEqual({ openAfter: false });
+	});
+
+	it('searches a deck by its name taken literally', () => {
+		expect(deckQuery('Boya::Book 1')).toBe('deck:"Boya::Book 1"');
+		expect(deckQuery('a_b*"c\\')).toBe('deck:"a\\_b\\*\\"c\\\\"');
+	});
+
+	it('says what the chosen deck already holds', () => {
+		expect(heldNote('Boya::Book 1', 1200)).toBe('“Boya › Book 1” already holds 1,200 notes.');
+		expect(heldNote('X', 1)).toBe('“X” already holds 1 note.');
+		expect(heldNote('X', 0)).toBe('“X” is in Anki and empty.');
 	});
 });

@@ -102,7 +102,9 @@ describe('Create page — hand-off next steps', () => {
 		expect((within(dialog).getByLabelText('New deck name') as HTMLInputElement).value).toMatch(/^HSK 3 — /);
 		await user.click(within(dialog).getByRole('radio', { name: 'Book 1' }));
 		expect(within(dialog).getByText(/Adds new words to “Boya › Book 1”/)).toBeInTheDocument();
-		await user.click(within(dialog).getByRole('button', { name: 'Send' }));
+		expect(within(dialog).getByRole('note')).toHaveTextContent(/May overwrite/);
+		expect(sendPackage).not.toHaveBeenCalled();
+		await user.click(within(dialog).getByRole('button', { name: 'Confirm and send' }));
 
 		await waitFor(() => expect(sendPackage).toHaveBeenCalled());
 		const name = (screen.getByLabelText('Deck name') as HTMLInputElement).value;
@@ -112,12 +114,16 @@ describe('Create page — hand-off next steps', () => {
 		expect(savedDecks()[0]).toMatchObject({ name, words: ['会', '发展'], source: 'New HSK (2025) · HSK 3' });
 	});
 
-	it('with “Ask every time” off, send goes straight to the page’s deck name', async () => {
+	it('an old “Ask every time: off” setting still opens the check; nothing is sent before the confirm', async () => {
 		localStorage.setItem('xhz.anki.send', JSON.stringify({ ask: false, openAfter: false }));
 		handOff({ then: 'send', deckName: 'Mine' });
+		const user = userEvent.setup();
 		render(Page);
+		const dialog = await screen.findByRole('dialog', { name: 'Send to Anki' });
+		await within(dialog).findByRole('radio', { name: 'Boya' });
+		expect(sendPackage).not.toHaveBeenCalled();
+		await user.click(within(dialog).getByRole('button', { name: 'Create and send' }));
 		await waitFor(() => expect(sendPackage).toHaveBeenCalled());
-		expect(screen.queryByRole('dialog', { name: 'Send to Anki' })).toBeNull();
 		expect(sendPackage.mock.calls[0][2]).toMatchObject({ showDeck: undefined });
 		await waitFor(() => expect(savedDecks()[0]?.name).toBe('Mine'));
 	});

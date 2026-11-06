@@ -34,6 +34,7 @@
 		type CardPreset
 	} from '$lib/cardPresets';
 	import { peekPendingWords, type PendingThen, type PendingWords } from '$lib/hskHandoff';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import { lastSettings, loadDecks, loadDraft, saveDeck, saveDraft, type DeckSettings } from '$lib/myWords';
 	import CardCustomizer from '$lib/components/CardCustomizer.svelte';
 	import ExportPreview from '$lib/components/ExportPreview.svelte';
@@ -321,8 +322,13 @@
 		savedToMyWords = true;
 	}
 
+	/** Start over asks once: a hand-built list is gone with one click otherwise. */
+	let confirmClear = $state(false);
 	function startOver() {
+		confirmClear = false;
+		afterImport = null;
 		words = [];
+		wordInput?.reset();
 		restoredDraft = false;
 		deckSource = '';
 		deckName = defaultDeckName(new Date());
@@ -628,10 +634,16 @@
 		</div>
 		<WordReviewTable bind:words bind:page={wordPage} bind:pageSize={wordPageSize} {template} {palette} {hskWordsDict}>
 			{#snippet actions()}
-				{#if restoredDraft && !addBusy}
-					<button type="button" class={buttonClass('text', 'sm')} onclick={startOver}>Start over</button>
+				{#if confirmClear}
+					<span class="self-center text-sm text-muted">Remove all {words.length.toLocaleString()} words?</span>
+					<button type="button" class="{buttonClass('secondary', 'sm')} text-rose-ink" onclick={startOver}>Clear all</button>
+					<button type="button" class={buttonClass('text', 'sm')} onclick={() => (confirmClear = false)}>Cancel</button>
+				{:else if !addBusy}
+					<button type="button" class={buttonClass('secondary', 'sm')} onclick={() => (confirmClear = true)}>
+						<RotateCcw class="size-4" />Start over
+					</button>
 				{/if}
-				{#if !showAdd}
+				{#if !showAdd && !confirmClear}
 					<button type="button" class={buttonClass('soft', 'sm')} onclick={() => (addOpen = true)}>
 						<Plus class="size-4" />Add words
 					</button>

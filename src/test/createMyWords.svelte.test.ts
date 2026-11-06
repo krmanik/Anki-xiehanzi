@@ -177,8 +177,27 @@ describe('Create page — My words', () => {
 		render(Page);
 		expect(await screen.findByText('八')).toBeInTheDocument();
 		await user.click(screen.getByRole('button', { name: 'Start over' }));
+		// Asks first; Cancel keeps the list.
+		await user.click(screen.getByRole('button', { name: 'Cancel' }));
+		expect(screen.getByText('八')).toBeInTheDocument();
+		await user.click(screen.getByRole('button', { name: 'Start over' }));
+		await user.click(screen.getByRole('button', { name: 'Clear all' }));
 		expect(screen.getByText('No words yet.')).toBeInTheDocument();
 		expect(localStorage.getItem(DRAFT_KEY)).toBeNull();
+		// The add panel starts fresh too: no "From your unfinished list", no 100% bar.
+		expect(screen.queryByText('your unfinished list')).toBeNull();
+		expect(screen.queryByText(/Added \d+ words/)).toBeNull();
+	});
+
+	it('Start over is there for words added on this visit too', async () => {
+		const user = userEvent.setup();
+		render(Page);
+		await user.type(screen.getByRole('textbox'), '爱 八');
+		await user.click(screen.getByRole('button', { name: /^Add/ }));
+		expect(await screen.findByText('八')).toBeInTheDocument();
+		await user.click(screen.getByRole('button', { name: 'Start over' }));
+		await user.click(screen.getByRole('button', { name: 'Clear all' }));
+		expect(screen.getByText('No words yet.')).toBeInTheDocument();
 	});
 
 	it('an unfinished list about to be replaced by a hand-off is kept as a deck', async () => {

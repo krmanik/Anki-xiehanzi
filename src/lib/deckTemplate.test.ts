@@ -307,6 +307,20 @@ describe('buildNoteTemplates — per card type', () => {
 		expect(tmpls[0].afmt).toContain('<div class="ct0 card-body">');
 		expect(tmpls[0].afmt).toContain('class="modal-footer1"');
 	});
+
+	it('hides a traditional form equal to the simplified only after the sidebar has run', () => {
+		// The sidebar's initSide waits for DOMContentLoaded and sets char_trad
+		// back to display:block; a dedupe that ran at once lost to it wherever
+		// the card is parsed as a fresh document (preview frame, AnkiDroid).
+		const tabContent: TabContent = { 'Card 1': makeCard(onlySimplifiedFront, allBack) };
+		const { tmpls } = buildNoteTemplates({ fields: FIELDS, tabContent, includeAudio: false, template: tpl() });
+		const afmt = tmpls[0].afmt;
+		const dedupe = afmt.lastIndexOf('function dedupe()');
+		expect(dedupe).toBeGreaterThan(-1);
+		expect(afmt.slice(dedupe)).toContain("addEventListener('DOMContentLoaded', dedupe, false)");
+		// Registered after the sidebar's listener, so it runs after it.
+		expect(afmt.indexOf('ankiWhenReady(initSide)')).toBeLessThan(dedupe);
+	});
 });
 
 describe('buildNoteTemplates — colorized hanzi source fix', () => {

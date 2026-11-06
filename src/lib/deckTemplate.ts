@@ -1131,16 +1131,25 @@ for (var _hide of hideList) {
 
 		// When Simplified and Traditional are identical, hide the redundant
 		// traditional display so the card shows a single hanzi (runtime check).
+		// It waits for the same DOMContentLoaded the sidebar's initSide waits
+		// for, and is registered after it: where the card is parsed as a fresh
+		// document (the /create preview frame, AnkiDroid) the sidebar runs late
+		// and sets char_trad back to display:block, so a check that ran at once
+		// lost and the card printed 的 〔的〕.
 		const dedupeScript = `
 <script>
 (function () {
-    var s = document.getElementById('char_sim');
-    var t = document.getElementById('char_trad');
-    if (s && t) {
-        var a = s.textContent.trim();
-        var b = t.textContent.replace(/[〔〕\\s]/g, '');
-        if (a && a === b) { t.style.display = 'none'; }
+    function dedupe() {
+        var s = document.getElementById('char_sim');
+        var t = document.getElementById('char_trad');
+        if (s && t) {
+            var a = s.textContent.trim();
+            var b = t.textContent.replace(/[〔〕\\s]/g, '');
+            if (a && a === b) { t.style.display = 'none'; }
+        }
     }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', dedupe, false);
+    else dedupe();
 })();
 </script>`;
 		// anki-tts, only on a side that actually shows Examples. Its module runs

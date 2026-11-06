@@ -86,7 +86,7 @@ const FOCUS =
 
 const BUTTON_VARIANT: Record<Exclude<ButtonVariant, 'soft'>, string> = {
 	primary:
-		'bg-accent text-on-accent shadow-[0_6px_16px_-6px_var(--color-accent)] hover:-translate-y-px hover:brightness-110 hover:shadow-[0_10px_22px_-8px_var(--color-accent)]',
+		'bg-accent text-on-accent hover:-translate-y-px hover:brightness-110',
 	secondary: 'bg-surface text-ink ring-[1.5px] ring-inset ring-line hover:bg-sunk',
 	text: 'text-accent hover:underline'
 };

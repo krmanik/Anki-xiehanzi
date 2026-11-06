@@ -42,7 +42,7 @@
 		product: ShopProduct;
 		onClose: () => void;
 		owned?: boolean;
-		onBuy?: (product: ShopProduct) => boolean | void;
+		onBuy?: (product: ShopProduct) => void;
 	} = $props();
 
 	let failed = $state(false);
@@ -149,7 +149,10 @@
 						<ArrowUpRight class="size-4" />
 					</a>
 				{:else}
-					<a class={buttonClass('primary')} {href} target="_blank" rel="noopener noreferrer" onclick={(e) => onBuy?.(product) === false && e.preventDefault()}>
+					<a class={buttonClass('secondary')} href={post} target="_blank" rel="noopener noreferrer">
+						View on Patreon <ArrowUpRight class="size-4" />
+					</a>
+					<a class={buttonClass('primary')} {href} target="_blank" rel="noopener noreferrer" onclick={() => onBuy?.(product)}>
 						<ShoppingBag class="size-[18px]" /> Buy on Patreon
 						<ArrowUpRight class="size-4" />
 					</a>

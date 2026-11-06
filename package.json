@@ -21,6 +21,7 @@
 		"shoot:card-previews": "node scripts/shoot-card-previews.mjs",
 		"patreon:explore": "node scripts/patreon-explore.mjs",
 		"patreon:dashboard": "node scripts/patreon-dashboard.mjs",
+		"shop:sync": "node scripts/sync-shop.mjs",
 		"auth:dev": "npx wrangler dev --config worker/wrangler.toml",
 		"auth:deploy": "npx wrangler deploy --config worker/wrangler.toml"
 	},

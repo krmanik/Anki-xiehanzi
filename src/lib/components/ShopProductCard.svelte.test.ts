@@ -45,6 +45,17 @@ describe('ShopProductCard', () => {
 		expect(bought?.id).toBe('kangxi-radicals');
 	});
 
+	it('links the product page on Patreon beside the checkout, but not once owned', () => {
+		const { unmount } = mount(product({ checkoutUrl: 'https://www.patreon.com/checkout/x' }));
+		expect(screen.getByRole('link', { name: /view on patreon/i })).toHaveAttribute(
+			'href',
+			'https://www.patreon.com/krmani/posts/kangxi-radicals-166891672'
+		);
+		unmount();
+		mount(product(), () => {}, { owned: true });
+		expect(screen.queryByRole('link', { name: /view on patreon/i })).toBeNull();
+	});
+
 	it('swaps Buy for Download when the reader owns it', () => {
 		mount(product(), () => {}, { owned: true });
 		expect(screen.queryByRole('link', { name: /buy on patreon/i })).toBeNull();
@@ -64,7 +75,7 @@ describe('ShopProductCard', () => {
 	it('hands the product back when details are asked for', async () => {
 		let asked: ShopProduct | null = null;
 		mount(product(), (p) => (asked = p));
-		await fireEvent.click(screen.getByRole('button', { name: /see more details/i }));
+		await fireEvent.click(screen.getByRole('button', { name: /^details$/i }));
 		expect(asked?.id).toBe('kangxi-radicals');
 	});
 

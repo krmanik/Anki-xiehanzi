@@ -56,9 +56,9 @@
       "price": {
         "amount": 8
       },
-      "image": "cloze-sentences.jpg",
-      "imageAlt": "A cloze card: a graded sentence with one word blanked and multiple-choice answers.",
-      "buyUrl": "https://www.patreon.com/cw/krmani/shop",
+      "image": "cloze-sentences.png",
+      "imageAlt": "A cloze card: a sentence with one word blanked, its English translation and four multiple-choice answers.",
+      "buyUrl": "https://www.patreon.com/krmani/posts/anki-xie-hanzi-168958972",
       "checkoutUrl": "https://www.patreon.com/checkout/krmani?pvid=5283639",
       "description": "A Clozemaster-shaped deck built from the graded sentence corpus. Each card is a sentence with one HSK word blanked out, answered by multiple choice, by typing it, or by revealing it — words met in context rather than on their own, with the whole sentence spoken.",
       "highlights": [
@@ -96,7 +96,7 @@
       },
       "image": "kangxi-radicals.jpg",
       "imageAlt": "A radical card: stroke animation beside the glyph, readings, evolution and example characters.",
-      "buyUrl": "https://www.patreon.com/krmani/posts/kangxi-radicals-166891672?source=storefront",
+      "buyUrl": "https://www.patreon.com/krmani/posts/kangxi-radicals-166891672",
       "checkoutUrl": "https://www.patreon.com/checkout/krmani?pvid=5081754",
       "description": "The building blocks every character is filed under, prebuilt so there is no waiting on audio. Recognition and writing cards for all 214 radicals, plus everything the free browser build leaves out: 2,016 glyph images, word sense, zhuyin, codepoints and a sidebar that shows or hides any part of a card.",
       "highlights": [
@@ -166,7 +166,8 @@
       "freeAlternative": {
         "label": "Free print tools",
         "href": "/tools"
-      }
+      },
+      "hidden": true
     }
   ]
 }

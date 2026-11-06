@@ -1,7 +1,7 @@
 <script lang="ts">
 	/**
 	 * One product tile: picture, price, and the two things a shopper does —
-	 * read more, or buy.
+	 * read more, buy, or open the product's own Patreon post.
 	 *
 	 * The picture is a card screenshot from `npm run shoot:card-previews`, which
 	 * is run by hand against a real Anki profile. Those files are not in the repo,
@@ -27,6 +27,7 @@
 	} from '$lib/shop';
 	import { Badge, buttonClass, PANEL } from '$lib/ui';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import Check from '@lucide/svelte/icons/check';
 	import Download from '@lucide/svelte/icons/download';
 	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
@@ -44,7 +45,7 @@
 		/** The logged-in reader has it: Download replaces Buy. */
 		owned?: boolean;
 		/** Buy was pressed (the link still opens Patreon itself). */
-		onBuy?: (product: ShopProduct) => boolean | void;
+		onBuy?: (product: ShopProduct) => void;
 	} = $props();
 
 	let failed = $state(false);
@@ -91,7 +92,7 @@
 			</span>
 		{/if}
 		{#if product.badge}
-			<Badge tint={hue} class="absolute top-3 left-3 shadow-sm">{product.badge}</Badge>
+			<Badge tint={hue} strong class="absolute top-3 left-3 shadow-md">{product.badge}</Badge>
 		{/if}
 	</button>
 
@@ -117,13 +118,20 @@
 					<Download class="size-4" /> Download
 				</a>
 			{:else}
-				<a class={buttonClass('primary', 'sm')} {href} target="_blank" rel="noopener noreferrer" onclick={(e) => onBuy?.(product) === false && e.preventDefault()}>
+				<a class={buttonClass('primary', 'sm')} {href} target="_blank" rel="noopener noreferrer" onclick={() => onBuy?.(product)}>
 					<ShoppingBag class="size-4" /> Buy on Patreon
 				</a>
 			{/if}
+		</div>
+		<div class="mt-2 flex flex-wrap items-center gap-x-3">
 			<button type="button" class={buttonClass('text', 'sm')} onclick={() => onDetails(product)}>
-				See more details <ArrowRight class="size-4" />
+				Details <ArrowRight class="size-4" />
 			</button>
+			{#if !owned}
+				<a class={buttonClass('text', 'sm')} href={post} target="_blank" rel="noopener noreferrer">
+					View on Patreon <ArrowUpRight class="size-4" />
+				</a>
+			{/if}
 		</div>
 	</div>
 </article>

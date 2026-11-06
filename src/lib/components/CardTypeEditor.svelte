@@ -168,7 +168,7 @@
 </script>
 
 <div class="mt-6 flex items-center gap-3">
-	<h3 class="m-0 text-lg font-semibold text-ink">Card types and fields</h3>
+	<h3 class="m-0 text-lg font-semibold text-ink">Card types</h3>
 	<button
 		onclick={onshowcustomizer}
 		class="ml-auto flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm text-muted transition hover:border-accent hover:text-ink"
@@ -177,7 +177,7 @@
 		Advanced customisation
 	</button>
 </div>
-<p class="mb-2 text-sm text-muted">Each card type is one card per word in Anki.</p>
+<p class="mb-2 text-sm text-muted">Each card type is one card per word in Anki. Pick its fields under "On the card".</p>
 
 <div class="mb-4 flex items-center gap-3 rounded-lg border border-line bg-sunk p-3">
 	<button
@@ -242,81 +242,6 @@
 		</li>
 	</ul>
 
-	{#if tabContent[tabs[activeTab]]}
-		<div class="py-4">
-			<!-- field editor -->
-			<div>
-				<p class="mb-2 text-xs text-muted">Tick a field to show it on the front and/or back of this card type.</p>
-				<p class="mb-2 text-xs text-muted">Drag a field by its handle to reorder it.</p>
-				<div
-					class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 pb-1 text-[13px] text-muted"
-				>
-					<span>Field</span><span class="text-center">Front</span
-					><span class="text-center">Back</span>
-				</div>
-				<ul bind:this={listEl} class="divide-y divide-line rounded-lg border border-line">
-					{#each order as item, index (item)}
-						{@const isChrome = item === CONTROL_BUTTONS_TOKEN || item === SEPARATOR_TOKEN}
-							<li
-								data-field-index={index}
-								class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 py-2 {item === WRITING || isChrome
-									? 'bg-sunk'
-									: 'bg-surface'} {dragIndex === index ? 'opacity-50' : ''}"
-							>
-								<span class="flex items-center gap-2">
-									<span
-										class="cursor-grab touch-none text-muted"
-										style="touch-action: none;"
-										role="button"
-										tabindex="-1"
-										aria-label="drag to reorder"
-										onpointerdown={(e) => startDrag(index, e)}
-										onpointermove={onDragMove}
-										onpointerup={endDrag}
-										onpointercancel={endDrag}
-									>
-										<GripVertical size={15} />
-									</span>
-									<span class="text-sm">{fieldLabels[item] ?? item}</span>
-									<span class="ml-auto flex flex-col">
-										<button
-											class="text-muted hover:text-ink disabled:opacity-20"
-											disabled={index === 0}
-											onclick={() => moveField(index, -1)}
-											aria-label="move up"><ChevronUp size={13} /></button
-										>
-										<button
-											class="text-muted hover:text-ink disabled:opacity-20"
-											disabled={index === order.length - 1}
-											onclick={() => moveField(index, 1)}
-											aria-label="move down"><ChevronDown size={13} /></button
-										>
-									</span>
-								</span>
-								<span class="text-center">
-									<input
-										type="checkbox"
-										class="h-4 w-4 accent-accent"
-										aria-label={`${fieldLabels[item] ?? item} front`}
-										checked={tabContent[tabs[activeTab]].front.includes(`front${item}`)}
-										onchange={() => handleCheckboxChange(`front${item}`, 'front')}
-									/>
-								</span>
-								<span class="text-center">
-									<input
-										type="checkbox"
-										class="h-4 w-4 accent-accent"
-										aria-label={`${fieldLabels[item] ?? item} back`}
-										checked={tabContent[tabs[activeTab]].back.includes(`back${item}`)}
-										onchange={() => handleCheckboxChange(`back${item}`, 'back')}
-									/>
-								</span>
-							</li>
-					{/each}
-				</ul>
-			</div>
-		</div>
-	{/if}
 </div>
 
 {#if pendingPreset}

@@ -73,3 +73,16 @@ export function classifyWords(
 
 	return { total, byLevel, unknown };
 }
+
+/**
+ * The words of a text a reader who knows HSK 1…`known` has not met yet: every
+ * word on a higher level, and every word on no level at all. `known = 0`
+ * means "not on the list". Order and duplicates follow `words`.
+ */
+export function wordsAbove(words: readonly string[], lookup: Map<string, HskLookupEntry>, known: number): string[] {
+	return words.filter((w) => {
+		const hit = lookup.get(w);
+		if (!hit) return true;
+		return known > 0 && parseInt(hit.level, 10) > known;
+	});
+}

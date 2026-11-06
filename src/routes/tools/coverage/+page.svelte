@@ -71,7 +71,8 @@
 		setPendingWords({
 			label: `Beyond ${listName} · ${result.unknown.length} word${result.unknown.length === 1 ? '' : 's'}`,
 			words: result.unknown,
-			options: { audio: true, examples: true }
+			options: { audio: true, examples: true },
+			then: 'export'
 		});
 		goto(`${base}/create`);
 	}

@@ -395,3 +395,14 @@ export function senses(definition: string): string[] {
 		.map((d) => d.trim())
 		.filter((d) => d && !/^CL:/i.test(d));
 }
+
+/**
+ * The entry to open without a click: the only hit, or a hit whose hanzi is
+ * exactly what was typed (你好 → 你好). Null when the reader has to choose.
+ */
+export function autoPick(query: string, hits: readonly Pick<SearchHit, 'simplified' | 'traditional'>[]): string | null {
+	const q = query.trim();
+	if (hits.length === 1) return hits[0].simplified;
+	const exact = hits.find((h) => h.simplified === q || h.traditional === q);
+	return exact ? exact.simplified : null;
+}

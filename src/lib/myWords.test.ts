@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
+	lastSettings,
+	splitTypedWords,
 	BAG_KEY,
 	DRAFT_KEY,
 	LISTS_KEY,
@@ -146,5 +148,26 @@ describe('display helpers', () => {
 	it('previews the first words', () => {
 		expect(wordPreview(['a', 'b', 'c'], 2)).toBe('a b …');
 		expect(wordPreview(['a'], 2)).toBe('a');
+	});
+});
+
+describe('splitTypedWords', () => {
+	it('splits on spaces and either script’s commas, dropping repeats and blanks', () => {
+		expect(splitTypedWords(' 你好 谢谢，学习、你好;中国\n ')).toEqual(['你好', '谢谢', '学习', '中国']);
+		expect(splitTypedWords('   ')).toEqual([]);
+	});
+});
+
+describe('lastSettings', () => {
+	it('takes the newest deck that has settings', () => {
+		const st = (n: number) => ({ includeAudio: n > 1, tabs: [], tabContent: {}, order: [], template: {} }) as never;
+		expect(
+			lastSettings([
+				{ name: 'a', words: [], savedAt: 1, settings: st(1) },
+				{ name: 'b', words: [], savedAt: 3 },
+				{ name: 'c', words: [], savedAt: 2, settings: st(2) }
+			])?.includeAudio
+		).toBe(true);
+		expect(lastSettings([])).toBeUndefined();
 	});
 });

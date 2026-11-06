@@ -26,7 +26,7 @@
 	// Shorter than the presets' own descriptions, which the Advanced picker keeps.
 	const TILE: Record<string, { label: string; blurb: string; icon: Component<{ class?: string }>; hue: Hue }> = {
 		standard: { label: 'Standard', blurb: 'Word → every reading and meaning', icon: Layers, hue: 'sky' },
-		beginner: { label: 'Beginner', blurb: 'Word → pinyin, meaning, audio', icon: Eye, hue: 'mint' },
+		beginner: { label: 'Beginner', blurb: 'Word → pinyin and meaning', icon: Eye, hue: 'mint' },
 		writing: { label: 'Writing', blurb: 'Meaning → write the character', icon: PencilLine, hue: 'rose' },
 		reading: { label: 'Reading', blurb: 'Hanzi + pinyin → meaning', icon: BookOpen, hue: 'apricot' },
 		examples: { label: 'Sentences', blurb: 'Word → meaning + example sentences', icon: MessageSquareText, hue: 'lavender' },

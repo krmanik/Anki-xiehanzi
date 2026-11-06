@@ -45,7 +45,7 @@ beforeEach(() => localStorage.clear());
 type User = ReturnType<typeof userEvent.setup>;
 
 async function addWord(user: User, word = '中国') {
-	await user.type(screen.getByPlaceholderText('Type a word, e.g. 中国'), word);
+	await user.type(screen.getByPlaceholderText('Type words, e.g. 你好 谢谢 学习'), word);
 	await user.click(screen.getByRole('button', { name: 'Add' }));
 }
 // The step pills: "2 Card style", "3 Export".

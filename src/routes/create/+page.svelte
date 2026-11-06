@@ -31,7 +31,7 @@
 		type CardPreset
 	} from '$lib/cardPresets';
 	import { peekPendingWords, type PendingThen, type PendingWords } from '$lib/hskHandoff';
-	import { loadDraft, saveDeck, saveDraft, type DeckSettings } from '$lib/myWords';
+	import { lastSettings, loadDecks, loadDraft, saveDeck, saveDraft, type DeckSettings } from '$lib/myWords';
 	import CardCustomizer from '$lib/components/CardCustomizer.svelte';
 	import ExportPreview from '$lib/components/ExportPreview.svelte';
 	import ExportSuccess from '$lib/components/ExportSuccess.svelte';
@@ -201,6 +201,12 @@
 			}
 		}
 		stylesRestored = true;
+		// A fresh deck starts from the card built last time; a draft or a
+		// reopened deck brings its own settings and overrides this.
+		const last = !leftover && !pendingImport?.settings ? lastSettings(loadDecks()) : undefined;
+		// The look (palette, font) is already restored above and newer.
+		if (last) applySettings({ ...last, template: $state.snapshot(template) });
+
 		if (pendingImport) applyImport(pendingImport);
 		// Nothing handed over: pick up the words left here last time.
 		else if (leftover && words.length === 0) {
@@ -664,7 +670,7 @@
 			</div>
 
 			<!-- Live preview: right column from lg, under the panel on phones. -->
-			<aside class="space-y-3 p-px lg:sticky lg:top-20 lg:max-h-[calc(100vh-10rem)] lg:overflow-y-auto">
+			<aside class="space-y-3 p-px lg:sticky lg:top-20 lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto">
 				{#if tabContent[tabs[activeTab]]}
 					<LivePreview
 						{words}

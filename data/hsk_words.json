@@ -749,6 +749,16 @@
       "word": "做",
       "pinyin_tone": "zuò",
       "meaning": "to do; to be; become (an occupation) "
+    },
+    {
+      "word": "有点儿",
+      "pinyin_tone": "yǒudiǎnr",
+      "meaning": "a bit, rather (of something unwelcome)"
+    },
+    {
+      "word": "面条儿",
+      "pinyin_tone": "miàntiáor",
+      "meaning": "noodles"
     }
   ],
   "level_2": [
@@ -1501,6 +1511,26 @@
       "word": "左边",
       "pinyin_tone": "zuǒ bian",
       "meaning": "on the left"
+    },
+    {
+      "word": "女孩儿",
+      "pinyin_tone": "nǚháir",
+      "meaning": "girl"
+    },
+    {
+      "word": "小孩儿",
+      "pinyin_tone": "xiǎoháir",
+      "meaning": "child"
+    },
+    {
+      "word": "男孩儿",
+      "pinyin_tone": "nánháir",
+      "meaning": "boy"
+    },
+    {
+      "word": "公交车",
+      "pinyin_tone": "gōngjiāochē",
+      "meaning": "bus"
     }
   ],
   "level_3": [
@@ -3003,6 +3033,31 @@
       "word": "作业",
       "pinyin_tone": "zuò yè",
       "meaning": "homework"
+    },
+    {
+      "word": "外卖",
+      "pinyin_tone": "wàimài",
+      "meaning": "takeaway (food delivered)"
+    },
+    {
+      "word": "高铁",
+      "pinyin_tone": "gāotiě",
+      "meaning": "high-speed train"
+    },
+    {
+      "word": "电子书",
+      "pinyin_tone": "diànzǐshū",
+      "meaning": "e-book"
+    },
+    {
+      "word": "银行卡",
+      "pinyin_tone": "yínhángkǎ",
+      "meaning": "bank card"
+    },
+    {
+      "word": "检票",
+      "pinyin_tone": "jiǎnpiào",
+      "meaning": "to check tickets"
     }
   ],
   "level_4": [
@@ -6005,6 +6060,31 @@
       "word": "作者",
       "pinyin_tone": "zuò zhě",
       "meaning": "author"
+    },
+    {
+      "word": "线下",
+      "pinyin_tone": "xiànxià",
+      "meaning": "offline, in person"
+    },
+    {
+      "word": "网购",
+      "pinyin_tone": "wǎnggòu",
+      "meaning": "to shop online; online shopping"
+    },
+    {
+      "word": "线上",
+      "pinyin_tone": "xiànshàng",
+      "meaning": "online"
+    },
+    {
+      "word": "动车",
+      "pinyin_tone": "dòngchē",
+      "meaning": "fast train"
+    },
+    {
+      "word": "扫码",
+      "pinyin_tone": "sǎomǎ",
+      "meaning": "to scan a code"
     }
   ],
   "level_5": [
@@ -12507,6 +12587,61 @@
       "word": "作文",
       "pinyin_tone": "zuò wén",
       "meaning": "write a composition"
+    },
+    {
+      "word": "中华民族",
+      "pinyin_tone": "Zhōnghuámínzú",
+      "meaning": "the Chinese nation"
+    },
+    {
+      "word": "职场",
+      "pinyin_tone": "zhíchǎng",
+      "meaning": "the workplace"
+    },
+    {
+      "word": "充值",
+      "pinyin_tone": "chōngzhí",
+      "meaning": "to top up"
+    },
+    {
+      "word": "年夜饭",
+      "pinyin_tone": "niányèfàn",
+      "meaning": "New Year's Eve dinner"
+    },
+    {
+      "word": "国画",
+      "pinyin_tone": "guóhuà",
+      "meaning": "Chinese painting"
+    },
+    {
+      "word": "点赞",
+      "pinyin_tone": "diǎnzàn",
+      "meaning": "to like (online)"
+    },
+    {
+      "word": "电商",
+      "pinyin_tone": "diànshāng",
+      "meaning": "e-commerce"
+    },
+    {
+      "word": "上传",
+      "pinyin_tone": "shàngchuán",
+      "meaning": "to upload"
+    },
+    {
+      "word": "便利店",
+      "pinyin_tone": "biànlìdiàn",
+      "meaning": "convenience store"
+    },
+    {
+      "word": "二维码",
+      "pinyin_tone": "èrwéimǎ",
+      "meaning": "QR code"
+    },
+    {
+      "word": "客服",
+      "pinyin_tone": "kèfú",
+      "meaning": "customer service"
     }
   ],
   "level_6": [
@@ -25009,6 +25144,111 @@
       "word": "做主",
       "pinyin_tone": "zuò zhǔ",
       "meaning": "take the responsibility for a decision"
+    },
+    {
+      "word": "链接",
+      "pinyin_tone": "liànjiē",
+      "meaning": "link"
+    },
+    {
+      "word": "算了",
+      "pinyin_tone": "suànle",
+      "meaning": "forget it"
+    },
+    {
+      "word": "主演",
+      "pinyin_tone": "zhǔyǎn",
+      "meaning": "to star"
+    },
+    {
+      "word": "新能源",
+      "pinyin_tone": "xīnnéngyuán",
+      "meaning": "new energy"
+    },
+    {
+      "word": "元宵",
+      "pinyin_tone": "yuánxiāo",
+      "meaning": "Lantern Festival; sweet dumpling"
+    },
+    {
+      "word": "洗漱",
+      "pinyin_tone": "xǐshù",
+      "meaning": "to wash up"
+    },
+    {
+      "word": "打卡",
+      "pinyin_tone": "dǎkǎ",
+      "meaning": "to clock in; to check in"
+    },
+    {
+      "word": "模特儿",
+      "pinyin_tone": "mótèr",
+      "meaning": "model"
+    },
+    {
+      "word": "小偷儿",
+      "pinyin_tone": "xiǎotōur",
+      "meaning": "thief"
+    },
+    {
+      "word": "点击",
+      "pinyin_tone": "diǎnjī",
+      "meaning": "to click"
+    },
+    {
+      "word": "下单",
+      "pinyin_tone": "xiàdān",
+      "meaning": "to place an order"
+    },
+    {
+      "word": "薯片",
+      "pinyin_tone": "shǔpiàn",
+      "meaning": "crisps"
+    },
+    {
+      "word": "占比",
+      "pinyin_tone": "zhànbǐ",
+      "meaning": "proportion"
+    },
+    {
+      "word": "主播",
+      "pinyin_tone": "zhǔbō",
+      "meaning": "host; streamer"
+    },
+    {
+      "word": "动漫",
+      "pinyin_tone": "dòngmàn",
+      "meaning": "anime and comics"
+    },
+    {
+      "word": "热议",
+      "pinyin_tone": "rèyì",
+      "meaning": "hotly debated"
+    },
+    {
+      "word": "性价比",
+      "pinyin_tone": "xìngjiàbǐ",
+      "meaning": "value for money"
+    },
+    {
+      "word": "精准",
+      "pinyin_tone": "jīngzhǔn",
+      "meaning": "precise"
+    },
+    {
+      "word": "低碳",
+      "pinyin_tone": "dītàn",
+      "meaning": "low-carbon"
+    },
+    {
+      "word": "民宿",
+      "pinyin_tone": "mínsù",
+      "meaning": "guesthouse; B&B"
+    },
+    {
+      "word": "新媒体",
+      "pinyin_tone": "xīnméitǐ",
+      "meaning": "new media"
     }
   ],
   "level_7-9": [

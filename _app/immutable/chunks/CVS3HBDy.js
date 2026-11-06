@@ -1,0 +1,1 @@
+import{Et as e}from"./DHjIL5fg.js";var t,n=e((()=>{t=globalThis||self}));export{n,t};

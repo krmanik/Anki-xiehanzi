@@ -5,7 +5,7 @@ compatibility_date = "2025-09-01"
 
 [vars]
 # From patreon.com/portal/registration/register-clients (public, not a secret).
-PATREON_CLIENT_ID = ""
+PATREON_CLIENT_ID = "z9EJEvaNBpfjM5TYvEE81euu2fPgOPlnmxMvYCXWzNbNiQZKvt2BVi51gKCRVrbQ"
 # `npm run patreon:explore` prints it.
 PATREON_CAMPAIGN_ID = "9325901"
 # Pages allowed to receive a login. Comma-separated origins, no paths.

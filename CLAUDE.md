@@ -279,14 +279,24 @@ A separate, much lighter stack from the deck generator — it must never pull th
   say it may overwrite): it counts the notes the chosen deck already holds
   (`countNotes` → `findNotes` on `deckQuery`), shows the apricot "May
   overwrite" note (`OVERWRITE_WARNING`), and sends only on "Confirm and send"
-  (existing deck) / "Create and send" (new). Its Settings hold only "Open it
-  in Anki" (`xhz.anki.send`; an old stored `ask: false` is ignored). The
+  (existing deck) / "Create and send" (new). The deck is one choice,
+  **New deck | Existing deck** (a flat list of full paths), then one status
+  line, the warning and an "Open in Anki after" checkbox (`xhz.anki.send`; an
+  old stored `ask: false` is ignored). The
   HSK modal uses it `fixed`: the deck name is inside the release file, so it
   only says where it goes and whether it is already there. The copy states
   what a send really does: note GUIDs are model + word, so a word already in
   the collection is **updated where it is** (cards keep their deck and
   reviews) and only new words land in the chosen deck. Pure half:
   `src/lib/anki/sendTarget.ts`.
+- **Anki freezes while it receives a send** — AnkiConnect reads the request
+  body 1 KB at a time on Anki's main thread (15 MB took 11–50 s, nonlinear).
+  `sendPackage` therefore drops every media file the collection already has
+  (`trimPackage`; the importer would keep the existing file anyway), and
+  `/create` passes `fetchFromUrl` so Anki downloads the 32 MB stroke file
+  itself (~7 s, once per collection). Measured on a test Anki: first send
+  40 s → 4 s stall, re-send 11 s → 0.3 s. The HSK modal's `url` send still
+  has Anki download the whole release file on its main thread.
 
 - **Update card design** (`src/lib/anki/designSync.ts`, `UpdateDesignModal`;
   "Already have it? Update its card design" in `HskDeckModal`, desktop only).

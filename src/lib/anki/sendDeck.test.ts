@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AnkiConnectError, createAnkiConnect } from './ankiConnect';
-import { joinMediaPath, sendPackage, tempPackageName, toBase64, type SendStage } from './sendDeck';
+import JSZip from 'jszip';
+import { joinMediaPath, sendPackage, tempPackageName, toBase64, trimPackage, type SendStage } from './sendDeck';
 
 /** A fake add-on: records each action, answers from `handlers`. */
 function fakeAnki(handlers: Record<string, (params: any) => unknown>) {
@@ -118,5 +119,72 @@ describe('sendPackage', () => {
 		});
 		await expect(sendPackage(client, { url: 'https://x/y' })).rejects.toBeInstanceOf(AnkiConnectError);
 		expect(log.map((l) => l.action)).toEqual(['storeMediaFile']);
+	});
+});
+
+async function apkg(media: Record<string, string>): Promise<Uint8Array> {
+	const zip = new JSZip();
+	zip.file('collection.anki2', 'db');
+	const index: Record<string, string> = {};
+	Object.entries(media).forEach(([name, body], i) => {
+		zip.file(String(i), body);
+		index[i] = name;
+	});
+	zip.file('media', JSON.stringify(index));
+	return zip.generateAsync({ type: 'uint8array' });
+}
+
+describe('trimPackage', () => {
+	it('drops the media Anki already has and keeps the rest under their keys', async () => {
+		const bytes = await apkg({ '_hanzi-writer-data.json': 'x'.repeat(5000), 'cmn-好.mp3': 'a', 'cmn-新.mp3': 'b' });
+		const { bytes: out, dropped } = await trimPackage(bytes, new Set(['_hanzi-writer-data.json', 'cmn-好.mp3', 'other.png']));
+		expect(dropped).toEqual(['_hanzi-writer-data.json', 'cmn-好.mp3']);
+		const zip = await JSZip.loadAsync(out);
+		expect(JSON.parse(await zip.file('media')!.async('string'))).toEqual({ 2: 'cmn-新.mp3' });
+		expect(await zip.file('2')!.async('string')).toBe('b');
+		expect(zip.file('0')).toBeNull();
+		expect(zip.file('collection.anki2')).not.toBeNull();
+	});
+
+	it('returns the same bytes when there is nothing to drop', async () => {
+		const bytes = await apkg({ 'cmn-新.mp3': 'b' });
+		expect((await trimPackage(bytes, new Set(['x']))).bytes).toBe(bytes);
+		expect((await trimPackage(new Uint8Array([1, 2, 3]), new Set(['x']))).bytes).toEqual(new Uint8Array([1, 2, 3]));
+	});
+
+	it('sendPackage asks Anki what it has and stores the smaller package', async () => {
+		const bytes = await apkg({ '_hanzi-writer-data.json': 'x'.repeat(5000), 'cmn-新.mp3': 'b' });
+		const { client, log } = fakeAnki({ ...happy, getMediaFilesNames: () => ['_hanzi-writer-data.json'] });
+		await sendPackage(client, { data: bytes }, { fileName: '_t.apkg' });
+		expect(log[0].action).toBe('getMediaFilesNames');
+		const sent = await JSZip.loadAsync(Buffer.from(log[1].params.data, 'base64'));
+		expect(Object.values(JSON.parse(await sent.file('media')!.async('string')))).toEqual(['cmn-新.mp3']);
+	});
+
+	it('has Anki download a fetchFromUrl file it lacks, and keeps one whose download fails', async () => {
+		const bytes = await apkg({ '_hanzi-writer-data.json': 'x'.repeat(5000), '_big.bin': 'y', 'cmn-新.mp3': 'b' });
+		const { client, log } = fakeAnki({
+			...happy,
+			getMediaFilesNames: () => [],
+			storeMediaFile: (p: any) => {
+				if (p.url?.includes('big')) throw new Error('offline');
+				return p.filename;
+			}
+		});
+		await sendPackage(client, { data: bytes }, {
+			fileName: '_t.apkg',
+			fetchFromUrl: { '_hanzi-writer-data.json': 'https://x/strokes.json', '_big.bin': 'https://x/big' }
+		});
+		expect(log[1].params).toEqual({ filename: '_hanzi-writer-data.json', url: 'https://x/strokes.json' });
+		const pkg = log.find((l) => l.params?.filename === '_t.apkg' && l.params.data)!;
+		const sent = await JSZip.loadAsync(Buffer.from(pkg.params.data, 'base64'));
+		expect(Object.values(JSON.parse(await sent.file('media')!.async('string'))).sort()).toEqual(['_big.bin', 'cmn-新.mp3']);
+	});
+
+	it('sends the package whole when Anki cannot list its media', async () => {
+		const bytes = await apkg({ 'cmn-新.mp3': 'b' });
+		const { client, log } = fakeAnki(happy);
+		await sendPackage(client, { data: bytes }, { fileName: '_t.apkg' });
+		expect(log[1].params.data).toBe(toBase64(bytes));
 	});
 });

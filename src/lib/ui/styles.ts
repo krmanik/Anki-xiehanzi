@@ -29,6 +29,20 @@ export const SOLID: Record<Hue, string> = {
 	lavender: 'bg-lavender text-white'
 };
 
+/**
+ * Deep ink ground + page-coloured text: a badge laid over a picture, where a
+ * soft tint vanishes into a white screenshot. `text-ground` is white in light
+ * mode and near-black in dark, where the ink turns light.
+ */
+export const STRONG: Record<Tint, string> = {
+	rose: 'bg-rose-ink text-ground',
+	apricot: 'bg-apricot-ink text-ground',
+	mint: 'bg-mint-ink text-ground',
+	sky: 'bg-sky-ink text-ground',
+	lavender: 'bg-lavender-ink text-ground',
+	neutral: 'bg-ink text-ground'
+};
+
 /** A soft panel's ground only, for cards whose text stays ink/muted. */
 export const PANEL: Record<Tint | 'plain', string> = {
 	plain: 'bg-surface ring-1 ring-inset ring-line',

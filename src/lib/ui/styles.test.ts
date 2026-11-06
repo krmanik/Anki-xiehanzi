@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buttonClass, chipClass, cx, toneHue, toneText } from './styles';
+import { buttonClass, chipClass, cx, HUES, STRONG, toneHue, toneText } from './styles';
 
 describe('tones', () => {
 	it('maps tones 1–4 to rose, apricot, mint, sky', () => {
@@ -11,6 +11,12 @@ describe('tones', () => {
 		expect(toneText(2)).toBe('text-tone-2');
 		expect(toneText(5)).toBe('text-tone-5');
 		expect(toneText('x')).toBe('text-tone-5');
+	});
+});
+
+describe('STRONG', () => {
+	it('fills every hue with its ink under page-coloured text', () => {
+		for (const hue of HUES) expect(STRONG[hue]).toBe(`bg-${hue}-ink text-ground`);
 	});
 });
 

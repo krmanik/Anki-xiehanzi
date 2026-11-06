@@ -42,3 +42,8 @@ hsk_sentences.db
 
 # Local Claude Code settings (machine-specific paths).
 .claude/
+
+# Cloudflare Worker local secrets and build state
+worker/.dev.vars
+worker/.wrangler
+.wrangler

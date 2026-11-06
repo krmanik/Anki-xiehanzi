@@ -15,6 +15,7 @@
       "image": "hsk-word-decks.jpg",
       "imageAlt": "The premium HSK card: hanzi beside its readings, meaning, breakdown and example sentences.",
       "buyUrl": "https://www.patreon.com/krmani/posts/anki-xie-hanzi-3-166350823",
+      "checkoutUrl": "https://www.patreon.com/checkout/krmani?pvid=5027349",
       "description": "One note per HSK word, two note types in one download: Recognition puts the word beside its readings, and Writing adds a Hanzi Writer practice grid. Importing several levels gives one deck tree, not seven, and the shared corpora and recordings are packed once instead of per level.",
       "highlights": [
         "Recognition and Writing subdecks in a single .apkg per level",
@@ -58,6 +59,7 @@
       "image": "cloze-sentences.jpg",
       "imageAlt": "A cloze card: a graded sentence with one word blanked and multiple-choice answers.",
       "buyUrl": "https://www.patreon.com/cw/krmani/shop",
+      "checkoutUrl": "https://www.patreon.com/checkout/krmani?pvid=5283639",
       "description": "A Clozemaster-shaped deck built from the graded sentence corpus. Each card is a sentence with one HSK word blanked out, answered by multiple choice, by typing it, or by revealing it — words met in context rather than on their own, with the whole sentence spoken.",
       "highlights": [
         "Sentences graded by HSK level, so a card is made of words you have already met",
@@ -95,6 +97,7 @@
       "image": "kangxi-radicals.jpg",
       "imageAlt": "A radical card: stroke animation beside the glyph, readings, evolution and example characters.",
       "buyUrl": "https://www.patreon.com/krmani/posts/kangxi-radicals-166891672?source=storefront",
+      "checkoutUrl": "https://www.patreon.com/checkout/krmani?pvid=5081754",
       "description": "The building blocks every character is filed under, prebuilt so there is no waiting on audio. Recognition and writing cards for all 214 radicals, plus everything the free browser build leaves out: 2,016 glyph images, word sense, zhuyin, codepoints and a sidebar that shows or hides any part of a card.",
       "highlights": [
         "All 214 radicals · 428 cards · recognition and writing as separate subdecks",

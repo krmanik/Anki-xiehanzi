@@ -32,7 +32,7 @@ export const LEARN: NavGroup = {
 	items: [
 		{ label: 'Home', path: '/', icon: 'home', hue: 'rose' },
 		// `/decks` is the older URL of the HSK landing page and renders the same page.
-		{ label: 'HSK lists', path: '/hsk', icon: 'layers', hue: 'sky', aliases: ['/decks'] },
+		{ label: 'HSK', path: '/hsk', icon: 'layers', hue: 'sky', aliases: ['/decks'] },
 		{ label: 'Radicals', path: '/radicals', icon: 'grid', hue: 'apricot' },
 		{ label: 'Dictionary', path: '/dictionary', icon: 'book', hue: 'mint' }
 	]
@@ -55,12 +55,12 @@ export const TOOLS: NavItem = {
 export const MAKE: NavGroup = {
 	label: 'Make',
 	items: [
-		{ label: 'Create a deck', path: '/create', icon: 'plus', hue: 'lavender' },
+		{ label: 'Create', path: '/create', icon: 'plus', hue: 'lavender' },
 		{ label: 'My words', path: '/words', icon: 'bookmark', hue: 'rose' }
 	]
 };
 
-export const PREMIUM: NavItem = { label: 'Premium', path: '/shop', icon: 'star', hue: 'apricot' };
+export const SHOP: NavItem = { label: 'Premium', path: '/shop', icon: 'star', hue: 'apricot' };
 
 /** The ☰ drawer's groups: the tools are listed out, there is no hover there. */
 export const SIDEBAR: NavGroup[] = [MAKE, LEARN, { label: 'Tools', items: TOOLS.children! }];
@@ -83,7 +83,7 @@ export function withBase(path: string, base: string): string {
 	return path === '/' ? `${base}/` : `${base}${path}`;
 }
 
-/** Whether the current path sits under an entry (`/hsk/new/3` lights "HSK lists"). */
+/** Whether the current path sits under an entry (`/hsk/new/3` lights "HSK"). */
 export function isActive(current: string, item: Pick<NavItem, 'path' | 'aliases'>): boolean {
 	return [item.path, ...(item.aliases ?? [])].some((p) =>
 		p === '/' ? current === '/' : current === p || current.startsWith(`${p}/`)

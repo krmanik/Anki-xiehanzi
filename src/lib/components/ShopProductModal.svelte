@@ -13,6 +13,7 @@
 	 */
 	import {
 		buyUrl,
+		checkoutHref,
 		formatPrice,
 		freeHref,
 		isUnpriced,
@@ -26,19 +27,29 @@
 	import { Badge, buttonClass, PANEL, SectionLabel } from '$lib/ui';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import Check from '@lucide/svelte/icons/check';
+	import Download from '@lucide/svelte/icons/download';
 	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
 	import X from '@lucide/svelte/icons/x';
 
 	let {
 		manifest,
 		product,
-		onClose
-	}: { manifest: ShopManifest; product: ShopProduct; onClose: () => void } = $props();
+		onClose,
+		owned = false,
+		onBuy
+	}: {
+		manifest: ShopManifest;
+		product: ShopProduct;
+		onClose: () => void;
+		owned?: boolean;
+		onBuy?: (product: ShopProduct) => boolean | void;
+	} = $props();
 
 	let failed = $state(false);
 
 	const src = $derived(productImage(product));
-	const href = $derived(buyUrl(manifest, product));
+	const href = $derived(checkoutHref(manifest, product));
+	const post = $derived(buyUrl(manifest, product));
 	const free = $derived(freeHref(product));
 	const hue = $derived(tileHue(product));
 </script>
@@ -132,10 +143,17 @@
 			</div>
 			<div class="flex flex-wrap items-center gap-2">
 				<button type="button" class={buttonClass('secondary')} onclick={onClose}>Close</button>
-				<a class={buttonClass('primary')} {href} target="_blank" rel="noopener noreferrer">
-					<ShoppingBag class="size-[18px]" /> Buy on Patreon
-					<ArrowUpRight class="size-4" />
-				</a>
+				{#if owned}
+					<a class={buttonClass('primary')} href={post} target="_blank" rel="noopener noreferrer">
+						<Download class="size-[18px]" /> Download
+						<ArrowUpRight class="size-4" />
+					</a>
+				{:else}
+					<a class={buttonClass('primary')} {href} target="_blank" rel="noopener noreferrer" onclick={(e) => onBuy?.(product) === false && e.preventDefault()}>
+						<ShoppingBag class="size-[18px]" /> Buy on Patreon
+						<ArrowUpRight class="size-4" />
+					</a>
+				{/if}
 			</div>
 		</div>
 	</div>

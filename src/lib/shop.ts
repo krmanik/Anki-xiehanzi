@@ -46,13 +46,25 @@ export interface ShopProduct {
 	/** Filename under `static/img/shop/`. Missing file → generated tile. */
 	image?: string;
 	imageAlt?: string;
-	/** Where "Buy on Patreon" goes — the product's own post when there is one. */
+	/** The product's post on Patreon: details, and the download once bought. */
 	buyUrl: string;
+	/**
+	 * Patreon's checkout for this product, when it has a direct one (copy the
+	 * address the shop's own Buy button goes to). Buy prefers it: one page fewer
+	 * between wanting the deck and paying for it.
+	 */
+	checkoutUrl?: string;
 	description: string;
 	highlights: string[];
 	specs?: ShopSpec[];
 	/** The free thing on this site that covers the same ground. */
 	freeAlternative?: { label: string; href: string };
+	/**
+	 * Patreon tier ids whose members get this product (see `/account`). Tier
+	 * ids come from `npm run patreon:explore`. Shop (one-time) purchases cannot
+	 * be checked — Patreon's API has no resource for them.
+	 */
+	unlockTiers?: string[];
 }
 
 export interface ShopManifest {
@@ -141,6 +153,11 @@ export function productImage(product: ShopProduct): string | null {
 /** Where the buy button goes — the product post, else the storefront. */
 export function buyUrl(manifest: ShopManifest, product: ShopProduct): string {
 	return product.buyUrl || manifest.shop;
+}
+
+/** Where Buy goes: the direct checkout when known, else the product post. */
+export function checkoutHref(manifest: ShopManifest, product: ShopProduct): string {
+	return product.checkoutUrl || buyUrl(manifest, product);
 }
 
 /**

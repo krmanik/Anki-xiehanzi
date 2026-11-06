@@ -21,8 +21,8 @@ const product = (over: Partial<ShopProduct> = {}): ShopProduct => ({
 	...over
 });
 
-const mount = (p: ShopProduct, onDetails: (product: ShopProduct) => void = () => {}) =>
-	render(ShopProductCard, { props: { manifest, product: p, onDetails } });
+const mount = (p: ShopProduct, onDetails: (product: ShopProduct) => void = () => {}, extra: Record<string, unknown> = {}) =>
+	render(ShopProductCard, { props: { manifest, product: p, onDetails, ...extra } });
 
 describe('ShopProductCard', () => {
 	it('prints the price and links the buy button at the product post', () => {
@@ -30,6 +30,26 @@ describe('ShopProductCard', () => {
 		expect(screen.getByText('$9')).toBeInTheDocument();
 		expect(screen.getByText('per level')).toBeInTheDocument();
 		expect(screen.getByRole('link', { name: /buy on patreon/i })).toHaveAttribute(
+			'href',
+			'https://www.patreon.com/krmani/posts/kangxi-radicals-166891672'
+		);
+	});
+
+	it('sends Buy to the direct checkout when there is one, and reports the click', async () => {
+		let bought: ShopProduct | null = null;
+		mount(product({ checkoutUrl: 'https://www.patreon.com/checkout/x' }), () => {}, { onBuy: (p: ShopProduct) => (bought = p) });
+		const buy = screen.getByRole('link', { name: /buy on patreon/i });
+		expect(buy).toHaveAttribute('href', 'https://www.patreon.com/checkout/x');
+		buy.addEventListener('click', (e) => e.preventDefault());
+		await fireEvent.click(buy);
+		expect(bought?.id).toBe('kangxi-radicals');
+	});
+
+	it('swaps Buy for Download when the reader owns it', () => {
+		mount(product(), () => {}, { owned: true });
+		expect(screen.queryByRole('link', { name: /buy on patreon/i })).toBeNull();
+		expect(screen.getByText('Owned')).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: /download/i })).toHaveAttribute(
 			'href',
 			'https://www.patreon.com/krmani/posts/kangxi-radicals-166891672'
 		);

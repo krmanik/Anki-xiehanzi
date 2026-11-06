@@ -10,14 +10,14 @@ describe('NavMenu', () => {
 	it('marks the section of the current page, including sub-pages', () => {
 		render(NavMenu, { props: { current: '/hsk/new/3' } });
 		const nav = screen.getByRole('navigation', { name: 'Main' });
-		expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('HSK lists');
+		expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('HSK');
 	});
 
 	it('lists Premium, the Learn / Make groups and every tool', () => {
 		render(NavMenu, { props: { current: '/create' } });
-		for (const name of ['Home', 'HSK lists', 'Radicals', 'Dictionary', 'Create a deck', 'Reader', 'Worksheets', 'Premium'])
+		for (const name of ['Home', 'HSK', 'Radicals', 'Dictionary', 'Create', 'Reader', 'Worksheets', 'Premium'])
 			expect(screen.getByRole('link', { name })).toBeInTheDocument();
-		expect(screen.getByRole('link', { name: 'Create a deck' })).toHaveAttribute('aria-current', 'page');
+		expect(screen.getByRole('link', { name: 'Create' })).toHaveAttribute('aria-current', 'page');
 	});
 
 	it('sends a search to the dictionary and tells the drawer to close', async () => {

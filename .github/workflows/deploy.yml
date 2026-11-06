@@ -23,6 +23,9 @@ jobs:
 
       - name: Build SvelteKit
         run: npm run build
+        env:
+          # The Patreon login Worker (worker/). Unset → /account says login is off.
+          VITE_PATREON_AUTH_URL: ${{ vars.PATREON_AUTH_URL }}
 
       - name: Move SvelteKit build aside
         run: mv build svelte-build

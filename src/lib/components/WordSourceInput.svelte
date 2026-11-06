@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import FileUp from '@lucide/svelte/icons/file-up';
 	import { buttonClass, chipClass } from '$lib/ui';
 	import { takePendingWords, type PendingWords } from '$lib/hskHandoff';
 	import { splitTypedWords } from '$lib/myWords';
@@ -98,6 +99,7 @@
 	function handleFileChange(e: Event) {
 		const input = e.target as HTMLInputElement;
 		const file = input.files?.[0];
+		fileName = file?.name ?? '';
 		if (file) generateWords(file);
 	}
 
@@ -174,6 +176,33 @@
 			hskProcessing = false;
 		}
 		ondone?.();
+	}
+
+	/** Start over: back to an empty panel, nothing left of the last batch. */
+	let fileKey = $state(0);
+	let fileName = $state('');
+	export function reset() {
+		selectType = 'Word';
+		wordValue = wordStatus = '';
+		fileStatus = '';
+		fileProgress = 0;
+		fileKey++;
+		fileName = '';
+		selectedLevels = new Set();
+		hskProgress = 0;
+		hskStatus = '';
+		importedFrom = '';
+		selectedBctLevels = new Set();
+		bctProgress = 0;
+		bctStatus = '';
+		selectedYctLevels = new Set();
+		yctProgress = 0;
+		yctStatus = '';
+		texAreaValue = '';
+		paragraphProgress = 0;
+		paragraphStatus = '';
+		translateFailedWords = [];
+		showBreakToast = false;
 	}
 
 	// ---- BCT levels ----
@@ -374,13 +403,21 @@
 {/if}
 
 {#if selectType === 'File'}
-	<input
-		type="file"
-		accept="text/*"
-		aria-label="Word list file"
-		onchange={handleFileChange}
-		class="block w-full text-sm text-muted file:mr-3 file:min-h-10 file:cursor-pointer file:rounded-full file:border-0 file:bg-sky-soft file:px-4 file:font-semibold file:text-sky-ink"
-	/>
+	<!-- A label styled as the button: the native file button clipped its own
+	     left edge and cannot take the site's button style. -->
+	<div class="flex flex-wrap items-center gap-3">
+		<label class="{buttonClass('soft')} cursor-pointer focus-within:ring-2 focus-within:ring-sky">
+			<FileUp class="size-4" />Choose file
+			{#key fileKey}<input
+				type="file"
+				accept="text/*"
+				aria-label="Word list file"
+				onchange={handleFileChange}
+				class="sr-only"
+			/>{/key}
+		</label>
+		<span class="min-w-0 truncate text-sm text-muted">{fileName || 'No file chosen'}</span>
+	</div>
 	{#if fileProcessing || fileProgress > 0}
 		{@render progress(fileProcessing ? 'Processing…' : 'Done', fileProgress)}
 	{:else}

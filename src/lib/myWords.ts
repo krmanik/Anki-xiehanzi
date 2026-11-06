@@ -219,6 +219,14 @@ export function deleteDeck(name: string): SavedDeck[] {
 	return next;
 }
 
+/**
+ * The card the reader built last — a fresh `/create` starts from it, so a
+ * repeat deck is Words → Export with no style to pick again.
+ */
+export function lastSettings(decks: readonly SavedDeck[]): DeckSettings | undefined {
+	return [...decks].filter((d) => d.settings).sort((a, b) => b.savedAt - a.savedAt)[0]?.settings;
+}
+
 export const loadDraft = (): Draft | null => parseDraft(read(DRAFT_KEY));
 export function saveDraft(draft: Draft | null): void {
 	write(DRAFT_KEY, draft && draft.words.length ? draft : null);
@@ -227,3 +235,12 @@ export function saveDraft(draft: Draft | null): void {
 
 export const loadBag = (): string[] => strings(read(BAG_KEY)) ?? [];
 export const storeBag = (bag: string[]): void => write(BAG_KEY, bag);
+
+/**
+ * The "Type words" box: `你好 谢谢，学习` is three words, not one. Splits on
+ * whitespace and the commas, semicolons and slashes either script uses, and
+ * drops repeats.
+ */
+export function splitTypedWords(text: string): string[] {
+	return [...new Set(text.split(/[\s,，、;；/|]+/).filter(Boolean))];
+}

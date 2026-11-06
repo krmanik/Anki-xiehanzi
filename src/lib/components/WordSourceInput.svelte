@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { buttonClass, chipClass } from '$lib/ui';
 	import { takePendingWords, type PendingWords } from '$lib/hskHandoff';
+	import { splitTypedWords } from '$lib/myWords';
 	import BreakWordsModal from '$lib/components/BreakWordsModal.svelte';
 	import {
 		cutParagraph,
@@ -45,12 +46,23 @@
 
 	// ---- single word ----
 	let wordValue = $state('');
-	async function searchAndAdd(word: string) {
-		if (!word.trim()) return;
-		if (words.some((w) => w.Simplified === word.trim())) return;
-		const result = await lookupWord(word);
-		words = [...words, result];
-		wordValue = '';
+	let wordStatus = $state('');
+	/** One word or several (`你好 谢谢，学习`) — each looked up and added once. */
+	async function searchAndAdd(text: string) {
+		const todo = splitTypedWords(text).filter((w) => !words.some((x) => x.Simplified === w));
+		if (!todo.length) return (wordValue = '');
+		const added: Word[] = [];
+		const failed: string[] = [];
+		for (const w of todo) {
+			try {
+				added.push(await lookupWord(w));
+			} catch {
+				failed.push(w);
+			}
+		}
+		words = [...words, ...added];
+		wordValue = failed.join(' ');
+		wordStatus = failed.length ? `Not found: ${failed.join(', ')}` : '';
 	}
 
 	// ---- file ----
@@ -352,12 +364,13 @@
 	>
 		<input
 			class={field}
-			placeholder="Type a word, e.g. 中国"
+			placeholder="Type words, e.g. 你好 谢谢 学习"
 			aria-label="Word"
 			bind:value={wordValue}
 		/>
 		<button type="submit" class={buttonClass()}>Add</button>
 	</form>
+	{#if wordStatus}<p class={hint}>{wordStatus}</p>{/if}
 {/if}
 
 {#if selectType === 'File'}

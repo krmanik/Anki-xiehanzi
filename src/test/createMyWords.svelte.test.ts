@@ -137,7 +137,7 @@ describe('Create page — My words', () => {
 	it('a download saves the deck and clears the draft', async () => {
 		const user = userEvent.setup();
 		render(Page);
-		await user.type(screen.getByPlaceholderText('Type a word, e.g. 中国'), '中国');
+		await user.type(screen.getByPlaceholderText('Type words, e.g. 你好 谢谢 学习'), '中国');
 		await user.click(screen.getByRole('button', { name: 'Add' }));
 		await waitFor(() => expect(JSON.parse(localStorage.getItem(DRAFT_KEY)!).words).toEqual(['中国']));
 

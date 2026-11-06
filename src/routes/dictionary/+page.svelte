@@ -17,7 +17,7 @@
 	import { onMount } from 'svelte';
 	import WordEntry from '$lib/components/dict/WordEntry.svelte';
 	import { loadCedict, searchDictionary } from '$lib/dict/cedict';
-	import { frequencyBand, levelLabels, queryKind, type SearchHit } from '$lib/dictionary';
+	import { autoPick, frequencyBand, levelLabels, queryKind, type SearchHit } from '$lib/dictionary';
 	import { colorizeHanzi } from '$lib/tone';
 	import { setPendingWords } from '$lib/hskHandoff';
 	import { BAG_KEY } from '$lib/myWords';
@@ -36,6 +36,8 @@
 	let query = $state('');
 	let hits = $state<SearchHit[]>([]);
 	let selected = $state<string | null>(null);
+	/** `selected` came from autoPick, not a click — the next search may replace it. */
+	let picked = false;
 	let searching = $state(false);
 	let ready = $state(false);
 	let loadError = $state('');
@@ -100,7 +102,17 @@
 		searching = true;
 		try {
 			const found = await searchDictionary(q, 60);
-			if (token === latest) hits = found;
+			if (token === latest) {
+				hits = found;
+				// 你好 typed → 你好 open, no "Pick a result" in between. Never
+				// over a word the reader clicked.
+				const auto = autoPick(q, found);
+				if (auto && (!selected || picked)) {
+					selected = auto;
+					picked = true;
+					syncUrl(q, auto);
+				}
+			}
 		} finally {
 			if (token === latest) searching = false;
 		}
@@ -127,6 +139,7 @@
 
 	function open(word: string): void {
 		selected = word;
+		picked = false;
 		recent = [word, ...recent.filter((w) => w !== word)].slice(0, 12);
 		writeList(RECENT_KEY, recent);
 		syncUrl(query, word);
@@ -257,6 +270,7 @@
 								aria-label={bag.includes(hit.simplified)
 									? `Remove ${hit.simplified} from the deck list`
 									: `Add ${hit.simplified} to the deck list`}
+								title={bag.includes(hit.simplified) ? 'In your deck list' : 'Add to deck'}
 								class="shrink-0 rounded-card px-2.5 text-muted transition hover:bg-sunk hover:text-ink"
 							>
 								{#if bag.includes(hit.simplified)}
@@ -326,6 +340,17 @@
 		<!-- Entry -->
 		<section id="entry" class="min-w-0">
 			{#if selected}
+				{@const inBag = bag.includes(selected)}
+				<div class="mb-3 flex justify-end">
+					<button
+						type="button"
+						aria-pressed={inBag}
+						onclick={() => toggleBag(selected!)}
+						class={chipClass(inBag)}
+					>
+						{#if inBag}<Check class="size-4" /> In your deck list{:else}<Plus class="size-4" /> Add to deck{/if}
+					</button>
+				</div>
 				{#key selected}
 					<WordEntry word={selected} onOpenWord={open} />
 				{/key}

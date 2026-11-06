@@ -18,6 +18,7 @@
 	import { speakPiper, stopPiper } from '$lib/dict/piperTts';
 	import { toneDigits } from '$lib/tone';
 	import { setPendingWords } from '$lib/hskHandoff';
+	import { buildHskLookup, wordsAbove } from '$lib/hskCoverage';
 	import { btnPrimary, btnSecondary } from '$lib/buttonStyles';
 	import PickerModal from '$lib/components/PickerModal.svelte';
 	import WordEntry from '$lib/components/dict/WordEntry.svelte';
@@ -185,12 +186,32 @@
 		bag = next;
 	}
 
+	/**
+	 * "I know up to HSK n": put every word of the text above that level (and
+	 * off the list) in the bag at once — tapping thirty words one by one is
+	 * the step this saves. `known` 0 = only words on no HSK level.
+	 */
+	let addingNew = $state(false);
+	async function addAbove(known: number) {
+		addingNew = true;
+		try {
+			const lookupMap = await buildHskLookup('new');
+			const words = [...entries.keys()].filter((w) => entries.get(w));
+			const next = new Set(bag);
+			for (const w of wordsAbove(words, lookupMap, known)) next.add(w);
+			bag = next;
+		} finally {
+			addingNew = false;
+		}
+	}
+
 	function sendToCreator() {
 		if (!bag.size) return;
 		setPendingWords({
 			label: `Reader · ${bag.size} word${bag.size === 1 ? '' : 's'}`,
 			words: [...bag],
-			options: { audio: true, examples: true }
+			options: { audio: true, examples: true },
+			then: 'export'
 		});
 		goto(`${base}/create`);
 	}
@@ -309,6 +330,26 @@
 					<Volume2 size={15} /> <span class="hidden sm:inline">Read aloud</span><span class="sm:hidden">Listen</span>
 				{/if}
 			</button>
+
+			<div class="mx-0.5 h-5 w-px shrink-0 bg-line"></div>
+
+			<label class="flex shrink-0 items-center gap-1.5 rounded-full px-2 text-sm font-medium text-muted">
+				<Plus size={15} />
+				<span class="sr-only">Add new words to the deck</span>
+				<select
+					disabled={addingNew}
+					class="cursor-pointer rounded-full border-0 bg-transparent py-1.5 pr-7 pl-1 text-sm font-medium text-muted focus:ring-3 focus:ring-sky"
+					onchange={(e) => {
+						const el = e.currentTarget;
+						if (el.value !== '') void addAbove(Number(el.value));
+						el.value = '';
+					}}
+				>
+					<option value="">Add new words…</option>
+					{#each [1, 2, 3, 4, 5, 6] as n (n)}<option value={n}>Above HSK {n}</option>{/each}
+					<option value="0">Not in HSK</option>
+				</select>
+			</label>
 		</div>
 
 		<div
@@ -322,7 +363,9 @@
 				{:else}
 					<button
 						type="button"
-						class="rounded px-0.5 align-bottom underline decoration-line decoration-dotted underline-offset-4 transition hover:bg-sky-soft hover:decoration-sky {entry ===
+						class="rounded px-0.5 align-bottom underline decoration-line decoration-dotted underline-offset-4 transition hover:bg-sky-soft hover:decoration-sky {bag.has(token)
+							? 'bg-apricot-soft'
+							: ''} {entry ===
 						null
 							? 'text-muted decoration-line decoration-dashed hover:decoration-muted'
 							: ''}"

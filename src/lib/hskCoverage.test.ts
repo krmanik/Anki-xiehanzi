@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { classifyWords, type HskLookupEntry } from './hskCoverage';
+import { classifyWords, wordsAbove, type HskLookupEntry } from './hskCoverage';
 
 const lookup = new Map<string, HskLookupEntry>([
 	['你好', { level: '1', listName: 'New HSK (2025)' }],
@@ -31,5 +31,21 @@ describe('classifyWords', () => {
 	it('returns an empty result for an empty word list', () => {
 		const result = classifyWords([], lookup);
 		expect(result).toEqual({ total: 0, byLevel: [], unknown: [] });
+	});
+});
+
+describe('wordsAbove', () => {
+	const lookup = new Map([
+		['你好', { level: '1', listName: 'New' }],
+		['经济', { level: '4', listName: 'New' }],
+		['蜿蜒', { level: '7-9', listName: 'New' }]
+	]);
+	const words = ['你好', '经济', '蜿蜒', '咖喱'];
+	it('keeps higher levels and off-list words', () => {
+		expect(wordsAbove(words, lookup, 3)).toEqual(['经济', '蜿蜒', '咖喱']);
+		expect(wordsAbove(words, lookup, 6)).toEqual(['蜿蜒', '咖喱']);
+	});
+	it('0 means only the words on no level', () => {
+		expect(wordsAbove(words, lookup, 0)).toEqual(['咖喱']);
 	});
 });

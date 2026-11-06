@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+	autoPick,
 	componentRole,
 	componentsOf,
 	describeStructure,
@@ -217,5 +218,18 @@ describe('reading text', () => {
 	it('drops the measure word from the sense list', () => {
 		// The entry prints classifiers on their own row.
 		expect(senses('mama; mommy; CL:個|个[ge4],位[wei4]')).toEqual(['mama', 'mommy']);
+	});
+});
+
+describe('autoPick', () => {
+	const hit = (simplified: string, traditional = simplified) => ({ simplified, traditional });
+	it('opens an exact hanzi match or the only hit', () => {
+		expect(autoPick(' 你好 ', [hit('你好啊'), hit('你好')])).toBe('你好');
+		expect(autoPick('學習', [hit('学习', '學習'), hit('学')])).toBe('学习');
+		expect(autoPick('nihao', [hit('你好')])).toBe('你好');
+	});
+	it('leaves a real choice to the reader', () => {
+		expect(autoPick('love', [hit('爱'), hit('恋')])).toBeNull();
+		expect(autoPick('x', [])).toBeNull();
 	});
 });

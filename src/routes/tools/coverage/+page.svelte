@@ -29,6 +29,16 @@
 	let analyzing = $state(false);
 	let error = $state('');
 
+	// Mixed on purpose: everyday words, upper-level ones and a few the lists
+	// lack (人工智能, 大数据), so every part of the result has something in it.
+	const SAMPLE =
+		'随着人工智能技术的迅速发展，越来越多的企业开始利用大数据来分析消费者的需求。专家认为，这种趋势不仅改变了传统行业的经营模式，也给普通人的日常生活带来了深远的影响。';
+
+	function loadSample() {
+		text = SAMPLE;
+		analyze();
+	}
+
 	function openWord(w: string, rect: DOMRect) {
 		selected = w;
 		anchor = rect;
@@ -110,6 +120,11 @@
 		<button type="button" onclick={analyze} disabled={analyzing || !text.trim()} class={btnPrimary}>
 			{analyzing ? 'Analyzing…' : 'Analyze'}
 		</button>
+		{#if !text}
+			<button type="button" onclick={loadSample} class="text-sm font-medium text-accent hover:text-sky-ink">
+				Try a sample →
+			</button>
+		{/if}
 		{#if error}<p class="text-sm text-rose-ink">{error}</p>{/if}
 	</div>
 

@@ -271,19 +271,6 @@ A separate, much lighter stack from the deck generator — it must never pull th
   reviews) and only new words land in the chosen deck. Pure half:
   `src/lib/anki/sendTarget.ts`.
 
-- **Progress** (`src/lib/anki/progress.ts` pure, `progress.svelte.ts` store) —
-  read-only. AnkiConnect cannot return one field: `notesInfo` sends every field
-  (~5 KB a note) and `cardsInfo` renders every card, and a field search
-  (`"Simplified:你好"`) is a full scan, 14 s for one level. So three id-only
-  searches say which notes are studied / still learning (`prop:ivl<21`) / due,
-  and only *studied* notes are opened, their word cached in
-  `xhz.progress.notes` **per profile and per note `mod`** — genanki numbers
-  notes 1, 2, 3…, so ids repeat across profiles and can be reused. Any note
-  type with a `Simplified` field counts; a word with several notes is
-  learning if any of them is. Shown on level pages (`hsk/ProgressStrip`) and
-  Home (`home/AnkiStats`), only for a browser that has connected before
-  (`probeAnki`) or after "Show my progress".
-
 ## Dictionary (`/dictionary`)
 
 A lookup page in the shape of the hanzi-slides character deck: search a word,

@@ -12,22 +12,13 @@
 	import Check from '@lucide/svelte/icons/check';
 	import { Badge, Button, IconDot, type Hue } from '$lib/ui';
 	import HeroStudyCard from '$lib/components/home/HeroStudyCard.svelte';
-	import AnkiStats from '$lib/components/home/AnkiStats.svelte';
-	import { anki, probeAnki } from '$lib/anki/ankiStatus.svelte';
-	import { loadProgress, watchProgress } from '$lib/anki/progress.svelte';
 	import { findDeck, loadHskDecks, type HskDeckEntry } from '$lib/hskDecks';
 
 	// Word and level counts come from the deck manifest, so they never drift
 	// from what the download holds.
 	let deck = $state<HskDeckEntry | null>(null);
-	onMount(() => {
-		loadHskDecks().then((m) => (deck = findDeck(m, 'new')));
-		// Stats only for a browser that has connected before — Home never asks.
-		probeAnki();
-		return watchProgress();
-	});
-	$effect(() => {
-		if (anki.status === 'ready') void loadProgress();
+	onMount(async () => {
+		deck = findDeck(await loadHskDecks(), 'new');
 	});
 
 	const shots = [
@@ -92,8 +83,6 @@
 			<HeroStudyCard />
 		</div>
 	</section>
-
-	<AnkiStats />
 
 	<!-- real screenshots -->
 	<section class="py-10" aria-labelledby="shots-h">

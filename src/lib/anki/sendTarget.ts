@@ -76,12 +76,10 @@ export function resolveTarget(t: Target, names: string[]): Target {
 	return hit ? { kind: 'existing', name: hit } : { kind: 'new', name: t.name.trim().replace(/\s*::\s*/g, '::') };
 }
 
-/** One line under the picker: what this send will do. Null when there is no name yet. */
+/** One line under the picker: where this send goes. Null when there is no name yet. */
 export function targetNote(t: Target): string | null {
 	if (!t.name.trim()) return null;
-	return t.kind === 'existing'
-		? `Adds new words to “${deckLabel(t.name)}”. Words already in Anki are updated where they are; reviews are kept.`
-		: `Makes a new deck “${deckLabel(t.name)}”. Words already in Anki are updated where they are, not added twice.`;
+	return t.kind === 'existing' ? `New words go into “${deckLabel(t.name)}”.` : `Makes a new deck “${deckLabel(t.name)}”.`;
 }
 
 /**
@@ -93,18 +91,16 @@ export function targetNote(t: Target): string | null {
  * reviews stay.
  */
 export const OVERWRITE_WARNING =
-	'Words already in your Anki, in any deck, are overwritten with this version: their fields and card design are replaced, and edits you made to them are lost. Reviews and progress are kept.';
+	'Words already in your Anki, in any deck, take this version and your edits to them are lost. Reviews and progress are kept.';
 
 /** An Anki search for every note in a deck (and its subdecks), the name taken literally. */
 export function deckQuery(name: string): string {
 	return `deck:"${name.replace(/[\\"*_]/g, (c) => '\\' + c)}"`;
 }
 
-/** One line on what the chosen deck holds now. */
-export function heldNote(name: string, count: number): string {
-	return count
-		? `“${deckLabel(name)}” already holds ${count.toLocaleString('en')} note${count === 1 ? '' : 's'}.`
-		: `“${deckLabel(name)}” is in Anki and empty.`;
+/** What the chosen deck holds now, said after `targetNote` (which names it). */
+export function heldNote(_name: string, count: number): string {
+	return count ? `It already holds ${count.toLocaleString('en')} note${count === 1 ? '' : 's'}.` : 'It is empty.';
 }
 
 export function parseSendPrefs(raw: unknown): SendPrefs {

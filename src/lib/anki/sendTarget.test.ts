@@ -40,8 +40,8 @@ describe('sendTarget', () => {
 	});
 
 	it('says what the send will do, in one line', () => {
-		expect(targetNote({ kind: 'existing', name: 'Boya::Book 1' })).toMatch(/^Adds new words to “Boya › Book 1”.*reviews are kept/);
-		expect(targetNote({ kind: 'new', name: 'X' })).toMatch(/^Makes a new deck “X”.*not added twice/);
+		expect(targetNote({ kind: 'existing', name: 'Boya::Book 1' })).toBe('New words go into “Boya › Book 1”.');
+		expect(targetNote({ kind: 'new', name: 'X' })).toBe('Makes a new deck “X”.');
 		expect(targetNote({ kind: 'new', name: ' ' })).toBeNull();
 	});
 
@@ -57,8 +57,8 @@ describe('sendTarget', () => {
 	});
 
 	it('says what the chosen deck already holds', () => {
-		expect(heldNote('Boya::Book 1', 1200)).toBe('“Boya › Book 1” already holds 1,200 notes.');
-		expect(heldNote('X', 1)).toBe('“X” already holds 1 note.');
-		expect(heldNote('X', 0)).toBe('“X” is in Anki and empty.');
+		expect(heldNote('Boya::Book 1', 1200)).toBe('It already holds 1,200 notes.');
+		expect(heldNote('X', 1)).toBe('It already holds 1 note.');
+		expect(heldNote('X', 0)).toBe('It is empty.');
 	});
 });

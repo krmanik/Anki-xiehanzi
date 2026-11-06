@@ -29,6 +29,7 @@ npm run preview:radical-card # render the cards to dist-decks/radical-card.html 
 npm run shoot:card-previews  # screenshot a deck's cards from Anki (hand tool; needs Anki + AnkiConnect)
 npm run build:pdf-fonts  # regenerate static/fonts/*.ttf (needs python3 + fonttools)
 npm run patreon:explore  # dump what the Patreon API knows (needs PATREON_CREATOR_TOKEN)
+npm run shop:sync        # pull checkout links, posts and prices into static/data/shop.json (public API)
 npm run auth:dev         # Patreon login Worker on :8787 (worker/.dev.vars holds secrets)
 npm run auth:deploy      # deploy it to Cloudflare
 npm run dev          # vite dev server
@@ -760,20 +761,28 @@ Data assets the app fetches at runtime live in `static/data/` (`cedict.db.zip`, 
   session to draw the page; anything gated later must verify through the
   Worker's `/session`. Download links go to the Patreon post, which Patreon
   gates.
-- **Buying never takes the page away.** Buy and Log in open **one new tab**
-  (`accountStore.#openLogin` → Worker `/login?return=<site>/auth?next=…&back=…`;
-  a blocked pop-up falls back to this tab). Logged in, Buy opens the product's
-  Patreon `checkoutUrl` (shop.json; `checkoutHref` falls back to the post).
-  Logged out, the tab logs in and `/auth` goes on to the checkout (`next`) —
-  even after a "Deny", so a refused permission never costs the sale. A plain
-  Log in: `/auth` stores the session and closes itself (`back` when it cannot).
-  The session lives in localStorage and every open tab follows logins and
-  logouts through the `storage` event. Buy also remembers the product
-  (`markPending`); when the shop tab is visible again
-  `accountStore.checkPending` calls the Worker's `/refresh` — creator token,
-  no Patreon screen — retrying for ~30 s, and `/shop` says "Unlocked" with a
-  Download. Premium buttons elsewhere (HSK and radicals modals) go to
-  `/shop?p=<id>`, never straight to Patreon.
+- **Buy goes straight to Patreon's checkout** — every Buy and every Premium
+  button, logged in or not, opens the product's `checkoutUrl` (shop.json;
+  `checkoutHref` falls back to the post) in a new tab. No login first:
+  `account.buy()` only remembers the product (`markPending`). When the shop tab
+  is visible again `accountStore.checkPending` calls the Worker's `/refresh`
+  (creator token, no Patreon screen), retrying for ~30 s, and `/shop` says
+  "Unlocked" with a Download; a logged-out buyer gets "Finished buying X? Log
+  in to see it here." Log in opens **one new tab** (`accountStore.#openLogin` →
+  Worker `/login?return=<site>/auth?back=…`; a blocked pop-up falls back to this
+  tab); `/auth` stores the session and closes itself. The session lives in
+  localStorage and every open tab follows logins and logouts through the
+  `storage` event. Premium buttons outside the shop (HSK and radical deck
+  modals) use `PremiumLink` (`premiumLink.svelte.ts`): checkout once
+  shop.json has loaded, `/shop?p=<id>` until then.
+- **Each product card links its Patreon post** ("View on Patreon", `buyUrl`)
+  beside Buy (checkout). `npm run shop:sync` (`scripts/sync-shop.mjs`) reads
+  the shop's **public** product list (`/api/campaigns/<id>/products`, no
+  token) and writes each product's `checkoutUrl`, `buyUrl` (its post) and
+  price into shop.json, matched by the `pvid` in `checkoutUrl`; Patreon
+  products shop.json lacks are printed, names/taglines/pictures stay by hand.
+  `printables` is `hidden`: Patreon sells no such product (the PDFs come with
+  the radical deck), so it had nothing to check out.
 - **The header knows the login on every page**: `+layout.svelte` calls
   `account.init()` (guarded; pages call it too). The right side is
   `shell/AccountMenu.svelte`. Logged out: one **Log in** button (nothing until

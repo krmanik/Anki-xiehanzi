@@ -3,12 +3,10 @@
  *
  * Buying with as little hopping as Patreon allows — **this page never goes
  * away**:
- *   - Logged in: Buy opens Patreon's checkout in a new tab.
- *   - Logged out: Buy opens one new tab that logs in (Patreon's "Allow", once)
- *     and lands on the checkout (`/auth?next=…`). Patreon's checkout needs a
- *     Patreon login anyway, so "Allow" is the only extra step.
- *   - Log in (header, shop, account) does the same without the checkout: the
- *     tab stores the login and closes itself.
+ *   - Buy always opens Patreon's checkout in a new tab — no login first.
+ *     Back on the shop, a logged-out buyer is asked to log in to see it.
+ *   - Log in (header, shop, account) opens one tab that logs in (Patreon's
+ *     "Allow", once), stores the login and closes itself.
  * The login reaches this tab through localStorage (`storage` event), so every
  * open tab updates at once — logging out in one logs out all.
  * Back on this tab, `/refresh` re-reads purchases with the creator token (no
@@ -103,17 +101,14 @@ class AccountStore {
 	}
 
 	/**
-	 * Buy was pressed. Remembers the product; when logged out, opens the
-	 * log-in-then-checkout tab itself and returns false so the caller cancels
-	 * the link's own tab.
+	 * Buy was pressed: the link goes straight to Patreon's checkout. This only
+	 * remembers the product, so the shop can confirm the purchase when the
+	 * reader comes back (logged out, it asks them to log in to see it).
 	 */
-	buy(product: Product, checkout: string): boolean {
+	buy(product: Product): void {
 		markPending(product.id);
 		this.unlocked = null;
 		this.waiting = null;
-		if (!this.enabled || this.state?.kind === 'in') return true;
-		this.#openLogin({ next: checkout, back: location.pathname + location.search });
-		return false;
 	}
 
 	/** Re-read purchases through the Worker. True when the session changed. */

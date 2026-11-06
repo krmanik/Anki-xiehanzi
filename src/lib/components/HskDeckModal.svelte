@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { base } from '$app/paths';
+	import { PremiumLink } from '$lib/premiumLink.svelte';
 	/**
 	 * Free vs premium, shown before the free `.apkg` downloads — the same idea as
 	 * `RadicalDeckModal`: a reader who only ever sees a "download" button never
@@ -40,10 +40,8 @@
 		onClose: () => void;
 	} = $props();
 
-	// Premium opens this product on the site's own shop (`/shop?p=…` opens its
-	// dialog): the buyer stays on the site, logs in once and the deck shows as
-	// owned there afterwards. The Patreon post was a dead end for all of that.
-	const PREMIUM = `${base}/shop?p=hsk-word-decks`;
+	// Straight to the Patreon checkout, like Buy on /shop.
+	const premium = new PremiumLink('hsk-word-decks');
 	/** Free membership: Patreon emails followers when a post (a deck update) goes up. */
 	const FOLLOW = 'https://www.patreon.com/cw/krmani';
 
@@ -237,8 +235,8 @@
 				<Button variant="secondary" href={deckUrl(manifest, deck)} onclick={() => (step = 'done')}>
 					<Download class="size-[18px]" />Download free deck
 				</Button>
-				<Button href={PREMIUM}>
-					<Sparkles class="size-[18px]" />See Premium
+				<Button {...premium.attrs}>
+					<Sparkles class="size-[18px]" />Get Premium
 				</Button>
 			</div>
 			<p class="mt-3 mb-0 hidden text-right text-sm sm:block">
@@ -317,9 +315,9 @@
 						Premium gives each word a separate Writing card and a dictionary inside every card.
 					</p>
 					<a
-						href={PREMIUM}
+						{...premium.attrs}
 						class="text-[15px] font-semibold text-apricot-ink no-underline hover:underline"
-						>See Premium</a
+						>Get Premium</a
 					>
 				</div>
 			</div>

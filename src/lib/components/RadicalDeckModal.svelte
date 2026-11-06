@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { base } from '$app/paths';
 	/**
 	 * One door to the radical deck: what the free deck has, what premium adds,
 	 * and the build controls underneath. A reader who only ever sees a "download"
@@ -10,6 +9,7 @@
 	 * offline and sold, so its side of the table is a link.
 	 */
 	import { btnPrimary, btnSecondary } from '$lib/buttonStyles';
+	import { PremiumLink } from '$lib/premiumLink.svelte';
 	import {
 		ENGINE_FILE,
 		RADICAL_CARD_TYPES,
@@ -41,9 +41,8 @@
 		onClose: () => void;
 	} = $props();
 
-	// The site's own shop, product dialog open: buying there logs in once and
-	// shows the deck as owned afterwards.
-	const premiumUrl = `${base}/shop?p=kangxi-radicals`;
+	// Straight to the Patreon checkout, like Buy on /shop.
+	const premium = new PremiumLink('kangxi-radicals');
 	const premiumCards = $derived(deck?.editions.premium?.cards ?? radicals.length * 2);
 	const glyphCount = $derived(deck?.editions.premium?.glyphs ?? 2016);
 
@@ -221,7 +220,7 @@
 						<td class="bg-apricot-soft px-2 py-3 text-center">
 							<a
 								class="inline-flex items-center gap-1.5 text-xs font-semibold text-apricot-ink underline"
-								href={premiumUrl}
+								{...premium.attrs}
 							>
 								Get premium
 							</a>
@@ -364,7 +363,7 @@
 			</button>
 			<a
 				class="{btnPrimary} inline-flex items-center gap-2"
-				href={premiumUrl}
+				{...premium.attrs}
 			>
 				<Sparkles size={15} /> Premium
 			</a>

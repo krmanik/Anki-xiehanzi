@@ -19,7 +19,7 @@
 	import ShopProductModal from '$lib/components/ShopProductModal.svelte';
 	import { account } from '$lib/accountStore.svelte';
 	import { errorText } from '$lib/account';
-	import { buyUrl, checkoutHref, loadShop, visibleProducts, type ShopManifest, type ShopProduct } from '$lib/shop';
+	import { buyUrl, loadShop, visibleProducts, type ShopManifest, type ShopProduct } from '$lib/shop';
 	import { buttonClass, Card, chipClass, IconDot, PageHeader, SectionLabel, type Hue } from '$lib/ui';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import CircleCheck from '@lucide/svelte/icons/circle-check';
@@ -89,10 +89,10 @@
 		syncUrl(null);
 	}
 
-	// Buying is one new tab: log in there, pay, come back to this one.
+	// Buying is one new tab: Patreon's checkout. Then back to this one.
 	const steps: { hue: Hue; title: string; body: string }[] = [
-		{ hue: 'rose', title: 'Log in with Patreon and pay', body: 'Opens in a new tab. This site never sees a card number.' },
-		{ hue: 'apricot', title: 'Come back here', body: 'The deck unlocks on this page by itself.' },
+		{ hue: 'rose', title: 'Pay on Patreon', body: 'Checkout opens in a new tab. This site never sees a card number.' },
+		{ hue: 'apricot', title: 'Come back here', body: 'Log in once and the deck unlocks on this page.' },
 		{ hue: 'mint', title: 'Download and import', body: 'File → Import in Anki, desktop or phone.' }
 	];
 </script>
@@ -165,15 +165,16 @@
 	{/if}
 
 	{#if loading}
-		<div class="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+		<div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 			{#each [0, 1, 2] as n (n)}
 				<div class="h-96 animate-pulse rounded-panel bg-sunk"></div>
 			{/each}
 		</div>
 	{:else if manifest}
-		<div class="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+		<!-- Three products fill three columns; a fourth column only once there is a fourth. -->
+		<div class="mt-6 grid gap-5 sm:grid-cols-2 {products.length > 3 ? 'xl:grid-cols-4' : 'lg:grid-cols-3'}">
 			{#each products as product (product.id)}
-				<ShopProductCard {manifest} {product} onDetails={open} owned={account.owns(product)} onBuy={(p) => account.buy(p, checkoutHref(manifest!, p))} />
+				<ShopProductCard {manifest} {product} onDetails={open} owned={account.owns(product)} onBuy={(p) => account.buy(p)} />
 			{/each}
 		</div>
 
@@ -227,5 +228,5 @@
 </section>
 
 {#if selected && manifest}
-	<ShopProductModal {manifest} product={selected} onClose={close} owned={account.owns(selected)} onBuy={(p) => account.buy(p, checkoutHref(manifest!, p))} />
+	<ShopProductModal {manifest} product={selected} onClose={close} owned={account.owns(selected)} onBuy={(p) => account.buy(p)} />
 {/if}

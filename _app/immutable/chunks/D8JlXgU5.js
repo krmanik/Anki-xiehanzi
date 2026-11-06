@@ -1,0 +1,1 @@
+import"./DHjIL5fg.js";import{a as e,s as t}from"./BqAjVhKy.js";var n={get data(){return t.data},get error(){return t.error},get form(){return t.form},get params(){return t.params},get route(){return t.route},get state(){return t.state},get status(){return t.status},get url(){return t.url}};e.updated.check;var r=n;export{r as t};

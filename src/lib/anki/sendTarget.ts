@@ -3,11 +3,13 @@
  * from the two localStorage helpers at the bottom.
  *
  * What a send does to a deck follows from how the package is built
- * (`deck.ts`): each note's GUID is seeded on the note type and the word, so a
- * word already in the collection is **updated where it is** — its cards keep
- * their deck and their review history — and only new words are added to the
- * chosen deck. Anki matches decks by name on import, so an existing deck is
- * chosen by giving the package that deck's name.
+ * (`deck.ts`): every `/create` deck has a note type of its own, seeded on the
+ * deck's name, and each note's GUID is seeded on that note type and the word.
+ * So every word of a send lands in the chosen deck; sending the same deck
+ * again **updates its words in place** (cards keep their review history); and
+ * the same word in two decks is two notes. The cards are built into a holding
+ * deck and moved into the chosen one after the import (`sendPackage`'s
+ * `moveTo`), so an existing deck is chosen by name and keeps its description.
  */
 
 /**
@@ -53,9 +55,18 @@ export function filterDecks(names: string[], query: string): string[] {
 /** `Parent::Child` as the reader sees it in Anki's deck list. */
 export const deckLabel = (name: string): string => name.split('::').join(' › ');
 
+/** A deck name as Anki stores it: no space around `::`, no empty level. */
+export function cleanDeckName(name: string): string {
+	return name
+		.split('::')
+		.map((p) => p.trim())
+		.filter(Boolean)
+		.join('::');
+}
+
 /** The deck already in Anki by that name (Anki's names are case-insensitive), if any. */
 export function findDeck(names: string[], name: string): string | undefined {
-	const want = name.trim().toLocaleLowerCase();
+	const want = cleanDeckName(name).toLocaleLowerCase();
 	return names.find((n) => n.toLocaleLowerCase() === want);
 }
 
@@ -73,7 +84,21 @@ export function suggestTarget(deckName: string, names: string[]): Target {
 export function resolveTarget(t: Target, names: string[]): Target {
 	if (t.kind === 'existing') return t;
 	const hit = findDeck(names, t.name);
-	return hit ? { kind: 'existing', name: hit } : { kind: 'new', name: t.name.trim().replace(/\s*::\s*/g, '::') };
+	return hit ? { kind: 'existing', name: hit } : { kind: 'new', name: cleanDeckName(t.name) };
+}
+
+/**
+ * Why this name cannot be sent to, or null. A filtered deck holds no cards of
+ * its own and cannot have subdecks; Anki's importer answers by making
+ * "Name 1730…" beside it, so it is refused here instead.
+ */
+export function targetProblem(name: string, filtered: string[]): string | null {
+	const parts = cleanDeckName(name).split('::');
+	for (let i = 1; i <= parts.length; i++) {
+		const hit = findDeck(filtered, parts.slice(0, i).join('::'));
+		if (hit) return `“${deckLabel(hit)}” is a filtered deck, which cannot take new cards. Pick another name.`;
+	}
+	return null;
 }
 
 /** One line under the picker: where this send goes. Null when there is no name yet. */
@@ -83,15 +108,19 @@ export function targetNote(t: Target): string | null {
 }
 
 /**
- * What a send can overwrite, said before it happens. The package goes through
- * Anki's importer, and a note whose GUID (note type + word) is already in the
- * collection — in any deck — takes the incoming fields, and the note type takes
- * the incoming card design when the file's is newer. Edits made in Anki to those
- * notes or to the card design are lost; scheduling is not part of a note, so
- * reviews stay.
+ * What a send can overwrite, said before it happens. A note whose GUID (this
+ * deck's note type + the word) is already in the collection — i.e. this deck was
+ * sent before — takes the incoming fields, and the deck's note type takes the
+ * incoming card design. Edits made in Anki to those notes or to the card design
+ * are lost; scheduling is not part of a note, so reviews stay. Other decks are
+ * not touched: each has its own note type.
  */
 export const OVERWRITE_WARNING =
-	'Words already in your Anki, in any deck, take this version and your edits to them are lost. Reviews and progress are kept.';
+	'If this deck was sent before, its words and card design take this version and edits you made in Anki are lost. Reviews and progress are kept.';
+
+/** The same for a prebuilt deck, whose note type is shared by every copy of it. */
+export const FIXED_OVERWRITE_WARNING =
+	'Words already in this deck take this version and edits you made to them or its card design in Anki are lost. Reviews and progress are kept.';
 
 /** An Anki search for every note in a deck (and its subdecks), the name taken literally. */
 export function deckQuery(name: string): string {
@@ -124,4 +153,53 @@ export function saveSendPrefs(prefs: SendPrefs): void {
 	} catch {
 		/* private mode: the defaults come back next visit */
 	}
+}
+
+const words = (n: number) => `${n.toLocaleString('en')} word${n === 1 ? '' : 's'}`;
+
+/**
+ * What a finished send did, in one line: how many words are new in the deck and
+ * how many were already there and updated, and any card type kept because the
+ * design dropped it (`noteTypeAlign`). `added` is unknown only when the send
+ * could not count it.
+ */
+/** Said after a send when Anki made duplicate cards (`hasDuplicateCards`). */
+export const DUPLICATE_CARDS_NOTE =
+	'Anki made duplicate cards (an Anki bug, not your words). In Anki, run Tools → Check Database to delete them.';
+
+export function sentNote(deck: string, total: number, added: number | undefined, kept: string[] = [], duplicates = false): string {
+	const where = `“${deckLabel(deck)}”`;
+	let line: string;
+	if (added === undefined) line = `In Anki now: ${where}.`;
+	else if (added >= total) line = `${words(added)} added to ${where}.`;
+	else if (added === 0) line = `${where} already had all ${words(total)}: updated in place.`;
+	else line = `${words(added)} added to ${where}; ${words(total - added)} already there, updated in place.`;
+	if (kept.length) {
+		line += ` Card type${kept.length === 1 ? '' : 's'} no longer in this design stay${kept.length === 1 ? 's' : ''} in Anki: ${kept.join(', ')}.`;
+	}
+	if (duplicates) line += ` ${DUPLICATE_CARDS_NOTE}`;
+	return line;
+}
+
+/** The note type ids every deck used before each `/create` deck got its own (`DECK_MODELS`). */
+export const SHARED_NOTE_TYPE_IDS = ['1969669503', '1969669504'] as const;
+
+/** An Anki search for this deck's notes still on the shared note types. */
+export function legacyQuery(deck: string): string {
+	return `${deckQuery(deck)} (${SHARED_NOTE_TYPE_IDS.map((id) => `mid:${id}`).join(' OR ')})`;
+}
+
+/**
+ * Said before sending into a deck that an older version of the site filled:
+ * its notes sit on a shared note type, so the deck's own note type adds the
+ * words a second time (user choice, 2026-11-06 — accepted once per old deck).
+ */
+export function legacyNote(count: number): string | null {
+	if (!count) return null;
+	return `This deck holds ${count.toLocaleString('en')} note${count === 1 ? '' : 's'} from an older version of this site. This send adds its words again; delete the old copies in Anki's browser (note type “Basic - (Anki-xiehanzi)…”).`;
+}
+
+/** Said before sending a prebuilt deck whose shared note type Anki holds in another layout. */
+export function layoutNote(modelName: string): string {
+	return `Your Anki has “${modelName}”, this deck's note type, in an older layout. Anki will skip the words already on it instead of updating them; only new words come in.`;
 }

@@ -16,7 +16,7 @@ import {
 	type WantedModel
 } from './designSync';
 import { hskDeckModel } from '../hskDeckLayout';
-import { deckFieldsFromOrder, savedDeckModel, CONTROL_BUTTONS_TOKEN, SEPARATOR_TOKEN, DEFAULT_TEMPLATE } from '../deckTemplate';
+import { deckFieldsFromOrder, savedDeckModel, deckNoteTypeId, DECK_NOTE_FIELDS, CONTROL_BUTTONS_TOKEN, SEPARATOR_TOKEN, DEFAULT_TEMPLATE } from '../deckTemplate';
 
 /** A fake add-on: records each action, answers from `handlers`. */
 function fakeAnki(handlers: Record<string, (params: any) => unknown>) {
@@ -209,10 +209,12 @@ describe('savedDeckModel', () => {
 		const tabContent = {
 			Standard: { front: ['frontSimplified'], back: ['backSimplified', 'backPinyin', 'backSimpleMeaning'], elementStyles: {}, groups: [] }
 		} as any;
-		const { model } = savedDeckModel({ includeAudio: true, order, tabContent, template: DEFAULT_TEMPLATE });
+		const { model } = savedDeckModel({ deckName: 'Lesson 3', includeAudio: true, order, tabContent, template: DEFAULT_TEMPLATE });
 		expect(model.tmpls.map((t) => t.name)).toEqual(['Standard']);
-		expect(model.flds.map((f) => f.name)).toEqual(expect.arrayContaining(['Simplified', 'Pinyin', 'SimpleMeaning']));
-		expect(String(model.id)).toBe('1969669503');
+		// The deck's own note type, every field whatever the card shows.
+		expect(model.flds.map((f) => f.name)).toEqual([...DECK_NOTE_FIELDS]);
+		expect(model.id).toBe(deckNoteTypeId('Lesson 3'));
+		expect(model.name).toBe('Anki-xiehanzi · Lesson 3');
 	});
 });
 

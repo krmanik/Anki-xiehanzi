@@ -16,8 +16,10 @@
 		findDeck,
 		heldNote,
 		loadSendPrefs,
+		FIXED_OVERWRITE_WARNING,
 		OVERWRITE_WARNING,
 		resolveTarget,
+		targetProblem,
 		saveSendPrefs,
 		sortDecks,
 		suggestTarget,
@@ -39,6 +41,7 @@
 		fixed = false,
 		loadDecks,
 		countNotes,
+		checkTarget,
 		onsend,
 		onclose
 	}: {
@@ -46,14 +49,18 @@
 		deckName: string;
 		subtitle?: string;
 		fixed?: boolean;
-		loadDecks: () => Promise<string[]>;
+		/** Anki's decks; `filtered` ones are left out of the list and refused as a target. */
+		loadDecks: () => Promise<string[] | { decks: string[]; filtered?: string[] }>;
 		/** Notes in a deck already in Anki — the check shown before confirming. */
 		countNotes?: (deck: string) => Promise<number>;
+		/** One more thing worth saying about this deck before confirming, or null. */
+		checkTarget?: (deck: string) => Promise<string | null>;
 		onsend: (name: string, prefs: SendPrefs) => void;
 		onclose: () => void;
 	} = $props();
 
 	let names = $state<string[] | null>(null);
+	let filtered = $state<string[]>([]);
 	let loadError = $state('');
 	let mode = $state<'new' | 'existing'>('new');
 	// svelte-ignore state_referenced_locally
@@ -67,7 +74,9 @@
 		loadError = '';
 		names = null;
 		try {
-			const got = sortDecks(await loadDecks());
+			const raw = await loadDecks();
+			const got = sortDecks(Array.isArray(raw) ? raw : raw.decks);
+			filtered = Array.isArray(raw) ? [] : (raw.filtered ?? []);
 			names = got;
 			const t = suggestTarget(deckName, got);
 			mode = t.kind;
@@ -84,7 +93,8 @@
 	const target = $derived<Target>(mode === 'new' ? { kind: 'new', name: newName } : { kind: 'existing', name: picked });
 	const resolved = $derived(resolveTarget(target, names ?? []));
 	const shown = $derived(filterDecks(names ?? [], query));
-	const canSend = $derived(!!names && (fixed || !!resolved.name.trim()));
+	const problem = $derived(!names || fixed || !resolved.name ? null : targetProblem(resolved.name, filtered));
+	const canSend = $derived(!!names && (fixed || (!!resolved.name.trim() && !problem)));
 	/** The deck Anki already has that this send goes into, if any. */
 	const into = $derived(
 		!names ? null : fixed ? (findDeck(names, deckName) ?? null) : resolved.kind === 'existing' ? resolved.name : null
@@ -109,6 +119,22 @@
 		if (!name || !countNotes) return;
 		countNotes(name).then(
 			(count) => seq === checkSeq && (held = { name, count }),
+			() => {}
+		);
+	});
+
+	// Same for the caller's own check, on the deck this send goes into.
+	let caveat = $state<{ name: string; text: string } | null>(null);
+	let caveatSeq = 0;
+	$effect(() => {
+		// Only a deck Anki already has (no call per keystroke on a new name); a
+		// prebuilt deck is checked whether it is there or not.
+		const name = fixed ? deckName : into;
+		const seq = ++caveatSeq;
+		caveat = null;
+		if (!name || !names || !checkTarget) return;
+		checkTarget(name).then(
+			(text) => seq === caveatSeq && text && (caveat = { name, text }),
 			() => {}
 		);
 	});
@@ -230,16 +256,21 @@
 				{/if}
 			{/if}
 
-			{#if note || (held && held.name === into)}
+			{#if problem}
+				<p class="mt-3 mb-0 text-[14px] font-semibold text-apricot-ink" role="alert">{problem}</p>
+			{:else if note || (held && held.name === into)}
 				<p class="mt-3 mb-0 text-[14px] text-muted" role="status">
 					{note}
 					{#if held && held.name === into}<strong class="font-semibold text-ink">{heldNote(held.name, held.count)}</strong>{/if}
 				</p>
 			{/if}
+			{#if caveat && !problem}
+				<p class="mt-3 mb-0 text-[14px] font-semibold text-apricot-ink" role="status">{caveat.text}</p>
+			{/if}
 			{#if names}
 				<p class="mt-3 mb-0 flex gap-2.5 rounded-card bg-apricot-soft px-4 py-3 text-[14px] text-apricot-ink" role="note">
 					<TriangleAlert class="mt-0.5 size-[18px] shrink-0" />
-					<span><strong>May overwrite.</strong> {OVERWRITE_WARNING}</span>
+					<span><strong>May overwrite.</strong> {fixed ? FIXED_OVERWRITE_WARNING : OVERWRITE_WARNING}</span>
 				</p>
 			{/if}
 			<label class="mt-3 mb-3 flex cursor-pointer items-center gap-2 text-[14px] text-muted">

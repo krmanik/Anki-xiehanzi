@@ -101,7 +101,7 @@ function login(url: URL, env: Env): Response {
 
 async function callback(url: URL, req: Request, env: Env): Promise<Response> {
 	const [state, rawBack] = splitOnce(readCookie(req, STATE_COOKIE) ?? '', '.');
-	const back = safeReturnUrl(rawBack ? decodeURIComponent(rawBack) : null, parseOrigins(env.ALLOWED_ORIGINS));
+	const back = safeReturnUrl(rawBack ? safeDecode(rawBack) : null, parseOrigins(env.ALLOWED_ORIGINS));
 	const clear = `${STATE_COOKIE}=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0`;
 
 	if (!back || !state || url.searchParams.get('state') !== state) {
@@ -272,6 +272,15 @@ function readCookie(req: Request, name: string): string | null {
 		if (k === name) return v;
 	}
 	return null;
+}
+
+/** A cookie mangled in transit is an expired login (400), not a crash (500). */
+function safeDecode(s: string): string | null {
+	try {
+		return decodeURIComponent(s);
+	} catch {
+		return null;
+	}
 }
 
 function splitOnce(s: string, sep: string): [string, string] {

@@ -67,7 +67,7 @@ describe('SendToAnkiModal', () => {
 		expect(await screen.findByText('It already holds 340 notes.')).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Existing deck' })).toHaveAttribute('aria-pressed', 'true');
 		expect(countNotes).toHaveBeenCalledWith('Boya');
-		expect(screen.getByRole('note')).toHaveTextContent(/May overwrite\..*edits to them are lost.*Reviews and progress are kept/);
+		expect(screen.getByRole('note')).toHaveTextContent(/May overwrite\..*edits you made in Anki are lost.*Reviews and progress are kept/);
 		expect(onsend).not.toHaveBeenCalled();
 		await user.click(screen.getByRole('button', { name: 'Confirm and send' }));
 		expect(onsend).toHaveBeenCalledWith('Boya', { openAfter: true });
@@ -88,5 +88,28 @@ describe('SendToAnkiModal', () => {
 		expect(screen.getByRole('button', { name: 'Create and send' })).toBeDisabled();
 		await user.click(screen.getByRole('button', { name: 'Try again' }));
 		expect(await screen.findByLabelText('New deck name')).toBeInTheDocument();
+	});
+
+	it('leaves filtered decks out of the list and refuses a name under one', async () => {
+		const onsend = vi.fn();
+		const user = userEvent.setup();
+		const loadDecks = async () => ({ decks: ['Default', 'Boya'], filtered: ['Due today'] });
+		render(SendToAnkiModal, { deckName: 'x', loadDecks, onsend, onclose: () => {} });
+		const input = await screen.findByLabelText('New deck name');
+		await user.click(screen.getByRole('button', { name: 'Existing deck' }));
+		expect(screen.queryByRole('radio', { name: /Due today/ })).toBeNull();
+		await user.click(screen.getByRole('button', { name: 'New deck' }));
+		await user.clear(screen.getByLabelText('New deck name'));
+		await user.type(screen.getByLabelText('New deck name'), 'due today::Lesson');
+		expect(screen.getByRole('alert')).toHaveTextContent('“Due today” is a filtered deck');
+		expect(screen.getByRole('button', { name: 'Create and send' })).toBeDisabled();
+		void input;
+	});
+
+	it('shows the caller’s check for a deck Anki already has', async () => {
+		const checkTarget = vi.fn(async (d: string) => (d === 'Boya' ? 'Holds 3 notes from an older version.' : null));
+		render(SendToAnkiModal, { deckName: 'Boya', loadDecks: decks, checkTarget, onsend: () => {}, onclose: () => {} });
+		expect(await screen.findByText('Holds 3 notes from an older version.')).toBeInTheDocument();
+		expect(checkTarget).toHaveBeenCalledWith('Boya');
 	});
 });

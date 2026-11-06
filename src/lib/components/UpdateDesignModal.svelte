@@ -25,8 +25,8 @@
 		type ModelUsage,
 		type WantedModel
 	} from '$lib/anki/designSync';
-	import { toBase64 } from '$lib/anki/sendDeck';
-	import { deckLabel } from '$lib/anki/sendTarget';
+	import { hasDuplicateCards, toBase64 } from '$lib/anki/sendDeck';
+	import { deckLabel, DUPLICATE_CARDS_NOTE } from '$lib/anki/sendTarget';
 	import Check from '@lucide/svelte/icons/check';
 	import Layers from '@lucide/svelte/icons/layers';
 	import Paintbrush from '@lucide/svelte/icons/paintbrush';
@@ -58,7 +58,9 @@
 	type Stage = 'loading' | 'error' | 'missing' | 'blocked' | 'current' | 'ready' | 'applying' | 'done';
 	let stage = $state<Stage>('loading');
 	let error = $state('');
-	type Entry = { wanted: WantedModel; plan: DesignPlan; usage: ModelUsage };
+	type Entry = { wanted: WantedModel; plan: DesignPlan; usage: ModelUsage; modelId: number; cardTypes: number };
+	/** Anki made duplicate cards while taking the new templates (see `hasDuplicateCards`). */
+	let duplicates = $state(false);
 	/** The designs the collection holds a note type for; the rest are skipped. */
 	let entries = $state<Entry[]>([]);
 	const wantedList = $derived(Array.isArray(wanted) ? wanted : [wanted]);
@@ -78,7 +80,13 @@
 					? await readInstalledForDeck(client, deckName)
 					: await readInstalled(client, w.id);
 				if (!installed) continue;
-				found.push({ wanted: w, plan: planDesign(installed, w), usage: await readUsage(client, installed.id) });
+				found.push({
+					wanted: w,
+					plan: planDesign(installed, w),
+					usage: await readUsage(client, installed.id),
+					modelId: installed.id,
+					cardTypes: installed.templates.length
+				});
 			}
 			entries = found;
 			if (!found.length) {
@@ -137,6 +145,16 @@
 				if (e.plan.upToDate) continue;
 				await applyDesign(client, e.plan, e.wanted, files);
 				files = []; // one collection, one media folder: store once
+			}
+			// New templates can set off Anki's duplicate-card bug on a note type
+			// with more than one card type; only a check, so never an error.
+			for (const e of entries) {
+				if (e.plan.upToDate || e.cardTypes < 2) continue;
+				try {
+					if (await hasDuplicateCards(client, e.modelId, e.cardTypes)) duplicates = true;
+				} catch {
+					/* the design is in either way */
+				}
 			}
 			stage = 'done';
 		} catch (e) {
@@ -253,6 +271,11 @@
 						Kept: your notes, what's in them, and your reviews. Replaced: any edits you made to {entries.length > 1
 							? "these note types'"
 							: "this note type's"} cards by hand{manyDecks ? ', in every deck above' : ''}.
+					</p>
+				{/if}
+				{#if stage === 'done' && duplicates}
+					<p class="mt-3 mb-0 rounded-card bg-apricot-soft px-4 py-3 text-[14px] text-apricot-ink" role="status">
+						{DUPLICATE_CARDS_NOTE}
 					</p>
 				{/if}
 				{#if strokesMissing}

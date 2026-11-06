@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AnkiConnectError, createAnkiConnect } from './ankiConnect';
 import JSZip from 'jszip';
-import { joinMediaPath, sendPackage, tempPackageName, toBase64, trimPackage, type SendStage } from './sendDeck';
+import { holdingDeckName, joinMediaPath, sendableDecks, sendPackage, tempPackageName, toBase64, trimPackage, type SendStage } from './sendDeck';
 
 /** A fake add-on: records each action, answers from `handlers`. */
 function fakeAnki(handlers: Record<string, (params: any) => unknown>) {
@@ -91,7 +91,7 @@ describe('sendPackage', () => {
 
 		// An add-on without the gui actions still reports success.
 		const old = fakeAnki(happy);
-		await expect(sendPackage(old.client, { data: new Uint8Array([1]) }, { showDeck: true })).resolves.toBeUndefined();
+		await expect(sendPackage(old.client, { data: new Uint8Array([1]) }, { showDeck: true })).resolves.toEqual({});
 	});
 
 	it('still deletes the file when the import fails, and reports the import error', async () => {
@@ -186,5 +186,108 @@ describe('trimPackage', () => {
 		const { client, log } = fakeAnki(happy);
 		await sendPackage(client, { data: bytes }, { fileName: '_t.apkg' });
 		expect(log[1].params.data).toBe(toBase64(bytes));
+	});
+});
+
+describe('sendPackage moveTo', () => {
+	const hold = holdingDeckName(1);
+
+	it('moves the cards out of the holding deck, deletes it, and counts the new notes', async () => {
+		let moved = false;
+		const { client, log } = fakeAnki({
+			...happy,
+			findNotes: () => (moved ? [] : [1, 2]),
+			findCards: () => (moved ? [] : [11, 12, 21]),
+			changeDeck: () => {
+				moved = true;
+				return null;
+			},
+			deleteDecks: () => null
+		});
+		const r = await sendPackage(client, { data: new Uint8Array([1]) }, { moveTo: { from: hold, to: 'Lesson 3' } });
+		expect(r).toEqual({ added: 2 });
+		expect(log.find((l) => l.action === 'changeDeck')!.params).toEqual({ cards: [11, 12, 21], deck: 'Lesson 3' });
+		expect(log.find((l) => l.action === 'findCards')!.params.query).toBe('deck:"\\_xhz-incoming-1"');
+		const del = log.find((l) => l.action === 'deleteDecks')!;
+		expect(del.params).toEqual({ decks: [hold], cardsToo: true });
+		// Never delete before the cards are out.
+		expect(log.findIndex((l) => l.action === 'deleteDecks')).toBeGreaterThan(log.findIndex((l) => l.action === 'changeDeck'));
+	});
+
+	it('never deletes the holding deck while cards are still in it', async () => {
+		const { client, log } = fakeAnki({
+			...happy,
+			findNotes: () => [1],
+			findCards: () => [11],
+			changeDeck: () => {
+				throw new Error('boom');
+			},
+			deleteDecks: () => null
+		});
+		await expect(sendPackage(client, { data: new Uint8Array([1]) }, { moveTo: { from: hold, to: 'X' } })).rejects.toThrow('boom');
+		expect(log.some((l) => l.action === 'deleteDecks')).toBe(false);
+	});
+
+	it('still empties the holding deck when the import throws, and reports the import error', async () => {
+		const { client, log } = fakeAnki({
+			...happy,
+			importPackage: () => {
+				throw new Error('bad package');
+			},
+			findNotes: () => [],
+			findCards: () => [],
+			deleteDecks: () => null
+		});
+		await expect(sendPackage(client, { data: new Uint8Array([1]) }, { moveTo: { from: hold, to: 'X' } })).rejects.toThrow('bad package');
+		expect(log.some((l) => l.action === 'deleteDecks')).toBe(true);
+		expect(log.some((l) => l.action === 'deleteMediaFile')).toBe(true);
+	});
+});
+
+describe('sendPackage noteType', () => {
+	it('counts only notes that were not there before, and reports duplicate cards', async () => {
+		let imported = false;
+		let moved = false;
+		const { client } = fakeAnki({
+			...happy,
+			importPackage: () => {
+				imported = true;
+				return true;
+			},
+			// mid:… → the note type's notes; deck:… → the holding deck
+			findNotes: (p: any) =>
+				p.query.startsWith('mid:') ? (imported ? [1, 2, 3] : [1, 2]) : moved ? [] : [1, 2, 3],
+			findCards: (p: any) =>
+				p.query === 'mid:4000000001 card:2' ? [21, 22, 23, 24] : p.query.startsWith('mid:') ? [11, 12, 13] : moved ? [] : [11, 21],
+			changeDeck: () => {
+				moved = true;
+				return null;
+			},
+			deleteDecks: () => null
+		});
+		const r = await sendPackage(client, { data: new Uint8Array([1]) }, {
+			moveTo: { from: holdingDeckName(1), to: 'L' },
+			noteType: '4000000001',
+			cardTypes: 2
+		});
+		// Notes 1 and 2 only got a new card type; 3 is new.
+		expect(r).toEqual({ added: 1, duplicates: true });
+	});
+});
+
+describe('sendableDecks', () => {
+	it('sets filtered decks apart', async () => {
+		const { client } = fakeAnki({
+			deckNames: () => ['Default', 'Filt', 'Gone'],
+			multi: (p: any) =>
+				p.actions.map((a: any) =>
+					a.params.deck === 'Filt'
+						? { result: { dyn: 1, name: 'Filt' }, error: null }
+						: a.params.deck === 'Gone'
+							? { result: false, error: null }
+							: { result: { dyn: false }, error: null }
+				)
+		});
+		expect(await sendableDecks(client)).toEqual({ decks: ['Default', 'Gone'], filtered: ['Filt'] });
 	});
 });

@@ -271,24 +271,63 @@ A separate, much lighter stack from the deck generator — it must never pull th
   carries `deckName` + `settings` (validated by `parseSettings` — all or
   nothing). `WordSourceInput.importPending()` is the one import path.
 - **Send never goes blind** (user ask, 2026-11-06: a click "may overwrite or
-  save to another deck"). Send opens `SendToAnkiModal`: Anki's own
-  `deckNames`, or a new deck by name (pre-filled with the page's name; a name
-  Anki already has resolves to that deck, case-insensitively, and the note
-  says so). The page's deck name becomes the chosen deck. **Every Send opens
-  it — there is no way to skip it** (user ask, 2026-11-06: confirm the deck and
-  say it may overwrite): it counts the notes the chosen deck already holds
-  (`countNotes` → `findNotes` on `deckQuery`), shows the apricot "May
-  overwrite" note (`OVERWRITE_WARNING`), and sends only on "Confirm and send"
-  (existing deck) / "Create and send" (new). The deck is one choice,
-  **New deck | Existing deck** (a flat list of full paths), then one status
-  line, the warning and an "Open in Anki after" checkbox (`xhz.anki.send`; an
-  old stored `ask: false` is ignored). The
-  HSK modal uses it `fixed`: the deck name is inside the release file, so it
-  only says where it goes and whether it is already there. The copy states
-  what a send really does: note GUIDs are model + word, so a word already in
-  the collection is **updated where it is** (cards keep their deck and
-  reviews) and only new words land in the chosen deck. Pure half:
-  `src/lib/anki/sendTarget.ts`.
+  save to another deck"). Send opens `SendToAnkiModal`: Anki's own decks
+  (`sendableDecks` — filtered decks are left out, and a typed name that is or
+  sits under one is refused, `targetProblem`: Anki's importer makes
+  "Name 1730…" beside a filtered deck), or a new deck by name (pre-filled with
+  the page's name; a name Anki already has resolves to that deck,
+  case-insensitively). **Every Send opens it — there is no way to skip it**: it
+  counts the notes the chosen deck holds (`countNotes`), shows the caller's
+  `checkTarget` line if any, the apricot "May overwrite" note, and sends only on
+  "Confirm and send" / "Create and send". The HSK modal uses it `fixed`.
+  Pure half: `src/lib/anki/sendTarget.ts`.
+- **Every `/create` deck has a note type of its own** (user choice,
+  2026-11-06: "every deck complete"). `deckNoteTypeId(deckName)` seeds the id
+  (in [4·10⁹, 4·10⁹+2³²), clear of `DECK_MODELS` and Anki's timestamp ids) and
+  note GUIDs are seeded on it, so every word of a send lands in the chosen deck,
+  the same word in two decks is two notes, one deck's design never restyles
+  another, and re-sending a deck updates it in place. Its fields are fixed
+  (`DECK_NOTE_FIELDS`, all 13) whatever the card shows. **Why, measured on
+  Anki 25.09 with the app's own packages:** Anki's (legacy) importer — the one
+  AnkiConnect's `importPackage` runs — matches a note type on field names *in
+  order* plus card names; any difference makes it add a renamed copy
+  ("…-92c22") and **skip every incoming note whose GUID it already has**, with
+  no error. With fields following the card layout and one shared id for every
+  deck (and the HSK release), dragging a field, picking another tile, or
+  having the HSK deck installed made a send silently drop the words.
+  The prebuilt HSK decks keep the shared `DECK_MODELS` (no `deckName` passed).
+  Decks sent before this change get their words a second time on the first
+  re-send; the modal says so (`legacyNote`), and the HSK modal warns when the
+  collection holds its shared note type in another layout (`layoutNote`).
+- **A re-send lines the note type up first** (`anki/noteTypeAlign.ts`): card
+  types new in the design are added to Anki's copy (`modelTemplateAdd`), card
+  types the design dropped are **kept** (put back into the package as Anki has
+  them — deleting a card type deletes its reviews), missing fields are added and
+  reordered; a field Anki's copy has that the package does not fill refuses the
+  send. Then the importer sees the same schema and updates.
+- **Cards go through a holding deck** (`holdingDeckName`, `_xhz-incoming-…`):
+  the package is built into it and `sendPackage`'s `moveTo` moves the cards to
+  the chosen deck and deletes it (never before it is empty). The importer copies
+  the package deck's (empty) description onto a deck of the same name, so
+  importing straight into a reader's deck wiped its description. It also gives
+  the exact count: notes in the holding deck that were not on the note type
+  before (`noteType`) are the new ones — the result line (`sentNote`) says
+  "N added; M already there, updated in place".
+- **Anki 25.09 duplicates cards by itself** after a template edit when a note
+  type's cards are not stored note by note (a card type added later) and SQLite
+  reads them in id order — which it does in a *small* collection once stats
+  exist. Reproduced with Anki's stock "Basic", 20 notes: add a card type, edit a
+  template, 40 cards → 80; with 1,500 other notes it does not happen. A send
+  that changes the design edits templates, so `hasDuplicateCards` checks
+  afterwards (card count per card type vs note count — not `cardsInfo`, which
+  ships every card's HTML) and the result tells the reader to run Tools → Check
+  Database, which deletes them. An unchanged re-send or a CSS-only change never
+  sets it off.
+- **Test sends headless, never with an Anki window**: a stand-in server that
+  answers AnkiConnect's actions with code copied from the add-on, over
+  `anki.collection.Collection` + `AnkiPackageImporter` in Anki's venv python,
+  with the real TS client driven from Node (`scripts/lib/node-env.mjs`). See
+  memory: test Anki.
 - **Anki freezes while it receives a send** — AnkiConnect reads the request
   body 1 KB at a time on Anki's main thread (15 MB took 11–50 s, nonlinear).
   `sendPackage` therefore drops every media file the collection already has
@@ -319,9 +358,9 @@ A separate, much lighter stack from the deck generator — it must never pull th
   saved deck on My words (a paintbrush, desktop only) and the radical deck
   modal. A My words deck is rebuilt from its saved settings
   (`savedDeckModel`) and its note type is found **through the deck's notes**
-  (`readInstalledForDeck`), not by id: a `/create` deck shares the HSK note
-  type id, and Anki re-numbers an imported note type whenever its fields or
-  card names differ. The radical deck passes **both** note types (Recognize,
+  (`readInstalledForDeck`), not by id: a deck sent before each deck got its own
+  note type sits on the shared HSK id, and Anki re-numbers an imported note
+  type whenever its fields or card names differ. The radical deck passes **both** note types (Recognize,
   Write — `radicalModelProps`, which both radical builders also package) with
   the options picked in the modal; one the collection lacks is skipped, media
   is stored once, and a media file's bytes are checked (`check`) before it is

@@ -11,6 +11,7 @@
 	import { base } from '$app/paths';
 	import { Button, SectionLabel } from '$lib/ui';
 	import { anki, ankiClient, checkAnki, ANKI_STATUS_TEXT } from '$lib/anki/ankiStatus.svelte';
+	import AnkiSetupLink from './AnkiSetupLink.svelte';
 	import {
 		applyDesign,
 		blockedReason,
@@ -208,6 +209,7 @@
 						class="ml-1 border-0 bg-transparent p-0 font-semibold text-apricot-ink underline"
 						onclick={load}>Try again</button
 					>
+					<AnkiSetupLink />
 				</p>
 			{:else if stage === 'missing'}
 				<p class="m-0 rounded-card bg-sunk px-4 py-3 text-[14px] text-muted" role="status">

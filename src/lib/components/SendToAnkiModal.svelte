@@ -31,6 +31,7 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Layers from '@lucide/svelte/icons/layers';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
+	import AnkiSetupLink from './AnkiSetupLink.svelte';
 
 	let {
 		deckName,
@@ -154,6 +155,7 @@
 					<button type="button" class="ml-1 border-0 bg-transparent p-0 font-semibold text-apricot-ink underline" onclick={load}
 						>Try again</button
 					>
+					<AnkiSetupLink />
 				</p>
 			{:else if !names}
 				<p class="m-0 rounded-card bg-sunk px-4 py-3 text-[14px] text-muted" role="status">

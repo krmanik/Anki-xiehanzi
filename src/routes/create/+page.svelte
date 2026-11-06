@@ -43,7 +43,7 @@
 		type CardElementStyles,
 		type TemplateOpts
 	} from '$lib/deck';
-	import { CONTROL_BUTTONS_TOKEN, SEPARATOR_TOKEN } from '$lib/deckTemplate';
+	import { deckFieldsFromOrder } from '$lib/deckTemplate';
 	import { FIELDS, WRITING, DEFAULT_ORDER, newCard, fieldLabels } from '$lib/cardEditorModel';
 	import { resolvePalette } from '$lib/tonePresets';
 	import { posDisplay } from '$lib/dict/cedict';
@@ -69,7 +69,7 @@
 	let order = $state<string[]>([...DEFAULT_ORDER]);
 	// Layout tokens are positioning-only; note fields exclude the writing component
 	// and the chrome tokens (control buttons / separator).
-	let fields = $derived(order.filter((o) => o !== WRITING && o !== CONTROL_BUTTONS_TOKEN && o !== SEPARATOR_TOKEN));
+	let fields = $derived(deckFieldsFromOrder(order));
 	let includeAudio = $state(false);
 	let template = $state<TemplateOpts>({ ...DEFAULT_TEMPLATE });
 	// Words → Card style → Export. Words come first: the card is easier to

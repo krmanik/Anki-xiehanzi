@@ -135,6 +135,41 @@ export async function readInstalled(client: AnkiConnect, id: string | number): P
 	}
 }
 
+/**
+ * Text for an Anki search, quoted: `\\`, `"`, and the wildcards `*` and `_`
+ * escaped, so a deck called "HSK_1 *new*" matches itself and nothing else.
+ */
+export function ankiQuoted(text: string): string {
+	return `"${text.replace(/[\\"*_]/g, (c) => `\\${c}`)}"`;
+}
+
+/** The value seen most often; the first one on a tie. */
+export function mostCommon(values: string[]): string | undefined {
+	const counts = new Map<string, number>();
+	for (const v of values) counts.set(v, (counts.get(v) ?? 0) + 1);
+	let best: string | undefined;
+	for (const [v, n] of counts) if (best === undefined || n > counts.get(best)!) best = v;
+	return best;
+}
+
+/**
+ * The note type a deck's notes use, found **through the deck**, not by id.
+ * A `/create` deck shares its note type id with the HSK deck, and Anki gives
+ * an imported note type a fresh id whenever its fields or card names differ
+ * from the one already there — so the id the exporter wrote says little about
+ * where the notes ended up. The deck's own notes do. Samples up to 50 notes
+ * and takes the type most of them use. `null` when the deck has no notes.
+ */
+export async function readInstalledForDeck(client: AnkiConnect, deckName: string): Promise<InstalledModel | null> {
+	const ids = await client.call<number[]>('findNotes', { query: `deck:${ankiQuoted(deckName)}` });
+	if (!ids.length) return null;
+	const info = await client.call<{ modelName?: string }[]>('notesInfo', { notes: ids.slice(0, 50) });
+	const name = mostCommon(info.map((n) => n.modelName ?? '').filter(Boolean));
+	if (!name) return null;
+	const [raw] = await client.call<unknown[]>('findModelsByName', { modelNames: [name] });
+	return raw ? toInstalled(raw) : null;
+}
+
 export interface ModelUsage {
 	notes: number;
 	/** Deck names cut to their first two levels ("Anki xiehanzi::New HSK (2025)"), most cards first. */

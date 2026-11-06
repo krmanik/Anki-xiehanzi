@@ -1,18 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { createAnkiConnect } from './ankiConnect';
 import {
+	ankiQuoted,
 	applyDesign,
 	blockedReason,
 	deckRoot,
 	describePlan,
 	planDesign,
+	mostCommon,
 	readInstalled,
+	readInstalledForDeck,
 	readUsage,
 	templatesParam,
 	toInstalled,
 	type WantedModel
 } from './designSync';
 import { hskDeckModel } from '../hskDeckLayout';
+import { deckFieldsFromOrder, savedDeckModel, CONTROL_BUTTONS_TOKEN, SEPARATOR_TOKEN, DEFAULT_TEMPLATE } from '../deckTemplate';
 
 /** A fake add-on: records each action, answers from `handlers`. */
 function fakeAnki(handlers: Record<string, (params: any) => unknown>) {
@@ -151,6 +155,64 @@ describe('readInstalled', () => {
 			}
 		});
 		await expect(readInstalled(client, 1)).rejects.toThrow('collection is not available');
+	});
+});
+
+describe('readInstalledForDeck', () => {
+	it('finds the note type through the deck’s notes, the one most of them use', async () => {
+		const { client, log } = fakeAnki({
+			findNotes: () => [1, 2, 3],
+			notesInfo: () => [{ modelName: 'Basic - (Anki-xiehanzi)-1a2b3' }, { modelName: 'Basic' }, { modelName: 'Basic - (Anki-xiehanzi)-1a2b3' }],
+			findModelsByName: (p) => [{ id: 1793936409999, name: p.modelNames[0], flds: [], tmpls: [], css: '' }]
+		});
+		const got = await readInstalledForDeck(client, 'My words — 6 Nov');
+		expect(got).toMatchObject({ id: 1793936409999, name: 'Basic - (Anki-xiehanzi)-1a2b3' });
+		expect(log[0].params.query).toBe('deck:"My words — 6 Nov"');
+	});
+
+	it('returns null for a deck with no notes', async () => {
+		const { client, log } = fakeAnki({ findNotes: () => [] });
+		expect(await readInstalledForDeck(client, 'Gone')).toBeNull();
+		expect(log.map((l) => l.action)).toEqual(['findNotes']);
+	});
+
+	it('samples at most 50 notes', async () => {
+		const { client, log } = fakeAnki({
+			findNotes: () => Array.from({ length: 400 }, (_, i) => i + 1),
+			notesInfo: (p) => p.notes.map(() => ({ modelName: 'M' })),
+			findModelsByName: () => [{ id: 5, name: 'M' }]
+		});
+		await readInstalledForDeck(client, 'Big');
+		expect(log.find((l) => l.action === 'notesInfo')!.params.notes).toHaveLength(50);
+	});
+
+	it('escapes quotes and wildcards in the deck name', () => {
+		expect(ankiQuoted('HSK_1 *new* "x"')).toBe('"HSK\\_1 \\*new\\* \\"x\\""');
+	});
+
+	it('mostCommon keeps the first on a tie', () => {
+		expect(mostCommon(['a', 'b', 'b', 'a'])).toBe('a');
+		expect(mostCommon([])).toBeUndefined();
+	});
+});
+
+describe('savedDeckModel', () => {
+	it('drops the layout-only items from the note fields', () => {
+		expect(deckFieldsFromOrder(['Simplified', 'writingComponent', CONTROL_BUTTONS_TOKEN, 'Pinyin', SEPARATOR_TOKEN])).toEqual([
+			'Simplified',
+			'Pinyin'
+		]);
+	});
+
+	it('rebuilds the note type from a saved deck’s settings, card names and all', () => {
+		const order = ['Simplified', 'Pinyin', 'SimpleMeaning', 'Audio'];
+		const tabContent = {
+			Standard: { front: ['frontSimplified'], back: ['backSimplified', 'backPinyin', 'backSimpleMeaning'], elementStyles: {}, groups: [] }
+		} as any;
+		const { model } = savedDeckModel({ includeAudio: true, order, tabContent, template: DEFAULT_TEMPLATE });
+		expect(model.tmpls.map((t) => t.name)).toEqual(['Standard']);
+		expect(model.flds.map((f) => f.name)).toEqual(expect.arrayContaining(['Simplified', 'Pinyin', 'SimpleMeaning']));
+		expect(String(model.id)).toBe('1969669503');
 	});
 });
 

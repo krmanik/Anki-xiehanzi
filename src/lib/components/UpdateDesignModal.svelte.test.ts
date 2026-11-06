@@ -99,4 +99,82 @@ describe('UpdateDesignModal', () => {
 		render(UpdateDesignModal, { wanted, needsStrokeData: true, onclose: () => {} });
 		expect(await screen.findByText(/needs stroke data/)).toBeInTheDocument();
 	});
+
+	it('finds a saved deck’s note type through its notes, even under a new id', async () => {
+		let usageQuery = '';
+		const actions = stubAnki({
+			findNotes: (p) => {
+				if (p.query.startsWith('mid:')) usageQuery = p.query;
+				return [1, 2];
+			},
+			notesInfo: () => [{ modelName: 'Basic - (Anki-xiehanzi)-9f8e7' }, { modelName: 'Basic - (Anki-xiehanzi)-9f8e7' }],
+			findModelsByName: (p) => [{ ...model([{ name: 'Card 1', qfmt: 'OLD', afmt: 'OLD' }]), id: 1793900000001, name: p.modelNames[0] }],
+			findCards: () => [11, 12],
+			getDecks: () => ({ 'My words — 6 Nov': [11, 12] })
+		});
+		render(UpdateDesignModal, { wanted, deckName: 'My words — 6 Nov', onclose: () => {} });
+		expect(await screen.findByText('Basic - (Anki-xiehanzi)-9f8e7')).toBeInTheDocument();
+		expect(actions).not.toContain('findModelsById');
+		expect(usageQuery).toBe('mid:1793900000001');
+	});
+
+	it('updates several note types in one go and skips one the collection lacks', async () => {
+		const two: WantedModel[] = [
+			{ ...wanted, id: '1969669522', name: 'Kangxi Radical Free Recognize - (Anki-xiehanzi)' },
+			{ ...wanted, id: '1969669524', name: 'Kangxi Radical Free Write - (Anki-xiehanzi)' },
+			{ ...wanted, id: '1', name: 'Not installed' }
+		];
+		const written: string[] = [];
+		const actions = stubAnki({
+			findModelsById: (p) => {
+				const w = two.find((x) => Number(x.id) === p.modelIds[0]);
+				if (w?.name === 'Not installed') throw new Error('never');
+				return w ? [{ ...model([{ name: 'Card 1', qfmt: 'OLD', afmt: 'OLD' }]), id: Number(w.id), name: w.name }] : [];
+			},
+			...usage,
+			storeMediaFile: (p) => p.filename,
+			updateModelTemplates: (p) => written.push(p.model.name),
+			updateModelStyling: () => null
+		});
+		// The third id answers "not found", like the add-on does.
+		const realFetch = globalThis.fetch;
+		vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
+			const body = init?.body ? JSON.parse(String(init.body)) : null;
+			if (body?.action === 'findModelsById' && body.params.modelIds[0] === 1) {
+				return new Response(JSON.stringify({ result: null, error: 'model was not found: 1' }));
+			}
+			return realFetch(url, init);
+		});
+		const user = userEvent.setup();
+		render(UpdateDesignModal, {
+			wanted: two,
+			media: [{ name: '_xhz-hanzi-writer.js', url: '/data/_hanzi-writer.min.js' }],
+			onclose: () => {}
+		});
+		expect(await screen.findByText('Kangxi Radical Free Recognize - (Anki-xiehanzi)')).toBeInTheDocument();
+		expect(screen.getByText('Kangxi Radical Free Write - (Anki-xiehanzi)')).toBeInTheDocument();
+		expect(screen.queryByText('Not installed')).toBeNull();
+		expect(screen.getAllByText('New card layout and styling')).toHaveLength(1);
+
+		await user.click(screen.getByRole('button', { name: 'Update design' }));
+		expect(await screen.findByText('Card design updated')).toBeInTheDocument();
+		expect(written).toEqual(['Kangxi Radical Free Recognize - (Anki-xiehanzi)', 'Kangxi Radical Free Write - (Anki-xiehanzi)']);
+		expect(actions.filter((a) => a === 'storeMediaFile')).toHaveLength(1);
+	});
+
+	it('refuses media that came back as something else', async () => {
+		stubAnki({
+			findModelsById: () => [model([{ name: 'Card 1', qfmt: 'OLD', afmt: 'OLD' }])],
+			...usage,
+			storeMediaFile: () => null
+		});
+		const user = userEvent.setup();
+		render(UpdateDesignModal, {
+			wanted,
+			media: [{ name: '_xhz-hanzi-writer.js', url: '/data/_hanzi-writer.min.js', check: 'HanziWriter' }],
+			onclose: () => {}
+		});
+		await user.click(await screen.findByRole('button', { name: 'Update design' }));
+		expect(await screen.findByText(/did not load correctly/)).toBeInTheDocument();
+	});
 });

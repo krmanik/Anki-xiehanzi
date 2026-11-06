@@ -26,7 +26,10 @@
 		type Draft,
 		type SavedDeck
 	} from '$lib/myWords';
+	import UpdateDesignModal from '$lib/components/UpdateDesignModal.svelte';
+	import type { WantedModel } from '$lib/anki/designSync';
 	import Bookmark from '@lucide/svelte/icons/bookmark';
+	import Paintbrush from '@lucide/svelte/icons/paintbrush';
 	import Download from '@lucide/svelte/icons/download';
 	import FolderOpen from '@lucide/svelte/icons/folder-open';
 	import Send from '@lucide/svelte/icons/send';
@@ -61,6 +64,27 @@
 			settings: deck.settings
 		});
 		void goto(`${base}/create`);
+	}
+
+	// Update card design: push this deck's card design (rebuilt from its saved
+	// settings) into the note type its notes use in Anki. The template builder
+	// is imported on click, so My words does not carry it.
+	let design = $state<{ deckName: string; wanted: WantedModel; media: { name: string; url: string }[]; strokes: boolean } | null>(
+		null
+	);
+	async function openDesign(deck: SavedDeck) {
+		if (!deck.settings) return;
+		const { savedDeckModel, DECK_IMG_MEDIA, deckDataMedia } = await import('$lib/deckTemplate');
+		const { model, usesWriter } = savedDeckModel(deck.settings);
+		design = {
+			deckName: deck.name,
+			wanted: model,
+			media: [
+				...DECK_IMG_MEDIA.map((name) => ({ name, url: `/img/${name}` })),
+				...deckDataMedia(usesWriter).map((name) => ({ name, url: `/data/${name}` }))
+			],
+			strokes: usesWriter
+		};
 	}
 
 	function remove(name: string) {
@@ -203,7 +227,7 @@
 								</button>
 								<!-- Desktop only: phones have no AnkiConnect. A wrapper, because
 								     buttonClass's inline-flex would beat `hidden`. -->
-								<span class="hidden sm:inline-flex">
+								<span class="hidden items-center gap-1.5 sm:inline-flex">
 									<button
 										type="button"
 										class={buttonClass('soft', 'sm')}
@@ -212,6 +236,17 @@
 									>
 										<Send class="size-4" />Send to Anki
 									</button>
+									{#if deck.settings}
+										<button
+											type="button"
+											class={iconBtn}
+											aria-label="Update card design of {deck.name} in Anki"
+											title="Update its card design in Anki"
+											onclick={() => openDesign(deck)}
+										>
+											<Paintbrush class="size-[18px]" />
+										</button>
+									{/if}
 								</span>
 								<button type="button" class={iconBtn} aria-label="Delete {deck.name}" onclick={() => (confirming = deck.name)}>
 									<Trash2 class="size-[18px]" />
@@ -250,3 +285,14 @@
 		</section>
 	{/if}
 </div>
+
+{#if design}
+	<UpdateDesignModal
+		wanted={design.wanted}
+		deckName={design.deckName}
+		media={design.media}
+		needsStrokeData={design.strokes}
+		subtitle="Puts this deck's card design into Anki. No re-send."
+		onclose={() => (design = null)}
+	/>
+{/if}

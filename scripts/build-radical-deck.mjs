@@ -549,23 +549,11 @@ async function buildEdition(edition) {
 	// One deck and one note type per card type — recognition and writing are
 	// separate work, and either should be studyable without the other.
 	const parts = options.cards.map((card) => {
-		const single = { ...options, cards: [card] };
 		const name = rd.radicalDeckName(edition, card);
 		return {
 			card,
 			name,
-			model: new Model({
-				name: rd.modelName(edition, card),
-				id: rd.modelId(edition, card),
-				flds: rd.RADICAL_FIELDS.map((f) => ({ name: f })),
-				req: rd.radicalReq(single),
-				css: rd.radicalCss(options),
-				tmpls: rd
-					.radicalTemplates(single)
-					.map((t) => ({ name: t.name, qfmt: t.qfmt, afmt: t.afmt })),
-				// Sort by the Kangxi number so the browser lists a deck in table order.
-				sortf: rd.RADICAL_FIELDS.indexOf('Number')
-			}),
+			model: new Model(rd.radicalModelProps(options, card)),
 			deck: new Deck(deckIdFor(name), name)
 		};
 	});

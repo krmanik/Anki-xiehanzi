@@ -14,6 +14,7 @@ import {
 	PROJECT_URL,
 	radicalCss,
 	radicalDeckName,
+	radicalModelProps,
 	radicalNoteGuid,
 	radicalOptions,
 	radicalReq,
@@ -837,5 +838,24 @@ describe('media names', () => {
 	it('does not reuse the HSK note type id', () => {
 		expect(RADICAL_MODEL_ID).not.toBe('1969669503');
 		expect(RADICAL_MODEL_ID).not.toBe('1969669504');
+	});
+});
+
+describe('radicalModelProps', () => {
+	it('is one card type’s note type: its own id, name and templates, the deck’s CSS', () => {
+		const options = radicalOptions('free');
+		const write = radicalModelProps(options, 'write');
+		expect(write.id).toBe(modelId('free', 'write'));
+		expect(write.name).toBe(modelName('free', 'write'));
+		expect(write.tmpls).toEqual(radicalTemplates({ ...options, cards: ['write'] }).map((t) => ({ name: t.name, qfmt: t.qfmt, afmt: t.afmt })));
+		expect(write.css).toBe(radicalCss(options));
+		expect(write.flds.map((f) => f.name)).toEqual(RADICAL_FIELDS);
+		expect(write.sortf).toBe(RADICAL_FIELDS.indexOf('Number'));
+	});
+
+	it('follows the options: no readings, different template', () => {
+		const on = radicalModelProps(radicalOptions('free'), 'recognize');
+		const off = radicalModelProps(radicalOptions('free', { readings: false }), 'recognize');
+		expect(off.tmpls[0].afmt).not.toBe(on.tmpls[0].afmt);
 	});
 });

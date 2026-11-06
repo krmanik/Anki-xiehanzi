@@ -1207,6 +1207,16 @@ export interface DeckModelProps {
 	tmpls: { name: string; qfmt: string; afmt: string }[];
 }
 
+/**
+ * The note fields a `/create` deck carries: its card-item order minus what is
+ * layout only (the writing grid and the chrome tokens). The creator page and
+ * "update card design" on My words both read it from here, so the note type
+ * one rebuilds is the one the other exported.
+ */
+export function deckFieldsFromOrder(order: string[]): string[] {
+	return order.filter((o) => o !== 'writingComponent' && o !== CONTROL_BUTTONS_TOKEN && o !== SEPARATOR_TOKEN);
+}
+
 /** The genanki `Model` props for a deck, plus whether its cards use the writer. */
 export function deckModelProps(opts: Parameters<typeof buildNoteTemplates>[0]): {
 	model: DeckModelProps;
@@ -1225,4 +1235,23 @@ export function deckModelProps(opts: Parameters<typeof buildNoteTemplates>[0]): 
 		},
 		usesWriter: built.usesWriter
 	};
+}
+
+/**
+ * The note type a saved `/create` deck was exported with, rebuilt from the
+ * settings My words keeps — what "update card design" pushes into Anki.
+ */
+export function savedDeckModel(s: {
+	includeAudio: boolean;
+	order: string[];
+	tabContent: TabContent;
+	template: TemplateOpts;
+}): ReturnType<typeof deckModelProps> {
+	return deckModelProps({
+		fields: deckFieldsFromOrder(s.order),
+		order: s.order,
+		tabContent: s.tabContent,
+		includeAudio: s.includeAudio,
+		template: s.template
+	});
 }

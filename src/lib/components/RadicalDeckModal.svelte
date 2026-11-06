@@ -9,7 +9,14 @@
 	 * offline and sold, so its side of the table is a link.
 	 */
 	import { btnPrimary, btnSecondary } from '$lib/buttonStyles';
-	import { RADICAL_CARD_TYPES, radicalOptions, type RadicalCardType } from '$lib/radicalDeck';
+	import {
+		ENGINE_FILE,
+		RADICAL_CARD_TYPES,
+		radicalModelProps,
+		radicalOptions,
+		type RadicalCardType
+	} from '$lib/radicalDeck';
+	import UpdateDesignModal from './UpdateDesignModal.svelte';
 	import type { Radical, RadicalDeckManifest } from '$lib/radicals';
 	import Check from '@lucide/svelte/icons/check';
 	import Download from '@lucide/svelte/icons/download';
@@ -104,6 +111,15 @@
 	const toggleCard = (value: RadicalCardType) => {
 		cards = cards.includes(value) ? cards.filter((c) => c !== value) : [...cards, value];
 	};
+
+	// Update card design: a reader who built the deck before pushes today's
+	// design — with the options picked above — into the note types Anki
+	// already has, instead of rebuilding and re-importing. Both card types are
+	// offered; one the collection lacks is skipped.
+	let designing = $state(false);
+	const designModels = $derived(
+		RADICAL_CARD_TYPES.map((c) => radicalModelProps({ ...options, cards: ['recognize', 'write'] }, c.value))
+	);
 
 	async function build() {
 		if (!cards.length) return;
@@ -359,5 +375,23 @@
 				<Sparkles size={15} /> Premium
 			</a>
 		</div>
+		<!-- Desktop only, like Send: phones have no AnkiConnect. -->
+		<p class="mt-3 mb-0 hidden text-right text-sm sm:block">
+			<button
+				type="button"
+				class="border-0 bg-transparent p-0 font-semibold text-accent hover:underline"
+				disabled={busy}
+				onclick={() => (designing = true)}>Already have it? Update its card design</button
+			>
+		</p>
 	</div>
 </div>
+
+{#if designing}
+	<UpdateDesignModal
+		wanted={designModels}
+		media={[{ name: ENGINE_FILE, url: '/data/_hanzi-writer.min.js', check: 'HanziWriter' }]}
+		subtitle="Puts the free deck's current card design, with the options picked here, into the deck you already have."
+		onclose={() => (designing = false)}
+	/>
+{/if}

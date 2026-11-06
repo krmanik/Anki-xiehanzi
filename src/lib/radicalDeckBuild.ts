@@ -26,15 +26,11 @@ import {
 	RADICAL_FIELDS,
 	audioFile,
 	buildRadicalNote,
-	modelId,
-	modelName,
 	orderByKangxi,
-	radicalCss,
 	radicalDeckName,
-	radicalReq,
+	radicalModelProps,
 	radicalTags,
 	radicalNoteGuid,
-	radicalTemplates,
 	type RadicalDeckOptions
 } from './radicalDeck';
 import { loadRadicalStrokes, type Radical } from './radicals';
@@ -158,20 +154,10 @@ export async function buildRadicalDeck(
 	 * study, suspend or delete it without touching the other.
 	 */
 	const parts = options.cards.map((card) => {
-		const single = { ...options, cards: [card] };
 		const name = `${deckName}::${card === 'write' ? 'Write' : 'Recognize'}`;
 		return {
 			card,
-			model: new Model({
-				name: modelName(options.edition, card),
-				id: modelId(options.edition, card),
-				flds: RADICAL_FIELDS.map((f) => ({ name: f })),
-				req: radicalReq(single),
-				css: radicalCss(options),
-				tmpls: radicalTemplates(single).map((t) => ({ name: t.name, qfmt: t.qfmt, afmt: t.afmt })),
-				// Sorting on the Kangxi number lists a deck in table order.
-				sortf: RADICAL_FIELDS.indexOf('Number')
-			}),
+			model: new Model(radicalModelProps(options, card)),
 			deck: new Deck(radicalDeckId(name), name)
 		};
 	});

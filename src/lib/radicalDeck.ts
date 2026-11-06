@@ -2008,3 +2008,23 @@ export function orderByKangxi(db: ApkgDb): void {
 	setNote.free();
 	setCards.free();
 }
+
+/**
+ * One card type's note type, as both builders package it and as "update card
+ * design" pushes it into a collection that already has the deck. `options`
+ * is the whole deck's (the CSS covers every side it ships); the templates are
+ * this card type's alone.
+ */
+export function radicalModelProps(options: RadicalDeckOptions, card: RadicalCardType) {
+	const single = { ...options, cards: [card] };
+	return {
+		name: modelName(options.edition, card),
+		id: modelId(options.edition, card),
+		flds: RADICAL_FIELDS.map((f) => ({ name: f })),
+		req: radicalReq(single),
+		css: radicalCss(options),
+		tmpls: radicalTemplates(single).map((t) => ({ name: t.name, qfmt: t.qfmt, afmt: t.afmt })),
+		// Sorting on the Kangxi number lists a deck in table order.
+		sortf: RADICAL_FIELDS.indexOf('Number')
+	};
+}

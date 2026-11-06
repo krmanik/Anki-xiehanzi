@@ -289,9 +289,20 @@ A separate, much lighter stack from the deck generator — it must never pull th
   — the CSS is one sheet per note type, so it would restyle that card too;
   on the user's real collection the no-audio type held a `/create` deck's
   "Standard" card. The confirm step names the note type, its note count and
-  decks, and says notes and reviews are kept, hand edits replaced. Dry-run
-  read-only against a real collection; the write path is tested against a
-  fake add-on only.
+  decks, and says notes and reviews are kept, hand edits replaced.
+  **Three entry points, one modal**: the HSK deck modal (by model id), each
+  saved deck on My words (a paintbrush, desktop only) and the radical deck
+  modal. A My words deck is rebuilt from its saved settings
+  (`savedDeckModel`) and its note type is found **through the deck's notes**
+  (`readInstalledForDeck`), not by id: a `/create` deck shares the HSK note
+  type id, and Anki re-numbers an imported note type whenever its fields or
+  card names differ. The radical deck passes **both** note types (Recognize,
+  Write — `radicalModelProps`, which both radical builders also package) with
+  the options picked in the modal; one the collection lacks is skipped, media
+  is stored once, and a media file's bytes are checked (`check`) before it is
+  stored. The write path has been run against a real Anki — a second
+  instance with its own base folder, never the user's collection (see
+  memory: test Anki).
 
 ## Dictionary (`/dictionary`)
 

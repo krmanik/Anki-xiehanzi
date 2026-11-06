@@ -280,6 +280,10 @@ const index = [];
 
 for (const list of LISTS) {
 	const levels = [];
+	// A word can sit in more than one level (点 is in New HSK 1–4), so the
+	// list's total counts each word once — the number the deck holds — rather
+	// than summing the level counts (11,073 rows, 10,900 words).
+	const listWords = new Set();
 	for (const level of list.levels) {
 		const seeds = list.seeds(level);
 		const seen = new Set();
@@ -287,6 +291,7 @@ for (const list of LISTS) {
 		for (const seed of seeds) {
 			if (!seed.word || seen.has(seed.word)) continue;
 			seen.add(seed.word);
+			listWords.add(seed.word);
 			entries.push(await buildEntry(seed.word, seed));
 		}
 		const file = `${list.id}-${level}.json`;
@@ -300,7 +305,7 @@ for (const list of LISTS) {
 		name: list.name,
 		year: list.year,
 		subtitle: list.subtitle,
-		total: levels.reduce((n, l) => n + l.count, 0),
+		total: listWords.size,
 		levels
 	});
 }

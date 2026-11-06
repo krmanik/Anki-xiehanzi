@@ -47,6 +47,8 @@ export interface HskListMeta {
 	name: string;
 	year: string;
 	subtitle: string;
+	/** Distinct words across every level. Less than the sum of the level
+	 *  counts: a word can be listed at more than one level. */
 	total: number;
 	levels: HskLevelMeta[];
 }

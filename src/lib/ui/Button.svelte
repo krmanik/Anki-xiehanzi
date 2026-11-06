@@ -5,11 +5,13 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements';
-	import { buttonClass, cx, type ButtonSize, type ButtonVariant } from './styles';
+	import { buttonClass, cx, type ButtonSize, type ButtonVariant, type Tint } from './styles';
 
 	type Props = {
 		variant?: ButtonVariant;
 		size?: ButtonSize;
+		/** Hue of a `soft` button; ignored by the other variants. */
+		tint?: Tint;
 		href?: string;
 		class?: string;
 		children: Snippet;
@@ -18,6 +20,7 @@
 	let {
 		variant = 'primary',
 		size = 'md',
+		tint = 'sky',
 		href,
 		class: extra = '',
 		type = 'button',
@@ -25,7 +28,7 @@
 		...rest
 	}: Props = $props();
 
-	const cls = $derived(cx(buttonClass(variant, size), extra));
+	const cls = $derived(cx(buttonClass(variant, size, tint), extra));
 </script>
 
 {#if href}

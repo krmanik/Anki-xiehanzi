@@ -462,13 +462,15 @@ describe('radicalTemplates', () => {
 		const [rec] = radicalTemplates('premium');
 		for (const tmpl of [rec.qfmt, rec.afmt]) {
 			expect(tmpl).toContain('class="brand-name">Anki-xiehanzi<');
-			expect(tmpl).toContain('class="brand-sub">Radicals<');
+			expect(tmpl).toContain('写汉字 · Radicals');
+			expect(tmpl).toContain('class="tier-chip">Premium<');
 			expect(tmpl).toContain(`href="${PROJECT_URL}"`);
 			expect(tmpl).toContain('View on GitHub');
 		}
 		// Free has no panel at all, so it has nowhere to put either.
 		const [free] = radicalTemplates('free');
-		expect(free.afmt).not.toContain('brand-name');
+		expect(free.afmt).not.toContain('tier-chip');
+		expect(free.afmt).not.toContain('panel-gh');
 		expect(radicalCss(radicalOptions('premium'))).toContain('.panel-gh');
 	});
 

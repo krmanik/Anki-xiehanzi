@@ -751,14 +751,22 @@ const MORE_LINKS: { label: string; note: string; href: string }[] = [
 	{ label: 'Tatoeba', note: 'Sentences', href: 'https://tatoeba.org/en/sentences/search?from=cmn&query={{text:Radical}}' }
 ];
 
-/** The right-hand drawer the more button opens. Links only — no script. */
-const MORE_DRAWER = `<aside class="more" aria-label="Look it up elsewhere">
-  <div class="panel-head">
-    <span class="panel-title">Look it up</span>
-    <button type="button" class="panel-close tappable" aria-label="Close" onclick="document.querySelector('.card-body').classList.remove('xhz-more')">${icon(
+/**
+ * Both drawers head the way the website does: the project name as a chip and a
+ * quiet round close (the premium word decks' drawers, `premium/template/drawer.ts`).
+ */
+const drawerHead = (openClass: string) =>
+	`<div class="drawer-head">
+    <span class="brand-chip"><span class="brand-mark">写</span><span class="brand-name">Anki-xiehanzi</span></span>
+    <button type="button" class="panel-close tappable" aria-label="Close" onclick="document.querySelector('.card-body').classList.remove('${openClass}')">${icon(
 			'close'
 		)}</button>
-  </div>
+  </div>`;
+
+/** The right-hand drawer the more button opens. Links only — no script. */
+const MORE_DRAWER = `<aside class="more" aria-label="Look it up elsewhere">
+  ${drawerHead('xhz-more')}
+  <div class="panel-head"><span class="panel-title">Look it up</span></div>
   <div class="more-links">
 ${MORE_LINKS.map(
 	(l) =>
@@ -834,24 +842,17 @@ function sidebar(parts: CardPart[]): string {
 	// it carries it: the brand at the top, the project link at the bottom. A card
 	// otherwise says nothing about where it came from.
 	return `<aside class="panel" aria-label="Show or hide parts of the card">
-  <div class="panel-brand">
-    <span class="brand-text">
-      <span class="brand-name">Anki-xiehanzi</span>
-      <span class="brand-sub">Radicals</span>
-    </span>
-    <button type="button" class="panel-close tappable" aria-label="Close" onclick="document.querySelector('.card-body').classList.remove('xhz-panel')">${icon(
-			'close'
-		)}</button>
-  </div>
-  <div class="panel-head">
+  ${drawerHead('xhz-panel')}
+  <div class="side-note">
     <span class="panel-title">Show</span>
-    <span class="panel-note">This side only</span>
+    <span class="panel-note">Changes this side only.</span>
   </div>
   <div class="panel-rows">
 ${rows}
   </div>
   <div class="panel-foot">
     <a class="panel-gh tappable" href="${PROJECT_URL}">${icon('github')}<span>View on GitHub</span></a>
+    <div class="foot-meta"><span class="tier-chip">Premium</span><span class="brand-sub">写汉字 · Radicals</span></div>
   </div>
 </aside>`;
 }
@@ -1742,164 +1743,256 @@ export const RADICAL_CSS = `
 
 /* ── Drawers: the part switches (left), the dictionaries (right) ──────── */
 
+/* Dressed like the website and the premium word decks' drawers: cool slate
+   neutrals, a white surface, rows grouped on the sunk tint, sentence-case
+   labels, a mint switch, the project name as a chip. Flat — an edge against the
+   card, no shadow. The values are the site's own tokens (src/app.css), copied,
+   because a card cannot read them. */
+.card {
+  --xd-ground: #ffffff;
+  --xd-sunk: #f4f7fb;
+  --xd-ink: #1b222e;
+  --xd-muted: #596475;
+  --xd-line: #e4e8ef;
+  --xd-track: #cfd6e0;
+  --xd-sky: #3384fe;
+  --xd-sky-soft: #f0f6ff;
+  --xd-sky-ink: #0164e2;
+  --xd-mint: #08ba87;
+  --xd-lavender-soft: #f5f4fe;
+  --xd-lavender-ink: #7839e6;
+}
+.nightMode.card, .card.nightMode, .card.night_mode, .night_mode .card, .nightMode .card {
+  --xd-ground: #151a22;
+  --xd-sunk: #1c222b;
+  --xd-ink: #ebeff4;
+  --xd-muted: #a3abb9;
+  --xd-line: #282e38;
+  --xd-track: #3a4250;
+  --xd-sky-soft: #122239;
+  --xd-sky-ink: #8cb9ff;
+  --xd-lavender-soft: #231c39;
+  --xd-lavender-ink: #c0b0fe;
+}
+
 .panel, .more {
   position: fixed;
   top: 0;
   z-index: 45;
-  max-width: 76vw;
+  max-width: 82vw;
   height: 100%;
   box-sizing: border-box;
-  padding: 10px 0 0;
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  padding: 0 0 12px;
+  background: var(--xd-ground);
+  color: var(--xd-ink);
   transition: transform 0.16s ease;
   overflow-y: auto;
   text-align: left;
-  font-size: 13px;
-}
-
-.panel {
-  left: 0;
-  width: 186px;
-  border-right: 1px solid var(--line);
-  transform: translateX(-100%);
+  font-size: 14px;
+  line-height: 1.4;
   /* A column so the project link sits at the foot of the drawer rather than
      floating under the last switch on a side with only a few of them. */
   display: flex;
   flex-direction: column;
 }
 
+.panel {
+  left: 0;
+  width: 250px;
+  border-right: 1px solid var(--xd-line);
+  transform: translateX(-100%);
+}
+
 .more {
   right: 0;
-  width: 216px;
-  border-left: 1px solid var(--line);
+  width: 230px;
+  border-left: 1px solid var(--xd-line);
   transform: translateX(100%);
 }
 
 .xhz-panel .panel, .xhz-more .more { transform: translateX(0); }
+.panel > *, .more > * { flex-shrink: 0; }
 
-/* The deck's name, at the top of the drawer. */
-.panel-brand {
+/* The project name as a chip, and a round close beside it. */
+.drawer-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 2px 10px 10px 12px;
-  border-bottom: 1px solid var(--line);
+  padding: 14px 12px 10px;
 }
 
-.brand-text { display: block; }
-
-.brand-name {
-  display: block;
-  font-size: 14px;
+.brand-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 11px 4px 4px;
+  border-radius: 999px;
+  background: var(--xd-sky-soft);
+  color: var(--xd-sky-ink);
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.01em;
-  color: var(--p);
 }
 
-.brand-sub {
-  display: block;
-  margin-top: 1px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
-.panel-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 10px 6px 12px;
-}
-
-.panel-note {
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
-
-.panel-title {
-  font-size: 10px;
+.brand-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--xd-sky);
+  color: #fff;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--p);
 }
 
 .panel-close {
   -webkit-appearance: none;
   appearance: none;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
   border: 0;
-  padding: 2px;
-  background: transparent;
-  color: var(--muted);
+  border-radius: 50%;
+  padding: 0;
+  background: var(--xd-sunk);
+  color: var(--xd-muted);
   cursor: pointer;
 }
 
-.panel-rows { flex: 1 0 auto; padding: 4px 0; }
+.panel-close .ico { width: 16px; height: 16px; }
+.panel-close:active { background: var(--xd-line); color: var(--xd-ink); }
+
+/* Which side the switches belong to. */
+.side-note {
+  margin: 2px 12px 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--xd-sky-soft);
+}
+
+.side-note .panel-title { display: block; font-size: 13px; font-weight: 700; color: var(--xd-sky-ink); }
+.side-note .panel-note { display: block; font-size: 12px; color: var(--xd-muted); }
+
+.panel-head { padding: 4px 16px 8px; }
+.panel-head .panel-title { font-size: 13px; font-weight: 600; color: var(--xd-muted); }
+
+/* The switches: one group of rows on the sunk tint. The group carries the
+   corners, so a row the script hides for this note never leaves a square one. */
+.panel-rows {
+  margin: 0 12px;
+  border-radius: 12px;
+  background: var(--xd-sunk);
+  overflow: hidden;
+}
 
 .panel-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 7px 12px;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px 10px 14px;
   cursor: pointer;
-  color: var(--fg);
+  color: var(--xd-ink);
+  font-size: 14px;
 }
 
-.panel-row input { margin: 0; flex: none; accent-color: var(--p); }
+.panel-row + .panel-row { border-top: 1px solid var(--xd-ground); }
+
+/* The switch: a 38x22 track, mint when on. Label first, switch on the right. */
+.panel-row input {
+  -webkit-appearance: none;
+  appearance: none;
+  order: 2;
+  position: relative;
+  flex: none;
+  width: 38px;
+  height: 22px;
+  margin: 0;
+  border-radius: 22px;
+  background: var(--xd-track);
+  cursor: pointer;
+  transition: background 0.16s ease;
+}
+
+.panel-row input::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.16s ease;
+}
+
+.panel-row input:checked { background: var(--xd-mint); }
+.panel-row input:checked::before { left: 18px; }
+.panel-row input:focus-visible { outline: 3px solid var(--xd-sky); outline-offset: 2px; }
 
 .panel-foot {
-  margin-top: 4px;
-  padding: 8px 8px 16px;
-  border-top: 1px solid var(--line);
+  margin: auto 12px 0;
+  padding-top: 14px;
+  display: grid;
+  gap: 10px;
 }
 
 .panel-gh {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: var(--soft);
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 600;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--xd-sunk);
+  color: var(--xd-ink);
+  font-size: 14px;
+  font-weight: 500;
   text-decoration: none;
 }
 
-.panel-gh:active { background: var(--p-soft); color: var(--p); }
-.panel-gh .ico { width: 15px; height: 15px; }
+.panel-gh .ico { width: 18px; height: 18px; color: var(--xd-muted); }
+.panel-gh:active { background: var(--xd-line); }
 
-/* ── The dictionary drawer's own rows ─────────────────────────────────── */
+.foot-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--xd-muted);
+}
 
-.more-links { padding: 6px 8px 16px; }
+.tier-chip {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--xd-lavender-soft);
+  color: var(--xd-lavender-ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ── The dictionary drawer's own rows: one group, like the switches ───── */
+
+.more-links {
+  margin: 0 12px;
+  border-radius: 12px;
+  background: var(--xd-sunk);
+  overflow: hidden;
+}
 
 .more-link {
   display: block;
-  padding: 8px 10px;
-  margin: 3px 0;
-  border-radius: 10px;
-  background: var(--soft);
-  color: var(--fg);
+  padding: 10px 14px;
+  color: var(--xd-ink);
   text-decoration: none;
 }
 
-.more-link:active { background: var(--p-soft); }
+.more-link + .more-link { border-top: 1px solid var(--xd-ground); }
+.more-link:active { background: var(--xd-line); }
 .more-name { display: block; font-size: 14px; font-weight: 600; }
-
-.more-note {
-  display: block;
-  font-size: 10px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
+.more-note { display: block; font-size: 12px; color: var(--xd-muted); }
 
 /* One rule per switchable part, and a switch means the *whole card*: turning
    zhuyin off has to take the zhuyin out of the example rows too, or the switch

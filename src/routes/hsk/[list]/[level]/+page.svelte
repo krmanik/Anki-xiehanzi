@@ -4,11 +4,16 @@
   whole list's Anki deck is the prebuilt download for the list.
 -->
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import HskExportModal from '$lib/components/HskExportModal.svelte';
 	import HskDeckModal from '$lib/components/HskDeckModal.svelte';
+	import ProgressStrip from '$lib/components/hsk/ProgressStrip.svelte';
+	import { anki, probeAnki } from '$lib/anki/ankiStatus.svelte';
+	import { loadProgress, progress, watchProgress } from '$lib/anki/progress.svelte';
+	import { stateOf, type WordState } from '$lib/anki/progress';
 	import {
 		entryKey,
 		entrySearchText,
@@ -66,7 +71,23 @@
 	const label = $derived(levelLabel(level));
 	const ctx = $derived({ listName, levelLabel: label });
 
+	/** Known / Learning / New, from the reader's Anki; null shows every word. */
+	let progressFilter = $state<WordState | null>(null);
 	const sorted = $derived(sortEntries(entries, sort));
+	const rows = $derived(
+		progressFilter === null ? sorted : sorted.filter((e) => stateOf(e.s, progress.states) === progressFilter)
+	);
+	const words = $derived(entries.map((e) => e.s));
+
+	// A browser that has connected before is checked without a click; progress
+	// follows as soon as Anki answers, and again whenever the tab comes back.
+	onMount(() => {
+		probeAnki();
+		return watchProgress();
+	});
+	$effect(() => {
+		if (anki.status === 'ready') void loadProgress();
+	});
 	const byKey = $derived(new Map(entries.map((e) => [entryKey(e), e])));
 	const pick = (keys: string[]) => keys.map((k) => byKey.get(k)).filter((e): e is HskEntry => !!e);
 
@@ -197,9 +218,10 @@
 			{/each}
 		</div>
 	{:else}
+		<ProgressStrip {words} bind:filter={progressFilter} />
 		{#key `${listId}/${level}`}
 			<DataTable
-				rows={sorted}
+				rows={rows}
 				key={entryKey}
 				text={entrySearchText}
 				facets={(e) => e.o ?? []}
@@ -230,10 +252,20 @@
 
 				{#snippet row(e: HskEntry)}
 					{@const pinyin = pinyinTones(e.y, e.p)}
+					{@const state = progress.status === 'ready' ? stateOf(e.s, progress.states) : null}
 					<div class={GRID}>
 						<div class="flex min-w-0 flex-wrap items-baseline gap-x-3 sm:contents">
 							<span class="font-zh text-2xl leading-snug" lang="zh-Hans"
-								>{#each hanziTones(e.s, e.p) as c, ci (ci)}<span class={toneText(c.tone)}
+								>{#if state}<!-- A slot on every row, so the hanzi line up. --><span
+										class="mr-2 inline-block size-2 -translate-y-1 rounded-full {state === 'known'
+											? 'bg-mint'
+											: state === 'learning'
+												? 'bg-apricot'
+												: ''}"
+										title={state === 'new' ? undefined : state === 'known' ? 'Known' : 'Learning'}
+									></span>{#if state !== 'new'}<span class="sr-only"
+											>{state === 'known' ? 'Known' : 'Learning'}:</span
+										>{/if}{/if}{#each hanziTones(e.s, e.p) as c, ci (ci)}<span class={toneText(c.tone)}
 										>{c.ch}</span
 									>{/each}</span
 							>

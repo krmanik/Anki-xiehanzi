@@ -6,19 +6,22 @@
 	let {
 		selected = false,
 		count,
+		onTint = false,
 		onclick,
 		class: extra = '',
 		children
 	}: {
 		selected?: boolean;
 		count?: number;
+		/** On a soft panel, where the grey chip would vanish. */
+		onTint?: boolean;
 		onclick?: (e: MouseEvent) => void;
 		class?: string;
 		children: Snippet;
 	} = $props();
 </script>
 
-<button type="button" class={cx(chipClass(selected), extra)} aria-pressed={selected} {onclick}>
+<button type="button" class={cx(chipClass(selected, onTint), extra)} aria-pressed={selected} {onclick}>
 	{@render children()}
 	{#if count !== undefined}<span class="font-medium opacity-75">{count.toLocaleString()}</span>{/if}
 </button>

@@ -1,8 +1,17 @@
 <!--
   The live preview beside the Card style step: the real compiled card (the same
   `renderCardHtml` the export preview and the .apkg use) for the reader's own
-  words, front and back, paged with ‹ ›. Falls back to the sample mock only when
-  there are no words yet.
+  words. One frame, flipped between Front and Back like a card in Anki, paged
+  word by word with ‹ ›. Falls back to the sample mock only when there are no
+  words yet.
+
+  Layout notes:
+  - A real border, not a ring: the aside around it scrolls, and a scroller
+    clips a ring (it is a box-shadow), which left only the rounded corners
+    floating between two cards.
+  - On wide screens the frame is capped to the viewport and scrolls inside,
+    like a phone screen, so the side switch and pager never scroll away.
+  - The card follows the site's theme (`night_mode`, the class Anki sets).
 -->
 <script lang="ts">
 	import CardPreview from '$lib/components/CardPreview.svelte';
@@ -10,6 +19,7 @@
 	import type { TemplateOpts, ExampleSentence, CardElementStyles, Word } from '$lib/deck';
 	import type { CardGroup, TabContent } from '$lib/deckTemplate';
 	import type { TonePalette } from '$lib/tonePresets';
+	import { currentTheme } from '$lib/theme.svelte';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
@@ -25,7 +35,8 @@
 		frontItems,
 		backItems,
 		elementStyles,
-		groups
+		groups,
+		side = $bindable('back')
 	}: {
 		words: Word[];
 		tabName: string;
@@ -39,7 +50,15 @@
 		backItems: string[];
 		elementStyles: CardElementStyles;
 		groups: CardGroup[];
+		/** Which side is on show; bound to the Front | Back columns. */
+		side?: Side;
 	} = $props();
+
+	type Side = 'front' | 'back';
+	const SIDES: { id: Side; label: string }[] = [
+		{ id: 'front', label: 'Front' },
+		{ id: 'back', label: 'Back' }
+	];
 
 	let index = $state(0);
 	const safeIndex = $derived(Math.min(index, Math.max(0, words.length - 1)));
@@ -70,11 +89,13 @@
 		};
 	});
 
-	function doc(side: 'front' | 'back'): string {
+	const dark = $derived(currentTheme() === 'dark');
+
+	function doc(s: Side): string {
 		if (!word) return '';
 		try {
-			return renderCardHtml({
-				side,
+			const html = renderCardHtml({
+				side: s,
 				tab: tabName,
 				word,
 				fields,
@@ -84,15 +105,16 @@
 				includeAudio,
 				examples
 			});
+			return dark ? html.replace('<body class="card">', '<body class="card night_mode">') : html;
 		} catch {
 			return '';
 		}
 	}
-	const frontDoc = $derived(doc('front'));
-	const backDoc = $derived(doc('back'));
+	const html = $derived(doc(side));
 
 	/** Size the frame to its card, and keep following it (the writer and
-	 *  folding sections change the height after load). */
+	 *  folding sections change the height after load). CSS caps it on wide
+	 *  screens; past the cap the card scrolls inside the frame. */
 	function autoHeight(frame: HTMLIFrameElement) {
 		let ro: ResizeObserver | null = null;
 		const fit = () => {
@@ -101,7 +123,7 @@
 			const b = frame.contentDocument?.body;
 			if (!b) return;
 			const h = Math.ceil(b.getBoundingClientRect().height);
-			if (h) frame.style.height = `${Math.min(h + 16, 1400)}px`;
+			if (h) frame.style.height = `${Math.min(h + 8, 1400)}px`;
 		};
 		const onload = () => {
 			ro?.disconnect();
@@ -122,60 +144,78 @@
 	}
 
 	const navBtn =
-		'grid size-8 place-items-center rounded-full bg-sunk text-muted transition hover:text-ink disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-3 focus-visible:outline-sky';
+		'grid size-9 place-items-center rounded-full text-muted transition hover:bg-sunk hover:text-ink disabled:opacity-35 disabled:pointer-events-none focus-visible:outline-3 focus-visible:outline-sky';
+	const sideBtn = (on: boolean) =>
+		`min-h-8 rounded-full px-3.5 text-[13.5px] font-semibold transition focus-visible:outline-3 focus-visible:outline-sky ${
+			on ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink'
+		}`;
 </script>
 
-<div class="mb-2 flex min-h-8 items-center justify-between gap-2">
-	<p class="m-0 text-sm font-semibold text-muted">Preview{tabName !== 'Card 1' ? ` · ${tabName}` : ''}</p>
-	{#if words.length > 1}
-		<div class="flex items-center gap-1.5">
-			<button type="button" class={navBtn} aria-label="Previous word" disabled={safeIndex === 0} onclick={() => (index = safeIndex - 1)}
-				><ChevronLeft class="size-4" /></button
-			>
-			<span class="min-w-14 text-center text-[13px] text-muted tabular-nums">{safeIndex + 1} / {words.length}</span>
-			<button
-				type="button"
-				class={navBtn}
-				aria-label="Next word"
-				disabled={safeIndex >= words.length - 1}
-				onclick={() => (index = safeIndex + 1)}><ChevronRight class="size-4" /></button
-			>
-		</div>
-	{/if}
-</div>
+<p class="m-0 mb-2 text-sm font-semibold text-muted">
+	Preview{tabName !== 'Card 1' ? ` · ${tabName}` : ''}
+</p>
 
 {#if word}
-	{#each [['Front', frontDoc], ['Back', backDoc]] as [label, html] (label)}
-		<figure class="m-0 overflow-hidden rounded-panel bg-white ring-1 ring-line">
-			<figcaption class="border-b border-line bg-surface px-4 py-2 text-[13px] font-semibold text-muted">{label}</figcaption>
-			<iframe
-				use:autoHeight
-				title="{label} of the card for {word.Simplified}"
-				sandbox="allow-scripts allow-same-origin"
-				class="block h-40 w-full border-0 bg-white"
-				srcdoc={html}
-			></iframe>
-		</figure>
-	{/each}
+	<div class="overflow-hidden rounded-panel border border-line bg-surface">
+		<div class="flex items-center justify-between gap-2 border-b border-line px-2.5 py-2">
+			<div class="flex rounded-full bg-sunk p-0.5" role="group" aria-label="Card side">
+				{#each SIDES as s (s.id)}
+					<button type="button" class={sideBtn(side === s.id)} aria-pressed={side === s.id} onclick={() => (side = s.id)}>
+						{s.label}
+					</button>
+				{/each}
+			</div>
+			{#if words.length > 1}
+				<div class="flex items-center">
+					<button
+						type="button"
+						class={navBtn}
+						aria-label="Previous word"
+						disabled={safeIndex === 0}
+						onclick={() => (index = safeIndex - 1)}><ChevronLeft class="size-[18px]" /></button
+					>
+					<span class="min-w-14 text-center text-[13px] text-muted tabular-nums" aria-live="polite">
+						<span class="sr-only">Word </span>{safeIndex + 1} / {words.length}
+					</span>
+					<button
+						type="button"
+						class={navBtn}
+						aria-label="Next word"
+						disabled={safeIndex >= words.length - 1}
+						onclick={() => (index = safeIndex + 1)}><ChevronRight class="size-[18px]" /></button
+					>
+				</div>
+			{/if}
+		</div>
+		<iframe
+			use:autoHeight
+			title="{side === 'front' ? 'Front' : 'Back'} of the card for {word.Simplified}"
+			sandbox="allow-scripts allow-same-origin"
+			class="block h-48 w-full border-0 lg:max-h-[calc(100vh-15rem)] {dark ? 'bg-[#252525]' : 'bg-white'}"
+			srcdoc={html}
+		></iframe>
+	</div>
 {:else}
-	{#each [['Front', 'front', frontItems], ['Back', 'back', backItems]] as [label, side, items] (label)}
-		<CardPreview
-			label={label as string}
-			side={side as 'front' | 'back'}
-			items={items as string[]}
-			colorize={!template.mono && template.colorHanzi}
-			colorPinyin={!template.mono && template.colorPinyin}
-			font={template.font}
-			collapseDict={template.collapseDict}
-			commonPinyinOnly={template.commonPinyinOnly}
-			{elementStyles}
-			{groups}
-			{order}
-			toneColors={palette}
-			cardTheme={template.cardTheme}
-			cardThemeMode={template.cardThemeMode}
-			exampleSentences={examples}
-			exampleOptions={template.exampleOptions}
-		/>
-	{/each}
+	<div class="space-y-3">
+		{#each [['Front', 'front', frontItems], ['Back', 'back', backItems]] as [label, s, items] (label)}
+			<CardPreview
+				label={label as string}
+				side={s as 'front' | 'back'}
+				items={items as string[]}
+				colorize={!template.mono && template.colorHanzi}
+				colorPinyin={!template.mono && template.colorPinyin}
+				font={template.font}
+				collapseDict={template.collapseDict}
+				commonPinyinOnly={template.commonPinyinOnly}
+				{elementStyles}
+				{groups}
+				{order}
+				toneColors={palette}
+				cardTheme={template.cardTheme}
+				cardThemeMode={template.cardThemeMode}
+				exampleSentences={examples}
+				exampleOptions={template.exampleOptions}
+			/>
+		{/each}
+	</div>
 {/if}

@@ -4,6 +4,7 @@
 	import AppearancePanel from '$lib/components/AppearancePanel.svelte';
 	import CardTypeEditor from '$lib/components/CardTypeEditor.svelte';
 	import LivePreview from '$lib/components/LivePreview.svelte';
+	import CardSides from '$lib/components/create/CardSides.svelte';
 	import WordSourceInput from '$lib/components/WordSourceInput.svelte';
 	import WordReviewTable from '$lib/components/WordReviewTable.svelte';
 	import CreateSteps from '$lib/components/create/CreateSteps.svelte';
@@ -88,6 +89,8 @@
 	let hskWordsDict = $state<Set<string>>(new Set());
 
 	let activeTab = $state(0);
+	// The side the Front | Back columns are on; the preview shows the same one.
+	let previewSide = $state<'front' | 'back'>('back');
 	let tabs = $state<string[]>(['Card 1']);
 	let tabContent = $state<TabContent>({
 		'Card 1': newCard()
@@ -337,11 +340,17 @@
 		return `${name} ${n}`;
 	}
 
-	/** Make the deck this preset: one card type. Audio is the switch's call, not the tile's. */
+	/**
+	 * Make the deck this preset: one card type. A tile whose card plays audio
+	 * turns the audio switch on — its description promises audio, and a card
+	 * with a speaker but no clips reads as broken. A tile without it leaves the
+	 * switch alone.
+	 */
 	function usePreset(p: CardPreset) {
 		tabs = [p.name];
 		tabContent = { [p.name]: presetToCard(p) };
 		activeTab = 0;
+		if (presetNeedsAudio(p)) includeAudio = true;
 	}
 
 	function addPresetCard(p: CardPreset) {
@@ -600,7 +609,7 @@
 	</section>
 
 	{#if step === 2}
-		<section class="grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_340px]" aria-label="Card style">
+		<section class="grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]" aria-label="Card style">
 			<div class="min-w-0">
 				<div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-panel bg-sunk p-4">
 					<div class="min-w-0">
@@ -625,7 +634,10 @@
 					<h2 class={h2}>How do you want to study them?</h2>
 					<StylePresets selected={preset?.id ?? null} onpick={pickPreset} />
 
-					<div class="mt-4 divide-y divide-line border-t border-line">
+					<h3 class="mt-6 mb-3 text-[17px] font-semibold text-ink">On the card</h3>
+					<CardSides {tabs} bind:tabContent bind:activeTab bind:order bind:includeAudio bind:side={previewSide} />
+
+					<div class="mt-5 divide-y divide-line border-t border-line">
 						<Switch
 							bind:checked={includeAudio}
 							label="Audio"
@@ -648,7 +660,7 @@
 
 					<details class="group mt-1 border-t border-line pt-3">
 						<summary class="cursor-pointer py-1 text-[15px] font-semibold text-ink">
-							Advanced: fields, order, look
+							Advanced: card types, look
 						</summary>
 						<div class="mt-3">
 							<AppearancePanel
@@ -672,8 +684,10 @@
 				</div>
 			</div>
 
-			<!-- Live preview: right column from lg, under the panel on phones. -->
-			<aside class="space-y-3 p-px lg:sticky lg:top-20 lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto">
+			<!-- Live preview: right column from lg, under the panel on phones. The
+			     frame inside caps its own height and scrolls, so the aside does
+			     not (a scroller here clipped the frame's outline). -->
+			<aside class="lg:sticky lg:top-20">
 				{#if tabContent[tabs[activeTab]]}
 					<LivePreview
 						{words}
@@ -688,6 +702,7 @@
 						{backItems}
 						elementStyles={activeStyles}
 						groups={activeGroups}
+						bind:side={previewSide}
 					/>
 				{/if}
 			</aside>

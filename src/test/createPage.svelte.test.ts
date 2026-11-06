@@ -74,7 +74,8 @@ describe('Create page — card type tabs', () => {
 		await toStep(user, 'Card style');
 		expect(screen.getByText('Card 1')).toBeInTheDocument();
 		await user.click(screen.getByText('+'));
-		expect(screen.getByText('Card 2')).toBeInTheDocument();
+		// The Advanced tab strip and the card-type switch above the columns both name it.
+		expect(screen.getAllByText('Card 2').length).toBeGreaterThan(0);
 
 		const closeButtons = screen.getAllByLabelText('close tab');
 		await user.click(closeButtons[closeButtons.length - 1]);
@@ -100,7 +101,7 @@ describe('Create page — example sentence options', () => {
 		await toStep(user, 'Card style');
 		await user.click(screen.getByText('Customize appearance'));
 		expect(screen.queryByText('Min length (chars)')).toBeNull();
-		await user.click(screen.getByLabelText('Example Sentences back'));
+		await user.click(screen.getByRole('button', { name: 'Sentences' }));
 		expect(screen.getByText('Min length (chars)')).toBeInTheDocument();
 		expect(screen.getByText('Max length (chars)')).toBeInTheDocument();
 	});
@@ -118,7 +119,16 @@ describe('Create page — style tiles', () => {
 		await user.click(tile(/^Beginner/));
 		expect(screen.getByRole('button', { name: /^Beginner/, pressed: true })).toBeInTheDocument();
 		expect(screen.queryByText('Card 1')).toBeNull();
-		// Audio stays the switch's call.
+		// Beginner's card plays the word, so the tile switches audio on.
+		expect(screen.getByRole('switch', { name: /Audio/ })).toBeChecked();
+	});
+
+	it('leaves the audio switch alone for a tile with no audio on its card', async () => {
+		const user = userEvent.setup();
+		render(Page);
+		await toStep(user, 'Card style');
+		await user.click(tile(/^Reading/));
+		expect(screen.getByRole('button', { name: /^Reading/, pressed: true })).toBeInTheDocument();
 		expect(screen.getByRole('switch', { name: /Audio/ })).not.toBeChecked();
 	});
 
@@ -126,12 +136,14 @@ describe('Create page — style tiles', () => {
 		const user = userEvent.setup();
 		render(Page);
 		await toStep(user, 'Card style');
-		await user.click(screen.getByLabelText('Pinyin back'));
+		const back = screen.getByRole('region', { name: 'Back of the card' });
+		await user.click(within(back).getByRole('button', { name: 'Remove Pinyin from the back' }));
 		expect(screen.getByText(/Custom card/)).toBeInTheDocument();
 
 		await user.click(tile(/^Reading/));
 		await user.click(screen.getByRole('button', { name: 'Add new' }));
-		expect(screen.getByText('Card 1')).toBeInTheDocument();
+		// Two card types now: the switch above the columns names both.
+		expect(screen.getByRole('group', { name: 'Card type' })).toHaveTextContent(/Card 1.*Reading/);
 		expect(screen.getAllByText('Reading').length).toBeGreaterThan(0);
 	});
 
@@ -148,12 +160,56 @@ describe('Create page — style tiles', () => {
 });
 
 describe('Create page — field front/back selection', () => {
-	it('lists the writing component and many field checkboxes', async () => {
+	it('shows the front and back as columns, and adds and removes fields', async () => {
 		const user = userEvent.setup();
-		const { container } = render(Page);
+		render(Page);
 		await toStep(user, 'Card style');
-		expect(container.querySelectorAll('input[type="checkbox"]').length).toBeGreaterThan(4);
-		expect(screen.getByText('Writing Component')).toBeInTheDocument();
+		const front = screen.getByRole('region', { name: 'Front of the card' });
+		const back = screen.getByRole('region', { name: 'Back of the card' });
+		// Standard: hanzi on the front, pinyin on the back only.
+		expect(within(front).getByText('Hanzi')).toBeInTheDocument();
+		expect(within(front).queryByText('Pinyin')).toBeNull();
+		expect(within(back).getByText('Pinyin')).toBeInTheDocument();
+
+		// Picking the front column offers what the front lacks; adding puts it there.
+		await user.click(within(front).getByText('Front'));
+		expect(screen.getByText('Add to the front')).toBeInTheDocument();
+		await user.click(screen.getByRole('button', { name: 'Pinyin' }));
+		expect(within(front).getByText('Pinyin')).toBeInTheDocument();
+
+		await user.click(within(front).getByRole('button', { name: 'Remove Pinyin from the front' }));
+		expect(within(front).queryByText('Pinyin')).toBeNull();
+		expect(within(back).getByText('Pinyin')).toBeInTheDocument();
+	});
+
+	it('moves a field to the other side and reorders it from the keyboard', async () => {
+		const user = userEvent.setup();
+		render(Page);
+		await toStep(user, 'Card style');
+		const front = screen.getByRole('region', { name: 'Front of the card' });
+		const back = screen.getByRole('region', { name: 'Back of the card' });
+		const rows = () => within(back).getAllByRole('listitem').map((li) => li.textContent?.trim());
+
+		const pinyin = within(back).getByRole('listitem', { name: /^Pinyin/ });
+		pinyin.focus();
+		const before = rows().indexOf(rows().find((r) => r?.includes('Pinyin')));
+		await user.keyboard('{ArrowUp}');
+		expect(rows().findIndex((r) => r?.includes('Pinyin'))).toBe(before - 1);
+
+		within(back).getByRole('listitem', { name: /^Pinyin/ }).focus();
+		await user.keyboard('{ArrowLeft}');
+		expect(within(front).getByText('Pinyin')).toBeInTheDocument();
+		expect(within(back).queryByText('Pinyin')).toBeNull();
+	});
+
+	it('adding Audio from the columns turns the audio switch on', async () => {
+		const user = userEvent.setup();
+		render(Page);
+		await toStep(user, 'Card style');
+		await user.click(screen.getByRole('button', { name: /^Reading/, pressed: false }));
+		expect(screen.getByRole('switch', { name: /Audio/ })).not.toBeChecked();
+		await user.click(screen.getByRole('button', { name: 'Audio' }));
+		expect(screen.getByRole('switch', { name: /Audio/ })).toBeChecked();
 	});
 });
 

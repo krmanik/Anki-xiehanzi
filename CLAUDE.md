@@ -109,8 +109,15 @@ The deck generator is the heart of the app. Layering matters because correctness
   it through `onimport`. Card style leads with **tiles** (`STYLE_PRESETS` in
   `cardPresets.ts`: Standard = `newCard()`, Beginner, Writing, Reading,
   Sentences, HSK Exam); `matchPreset` lights the tile the deck is, and a
-  hand-edited deck gets a replace/add confirm instead. Tiles never touch the
-  audio switch. The field matrix, appearance panel and customiser sit under
+  hand-edited deck gets a replace/add confirm instead. A tile whose card
+  carries Audio (`presetNeedsAudio`) turns the audio switch on; a tile
+  without it leaves the switch alone. Under the tiles, **On the card**
+  (`create/CardSides`, pure half `cardSides.ts`) shows a Front and a Back
+  column of what each side prints, plus "Add to the <side>" chips; drag
+  reorders or moves across, ←/→ ↑/↓ Delete from the keyboard. A column is the
+  shared `order` filtered to its side, so a reorder moves the item on both
+  sides. The preview beside it is one frame flipped Front/Back and follows
+  the column in focus. Card types, appearance and the customiser sit under
   "Advanced". The deck name (`defaultDeckName`: "My words — 6 Nov", "HSK 3 —
   6 Nov") and download live on Export; deck ids hash the name, so a second
   export the same day updates the same deck.

@@ -11,7 +11,7 @@
 	import Sun from '@lucide/svelte/icons/sun';
 	import IconDot from '$lib/ui/IconDot.svelte';
 	import Logo from './Logo.svelte';
-	import { isActive, PREMIUM, searchHref, SIDEBAR, withBase, type NavItem } from '$lib/nav';
+	import { isActive, SHOP, searchHref, SIDEBAR, withBase, type NavItem } from '$lib/nav';
 	import { NAV_ICONS } from './navIcons';
 	import { REPO } from '$lib/share.svelte';
 	import { currentTheme, toggleTheme } from '$lib/theme.svelte';
@@ -46,7 +46,7 @@
 		'text-[13px] text-muted no-underline hover:text-ink focus-visible:outline-3 focus-visible:outline-sky rounded';
 </script>
 
-{#snippet entry(item: NavItem, premium = false)}
+{#snippet entry(item: NavItem, shop = false)}
 	{@const Icon = NAV_ICONS[item.icon]}
 	{@const on = isActive(current, item)}
 	<a
@@ -55,7 +55,7 @@
 		aria-current={on ? 'page' : undefined}
 		class="flex min-h-10 items-center gap-3 rounded-full px-2.5 py-1 text-[15px] font-medium no-underline transition-colors focus-visible:outline-3 focus-visible:outline-sky {on
 			? 'bg-sky-soft font-semibold text-sky-ink'
-			: premium
+			: shop
 				? 'bg-apricot-soft font-semibold text-apricot-ink hover:brightness-95'
 				: 'text-ink hover:bg-sunk'}"
 	>
@@ -93,7 +93,7 @@
 			{/each}
 		{/each}
 		<div class="pt-4">
-			{@render entry(PREMIUM, true)}
+			{@render entry(SHOP, true)}
 		</div>
 	</nav>
 

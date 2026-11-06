@@ -13,18 +13,16 @@
 	import { afterNavigate } from '$app/navigation';
 	import Menu from '@lucide/svelte/icons/menu';
 	import X from '@lucide/svelte/icons/x';
-	import Search from '@lucide/svelte/icons/search';
-	import Moon from '@lucide/svelte/icons/moon';
-	import Sun from '@lucide/svelte/icons/sun';
 	import ShareModal from '$lib/components/ShareModal.svelte';
-	import Bookmark from '@lucide/svelte/icons/bookmark';
+	import AccountMenu from '$lib/components/shell/AccountMenu.svelte';
 	import Logo from '$lib/components/shell/Logo.svelte';
 	import NavMenu from '$lib/components/shell/NavMenu.svelte';
 	import NavDropdown from '$lib/components/shell/NavDropdown.svelte';
 	import SiteFooter from '$lib/components/shell/SiteFooter.svelte';
 	import { initSharePrefs, popupHidden } from '$lib/share.svelte';
-	import { currentTheme, initTheme, toggleTheme } from '$lib/theme.svelte';
-	import { isActive, PREMIUM, stripBase, TOPBAR, withBase } from '$lib/nav';
+	import { initTheme } from '$lib/theme.svelte';
+	import { account } from '$lib/accountStore.svelte';
+	import { isActive, SHOP, stripBase, TOPBAR, withBase } from '$lib/nav';
 
 	let { children } = $props();
 
@@ -44,6 +42,9 @@
 		// export-success popup with "Do not show again".
 		initSharePrefs();
 		initTheme();
+		// The header's account menu needs the login on every page. Guarded, so
+		// pages that call it too are fine.
+		account.init();
 	});
 
 	afterNavigate(() => (drawerOpen = false));
@@ -114,35 +115,14 @@
 				{/if}
 			{/each}
 			<a
-				href={withBase(PREMIUM.path, base)}
-				aria-current={isActive(current, PREMIUM) ? 'page' : undefined}
+				href={withBase(SHOP.path, base)}
+				aria-current={isActive(current, SHOP) ? 'page' : undefined}
 				class="{link} ml-1 bg-apricot-soft font-semibold text-apricot-ink hover:brightness-95"
-				>{PREMIUM.label}</a
+				>{SHOP.label}</a
 			>
 		</nav>
 		<div class="ml-auto flex items-center lg:ml-1">
-			<a href="{base}/dictionary" class={iconButton} aria-label="Look up a word">
-				<Search class="size-5" />
-			</a>
-			<a
-				href="{base}/words"
-				class={iconButton}
-				aria-label="My words"
-				title="My words"
-				aria-current={current === '/words' ? 'page' : undefined}
-			>
-				<Bookmark class="size-5" />
-			</a>
-			{#if showThemeToggle}
-				<button
-					type="button"
-					class="{iconButton} hidden lg:grid"
-					aria-label={currentTheme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-					onclick={toggleTheme}
-				>
-					{#if currentTheme() === 'dark'}<Sun class="size-5" />{:else}<Moon class="size-5" />{/if}
-				</button>
-			{/if}
+			<AccountMenu {current} buttonClass={iconButton} {showThemeToggle} />
 		</div>
 	</div>
 </header>

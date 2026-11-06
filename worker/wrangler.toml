@@ -1,0 +1,21 @@
+# Patreon login Worker. See worker/README.md for setup.
+name = "anki-xiehanzi-auth"
+main = "src/index.ts"
+compatibility_date = "2025-09-01"
+
+[vars]
+# From patreon.com/portal/registration/register-clients (public, not a secret).
+PATREON_CLIENT_ID = ""
+# `npm run patreon:explore` prints it.
+PATREON_CAMPAIGN_ID = "9325901"
+# Pages allowed to receive a login. Comma-separated origins, no paths.
+ALLOWED_ORIGINS = "https://krmanik.github.io,http://localhost:5173"
+SESSION_DAYS = "7"
+# Prices for matching Shop purchases from spend. Locally: http://localhost:5173/data/shop.json
+SHOP_JSON_URL = "https://krmanik.github.io/Anki-xiehanzi/data/shop.json"
+
+# Secrets, never in this file:
+#   npx wrangler secret put PATREON_CLIENT_SECRET --config worker/wrangler.toml
+#   npx wrangler secret put SESSION_SECRET        --config worker/wrangler.toml
+#   npx wrangler secret put PATREON_CREATOR_TOKEN --config worker/wrangler.toml   (Shop purchases)
+# For `wrangler dev`, put both in worker/.dev.vars (gitignored).

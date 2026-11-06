@@ -15,6 +15,7 @@
 	 */
 	import {
 		buyUrl,
+		checkoutHref,
 		formatPrice,
 		isUnpriced,
 		priceUnit,
@@ -26,22 +27,31 @@
 	} from '$lib/shop';
 	import { Badge, buttonClass, PANEL } from '$lib/ui';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import Check from '@lucide/svelte/icons/check';
+	import Download from '@lucide/svelte/icons/download';
 	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
 
 	let {
 		manifest,
 		product,
-		onDetails
+		onDetails,
+		owned = false,
+		onBuy
 	}: {
 		manifest: ShopManifest;
 		product: ShopProduct;
 		onDetails: (product: ShopProduct) => void;
+		/** The logged-in reader has it: Download replaces Buy. */
+		owned?: boolean;
+		/** Buy was pressed (the link still opens Patreon itself). */
+		onBuy?: (product: ShopProduct) => boolean | void;
 	} = $props();
 
 	let failed = $state(false);
 
 	const src = $derived(productImage(product));
-	const href = $derived(buyUrl(manifest, product));
+	const href = $derived(checkoutHref(manifest, product));
+	const post = $derived(buyUrl(manifest, product));
 	const hue = $derived(tileHue(product));
 	const glyphInk = $derived(
 		{
@@ -101,9 +111,16 @@
 		</div>
 
 		<div class="mt-auto flex flex-wrap items-center gap-2 pt-5">
-			<a class={buttonClass('primary', 'sm')} {href} target="_blank" rel="noopener noreferrer">
-				<ShoppingBag class="size-4" /> Buy on Patreon
-			</a>
+			{#if owned}
+				<Badge tint="mint"><Check class="mr-1 size-3.5" /> Owned</Badge>
+				<a class={buttonClass('secondary', 'sm')} href={post} target="_blank" rel="noopener noreferrer">
+					<Download class="size-4" /> Download
+				</a>
+			{:else}
+				<a class={buttonClass('primary', 'sm')} {href} target="_blank" rel="noopener noreferrer" onclick={(e) => onBuy?.(product) === false && e.preventDefault()}>
+					<ShoppingBag class="size-4" /> Buy on Patreon
+				</a>
+			{/if}
 			<button type="button" class={buttonClass('text', 'sm')} onclick={() => onDetails(product)}>
 				See more details <ArrowRight class="size-4" />
 			</button>

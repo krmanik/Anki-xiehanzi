@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	/**
 	 * One door to the radical deck: what the free deck has, what premium adds,
 	 * and the build controls underneath. A reader who only ever sees a "download"
@@ -40,12 +41,9 @@
 		onClose: () => void;
 	} = $props();
 
-	const SHOP = 'https://www.patreon.com/cw/krmani/shop';
-	const POST = 'https://www.patreon.com/krmani/posts/kangxi-radicals-166891672?source=storefront';
-	// The post for this product, not the shop front: a reader who clicks "Get
-	// premium" should land on the page describing the radical deck, not on
-	// everything that is for sale.
-	const premiumUrl = $derived(deck?.post || deck?.shop || POST || SHOP);
+	// The site's own shop, product dialog open: buying there logs in once and
+	// shows the deck as owned afterwards.
+	const premiumUrl = `${base}/shop?p=kangxi-radicals`;
 	const premiumCards = $derived(deck?.editions.premium?.cards ?? radicals.length * 2);
 	const glyphCount = $derived(deck?.editions.premium?.glyphs ?? 2016);
 
@@ -224,8 +222,6 @@
 							<a
 								class="inline-flex items-center gap-1.5 text-xs font-semibold text-apricot-ink underline"
 								href={premiumUrl}
-								target="_blank"
-								rel="noopener noreferrer"
 							>
 								Get premium
 							</a>
@@ -369,8 +365,6 @@
 			<a
 				class="{btnPrimary} inline-flex items-center gap-2"
 				href={premiumUrl}
-				target="_blank"
-				rel="noopener noreferrer"
 			>
 				<Sparkles size={15} /> Premium
 			</a>

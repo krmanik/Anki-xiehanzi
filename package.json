@@ -18,7 +18,11 @@
 		"build:radical-deck": "node scripts/build-radical-deck.mjs",
 		"build:pdf-fonts": "python3 scripts/build_pdf_fonts.py",
 		"preview:radical-card": "node scripts/preview-radical-card.mjs",
-		"shoot:card-previews": "node scripts/shoot-card-previews.mjs"
+		"shoot:card-previews": "node scripts/shoot-card-previews.mjs",
+		"patreon:explore": "node scripts/patreon-explore.mjs",
+		"patreon:dashboard": "node scripts/patreon-dashboard.mjs",
+		"auth:dev": "npx wrangler dev --config worker/wrangler.toml",
+		"auth:deploy": "npx wrangler deploy --config worker/wrangler.toml"
 	},
 	"dependencies": {
 		"@fontsource-variable/noto-sans-sc": "^5.3.1",

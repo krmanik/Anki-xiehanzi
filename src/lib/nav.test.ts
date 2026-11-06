@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isActive, LEARN, PREMIUM, searchHref, SIDEBAR, stripBase, TOOLS, TOPBAR, withBase } from './nav';
+import { isActive, LEARN, SHOP, searchHref, SIDEBAR, stripBase, TOOLS, TOPBAR, withBase } from './nav';
 import { nextTheme, parsePref, resolveTheme } from './theme';
 
 const hsk = LEARN.items.find((i) => i.path === '/hsk')!;
@@ -24,7 +24,7 @@ describe('isActive', () => {
 		expect(isActive('/hsk/new/3', hsk)).toBe(true);
 		expect(isActive('/hsk', hsk)).toBe(true);
 	});
-	it('lights HSK lists for the old /decks URL', () => {
+	it('lights HSK for the old /decks URL', () => {
 		expect(isActive('/decks', hsk)).toBe(true);
 	});
 	it('does not match a longer sibling path', () => {
@@ -34,7 +34,7 @@ describe('isActive', () => {
 	it('matches home only on the root', () => {
 		expect(isActive('/', home)).toBe(true);
 		expect(isActive('/hsk', home)).toBe(false);
-		expect(isActive('/shop', PREMIUM)).toBe(true);
+		expect(isActive('/shop', SHOP)).toBe(true);
 	});
 });
 

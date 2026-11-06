@@ -28,6 +28,9 @@ npm run build:radical-deck  # build dist-decks/Anki-xiehanzi-Kangxi-Radicals.apk
 npm run preview:radical-card # render the cards to dist-decks/radical-card.html (design check)
 npm run shoot:card-previews  # screenshot a deck's cards from Anki (hand tool; needs Anki + AnkiConnect)
 npm run build:pdf-fonts  # regenerate static/fonts/*.ttf (needs python3 + fonttools)
+npm run patreon:explore  # dump what the Patreon API knows (needs PATREON_CREATOR_TOKEN)
+npm run auth:dev         # Patreon login Worker on :8787 (worker/.dev.vars holds secrets)
+npm run auth:deploy      # deploy it to Cloudflare
 npm run dev          # vite dev server
 npm run build        # static build → build/ (adapter-static, SPA fallback 404.html)
 npm run preview      # serve the production build
@@ -726,6 +729,67 @@ Same shape as the HSK browser — committed JSON, no `cedict.db` at runtime.
   mp3/wav/ogg.
 
 Data assets the app fetches at runtime live in `static/data/` (`cedict.db.zip`, `hsk_sentences.db.zip`, `*.wasm`, `hsk_words.json`, etc.). They are served from `${base}/data/...` — always go through `base` from `$app/paths` because of the GitHub Pages base path (see below).
+
+## Account (`/account`) and Patreon login
+
+- **`worker/`** — a stateless Cloudflare Worker (`worker/README.md` has the
+  setup): `/login` → Patreon consent → `/callback` exchanges the code, reads
+  `/identity`, and redirects back with an **HMAC-signed session in the URL
+  fragment** (`#patreon=…`). No database, and the Patreon access token is used
+  once and dropped. It imports `src/lib/patreon.ts`, so it must stay free of
+  `$app/*` and Node APIs.
+- **`src/lib/patreon.ts`** — pure and shared: URLs, `/identity` parsing for one
+  campaign (`memberships.campaign` must be included or memberships cannot be
+  told apart), `unlocks()`, session sign/verify, `safeReturnUrl` (the open
+  redirect guard). `src/lib/account.ts` is the browser half (localStorage,
+  `VITE_PATREON_AUTH_URL`).
+- **Patreon's API cannot see Shop purchases** — v2 has no shop/order/product
+  resource, nor refunds, exit surveys or blocked users. But
+  `campaign_lifetime_support_cents` *includes* Shop spend, so
+  **`src/lib/patreonSpend.ts`** subtracts paid tier charges (pledge history)
+  and matches the rest to the subset of product prices that adds up to it
+  (`exact` ±1%, `close` −3%/+12% for currency conversion, `ambiguous`,
+  `unknown`). Measured on the real campaign: 29 of 31 buyers matched. It works
+  only while every product subset has a distinct total — **check that before
+  adding a product or changing a price.** The Worker needs the creator token
+  (`PATREON_CREATOR_TOKEN`) for it; `npm run patreon:dashboard` writes
+  `.cache/patreon/dashboard.html` to check matches by eye (holds patron names
+  — gitignored, never publish).
+- A product is owned through `unlockTiers` (shop.json), a confident spend
+  match, or by being the creator (`unlocks()`). The site only *reads* the
+  session to draw the page; anything gated later must verify through the
+  Worker's `/session`. Download links go to the Patreon post, which Patreon
+  gates.
+- **Buying never takes the page away.** Buy and Log in open **one new tab**
+  (`accountStore.#openLogin` → Worker `/login?return=<site>/auth?next=…&back=…`;
+  a blocked pop-up falls back to this tab). Logged in, Buy opens the product's
+  Patreon `checkoutUrl` (shop.json; `checkoutHref` falls back to the post).
+  Logged out, the tab logs in and `/auth` goes on to the checkout (`next`) —
+  even after a "Deny", so a refused permission never costs the sale. A plain
+  Log in: `/auth` stores the session and closes itself (`back` when it cannot).
+  The session lives in localStorage and every open tab follows logins and
+  logouts through the `storage` event. Buy also remembers the product
+  (`markPending`); when the shop tab is visible again
+  `accountStore.checkPending` calls the Worker's `/refresh` — creator token,
+  no Patreon screen — retrying for ~30 s, and `/shop` says "Unlocked" with a
+  Download. Premium buttons elsewhere (HSK and radicals modals) go to
+  `/shop?p=<id>`, never straight to Patreon.
+- **The header knows the login on every page**: `+layout.svelte` calls
+  `account.init()` (guarded; pages call it too). The right side is
+  `shell/AccountMenu.svelte`. Logged out: one **Log in** button (nothing until
+  the login has been read, so no flash) and the GitHub link. Logged in: the
+  avatar menu (My decks, My words, Log out), then GitHub, then the moon/sun
+  theme icon — the theme is live in production for logged-in readers, dev
+  builds show it logged out too. No search icon: Dictionary is in the top bar. Top bar: Create · HSK · Dictionary · Radicals · Tools · Premium (`SHOP` in
+  `nav.ts`, the apricot pill, links `/shop`).
+- **`/account` lists only owned decks** — the shop lists the rest. Empty →
+  "No decks yet" + Browse the shop. `membershipLabel` is `''` for someone with
+  no membership and no purchase, and no badge is drawn.
+- Scopes are `identity identity.memberships` — no email, no address.
+- The session rides in the fragment, not a cookie, because the site
+  (github.io) and the Worker (workers.dev) are different sites and Safari
+  drops third-party cookies. With a domain of its own it can become an
+  HttpOnly cookie.
 
 ## Build & config gotchas
 

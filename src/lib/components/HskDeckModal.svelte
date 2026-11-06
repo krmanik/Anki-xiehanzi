@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	/**
 	 * Free vs premium, shown before the free `.apkg` downloads — the same idea as
 	 * `RadicalDeckModal`: a reader who only ever sees a "download" button never
@@ -39,10 +40,10 @@
 		onClose: () => void;
 	} = $props();
 
-	// Premium links point at the deck post, not the shop front: the post says
-	// what is in the deck, and a buyer arriving at a bare storefront has to work
-	// out which product this modal was talking about.
-	const POST = 'https://www.patreon.com/krmani/posts/anki-xie-hanzi-3-166350823';
+	// Premium opens this product on the site's own shop (`/shop?p=…` opens its
+	// dialog): the buyer stays on the site, logs in once and the deck shows as
+	// owned there afterwards. The Patreon post was a dead end for all of that.
+	const PREMIUM = `${base}/shop?p=hsk-word-decks`;
 	/** Free membership: Patreon emails followers when a post (a deck update) goes up. */
 	const FOLLOW = 'https://www.patreon.com/cw/krmani';
 
@@ -200,6 +201,55 @@
 		</div>
 
 		{#if step === 'choose'}
+			<p class="mt-2 mb-0 text-sm text-muted">{deckSummary(manifest, deck)}</p>
+
+			<!-- Premium is the filled button: the free download is right there
+			     either way, and a reader who never sees the paid edition never
+			     considers it. -->
+			{#if sendText}
+				<p
+					class="mt-4 mb-0 rounded-card px-4 py-3 text-[14px] {sendStage === 'error'
+						? 'bg-apricot-soft text-apricot-ink'
+						: 'bg-sunk text-muted'}"
+					role="status"
+				>
+					{sendText}
+				</p>
+			{/if}
+			<div class="mt-4 flex flex-wrap items-center justify-end gap-2">
+				<!-- Send is desktop-only (phones have no AnkiConnect). It leads once
+				     Anki has answered, since it saves the import step. -->
+				<div class="hidden gap-1.5 sm:flex {anki.status === 'ready' ? 'sm:order-first' : ''}">
+					<Button variant="secondary" onclick={pressSend} disabled={sending}>
+						<Send class="size-[18px]" />{sending ? 'Sending…' : 'Send to Anki'}
+					</Button>
+					<button
+						type="button"
+						class="grid size-11 shrink-0 place-items-center rounded-full text-muted ring-[1.5px] ring-line ring-inset hover:bg-sunk hover:text-ink disabled:opacity-50"
+						aria-label="Send settings"
+						title="Where it goes, and send settings"
+						onclick={() => (showSend = true)}
+						disabled={sending}
+					>
+						<Settings2 class="size-[18px]" />
+					</button>
+				</div>
+				<Button variant="secondary" href={deckUrl(manifest, deck)} onclick={() => (step = 'done')}>
+					<Download class="size-[18px]" />Download free deck
+				</Button>
+				<Button href={PREMIUM}>
+					<Sparkles class="size-[18px]" />See Premium
+				</Button>
+			</div>
+			<p class="mt-3 mb-0 hidden text-right text-sm sm:block">
+				<button
+					type="button"
+					class="border-0 bg-transparent p-0 font-semibold text-accent hover:underline"
+					onclick={openDesign}>Already have it? Update its card design</button
+				>
+			</p>
+			<!-- The buttons lead, so the free file is one click from opening the
+			     dialog; the comparison sits right under them as the premium pitch. -->
 			<div class="mt-5 overflow-hidden rounded-card ring-1 ring-line ring-inset">
 				<table class="w-full border-collapse text-[15px]">
 					<thead>
@@ -230,53 +280,6 @@
 					</tbody>
 				</table>
 			</div>
-			<p class="mt-3 mb-0 text-sm text-muted">{deckSummary(manifest, deck)}</p>
-
-			<!-- Premium is the filled button: the free download is right there
-			     either way, and a reader who never sees the paid edition never
-			     considers it. -->
-			{#if sendText}
-				<p
-					class="mt-4 mb-0 rounded-card px-4 py-3 text-[14px] {sendStage === 'error'
-						? 'bg-apricot-soft text-apricot-ink'
-						: 'bg-sunk text-muted'}"
-					role="status"
-				>
-					{sendText}
-				</p>
-			{/if}
-			<div class="mt-6 flex flex-wrap items-center justify-end gap-2">
-				<!-- Send is desktop-only (phones have no AnkiConnect). It leads once
-				     Anki has answered, since it saves the import step. -->
-				<div class="hidden gap-1.5 sm:flex {anki.status === 'ready' ? 'sm:order-first' : ''}">
-					<Button variant="secondary" onclick={pressSend} disabled={sending}>
-						<Send class="size-[18px]" />{sending ? 'Sending…' : 'Send to Anki'}
-					</Button>
-					<button
-						type="button"
-						class="grid size-11 shrink-0 place-items-center rounded-full text-muted ring-[1.5px] ring-line ring-inset hover:bg-sunk hover:text-ink disabled:opacity-50"
-						aria-label="Send settings"
-						title="Where it goes, and send settings"
-						onclick={() => (showSend = true)}
-						disabled={sending}
-					>
-						<Settings2 class="size-[18px]" />
-					</button>
-				</div>
-				<Button variant="secondary" href={deckUrl(manifest, deck)} onclick={() => (step = 'done')}>
-					<Download class="size-[18px]" />Download free deck
-				</Button>
-				<Button href={POST} target="_blank" rel="noopener noreferrer">
-					<Sparkles class="size-[18px]" />See Premium
-				</Button>
-			</div>
-			<p class="mt-3 mb-0 hidden text-right text-sm sm:block">
-				<button
-					type="button"
-					class="border-0 bg-transparent p-0 font-semibold text-accent hover:underline"
-					onclick={openDesign}>Already have it? Update its card design</button
-				>
-			</p>
 		{:else}
 			<ol class="mt-5 mb-0 grid list-none gap-3 p-0">
 				{#each steps as s, i (s.title)}
@@ -314,9 +317,7 @@
 						Premium gives each word a separate Writing card and a dictionary inside every card.
 					</p>
 					<a
-						href={POST}
-						target="_blank"
-						rel="noopener noreferrer"
+						href={PREMIUM}
 						class="text-[15px] font-semibold text-apricot-ink no-underline hover:underline"
 						>See Premium</a
 					>

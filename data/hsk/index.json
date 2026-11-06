@@ -6,7 +6,7 @@
 			"name": "Old HSK",
 			"year": "2012",
 			"subtitle": "HSK 2.0 — the classic six-level syllabus",
-			"total": 5001,
+			"total": 4995,
 			"levels": [
 				{
 					"level": "1",
@@ -45,7 +45,7 @@
 			"name": "New HSK",
 			"year": "2025",
 			"subtitle": "HSK 3.0 — the current nine-level standard",
-			"total": 11073,
+			"total": 10900,
 			"levels": [
 				{
 					"level": "1",

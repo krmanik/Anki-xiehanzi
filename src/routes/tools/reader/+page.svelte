@@ -197,7 +197,7 @@
 </script>
 
 <svelte:head>
-	<title>Paste-text reader · Anki xiehanzi</title>
+	<title>Paste-text reader · Anki-xiehanzi</title>
 </svelte:head>
 
 <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 pb-28">

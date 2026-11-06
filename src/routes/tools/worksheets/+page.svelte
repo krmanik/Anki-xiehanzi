@@ -458,7 +458,7 @@
 </script>
 
 <svelte:head>
-	<title>Worksheet generator · Anki xiehanzi</title>
+	<title>Worksheet generator · Anki-xiehanzi</title>
 </svelte:head>
 
 <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">

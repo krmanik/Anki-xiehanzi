@@ -92,37 +92,37 @@
 
 {#if showBreakModal}
 	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-		<div class="flex w-full max-w-sm flex-col rounded-xl bg-white shadow-2xl">
-			<div class="flex items-center justify-between border-b border-neutral-200 px-4 py-3">
-				<h3 class="font-semibold text-neutral-900">
+		<div class="flex w-full max-w-sm flex-col rounded-xl bg-surface shadow-2xl">
+			<div class="flex items-center justify-between border-b border-line px-4 py-3">
+				<h3 class="font-semibold text-ink">
 					{breakPreviewWords.length} character{breakPreviewWords.length === 1 ? '' : 's'} found
 				</h3>
 				<button
-					class="text-xs text-neutral-500 hover:text-neutral-900"
+					class="text-xs text-muted hover:text-ink"
 					onclick={toggleAllBreakWords}
 				>
 					{breakSelectedWords.size === breakPreviewWords.length ? 'Deselect all' : 'Select all'}
 				</button>
 			</div>
 			{#if breakPreviewWords.length === 0}
-				<p class="px-4 py-6 text-center text-sm text-neutral-500">No characters found in dictionary.</p>
+				<p class="px-4 py-6 text-center text-sm text-muted">No characters found in dictionary.</p>
 			{:else}
-				<ul class="max-h-72 overflow-y-auto divide-y divide-neutral-100">
+				<ul class="max-h-72 overflow-y-auto divide-y divide-line">
 					{#each breakPreviewWords as w (w.Simplified)}
 						<li class="flex items-center gap-3 px-4 py-2">
 							<input
 								type="checkbox"
 								checked={breakSelectedWords.has(w.Simplified)}
 								onchange={() => toggleBreakWord(w.Simplified)}
-								class="h-4 w-4 rounded border-neutral-300 accent-neutral-900"
+								class="h-4 w-4 rounded border-line accent-accent"
 							/>
 							<span class="text-xl font-medium">{w.Simplified}</span>
-							<span class="text-xs text-neutral-500 truncate">{w.Pinyin} — {w.Definitions.split(' │ ')[0]}</span>
+							<span class="text-xs text-muted truncate">{w.Pinyin} — {w.Definitions.split(' │ ')[0]}</span>
 						</li>
 					{/each}
 				</ul>
 			{/if}
-			<div class="flex gap-2 border-t border-neutral-200 px-4 py-3">
+			<div class="flex gap-2 border-t border-line px-4 py-3">
 				<button
 					class={btnPrimary}
 					onclick={addSelectedBreakWords}

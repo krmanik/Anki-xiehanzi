@@ -27,20 +27,20 @@
 	role="presentation"
 >
 	<div
-		class="flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-auto sm:max-h-[85vh] sm:w-full sm:max-w-lg sm:rounded-2xl"
+		class="flex h-full w-full flex-col overflow-hidden bg-surface shadow-2xl sm:h-auto sm:max-h-[85vh] sm:w-full sm:max-w-lg sm:rounded-2xl"
 		onclick={(e) => e.stopPropagation()}
 		role="presentation"
 	>
 		<div
-			class="flex items-center gap-3 border-b border-neutral-200 px-4 py-3 sm:py-3"
+			class="flex items-center gap-3 border-b border-line px-4 py-3 sm:py-3"
 			style="padding-top: max(0.75rem, env(safe-area-inset-top))"
 		>
 			<div class="min-w-0">
-				<h3 class="truncate font-semibold text-neutral-900">{title}</h3>
-				{#if subtitle}<p class="mt-0.5 truncate text-xs text-neutral-500">{subtitle}</p>{/if}
+				<h3 class="truncate font-semibold text-ink">{title}</h3>
+				{#if subtitle}<p class="mt-0.5 truncate text-xs text-muted">{subtitle}</p>{/if}
 			</div>
 			<button
-				class="ml-auto shrink-0 rounded-lg p-1.5 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900"
+				class="ml-auto shrink-0 rounded-lg p-1.5 text-muted transition hover:bg-sunk hover:text-ink"
 				onclick={onclose}
 				aria-label="close"
 			>

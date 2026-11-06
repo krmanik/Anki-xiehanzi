@@ -34,12 +34,12 @@
 		value={parsed.num}
 		{placeholder}
 		oninput={(e) => emit((e.target as HTMLInputElement).value, parsed.unit)}
-		class="w-full rounded-lg border border-neutral-200 px-2 py-1.5 text-xs"
+		class="w-full rounded-lg border border-line px-2 py-1.5 text-xs"
 	/>
 	<select
 		value={parsed.unit}
 		onchange={(e) => emit(parsed.num, (e.target as HTMLSelectElement).value)}
-		class="shrink-0 rounded-lg border border-neutral-200 py-1.5 pl-2 pr-6 text-xs"
+		class="shrink-0 rounded-lg border border-line py-1.5 pl-2 pr-6 text-xs"
 		aria-label="unit"
 	>
 		{#each units as u (u)}<option value={u}>{u}</option>{/each}

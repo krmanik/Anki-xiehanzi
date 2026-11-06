@@ -78,7 +78,7 @@ you don't want.
 
 ## Step 3 — Generate
 
-Set the **deck name** at the top (it defaults to `Anki xiehanzi <date> <timestamp>`).
+Set the **deck name** on the Export step (it defaults to "My words — 6 Nov", or "HSK 3 — 6 Nov" for a level).
 
 - **Include Audio (Text-to-Speech)** — when on, the export fetches pre-recorded HSK
   audio where available and synthesizes the rest with edge-tts. This makes export

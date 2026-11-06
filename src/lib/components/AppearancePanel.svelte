@@ -34,22 +34,22 @@
 	);
 </script>
 
-<div class="mt-6 flex items-center gap-2 border-b border-neutral-200 pb-2">
+<div class="mt-6 flex items-center gap-2 border-b border-line pb-2">
 	<button
 		type="button"
 		onclick={() => (open = !open)}
 		aria-expanded={open}
 		class="flex flex-1 items-center gap-2 text-left"
 	>
-		<ChevronDown size={18} class="text-neutral-400 transition {open ? '' : '-rotate-90'}" />
+		<ChevronDown size={18} class="text-muted transition {open ? '' : '-rotate-90'}" />
 		<span class="text-xl font-semibold">Customize appearance</span>
-		<span class="text-sm font-normal text-neutral-400">tone colors, font, definitions — optional</span>
+		<span class="text-sm font-normal text-muted">tone colors, font, definitions — optional</span>
 	</button>
 	<button
 		type="button"
 		onclick={onpreview}
 		disabled={loadingPreview}
-		class="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 transition hover:border-neutral-900 hover:text-neutral-900 disabled:opacity-40"
+		class="rounded-lg border border-line px-4 py-2 text-sm font-medium text-muted transition hover:border-accent hover:text-ink disabled:opacity-40"
 	>
 		{loadingPreview ? 'Loading…' : 'Preview'}
 	</button>
@@ -59,14 +59,14 @@
 <div class="mt-4 grid gap-3">
 
 	<!-- Theme -->
-	<div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
+	<div class="rounded-lg border border-line bg-sunk p-4">
 		<div class="mb-3 flex items-center gap-3">
-			<p class="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Card Theme</p>
+			<p class="text-[13px] text-muted font-semibold">Card Theme</p>
 			{#if template.cardTheme}
-				<div class="ml-auto inline-flex overflow-hidden rounded-lg border border-neutral-300">
+				<div class="ml-auto inline-flex overflow-hidden rounded-lg border border-line">
 					{#each (['auto', 'light', 'dark'] as const) as m}
 						<button
-							class="px-3 py-1.5 text-sm capitalize transition {template.cardThemeMode === m ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:text-neutral-900'}"
+							class="px-3 py-1.5 text-sm capitalize transition {template.cardThemeMode === m ? 'bg-accent text-on-accent' : 'text-muted hover:text-ink'}"
 							onclick={() => (template.cardThemeMode = m)}
 						>{m}</button>
 					{/each}
@@ -76,19 +76,19 @@
 		<button
 			type="button"
 			onclick={() => (showThemePicker = true)}
-			class="flex w-full items-center gap-2 rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm transition hover:border-neutral-900"
+			class="flex w-full items-center gap-2 rounded-xl border border-line bg-surface px-3 py-2 text-sm transition hover:border-accent"
 		>
 			{#if currentTheme}
-				<span class="relative flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-neutral-200">
+				<span class="relative flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-line">
 					<span class="absolute inset-0 w-1/2" style="background:{currentTheme.swatch[0]}"></span>
 					<span class="absolute inset-0 left-1/2" style="background:{currentTheme.swatch[1]}"></span>
 				</span>
-				<span class="font-medium text-neutral-900">{currentTheme.label}</span>
+				<span class="font-medium text-ink">{currentTheme.label}</span>
 			{:else}
-				<span class="flex h-5 w-5 items-center justify-center rounded-full border border-neutral-300 bg-white text-[9px] text-neutral-400">–</span>
-				<span class="font-medium text-neutral-900">No theme</span>
+				<span class="flex h-5 w-5 items-center justify-center rounded-full border border-line bg-surface text-[13px] text-muted">–</span>
+				<span class="font-medium text-ink">No theme</span>
 			{/if}
-			<ChevronDown size={16} class="ml-auto -rotate-90 text-neutral-400" />
+			<ChevronDown size={16} class="ml-auto -rotate-90 text-muted" />
 		</button>
 	</div>
 
@@ -100,30 +100,30 @@
 		>
 			<div class="grid gap-2 sm:grid-cols-2">
 				<button
-					class="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition {!template.cardTheme ? 'border-neutral-900 ring-1 ring-neutral-900' : 'border-neutral-200 hover:border-neutral-400'}"
+					class="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition {!template.cardTheme ? 'border-accent ring-1 ring-accent' : 'border-line hover:border-accent'}"
 					onclick={() => {
 						template.cardTheme = '';
 						showThemePicker = false;
 					}}
 				>
-					<span class="flex h-5 w-5 items-center justify-center rounded-full border border-neutral-300 bg-white text-[9px] text-neutral-400">–</span>
+					<span class="flex h-5 w-5 items-center justify-center rounded-full border border-line bg-surface text-[13px] text-muted">–</span>
 					None
 				</button>
 				{#each CARD_THEME_GROUPS as g (g.id)}
 					<button
-						class="flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm transition {template.cardTheme === g.id ? 'border-neutral-900 ring-1 ring-neutral-900' : 'border-neutral-200 hover:border-neutral-400'}"
+						class="flex items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm transition {template.cardTheme === g.id ? 'border-accent ring-1 ring-accent' : 'border-line hover:border-accent'}"
 						onclick={() => {
 							template.cardTheme = g.id;
 							showThemePicker = false;
 						}}
 					>
-						<span class="relative flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-neutral-200">
+						<span class="relative flex h-5 w-5 shrink-0 overflow-hidden rounded-full border border-line">
 							<span class="absolute inset-0 w-1/2" style="background:{g.swatch[0]}"></span>
 							<span class="absolute inset-0 left-1/2" style="background:{g.swatch[1]}"></span>
 						</span>
 						<span>
-							<span class="block font-medium text-neutral-900">{g.label}</span>
-							<span class="block text-[11px] leading-snug text-neutral-500">{g.description}</span>
+							<span class="block font-medium text-ink">{g.label}</span>
+							<span class="block text-[13px] leading-snug text-muted">{g.description}</span>
 						</span>
 					</button>
 				{/each}
@@ -132,51 +132,51 @@
 	{/if}
 
 	<!-- Colors -->
-	<div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
-		<p class="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Colors</p>
-		<div class="inline-flex overflow-hidden rounded-lg border border-neutral-300">
+	<div class="rounded-lg border border-line bg-sunk p-4">
+		<p class="mb-3 text-[13px] text-muted font-semibold">Colors</p>
+		<div class="inline-flex overflow-hidden rounded-lg border border-line">
 			<button
-				class="px-3 py-1.5 text-sm transition {!template.mono ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:text-neutral-900'}"
+				class="px-3 py-1.5 text-sm transition {!template.mono ? 'bg-accent text-on-accent' : 'text-muted hover:text-ink'}"
 				onclick={() => (template.mono = false)}>Tone colors</button>
 			<button
-				class="px-3 py-1.5 text-sm transition {template.mono ? 'bg-neutral-900 text-white' : 'text-neutral-600 hover:text-neutral-900'}"
+				class="px-3 py-1.5 text-sm transition {template.mono ? 'bg-accent text-on-accent' : 'text-muted hover:text-ink'}"
 				onclick={() => (template.mono = true)}>Black & white</button>
 		</div>
 
 		{#if !template.mono}
 			<div class="mt-3 grid gap-3 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-x-6">
-				<span class="text-sm font-medium text-neutral-700">Palette</span>
+				<span class="text-sm font-medium text-muted">Palette</span>
 				<button
 					type="button"
 					onclick={() => (showPalettePicker = true)}
-					class="flex w-fit items-center gap-2 rounded-lg border border-neutral-300 bg-white px-2.5 py-1.5 text-sm transition hover:border-neutral-900"
+					class="flex w-fit items-center gap-2 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm transition hover:border-accent"
 				>
 					<span class="flex gap-0.5">
 						{#each TONE_KEYS as k (k)}
 							<span class="h-4 w-4 rounded-sm" style="background-color:{palette[k]}" title={`Tone ${k}`}></span>
 						{/each}
 					</span>
-					<span class="font-medium text-neutral-900">{currentPaletteLabel}</span>
-					<ChevronDown size={14} class="-rotate-90 text-neutral-400" />
+					<span class="font-medium text-ink">{currentPaletteLabel}</span>
+					<ChevronDown size={14} class="-rotate-90 text-muted" />
 				</button>
 
-				<span class="text-sm font-medium text-neutral-700">Apply to</span>
+				<span class="text-sm font-medium text-muted">Apply to</span>
 				<div class="flex flex-wrap items-center gap-x-5 gap-y-2">
 					<label class="flex items-center gap-2 text-sm">
-						<input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.colorHanzi} /> Hanzi
+						<input type="checkbox" class="h-4 w-4 accent-accent" bind:checked={template.colorHanzi} /> Hanzi
 					</label>
 					<label class="flex items-center gap-2 text-sm">
-						<input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.colorPinyin} /> Pinyin
+						<input type="checkbox" class="h-4 w-4 accent-accent" bind:checked={template.colorPinyin} /> Pinyin
 					</label>
 				</div>
 
 				{#if template.tonePreset === 'custom'}
-					<span class="self-start pt-1.5 text-sm font-medium text-neutral-700">Custom colors</span>
+					<span class="self-start pt-1.5 text-sm font-medium text-muted">Custom colors</span>
 					<div class="flex flex-wrap items-center gap-3">
 						{#each TONE_KEYS as k (k)}
-							<label class="flex items-center gap-1 text-xs text-neutral-600">
+							<label class="flex items-center gap-1 text-xs text-muted">
 								Tone {k}
-								<input type="color" bind:value={template.toneColors[k]} class="h-7 w-8 cursor-pointer rounded border border-neutral-200 p-0.5" />
+								<input type="color" bind:value={template.toneColors[k]} class="h-7 w-8 cursor-pointer rounded border border-line p-0.5" />
 							</label>
 						{/each}
 					</div>
@@ -192,7 +192,7 @@
 					<div class="grid gap-2">
 						{#each TONE_PRESETS as p (p.id)}
 							<button
-								class="flex items-center gap-3 rounded-lg border px-3 py-2 text-left text-sm transition {template.tonePreset === p.id ? 'border-neutral-900 ring-1 ring-neutral-900' : 'border-neutral-200 hover:border-neutral-400'}"
+								class="flex items-center gap-3 rounded-lg border px-3 py-2 text-left text-sm transition {template.tonePreset === p.id ? 'border-accent ring-1 ring-accent' : 'border-line hover:border-accent'}"
 								onclick={() => {
 									template.tonePreset = p.id;
 									showPalettePicker = false;
@@ -203,11 +203,11 @@
 										<span class="h-4 w-4 rounded-sm" style="background-color:{p.colors[k]}"></span>
 									{/each}
 								</span>
-								<span class="font-medium text-neutral-900">{p.label}</span>
+								<span class="font-medium text-ink">{p.label}</span>
 							</button>
 						{/each}
 						<button
-							class="flex items-center gap-3 rounded-lg border px-3 py-2 text-left text-sm transition {template.tonePreset === 'custom' ? 'border-neutral-900 ring-1 ring-neutral-900' : 'border-neutral-200 hover:border-neutral-400'}"
+							class="flex items-center gap-3 rounded-lg border px-3 py-2 text-left text-sm transition {template.tonePreset === 'custom' ? 'border-accent ring-1 ring-accent' : 'border-line hover:border-accent'}"
 							onclick={() => {
 								template.tonePreset = 'custom';
 								showPalettePicker = false;
@@ -218,7 +218,7 @@
 									<span class="h-4 w-4 rounded-sm" style="background-color:{template.toneColors[k]}"></span>
 								{/each}
 							</span>
-							<span class="font-medium text-neutral-900">Custom…</span>
+							<span class="font-medium text-ink">Custom…</span>
 						</button>
 					</div>
 				</PickerModal>
@@ -227,66 +227,66 @@
 	</div>
 
 	<!-- Typography & Display -->
-	<div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
-		<p class="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Typography & Display</p>
+	<div class="rounded-lg border border-line bg-sunk p-4">
+		<p class="mb-3 text-[13px] text-muted font-semibold">Typography & Display</p>
 		<div class="flex flex-wrap items-center gap-x-6 gap-y-3">
 			<label class="flex items-center gap-2 text-sm">
 				Hanzi font
-				<select bind:value={template.font} class="min-w-[10rem] rounded-lg border border-neutral-300 px-2 py-1.5 text-sm">
+				<select bind:value={template.font} class="min-w-[10rem] rounded-lg border border-line px-2 py-1.5 text-sm">
 					<option value="default">Default (sans)</option>
 					<option value="kaiti">Kaiti 楷体</option>
 					<option value="songti">Songti 宋体</option>
 				</select>
 			</label>
 			<label class="flex items-center gap-2 text-sm" title="Multi-reading characters show only their most common reading (the one with the longest definition)">
-				<input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.commonPinyinOnly} /> Most common pinyin only
+				<input type="checkbox" class="h-4 w-4 accent-accent" bind:checked={template.commonPinyinOnly} /> Most common pinyin only
 			</label>
 			<label class="flex items-center gap-2 text-sm">
-				<input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.collapseDict} /> Collapse dictionary definitions
+				<input type="checkbox" class="h-4 w-4 accent-accent" bind:checked={template.collapseDict} /> Collapse dictionary definitions
 			</label>
 		</div>
 	</div>
 
 	<!-- Example Sentences (conditional) -->
 	{#if examplesUsed}
-		<div class="rounded-lg border border-neutral-200 bg-neutral-50 p-4">
-			<p class="mb-3 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Example Sentences</p>
+		<div class="rounded-lg border border-line bg-sunk p-4">
+			<p class="mb-3 text-[13px] text-muted font-semibold">Example Sentences</p>
 			<div class="flex flex-wrap items-end gap-4">
-				<label class="flex flex-col gap-1 text-xs text-neutral-600">
+				<label class="flex flex-col gap-1 text-xs text-muted">
 					How many
 					<input type="number" min="1" max="10" bind:value={template.exampleOptions.count}
-						class="w-20 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm" />
+						class="w-20 rounded-lg border border-line px-2 py-1.5 text-sm" />
 				</label>
-				<label class="flex flex-col gap-1 text-xs text-neutral-600">
+				<label class="flex flex-col gap-1 text-xs text-muted">
 					Min length (chars)
 					<input type="number" min="1" max="50" bind:value={template.exampleOptions.minChars}
-						class="w-24 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm" />
+						class="w-24 rounded-lg border border-line px-2 py-1.5 text-sm" />
 				</label>
-				<label class="flex flex-col gap-1 text-xs text-neutral-600">
+				<label class="flex flex-col gap-1 text-xs text-muted">
 					Max length (chars)
 					<input type="number" min="1" max="80" bind:value={template.exampleOptions.maxChars}
-						class="w-24 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm" />
+						class="w-24 rounded-lg border border-line px-2 py-1.5 text-sm" />
 				</label>
 			</div>
-			<div class="mt-3 border-t border-neutral-200 pt-3">
-				<p class="mb-2 font-mono text-[10px] uppercase tracking-wider text-neutral-400">Show</p>
+			<div class="mt-3 border-t border-line pt-3">
+				<p class="mb-2 text-[13px] text-muted">Show</p>
 				<div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-					<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.showSimplified} /> Simplified</label>
-					<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.showTraditional} /> Traditional</label>
-					<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.showPinyin} /> Pinyin</label>
-					<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.showTranslation} /> Translation</label>
+					<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-accent" bind:checked={template.exampleOptions.showSimplified} /> Simplified</label>
+					<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-accent" bind:checked={template.exampleOptions.showTraditional} /> Traditional</label>
+					<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-accent" bind:checked={template.exampleOptions.showPinyin} /> Pinyin</label>
+					<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-accent" bind:checked={template.exampleOptions.showTranslation} /> Translation</label>
 				</div>
 			</div>
 			{#if !template.mono}
-				<div class="mt-3 border-t border-neutral-200 pt-3">
-					<p class="mb-2 font-mono text-[10px] uppercase tracking-wider text-neutral-400">Colorize</p>
+				<div class="mt-3 border-t border-line pt-3">
+					<p class="mb-2 text-[13px] text-muted">Colorize</p>
 					<div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-						<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.colorizeHanzi} /> Hanzi</label>
-						<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-neutral-900" bind:checked={template.exampleOptions.colorizePinyin} /> Pinyin</label>
+						<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-accent" bind:checked={template.exampleOptions.colorizeHanzi} /> Hanzi</label>
+						<label class="flex items-center gap-1.5"><input type="checkbox" class="h-4 w-4 accent-accent" bind:checked={template.exampleOptions.colorizePinyin} /> Pinyin</label>
 					</div>
 				</div>
 			{/if}
-			<p class="mt-3 border-t border-neutral-200 pt-3 text-[11px] text-neutral-400">Examples show as a collapsible card (tap the bar to expand), like Definitions.</p>
+			<p class="mt-3 border-t border-line pt-3 text-[13px] text-muted">Examples show as a collapsible card (tap the bar to expand), like Definitions.</p>
 		</div>
 	{/if}
 

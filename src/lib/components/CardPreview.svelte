@@ -404,18 +404,18 @@
 		};
 	});
 
-	const SEL_BADGE = 'ml-1 rounded bg-blue-500 px-1.5 py-0.5 align-middle text-[9px] text-white font-sans';
+	const SEL_BADGE = 'ml-1 rounded bg-blue-500 px-1.5 py-0.5 align-middle text-[13px] text-white font-sans';
 </script>
 
 <div
-	class="relative overflow-hidden rounded-xl border border-neutral-200 transition-all {selClass('card')}"
+	class="relative overflow-hidden rounded-xl border border-line transition-all {selClass('card')}"
 	style="--surface2:#ffffff;--surface3:#f5f5f5;--surface4:#e5e5e5;--text1:#262626;--text2:#737373;--accent:#3a6df0;--body-bg:#f5f5f5;--btn-radius:4px;--btn-border:none;--container-radius:8px;--chip-radius:9999px;background-color:{effectiveES.card?.backgroundColor ?? '#ffffff'};{effectiveES.card?.backgroundImage ? 'background-image:' + effectiveES.card.backgroundImage + ';' : ''}text-align:{effectiveES.card?.textAlign ?? 'center'};{elStyle('card')}{themeCssVars ? ';' + themeCssVars : ''}"
 	role="button"
 	tabindex="0"
 	onclick={(e) => select('card', e)}
 	onkeydown={onkey('card')}
 >
-	<div class="px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] border-b" style="border-color:var(--surface4);background:var(--surface3);color:var(--text2)">
+	<div class="px-3 py-1.5 text-[13px] border-b font-semibold" style="border-color:var(--surface4);background:var(--surface3);color:var(--text2)">
 		{label}
 		{#if interactive && selectedElement === 'card'}<span class={SEL_BADGE}>Card</span>{/if}
 	</div>
@@ -449,12 +449,12 @@
 				onkeydown={onkey('hr')}
 			>
 				<hr class="w-full border-t" style="border-color:var(--surface4);{elStyle('hr')}" />
-				{#if interactive && selectedElement === 'hr'}<div class="mt-0.5 text-center font-mono text-[9px] text-blue-500">separator</div>{/if}
+				{#if interactive && selectedElement === 'hr'}<div class="mt-0.5 text-center text-[13px] text-blue-500">separator</div>{/if}
 			</div>
 		{/if}
 
 		{#if items.length === 0 && !interactive}
-			<span class="text-sm text-neutral-300" style="order:999">Nothing selected</span>
+			<span class="text-sm text-muted" style="order:999">Nothing selected</span>
 		{/if}
 
 		{#snippet itemBody(item: string)}
@@ -474,7 +474,7 @@
 
 			{:else if item === 'Traditional' && (!isHidden('traditional') || interactive)}
 				<div
-					class="leading-none text-neutral-700 {selClass('traditional')} {isHidden('traditional') ? 'opacity-30' : ''}"
+					class="leading-none text-muted {selClass('traditional')} {isHidden('traditional') ? 'opacity-30' : ''}"
 					style="order:{ord('traditional')};font-size:{effectiveES.traditional?.fontSize ?? '1.5em'};font-family:{hanziFont('traditional') || 'inherit'};{elStyle('traditional')}"
 					role="button"
 					tabindex="0"
@@ -492,7 +492,7 @@
 
 			{:else if item === 'Pinyin' && (!isHidden('pinyin') || interactive)}
 				<div
-					class="text-lg text-neutral-600 {selClass('pinyin')} {isHidden('pinyin') ? 'opacity-30' : ''}"
+					class="text-lg text-muted {selClass('pinyin')} {isHidden('pinyin') ? 'opacity-30' : ''}"
 					style="order:{ord('pinyin')};{elStyle('pinyin')}"
 					role="button"
 					tabindex="0"
@@ -505,7 +505,7 @@
 
 			{:else if item === 'Zhuyin' && (!isHidden('zhuyin') || interactive)}
 				<div
-					class="text-base text-neutral-500 {selClass('zhuyin')} {isHidden('zhuyin') ? 'opacity-30' : ''}"
+					class="text-base text-muted {selClass('zhuyin')} {isHidden('zhuyin') ? 'opacity-30' : ''}"
 					style="order:{ord('zhuyin')};{elStyle('zhuyin')}"
 					role="button"
 					tabindex="0"
@@ -525,7 +525,7 @@
 					onclick={(e) => select('partOfSpeech', e)}
 					onkeydown={onkey('partOfSpeech')}
 				>
-					<span class="inline-flex items-center text-[11px] leading-none" style="padding:var(--pos-chip-pad,5px 11px);border-radius:var(--chip-radius,9999px);background:var(--pos-chip-bg,var(--surface3));color:var(--pos-chip-fg,var(--text2));border:var(--pos-chip-border,1px solid var(--surface4));text-transform:var(--pos-chip-transform,none)">Place Name</span>
+					<span class="inline-flex items-center text-[13px] leading-none" style="padding:var(--pos-chip-pad,5px 11px);border-radius:var(--chip-radius,9999px);background:var(--pos-chip-bg,var(--surface3));color:var(--pos-chip-fg,var(--text2));border:var(--pos-chip-border,1px solid var(--surface4));text-transform:var(--pos-chip-transform,none)">Place Name</span>
 					{#if interactive && selectedElement === 'partOfSpeech'}<span class={SEL_BADGE}>Part of Speech</span>{/if}
 				</div>
 
@@ -538,7 +538,7 @@
 					onclick={(e) => select('simpleMeaning', e)}
 					onkeydown={onkey('simpleMeaning')}
 				>
-					<div class="px-2.5 py-1 text-left text-[11px]" style="background:var(--panel-title-bg,var(--surface3));color:var(--section-title-color,var(--text2));text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);font-weight:var(--section-title-weight,600);border-bottom:var(--section-title-border,none)">Common Meaning</div>
+					<div class="px-2.5 py-1 text-left text-[13px]" style="background:var(--panel-title-bg,var(--surface3));color:var(--section-title-color,var(--text2));text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);font-weight:var(--section-title-weight,600);border-bottom:var(--section-title-border,none)">Common Meaning</div>
 					<div class="px-2.5 py-2 text-[15px] font-semibold" style="color:var(--text1)">{src.simple}</div>
 					{#if interactive && selectedElement === 'simpleMeaning'}<span class={SEL_BADGE}>Simple Meaning</span>{/if}
 				</div>
@@ -560,7 +560,7 @@
 					{:else}
 						<div class="text-sm" style="color:var(--text1)">{src.definition}</div>
 					{/if}
-					{#if interactive && selectedElement === 'definitions'}<div class="mt-0.5 text-center font-mono text-[9px] text-blue-500">Definitions</div>{/if}
+					{#if interactive && selectedElement === 'definitions'}<div class="mt-0.5 text-center text-[13px] text-blue-500">Definitions</div>{/if}
 				</div>
 
 			{:else if item === 'Breakdown' && (!isHidden('breakdown') || interactive)}
@@ -572,13 +572,13 @@
 					onclick={(e) => select('breakdown', e)}
 					onkeydown={onkey('breakdown')}
 				>
-					<div class="px-2.5 py-1 text-left text-[11px]" style="background:var(--panel-title-bg,var(--surface3));color:var(--section-title-color,var(--text2));text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);font-weight:var(--section-title-weight,600);border-bottom:var(--section-title-border,none)">Character Breakdown</div>
+					<div class="px-2.5 py-1 text-left text-[13px]" style="background:var(--panel-title-bg,var(--surface3));color:var(--section-title-color,var(--text2));text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);font-weight:var(--section-title-weight,600);border-bottom:var(--section-title-border,none)">Character Breakdown</div>
 					<div class="flex flex-wrap justify-center gap-2 p-2.5">
 						{#each src.breakdown as b (b.character)}
 							<div class="flex min-w-[3.5rem] flex-col items-center gap-0.5 px-3 py-2" style="border-radius:var(--container-radius,8px);border:var(--tile-border,1px solid var(--surface4));background:var(--tile-bg,var(--surface3))">
 								<span class="text-xl font-semibold leading-none" style="color:var(--text1)">{b.character}</span>
-								<span class="text-[10px]" style="color:var(--text2)">{b.pinyin}</span>
-								<span class="text-[10px] leading-tight" style="color:var(--text2)">{b.definition}</span>
+								<span class="text-[13px]" style="color:var(--text2)">{b.pinyin}</span>
+								<span class="text-[13px] leading-tight" style="color:var(--text2)">{b.definition}</span>
 							</div>
 						{/each}
 					</div>
@@ -594,7 +594,7 @@
 					onclick={(e) => select('radical', e)}
 					onkeydown={onkey('radical')}
 				>
-					<div class="px-2.5 py-1 text-left text-[11px]" style="background:var(--panel-title-bg,var(--surface3));color:var(--section-title-color,var(--text2));text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);font-weight:var(--section-title-weight,600);border-bottom:var(--section-title-border,none)">Radical</div>
+					<div class="px-2.5 py-1 text-left text-[13px]" style="background:var(--panel-title-bg,var(--surface3));color:var(--section-title-color,var(--text2));text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);font-weight:var(--section-title-weight,600);border-bottom:var(--section-title-border,none)">Radical</div>
 					<div class="flex flex-wrap justify-center gap-1.5 p-2.5">
 						{#each src.radical as r (r.character)}
 							<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs" style="border-radius:var(--radical-chip-radius,9999px);border:var(--radical-chip-border,1px solid var(--surface4));background:var(--radical-chip-bg,var(--surface3));color:var(--text2)">
@@ -614,7 +614,7 @@
 					onclick={(e) => select('hskLevel', e)}
 					onkeydown={onkey('hskLevel')}
 				>
-					<span class="inline-flex items-center border text-[11px] font-semibold leading-none" style="padding:var(--pos-chip-pad,5px 11px);border-radius:var(--chip-radius,9999px);border-color:var(--hsk-border,color-mix(in srgb,var(--accent) 35%,transparent));background:var(--hsk-bg,color-mix(in srgb,var(--accent) 14%,transparent));color:var(--hsk-fg,var(--accent))">{src.hsk}</span>
+					<span class="inline-flex items-center border text-[13px] font-semibold leading-none" style="padding:var(--pos-chip-pad,5px 11px);border-radius:var(--chip-radius,9999px);border-color:var(--hsk-border,color-mix(in srgb,var(--accent) 35%,transparent));background:var(--hsk-bg,color-mix(in srgb,var(--accent) 14%,transparent));color:var(--hsk-fg,var(--accent))">{src.hsk}</span>
 					{#if interactive && selectedElement === 'hskLevel'}<span class={SEL_BADGE}>HSK Level</span>{/if}
 				</div>
 
@@ -627,7 +627,7 @@
 					onclick={(e) => select('frequency', e)}
 					onkeydown={onkey('frequency')}
 				>
-					<span class="inline-flex items-center border text-[11px] font-semibold leading-none" style="padding:var(--pos-chip-pad,5px 11px);border-radius:var(--chip-radius,9999px);border-color:var(--freq-border,var(--surface4));background:var(--freq-bg,var(--surface3));color:var(--freq-fg,var(--text2))">{src.frequency}</span>
+					<span class="inline-flex items-center border text-[13px] font-semibold leading-none" style="padding:var(--pos-chip-pad,5px 11px);border-radius:var(--chip-radius,9999px);border-color:var(--freq-border,var(--surface4));background:var(--freq-bg,var(--surface3));color:var(--freq-fg,var(--text2))">{src.frequency}</span>
 					{#if interactive && selectedElement === 'frequency'}<span class={SEL_BADGE}>Frequency</span>{/if}
 				</div>
 
@@ -640,7 +640,7 @@
 					onclick={(e) => select('examples', e)}
 					onkeydown={onkey('examples')}
 				>
-					<div class="flex items-center justify-between px-2.5 py-1 text-[11px]" style="background:var(--panel-title-bg,var(--surface3));color:var(--section-title-color,var(--text2));text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);font-weight:var(--section-title-weight,600);border-bottom:var(--section-title-border,none)">
+					<div class="flex items-center justify-between px-2.5 py-1 text-[13px]" style="background:var(--panel-title-bg,var(--surface3));color:var(--section-title-color,var(--text2));text-transform:var(--section-title-transform,none);letter-spacing:var(--section-title-spacing,normal);font-weight:var(--section-title-weight,600);border-bottom:var(--section-title-border,none)">
 						<span>Examples</span><span style="color:var(--text2)">▾</span>
 					</div>
 					{#each exList as s (s.simplified)}
@@ -695,13 +695,13 @@
 					{#each slot.items as it (it)}
 						{@render itemBody(it)}
 					{/each}
-					{#if interactive && selectedGroup === slot.group.id}<span class="absolute -top-2 left-1 rounded bg-violet-500 px-1.5 py-0.5 text-[9px] text-white">Group</span>{/if}
+					{#if interactive && selectedGroup === slot.group.id}<span class="absolute -top-2 left-1 rounded bg-violet-500 px-1.5 py-0.5 text-[13px] text-white">Group</span>{/if}
 				</div>
 			{/if}
 		{/each}
 
 		{#if interactive && items.length === 0}
-			<p class="text-xs text-neutral-300" style="order:999">No fields — add fields from the table.</p>
+			<p class="text-xs text-muted" style="order:999">No fields — add fields from the table.</p>
 		{/if}
 	</div>
 </div>

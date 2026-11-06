@@ -50,14 +50,14 @@
 	onclick={(e) => e.target === e.currentTarget && onClose()}
 >
 	<div
-		class="relative w-full max-w-md rounded-2xl border-2 border-neutral-900 bg-white p-8 text-center shadow-[8px_8px_0_0_#111]"
+		class="relative w-full max-w-md rounded-2xl border-2 border-accent bg-surface p-8 text-center shadow-[8px_8px_0_0_#111]"
 		transition:scale={{ duration: 250, start: 0.9, easing: quintOut }}
 		role="dialog"
 		aria-modal="true"
 		aria-label="Deck exported"
 	>
 		<button
-			class="absolute right-4 top-4 rounded-md p-1 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900"
+			class="absolute right-4 top-4 rounded-md p-1 text-muted transition hover:bg-sunk hover:text-ink"
 			onclick={onClose}
 			aria-label="Close"
 		>
@@ -65,31 +65,31 @@
 		</button>
 
 		<div class="mb-3 text-5xl" aria-hidden="true">🎉</div>
-		<h2 class="text-2xl font-extrabold tracking-tight text-neutral-900">Hooray! Deck exported</h2>
-		<p class="mt-1 text-sm text-neutral-500">
-			<code class="rounded bg-neutral-100 px-1.5 py-0.5">{deckName}.apkg</code> downloaded — import it into Anki.
+		<h2 class="text-2xl font-extrabold tracking-tight text-ink">Hooray! Deck exported</h2>
+		<p class="mt-1 text-sm text-muted">
+			<code class="rounded bg-sunk px-1.5 py-0.5">{deckName}.apkg</code> downloaded — import it into Anki.
 		</p>
 
-		<div class="my-6 h-px bg-neutral-200"></div>
+		<div class="my-6 h-px bg-line"></div>
 
-		<p class="text-sm font-medium text-neutral-700">Enjoying Anki-xiehanzi? Give it a star.</p>
+		<p class="text-sm font-medium text-muted">Enjoying Anki-xiehanzi? Give it a star.</p>
 		<a
 			href={REPO}
 			target="_blank"
 			rel="noopener noreferrer"
-			class="mt-3 inline-flex items-center gap-2 rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-[4px_4px_0_0_#111]"
+			class="mt-3 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md"
 		>
 			<Star size={16} class="fill-yellow-400 text-yellow-400" />
 			Star on GitHub
 		</a>
 
-		<div class="my-6 h-px bg-neutral-200"></div>
+		<div class="my-6 h-px bg-line"></div>
 
-		<p class="mb-3 text-sm font-medium text-neutral-700">Share Anki xiehanzi project</p>
+		<p class="mb-3 text-sm font-medium text-muted">Share Anki-xiehanzi project</p>
 		<ShareButtons />
 
 		<button
-			class="mt-6 text-xs text-neutral-400 underline underline-offset-2 transition hover:text-neutral-700"
+			class="mt-6 text-xs text-muted underline underline-offset-2 transition hover:text-ink"
 			onclick={dontShowAgain}
 		>
 			Do not show again

@@ -171,7 +171,7 @@
 	<h3 class="m-0 text-lg font-semibold text-ink">Card types and fields</h3>
 	<button
 		onclick={onshowcustomizer}
-		class="ml-auto flex items-center gap-1.5 rounded-lg border border-neutral-300 px-3 py-1.5 text-sm text-neutral-600 transition hover:border-neutral-900 hover:text-neutral-900"
+		class="ml-auto flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-sm text-muted transition hover:border-accent hover:text-ink"
 	>
 		<Settings2 size={14} />
 		Advanced customisation
@@ -179,16 +179,16 @@
 </div>
 <p class="mb-2 text-sm text-muted">Each card type is one card per word in Anki.</p>
 
-<div class="mb-4 flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+<div class="mb-4 flex items-center gap-3 rounded-lg border border-line bg-sunk p-3">
 	<button
 		type="button"
 		onclick={() => (showPresetPicker = true)}
-		class="flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-900 hover:shadow-[3px_3px_0_0_#111]"
+		class="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink transition hover:border-accent hover:shadow-[3px_3px_0_0_#111]"
 	>
 		<Plus size={15} />
 		Add a ready-made card type
 	</button>
-	<span class="text-xs text-neutral-400">Beginner, Writing, HSK Exam &amp; more</span>
+	<span class="text-xs text-muted">Beginner, Writing, HSK Exam &amp; more</span>
 </div>
 
 {#if showPresetPicker}
@@ -205,10 +205,10 @@
 						addPreset(preset);
 						showPresetPicker = false;
 					}}
-					class="rounded-lg border border-neutral-300 bg-white px-3 py-2 text-left transition hover:border-neutral-900 hover:shadow-[3px_3px_0_0_#111]"
+					class="rounded-lg border border-line bg-surface px-3 py-2 text-left transition hover:border-accent hover:shadow-[3px_3px_0_0_#111]"
 				>
-					<span class="block text-sm font-semibold text-neutral-900">{preset.name}</span>
-					<span class="block text-[11px] leading-snug text-neutral-500">{preset.description}</span>
+					<span class="block text-sm font-semibold text-ink">{preset.name}</span>
+					<span class="block text-[13px] leading-snug text-muted">{preset.description}</span>
 				</button>
 			{/each}
 		</div>
@@ -216,13 +216,13 @@
 {/if}
 
 <div>
-	<ul class="flex flex-wrap gap-2 border-b border-neutral-200">
+	<ul class="flex flex-wrap gap-2 border-b border-line">
 		{#each tabs as tab, index (tab)}
 			<li
 				class="flex cursor-pointer items-center gap-1 rounded-t px-3 py-2 text-sm {activeTab ===
 				index
-					? 'border-b-2 border-neutral-900 font-semibold'
-					: 'text-neutral-500'}"
+					? 'border-b-2 border-accent font-semibold'
+					: 'text-muted'}"
 			>
 				<span
 					onclick={() => (activeTab = index)}
@@ -237,7 +237,7 @@
 				{/if}
 			</li>
 		{/each}
-		<li class="text-lg text-neutral-500">
+		<li class="text-lg text-muted">
 			<button class="cursor-pointer px-3 py-2" onclick={handleAddTab} aria-label="add card type">+</button>
 		</li>
 	</ul>
@@ -246,26 +246,26 @@
 		<div class="py-4">
 			<!-- field editor -->
 			<div>
-				<p class="mb-2 text-xs text-neutral-500">Tick a field to show it on the front and/or back of this card type.</p>
+				<p class="mb-2 text-xs text-muted">Tick a field to show it on the front and/or back of this card type.</p>
 				<p class="mb-2 text-xs text-muted">Drag a field by its handle to reorder it.</p>
 				<div
-					class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 pb-1 font-mono text-[10px] uppercase tracking-wider text-neutral-400"
+					class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 pb-1 text-[13px] text-muted"
 				>
 					<span>Field</span><span class="text-center">Front</span
 					><span class="text-center">Back</span>
 				</div>
-				<ul bind:this={listEl} class="divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+				<ul bind:this={listEl} class="divide-y divide-line rounded-lg border border-line">
 					{#each order as item, index (item)}
 						{@const isChrome = item === CONTROL_BUTTONS_TOKEN || item === SEPARATOR_TOKEN}
 							<li
 								data-field-index={index}
 								class="grid grid-cols-[1fr_3rem_3rem] items-center gap-2 px-3 py-2 {item === WRITING || isChrome
-									? 'bg-neutral-50'
-									: 'bg-white'} {dragIndex === index ? 'opacity-50' : ''}"
+									? 'bg-sunk'
+									: 'bg-surface'} {dragIndex === index ? 'opacity-50' : ''}"
 							>
 								<span class="flex items-center gap-2">
 									<span
-										class="cursor-grab touch-none text-neutral-300"
+										class="cursor-grab touch-none text-muted"
 										style="touch-action: none;"
 										role="button"
 										tabindex="-1"
@@ -280,13 +280,13 @@
 									<span class="text-sm">{fieldLabels[item] ?? item}</span>
 									<span class="ml-auto flex flex-col">
 										<button
-											class="text-neutral-400 hover:text-neutral-900 disabled:opacity-20"
+											class="text-muted hover:text-ink disabled:opacity-20"
 											disabled={index === 0}
 											onclick={() => moveField(index, -1)}
 											aria-label="move up"><ChevronUp size={13} /></button
 										>
 										<button
-											class="text-neutral-400 hover:text-neutral-900 disabled:opacity-20"
+											class="text-muted hover:text-ink disabled:opacity-20"
 											disabled={index === order.length - 1}
 											onclick={() => moveField(index, 1)}
 											aria-label="move down"><ChevronDown size={13} /></button
@@ -296,7 +296,7 @@
 								<span class="text-center">
 									<input
 										type="checkbox"
-										class="h-4 w-4 accent-neutral-900"
+										class="h-4 w-4 accent-accent"
 										aria-label={`${fieldLabels[item] ?? item} front`}
 										checked={tabContent[tabs[activeTab]].front.includes(`front${item}`)}
 										onchange={() => handleCheckboxChange(`front${item}`, 'front')}
@@ -305,7 +305,7 @@
 								<span class="text-center">
 									<input
 										type="checkbox"
-										class="h-4 w-4 accent-neutral-900"
+										class="h-4 w-4 accent-accent"
 										aria-label={`${fieldLabels[item] ?? item} back`}
 										checked={tabContent[tabs[activeTab]].back.includes(`back${item}`)}
 										onchange={() => handleCheckboxChange(`back${item}`, 'back')}

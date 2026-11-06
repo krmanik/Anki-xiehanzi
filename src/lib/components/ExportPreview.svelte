@@ -101,89 +101,89 @@
 	onkeydown={(e) => e.key === 'Escape' && onclose?.()}
 >
 	<div
-		class="absolute inset-3 flex flex-col overflow-hidden rounded-2xl bg-white shadow-2xl md:inset-10"
+		class="absolute inset-3 flex flex-col overflow-hidden rounded-2xl bg-surface shadow-2xl md:inset-10"
 		role="dialog"
 		aria-label="Export preview"
 	>
-		<div class="flex shrink-0 items-center justify-between border-b border-neutral-200 px-5 py-3">
+		<div class="flex shrink-0 items-center justify-between border-b border-line px-5 py-3">
 			<div>
-				<h2 class="text-base font-semibold text-neutral-900">Export preview</h2>
-				<p class="text-xs text-neutral-400">Check your cards and deck stats before exporting.</p>
+				<h2 class="text-base font-semibold text-ink">Export preview</h2>
+				<p class="text-xs text-muted">Check your cards and deck stats before exporting.</p>
 			</div>
-			<button onclick={onclose} class="rounded-lg p-2 text-neutral-400 hover:bg-neutral-100" aria-label="Close"><X size={18} /></button>
+			<button onclick={onclose} class="rounded-lg p-2 text-muted hover:bg-sunk" aria-label="Close"><X size={18} /></button>
 		</div>
 
 		<div class="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
 			<!-- Statistics -->
-			<div class="w-full shrink-0 space-y-4 overflow-y-auto border-b border-neutral-200 p-5 md:w-72 md:border-b-0 md:border-r">
+			<div class="w-full shrink-0 space-y-4 overflow-y-auto border-b border-line p-5 md:w-72 md:border-b-0 md:border-r">
 				<div>
-					<p class="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">Deck</p>
+					<p class="text-[13px] text-muted font-semibold">Deck</p>
 					<p class="mt-1 text-3xl font-extrabold">{stats.total}</p>
-					<p class="text-xs text-neutral-500">words · {tabs.length} card type{tabs.length === 1 ? '' : 's'} · {includeAudio ? 'with audio' : 'no audio'}</p>
+					<p class="text-xs text-muted">words · {tabs.length} card type{tabs.length === 1 ? '' : 's'} · {includeAudio ? 'with audio' : 'no audio'}</p>
 				</div>
 
 				<div>
-					<p class="mb-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">HSK level</p>
+					<p class="mb-1.5 text-[13px] text-muted font-semibold">HSK level</p>
 					{#if stats.levels.length}
 						<div class="space-y-1">
 							{#each stats.levels as l (l.label)}
 								<div class="flex items-center justify-between text-xs">
-									<span class="text-neutral-600">{l.label}</span>
-									<span class="font-mono text-neutral-900">{l.count}</span>
+									<span class="text-muted">{l.label}</span>
+									<span class="text-ink">{l.count}</span>
 								</div>
 							{/each}
 						</div>
 					{:else}
-						<p class="text-xs text-neutral-400">No words yet.</p>
+						<p class="text-xs text-muted">No words yet.</p>
 					{/if}
 				</div>
 
 				<div>
-					<p class="mb-1.5 font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-400">Frequency</p>
+					<p class="mb-1.5 text-[13px] text-muted font-semibold">Frequency</p>
 					{#if stats.bands.length}
 						<div class="space-y-1">
 							{#each stats.bands as b (b.label)}
 								<div class="flex items-center justify-between text-xs">
-									<span class="text-neutral-600">{b.label}</span>
-									<span class="font-mono text-neutral-900">{b.count}</span>
+									<span class="text-muted">{b.label}</span>
+									<span class="text-ink">{b.count}</span>
 								</div>
 							{/each}
 						</div>
 					{:else}
-						<p class="text-xs text-neutral-400">No words yet.</p>
+						<p class="text-xs text-muted">No words yet.</p>
 					{/if}
 				</div>
 			</div>
 
 			<!-- Card previews per card type -->
-			<div class="flex-1 space-y-6 overflow-y-auto bg-neutral-100 p-6">
+			<div class="flex-1 space-y-6 overflow-y-auto bg-sunk p-6">
 				{#if words.length}
 					<div class="flex items-center justify-center gap-4">
 						<button
 							onclick={prevWord}
 							disabled={safeIndex === 0}
-							class="rounded-lg border border-neutral-200 bg-white p-2 text-neutral-600 transition hover:border-neutral-900 disabled:opacity-30"
+							class="rounded-lg border border-line bg-surface p-2 text-muted transition hover:border-accent disabled:opacity-30"
 							aria-label="previous word"
 						><ChevronLeft size={16} /></button>
 						<div class="text-center">
 							<p class="text-xl font-semibold leading-none">{currentWord?.Simplified}</p>
-							<p class="mt-0.5 font-mono text-[10px] text-neutral-400">word {safeIndex + 1} / {words.length}</p>
+							<p class="mt-0.5 text-[13px] text-muted">word {safeIndex + 1} / {words.length}</p>
 						</div>
 						<button
 							onclick={nextWord}
 							disabled={safeIndex >= words.length - 1}
-							class="rounded-lg border border-neutral-200 bg-white p-2 text-neutral-600 transition hover:border-neutral-900 disabled:opacity-30"
+							class="rounded-lg border border-line bg-surface p-2 text-muted transition hover:border-accent disabled:opacity-30"
 							aria-label="next word"
 						><ChevronRight size={16} /></button>
 					</div>
 				{/if}
 				{#each tabs as tab (tab)}
 					<div>
-						<p class="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">{tab}</p>
+						<p class="mb-2 text-[13px] text-muted font-semibold">{tab}</p>
 						<div class="grid gap-3 sm:grid-cols-2">
 							{#each SIDES as side (side)}
-								<div class="overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
-									<div class="border-b border-neutral-200 bg-neutral-50 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">{side}</div>
+								<div class="overflow-hidden rounded-xl border border-line bg-surface shadow-sm">
+									<div class="border-b border-line bg-sunk px-3 py-1.5 text-[13px] text-muted font-semibold">{side}</div>
 									{#if currentWord}
 										<iframe
 											title="{tab} {side}"
@@ -192,7 +192,7 @@
 											srcdoc={doc(side, tab)}
 										></iframe>
 									{:else}
-										<div class="flex h-[460px] items-center justify-center text-sm text-neutral-300">No words</div>
+										<div class="flex h-[460px] items-center justify-center text-sm text-muted">No words</div>
 									{/if}
 								</div>
 							{/each}
@@ -203,12 +203,12 @@
 		</div>
 
 		{#if onGenerate}
-		<div class="flex shrink-0 items-center justify-end gap-2 border-t border-neutral-200 px-5 py-3">
-			<button onclick={onclose} class="rounded-lg border border-neutral-200 px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-50">Back</button>
+		<div class="flex shrink-0 items-center justify-end gap-2 border-t border-line px-5 py-3">
+			<button onclick={onclose} class="rounded-lg border border-line px-4 py-2 text-sm text-muted hover:bg-sunk">Back</button>
 			<button
 				onclick={onGenerate}
 				disabled={isGenerating || words.length === 0}
-				class="rounded-lg bg-neutral-900 px-5 py-2 text-sm text-white hover:bg-neutral-700 disabled:opacity-40"
+				class="rounded-lg bg-accent px-5 py-2 text-sm text-white hover:brightness-110 disabled:opacity-40"
 			>{isGenerating ? 'Generating…' : 'Generate deck'}</button>
 		</div>
 		{/if}

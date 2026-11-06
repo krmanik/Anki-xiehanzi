@@ -85,7 +85,7 @@
 {/if}
 
 <svelte:head>
-	<title>The 214 Kangxi Radicals — meanings, readings, stroke order — Anki xiehanzi</title>
+	<title>The 214 Kangxi Radicals — meanings, readings, stroke order — Anki-xiehanzi</title>
 	<meta
 		name="description"
 		content="Browse all 214 Kangxi radicals: meaning, pinyin, Hán-Việt, Japanese and Korean readings, the Chinese teaching name, stroke-order animation, oracle-bone to regular-script evolution, regional printed forms, and the characters each radical builds."

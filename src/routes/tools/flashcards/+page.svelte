@@ -232,7 +232,7 @@
 </script>
 
 <svelte:head>
-	<title>Printable flashcards · Anki xiehanzi</title>
+	<title>Printable flashcards · Anki-xiehanzi</title>
 </svelte:head>
 
 <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">

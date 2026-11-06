@@ -26,14 +26,14 @@
 	<!-- sidebar: lg+ only -->
 	<aside class="hidden w-44 shrink-0 lg:block">
 		<div class="sticky top-20 pt-14">
-			<p class="mb-2 px-3 font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Docs</p>
+			<p class="mb-2 px-3 text-[13px] text-muted font-semibold">Docs</p>
 			<nav class="flex flex-col">
 				{#each docs as doc}
 					<a
 						href={doc.href}
 						class="rounded-md px-3 py-1.5 text-sm transition {doc.slug === current
-							? 'bg-neutral-100 font-medium text-neutral-900'
-							: 'text-neutral-500 hover:text-neutral-900'}"
+							? 'bg-sunk font-medium text-ink'
+							: 'text-muted hover:text-ink'}"
 					>{doc.label}</a>
 				{/each}
 			</nav>
@@ -43,18 +43,18 @@
 	<!-- main content — MarkdownLayout renders inside here with its own px-5 -->
 	<div class="min-w-0 flex-1">
 		<!-- mobile nav: collapsible, hidden on lg+ -->
-		<details class="group mx-5 mt-10 rounded-lg border border-neutral-200 lg:hidden">
+		<details class="group mx-5 mt-10 rounded-lg border border-line lg:hidden">
 			<summary class="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-medium">
-				<span class="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400">Docs</span>
-				<svg class="h-4 w-4 text-neutral-400 transition group-open:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+				<span class="text-[13px] text-muted font-semibold">Docs</span>
+				<svg class="h-4 w-4 text-muted transition group-open:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
 			</summary>
-			<nav class="flex flex-col border-t border-neutral-200 px-2 py-2">
+			<nav class="flex flex-col border-t border-line px-2 py-2">
 				{#each docs as doc}
 					<a
 						href={doc.href}
 						class="rounded-md px-3 py-2 text-sm transition {doc.slug === current
-							? 'font-medium text-neutral-900'
-							: 'text-neutral-500 hover:text-neutral-900'}"
+							? 'font-medium text-ink'
+							: 'text-muted hover:text-ink'}"
 					>{doc.label}</a>
 				{/each}
 			</nav>
@@ -64,16 +64,16 @@
 
 		<!-- prev/next: px-5 matches MarkdownLayout horizontal padding -->
 		<div class="px-5 pb-16">
-			<div class="flex items-center justify-between gap-4 border-t border-neutral-200 pt-8">
+			<div class="flex items-center justify-between gap-4 border-t border-line pt-8">
 				{#if prev}
 					<a
 						href={prev.href}
-						class="group flex items-center gap-3 rounded-lg border border-neutral-200 px-4 py-3 transition hover:border-neutral-900 hover:shadow-[4px_4px_0_0_#111]"
+						class="group flex items-center gap-3 rounded-lg border border-line px-4 py-3 transition hover:border-accent hover:shadow-md"
 					>
-						<ArrowLeft size={16} class="shrink-0 text-neutral-400 transition group-hover:text-neutral-900" />
+						<ArrowLeft size={16} class="shrink-0 text-muted transition group-hover:text-ink" />
 						<div>
-							<div class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">Previous</div>
-							<div class="font-semibold text-neutral-900">{prev.label}</div>
+							<div class="text-[13px] text-muted">Previous</div>
+							<div class="font-semibold text-ink">{prev.label}</div>
 						</div>
 					</a>
 				{:else}
@@ -83,13 +83,13 @@
 				{#if next}
 					<a
 						href={next.href}
-						class="group flex items-center gap-3 rounded-lg border border-neutral-200 px-4 py-3 text-right transition hover:border-neutral-900 hover:shadow-[4px_4px_0_0_#111]"
+						class="group flex items-center gap-3 rounded-lg border border-line px-4 py-3 text-right transition hover:border-accent hover:shadow-md"
 					>
 						<div>
-							<div class="font-mono text-[10px] uppercase tracking-wider text-neutral-400">Next</div>
-							<div class="font-semibold text-neutral-900">{next.label}</div>
+							<div class="text-[13px] text-muted">Next</div>
+							<div class="font-semibold text-ink">{next.label}</div>
 						</div>
-						<ArrowRight size={16} class="shrink-0 text-neutral-400 transition group-hover:text-neutral-900" />
+						<ArrowRight size={16} class="shrink-0 text-muted transition group-hover:text-ink" />
 					</a>
 				{:else}
 					<div></div>

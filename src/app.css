@@ -172,4 +172,21 @@
 		font-family: var(--font-display);
 		letter-spacing: -0.01em;
 	}
+	/* One keyboard focus ring for every control that sets none of its own
+	   (the card customiser's many small buttons, links in prose). */
+	:focus-visible {
+		outline: 3px solid var(--xhz-sky);
+		outline-offset: 2px;
+	}
+	/* The flowbite plugin paints form controls white with grey text, which is
+	   unreadable in dark mode. Theme tokens instead — `:root` lifts these past
+	   the plugin's bare `select`; a component's bg-* utility still wins
+	   (utilities outrank base). */
+	:root input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']),
+	:root select,
+	:root textarea {
+		background-color: var(--xhz-surface);
+		color: var(--xhz-ink);
+		border-color: var(--xhz-line);
+	}
 }

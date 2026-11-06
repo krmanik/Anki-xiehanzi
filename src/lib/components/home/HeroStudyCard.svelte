@@ -16,7 +16,7 @@
 		{ h: '汉', p: 'hàn', tone: 4, m: 'Chinese (Han)' },
 		{ h: '字', p: 'zì', tone: 4, m: 'character' }
 	];
-	const FALLBACK = { mint: '#30a46c', sky: '#0090ff' } as Record<string, string>;
+	const FALLBACK = { mint: '#08ba87', sky: '#3384fe' } as Record<string, string>;
 
 	let i = $state(0);
 	let box = $state<HTMLDivElement>();
@@ -30,7 +30,7 @@
 		const css = getComputedStyle(document.documentElement);
 		const stroke = (tone: number) => {
 			const hue = toneHue(tone) ?? 'sky';
-			return css.getPropertyValue(`--xhz-${hue}`).trim() || FALLBACK[hue] || '#0090ff';
+			return css.getPropertyValue(`--xhz-${hue}`).trim() || FALLBACK[hue] || '#3384fe';
 		};
 
 		(async () => {

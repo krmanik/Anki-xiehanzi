@@ -60,7 +60,7 @@ export const MAKE: NavGroup = {
 	]
 };
 
-export const SHOP: NavItem = { label: 'Premium', path: '/shop', icon: 'star', hue: 'apricot' };
+export const SHOP: NavItem = { label: 'Premium', path: '/shop', icon: 'star', hue: 'lavender' };
 
 /** The ☰ drawer's groups: the tools are listed out, there is no hover there. */
 export const SIDEBAR: NavGroup[] = [MAKE, LEARN, { label: 'Tools', items: TOOLS.children! }];

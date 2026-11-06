@@ -9,6 +9,7 @@
 	import Grid2x2 from '@lucide/svelte/icons/grid-2x2';
 	import Smartphone from '@lucide/svelte/icons/smartphone';
 	import SquarePlus from '@lucide/svelte/icons/square-plus';
+	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import Check from '@lucide/svelte/icons/check';
 	import { Badge, Button, IconDot, type Hue } from '$lib/ui';
 	import HeroStudyCard from '$lib/components/home/HeroStudyCard.svelte';
@@ -57,7 +58,7 @@
 
 <div class="mx-auto max-w-6xl px-4 sm:px-6">
 	<!-- hero -->
-	<section class="grid items-center gap-10 py-8 md:grid-cols-[1.1fr_0.9fr] md:gap-14 md:py-14">
+	<section class="grid items-center gap-10 py-8 md:grid-cols-[1fr_auto] md:gap-14 md:py-14">
 		<div>
 			<h1 class="m-0 text-[clamp(34px,4.6vw,54px)] leading-[1.1] font-bold tracking-tight text-ink">
 				Learn to read and <span class="text-rose-ink">write</span> Chinese in&nbsp;Anki.
@@ -65,10 +66,14 @@
 			<p class="mt-4 mb-7 max-w-[34ch] text-lg text-muted">
 				Free HSK decks with stroke-order practice, native audio and full dictionary meanings.
 			</p>
-			<div class="flex flex-wrap items-center gap-x-5 gap-y-2">
-				<Button href="{base}/hsk#decks"><Download class="size-[18px]" />Download free HSK deck</Button>
-				<Button variant="text" href="{base}/shop">See Premium<ChevronRight class="size-4" /></Button>
-				<Button variant="text" href="{base}/create">Create your own<ChevronRight class="size-4" /></Button>
+			<div class="flex flex-wrap items-center gap-2.5">
+				<Button size="lg" href="{base}/hsk#decks"><Download class="size-5" />Download free HSK deck</Button>
+				<Button size="lg" variant="soft" tint="lavender" href="{base}/shop"
+					><Sparkles class="size-[18px]" />See Premium</Button
+				>
+				<Button size="lg" variant="soft" tint="sky" href="{base}/create"
+					><SquarePlus class="size-[18px]" />Create your own</Button
+				>
 			</div>
 			<div class="mt-6 flex flex-wrap gap-1.5">
 				<Badge tint="sky"
@@ -141,9 +146,9 @@
 
 	<!-- premium -->
 	<section class="py-10">
-		<div class="grid items-center gap-8 rounded-[24px] bg-apricot-soft p-6 sm:p-9 md:grid-cols-[1fr_1.1fr]">
+		<div class="grid items-center gap-8 rounded-[24px] bg-lavender-soft p-6 sm:p-9 md:grid-cols-[1fr_1.1fr]">
 			<div>
-				<span class="inline-block rounded-full bg-apricot px-2.5 py-0.5 text-[13px] font-bold text-[#4a2a00]">Premium</span>
+				<Badge tint="lavender" strong>Premium</Badge>
 				<h2 class="mt-3 mb-0 text-[28px] leading-tight font-bold text-ink">
 					Separate writing cards, a dictionary inside every card
 				</h2>
@@ -160,7 +165,7 @@
 				src="{base}/img/shop/hsk-word-decks.jpg"
 				alt="The premium HSK card: hanzi beside its readings, meaning, breakdown and example sentences"
 				loading="lazy"
-				class="block h-auto w-full rounded-card shadow-[0_6px_24px_rgba(120,70,0,.12)]"
+				class="block h-auto w-full rounded-card shadow-[0_8px_28px_rgba(76,45,170,.16)]"
 			/>
 		</div>
 	</section>

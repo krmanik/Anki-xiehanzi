@@ -538,7 +538,10 @@
 			});
 			await sendPackage(ankiClient(), { data: blob }, {
 				onStage: (s) => (sendStage = s),
-				showDeck: openAfter ? deckName : undefined
+				showDeck: openAfter ? deckName : undefined,
+				// Anki downloads the 32 MB stroke file itself (once per collection)
+				// rather than receiving it in the package — see sendDeck.ts.
+				fetchFromUrl: { '_hanzi-writer-data.json': new URL(`${base}/data/hanzi-writer-data.json`, location.href).href }
 			});
 			rememberDeck();
 			progressbarValue = 0;

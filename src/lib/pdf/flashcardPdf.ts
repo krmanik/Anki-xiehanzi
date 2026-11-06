@@ -36,7 +36,7 @@ import {
 	type Measure,
 	type Run
 } from '$lib/hskPdf';
-import { drawCardBorder } from './pdfGrid';
+import { drawCardBorder, makeBreather } from './pdfGrid';
 import { drawStrokeGlyph, loadStrokePaths } from './strokePaths';
 
 /**
@@ -90,6 +90,12 @@ export interface FlashcardOptions {
 	cardStyle?: CardStyle;
 	/** Progressive stroke-order boxes for the `stroke-order` field (default 4). */
 	strokeOrderSteps?: number;
+	/**
+	 * Stop after this many pages (a sheet is two: front, then back) — the live
+	 * preview shows one sheet, and building every sheet of a 5,000-word list
+	 * for it froze the tab. Unset = the whole document.
+	 */
+	maxPages?: number;
 }
 
 export interface FlashcardResult {
@@ -397,8 +403,10 @@ export async function buildFlashcardPdf(
 	doc.setCreator('Anki-xiehanzi');
 	doc.setProducer('Anki-xiehanzi');
 
+	const perSheet = cols * rows;
+	const sheets = opts.maxPages && opts.maxPages > 0 ? Math.ceil(opts.maxPages / 2) : Infinity;
 	const allFields = [...new Set([...front, ...back])];
-	const cards = await loadCardData(words, allFields);
+	const cards = await loadCardData(words.slice(0, sheets * perSheet), allFields);
 
 	const unsupported = [
 		...new Set(cards.flatMap((c) => charsNeeded(c, allFields).filter((ch) => c.strokes.get(ch) === null)))
@@ -411,8 +419,9 @@ export async function buildFlashcardPdf(
 
 	const baseCtx = { latin, cjk, steps };
 
-	const perSheet = cols * rows;
+	const breathe = makeBreather();
 	for (let start = 0; start < cards.length; start += perSheet) {
+		await breathe();
 		const sheet = cards.slice(start, start + perSheet);
 
 		const frontPage = doc.addPage([A4.width, A4.height]);

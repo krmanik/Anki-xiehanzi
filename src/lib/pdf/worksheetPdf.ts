@@ -41,7 +41,7 @@ import {
 	type Measure,
 	type Script
 } from '$lib/hskPdf';
-import { drawPracticeCell, hexToColor, type PracticeGridStyle } from './pdfGrid';
+import { drawPracticeCell, hexToColor, makeBreather, type PracticeGridStyle } from './pdfGrid';
 import { drawStrokeGlyph, loadStrokePaths } from './strokePaths';
 
 export interface WorksheetOptions {
@@ -74,6 +74,12 @@ export interface WorksheetOptions {
 	 * more lines, which the existing width-based wrapping already handles.
 	 */
 	textScale?: number;
+	/**
+	 * Stop after this many pages (one per character) — the live preview shows
+	 * page 1, and building a page per character of a 5,000-word list for it
+	 * froze the tab. Unset = the whole document.
+	 */
+	maxPages?: number;
 }
 
 export interface WorksheetResult {
@@ -295,9 +301,11 @@ export async function buildWorksheetPdf(
 	};
 	const vectorWordWidth = (text: string, size: number): number => [...text].length * size;
 
+	const breathe = makeBreather();
 	const unsupported: string[] = [];
 	const contents: CharacterContent[] = [];
 	for (const ch of chars) {
+		await breathe();
 		const content = await buildCharacterContent(
 			ch,
 			showVocabulary ? vocabCount : 0,
@@ -305,6 +313,7 @@ export async function buildWorksheetPdf(
 		);
 		if (content) contents.push(content);
 		else unsupported.push(ch);
+		if (opts.maxPages && opts.maxPages > 0 && contents.length >= opts.maxPages) break;
 	}
 	if (!contents.length) {
 		throw new Error('None of these characters have stroke data available.');
@@ -332,6 +341,7 @@ export async function buildWorksheetPdf(
 	const soLineHeight = SO_BOX + SO_NUMBER_HEIGHT + SO_GAP;
 
 	for (const content of contents) {
+		await breathe();
 		const page = doc.addPage([A4.width, A4.height]);
 		let y = A4.height - MARGIN.top;
 		const headerTop = y;

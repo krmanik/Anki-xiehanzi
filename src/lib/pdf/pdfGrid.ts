@@ -107,3 +107,19 @@ export async function unrenderableChars(cjkFontBytes: ArrayBuffer, text: string)
 	}
 	return [...bad];
 }
+
+/**
+ * A `breathe()` to `await` inside a long build loop: it hands the main
+ * thread back to the browser once `budgetMs` has passed since the last time.
+ * `await` on its own never does — every builder's awaits resolve as
+ * microtasks, so a 300-page sheet ran as one 13-second task with the page
+ * frozen and the "Generating…" label never painted.
+ */
+export function makeBreather(budgetMs = 40): () => Promise<void> {
+	let last = performance.now();
+	return async () => {
+		if (performance.now() - last < budgetMs) return;
+		await new Promise<void>((resolve) => setTimeout(resolve, 0));
+		last = performance.now();
+	};
+}

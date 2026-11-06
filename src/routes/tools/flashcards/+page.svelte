@@ -213,7 +213,9 @@
 			previewLoading = true;
 			previewError = '';
 			try {
-				const result = await buildFlashcardPdf(list, opts);
+				// One sheet (front + back) is all the preview shows; building
+				// every sheet of a long list for it froze the tab.
+				const result = await buildFlashcardPdf(list, { ...opts, maxPages: 2 });
 				if (token !== previewToken || !previewCanvas) return;
 				await renderPdfPreview(result.bytes, side === 'front' ? 1 : 2, previewCanvas);
 				if (token !== previewToken) return;

@@ -433,13 +433,14 @@
 			previewLoading = true;
 			previewError = '';
 			try {
-				// The full word list, not just the first word — page 1 of the
-				// real document, so a grid/sentence sheet's preview shows every
-				// character that actually fits on that page, not one row.
+				// Page 1 of the real document — every character that fits on
+				// it, not one row — and nothing past it (`maxPages`): building
+				// the whole of a 5,000-word list to show one page froze the tab
+				// for seconds on every option change.
 				const result =
 					t === 'study'
-						? await buildWorksheetPdf(list, opts as ReturnType<typeof studyOptions>)
-						: await buildPracticeSheetPdf(list, opts as PracticeSheetOptions);
+						? await buildWorksheetPdf(list, { ...(opts as ReturnType<typeof studyOptions>), maxPages: 1 })
+						: await buildPracticeSheetPdf(list, { ...(opts as PracticeSheetOptions), maxPages: 1 });
 				if (token !== previewToken || !previewCanvas) return;
 				await renderPdfPreview(result.bytes, previewCanvas);
 				if (token !== previewToken) return;

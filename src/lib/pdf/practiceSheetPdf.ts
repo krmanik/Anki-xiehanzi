@@ -29,7 +29,7 @@ import { lookup, type Reading } from '$lib/dict/cedict';
 import { orderReadings, senses } from '$lib/dictionary';
 import { toneOfPinyin } from '$lib/tone';
 import { A4, LANDSCAPE, INK, MARGIN, TONE, HAIRLINE, loadPdfFonts, splitRuns } from '$lib/hskPdf';
-import { drawPracticeCell, hexToColor, type PracticeGridStyle } from './pdfGrid';
+import { drawPracticeCell, hexToColor, makeBreather, type PracticeGridStyle } from './pdfGrid';
 import { drawStrokeGlyph, loadStrokePaths } from './strokePaths';
 
 export type PracticeGridSize = 'small' | 'medium' | 'large';
@@ -79,6 +79,13 @@ export interface PracticeSheetOptions {
 	fillPage?: boolean;
 	/** `sentence` layout only: how many times the line repeats down the page. */
 	repeatCount?: number;
+	/**
+	 * Stop after this many pages — the live preview shows page 1 only, and
+	 * building every page of a 5,000-word list for it froze the tab for
+	 * seconds on every option change. Pages up to the limit come out exactly
+	 * as in the full document. Unset = the whole document.
+	 */
+	maxPages?: number;
 }
 
 export interface PracticeSheetResult {
@@ -165,6 +172,17 @@ async function buildWordRow(
 	return { row: { label: segments[0].strokes, tone, pinyin, meaning, segments }, missing };
 }
 
+/**
+ * The most items `maxPages` pages could hold, when every item takes at least
+ * `minItemHeight` of the page — a cap on how many are worth loading. Unset
+ * (or 0) = no cap.
+ */
+export function itemsThatFit(pageHeight: number, minItemHeight: number, maxPages?: number): number {
+	if (!maxPages || maxPages < 1) return Infinity;
+	const usable = pageHeight - MARGIN.top - MARGIN.bottom;
+	return (Math.floor(usable / Math.max(1, minItemHeight)) + 1) * maxPages;
+}
+
 function uniqueChars(words: string[]): string[] {
 	const seen = new Set<string>();
 	for (const word of words) for (const ch of word) if (!/\s/.test(ch)) seen.add(ch);
@@ -198,8 +216,8 @@ async function buildSentencePracticeSheet(
 	const repeatCount = Math.max(1, opts.repeatCount ?? 3);
 
 	const text = words.join('');
-	const chars = [...text].filter((ch) => !/\s/.test(ch));
-	if (!chars.length) throw new Error('Add some text to practice.');
+	const allChars = [...text].filter((ch) => !/\s/.test(ch));
+	if (!allChars.length) throw new Error('Add some text to practice.');
 
 	const fontBytes = await loadPdfFonts();
 	const doc = await PDFDocument.create();
@@ -213,11 +231,14 @@ async function buildSentencePracticeSheet(
 	const boxesPerRow = Math.max(1, Math.floor((contentWidth + GAP) / (boxSize + GAP)));
 	const phoneticsHeight = phonetics === 'none' ? 0 : 13;
 	const rowHeight = boxSize + phoneticsHeight;
+	const chars = allChars.slice(0, itemsThatFit(paper.height, rowHeight, opts.maxPages) * boxesPerRow);
 
 	const unsupported: string[] = [];
 	const glyphs: { ch: string; strokes: string[] | null; pinyin: string; tone: number }[] = [];
 	const seen = new Map<string, { pinyin: string; tone: number; strokes: string[] | null }>();
+	const breathe = makeBreather();
 	for (const ch of chars) {
+		await breathe();
 		if (!seen.has(ch)) {
 			const strokes = await loadStrokePaths(ch);
 			if (!strokes || !strokes.length) unsupported.push(ch);
@@ -239,10 +260,15 @@ async function buildSentencePracticeSheet(
 		y = paper.height - MARGIN.top;
 	};
 
-	for (let rep = 0; rep < repeatCount; rep++) {
+	const maxPages = opts.maxPages && opts.maxPages > 0 ? opts.maxPages : Infinity;
+	lines: for (let rep = 0; rep < repeatCount; rep++) {
 		const isModel = rep === 0;
 		for (let i = 0; i < glyphs.length; i += boxesPerRow) {
-			if (y - rowHeight < MARGIN.bottom) newPage();
+			await breathe();
+			if (y - rowHeight < MARGIN.bottom) {
+				if (doc.getPageCount() >= maxPages) break lines;
+				newPage();
+			}
 			const rowGlyphs = glyphs.slice(i, i + boxesPerRow);
 			let by = y;
 			if (phonetics === 'above') {
@@ -368,10 +394,17 @@ export async function buildPracticeSheetPdf(
 	const rowStartX = MARGIN.x + labelWidth + LABEL_GAP;
 	const boxesPerRow = Math.max(1, Math.floor((contentWidth - labelWidth - LABEL_GAP + GAP) / (boxSize + GAP)));
 
+	// Every row is at least its label glyph tall, so this many items are
+	// all `maxPages` pages could ever show.
+	const cap = itemsThatFit(paper.height, labelWidth + ROW_GAP, opts.maxPages);
+	const maxPages = opts.maxPages && opts.maxPages > 0 ? opts.maxPages : Infinity;
+
+	const breathe = makeBreather();
 	const unsupported: string[] = [];
 	const rows: RowContent[] = [];
 	if (unit === 'word') {
-		for (const word of uniqueWords(words)) {
+		for (const word of uniqueWords(words).slice(0, cap)) {
+			await breathe();
 			const result = await buildWordRow(word, showMeaning);
 			if (result) {
 				rows.push(result.row);
@@ -381,7 +414,8 @@ export async function buildPracticeSheetPdf(
 			}
 		}
 	} else {
-		for (const ch of uniqueChars(words)) {
+		for (const ch of uniqueChars(words).slice(0, cap)) {
+			await breathe();
 			const content = await buildCharRow(ch, showMeaning);
 			if (content) rows.push(content);
 			else unsupported.push(ch);
@@ -407,6 +441,7 @@ export async function buildPracticeSheetPdf(
 	}
 
 	for (const row of rows) {
+		await breathe();
 		const rowHintColor = hexToColor(opts.hintColor, toneColors ? (TONE[row.tone] ?? INK) : INK);
 		const pinyinColor = toneColors ? (TONE[row.tone] ?? INK) : INK;
 		const colorFor = (tone: number | undefined, base: 'hint' | 'trace') => {
@@ -461,7 +496,10 @@ export async function buildPracticeSheetPdf(
 		const naturalRowHeight =
 			Math.max(labelWidth, naturalBoxRows * (boxSize + GAP) - GAP) + soHeight + phoneticsHeight + ROW_GAP;
 
-		if (y - naturalRowHeight < MARGIN.bottom) newPage();
+		if (y - naturalRowHeight < MARGIN.bottom) {
+			if (doc.getPageCount() >= maxPages) break;
+			newPage();
+		}
 
 		const rowTop = y;
 

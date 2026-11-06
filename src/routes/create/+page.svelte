@@ -20,6 +20,7 @@
 	import { sendPackage, SEND_STAGE_TEXT, type SendStage } from '$lib/anki/sendDeck';
 	import { deckQuery } from '$lib/anki/sendTarget';
 	import SendToAnkiModal from '$lib/components/SendToAnkiModal.svelte';
+	import AnkiSetupLink from '$lib/components/AnkiSetupLink.svelte';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
 	import SquarePlus from '@lucide/svelte/icons/square-plus';
 	import Plus from '@lucide/svelte/icons/plus';
@@ -766,6 +767,7 @@
 									: sendStage === 'done'
 										? `In Anki now: “${deckName}”.`
 										: SEND_STAGE_TEXT[sendStage]}
+							{#if sendStage === 'error'}<AnkiSetupLink />{/if}
 						</p>
 					{/if}
 					{#if isGenerating || progressbarValue > 0}

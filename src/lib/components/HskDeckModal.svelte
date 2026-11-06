@@ -25,6 +25,7 @@
 	import { deckQuery } from '$lib/anki/sendTarget';
 	import SendToAnkiModal from './SendToAnkiModal.svelte';
 	import UpdateDesignModal from './UpdateDesignModal.svelte';
+	import AnkiSetupLink from './AnkiSetupLink.svelte';
 	import type { WantedModel } from '$lib/anki/designSync';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
 
@@ -216,6 +217,7 @@
 					role="status"
 				>
 					{sendText}
+					{#if sendStage === 'error'}<AnkiSetupLink />{/if}
 				</p>
 			{/if}
 			<div class="mt-4 flex flex-wrap items-center justify-end gap-2">

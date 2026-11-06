@@ -10,6 +10,7 @@
 		{ href: `${base}/docs`, slug: '/docs', label: 'Introduction' },
 		{ href: `${base}/docs/features`, slug: '/docs/features', label: 'Features' },
 		{ href: `${base}/docs/export-deck`, slug: '/docs/export-deck', label: 'Export a Deck' },
+		{ href: `${base}/docs/send-to-anki`, slug: '/docs/send-to-anki', label: 'Send to Anki' },
 		{ href: `${base}/docs/studying`, slug: '/docs/studying', label: 'Studying cards' },
 		{ href: `${base}/docs/faq`, slug: '/docs/faq', label: 'FAQ' },
 		{ href: `${base}/docs/contributing`, slug: '/docs/contributing', label: 'Contributing' }

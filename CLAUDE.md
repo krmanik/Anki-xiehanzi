@@ -155,8 +155,10 @@ A separate, much lighter stack from the deck generator — it must never pull th
   The released decks' four note types + four subdecks per level (`HSK 1::Audio`,
   `::Meaning`, `::Pinyin`, `::Write`) are gone: they quadrupled the notes and the
   deck tree for the same words, and per-level `.apkg` files are gone with them.
-  Card layout is `scripts/lib/deck-layout.mjs`, so the builder and any preview
-  script describe the same deck.
+  Card layout is `src/lib/hskDeckLayout.ts` (re-exported by
+  `scripts/lib/deck-layout.mjs`), so the builder, any preview script and the
+  site's "update card design" describe the same deck; `hskDeckModel()` is the
+  note type it builds, via the pure `deckModelProps()` in `deckTemplate.ts`.
   **The card is the app's own design** (`deck.ts` → `deckTemplate.ts` +
   `CONSTANTS.DECK_CSS`) — the `char-card` hanzi, the `modal-footer1` control bar,
   the sidebar of field switches, i.e. what `/create` exports and what the
@@ -270,6 +272,26 @@ A separate, much lighter stack from the deck generator — it must never pull th
   the collection is **updated where it is** (cards keep their deck and
   reviews) and only new words land in the chosen deck. Pure half:
   `src/lib/anki/sendTarget.ts`.
+
+- **Update card design** (`src/lib/anki/designSync.ts`, `UpdateDesignModal`;
+  "Already have it? Update its card design" in `HskDeckModal`, desktop only).
+  Re-importing does not fix an old design: Anki's importer refreshes a note
+  type only when field *and* card names match exactly, otherwise it adds a
+  renamed copy and leaves the existing notes on the old one. So this reads the
+  installed note type **by id** (`findModelsById`, so a renamed one is found)
+  and pushes into it, addressing every later call by the installed *name*
+  (the add-on's model actions look up by name): helper files first
+  (`storeMediaFile` — icon font, logos, persistence, writer engine), missing
+  fields appended (`modelFieldAdd`, never removed or renamed), the fronts and
+  backs of card types both sides share (`updateModelTemplates`), then the CSS.
+  Card types the design adds are **left out** (adding one makes new cards to
+  review). **A note type holding a card the design doesn't know is refused**
+  — the CSS is one sheet per note type, so it would restyle that card too;
+  on the user's real collection the no-audio type held a `/create` deck's
+  "Standard" card. The confirm step names the note type, its note count and
+  decks, and says notes and reviews are kept, hand edits replaced. Dry-run
+  read-only against a real collection; the write path is tested against a
+  fake add-on only.
 
 ## Dictionary (`/dictionary`)
 

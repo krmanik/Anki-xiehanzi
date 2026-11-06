@@ -41,6 +41,9 @@ import { frequencyBand, hskLevelLabel, hskLevels } from './dict/meta';
 import { colorizeSentenceHanzi, colorizePinyinString } from './tone';
 import {
 	buildNoteTemplates,
+	deckModelProps,
+	deckDataMedia,
+	DECK_IMG_MEDIA,
 	fieldUsedByAnyCard,
 	formatDefinition,
 	CARD_STYLE_LS_KEY,
@@ -683,26 +686,19 @@ export async function buildDeckPackage(opts: GenerateDeckOptions): Promise<any> 
 
 	onProgress(0);
 
-	// One note type carrying every card type. Its two ids are what every existing
-	// deck was built with, so a rebuild re-imports onto the same note type.
-	const name = includeAudio ? 'Basic - (Anki-xiehanzi)' : 'Basic - (Anki-xiehanzi) - No Audio';
-	const built = buildNoteTemplates({
+	// One note type carrying every card type, on one of the two ids every
+	// existing deck was built with (`DECK_MODELS`).
+	const spec = deckModelProps({
 		fields,
 		order: opts.order,
 		tabContent,
 		includeAudio,
 		template
 	});
-	const model = new Model({
-		name,
-		id: includeAudio ? '1969669503' : '1969669504',
-		flds: built.flds,
-		css: CONSTANTS.DECK_CSS + built.css,
-		req: built.req,
-		tmpls: built.tmpls
-	});
+	const model = new Model(spec.model);
+	const built = spec.model;
 
-	const usesWriter = built.usesWriter;
+	const usesWriter = spec.usesWriter;
 
 	// One deck unless the caller splits the words up (the offline builder puts a
 	// whole word list in one .apkg, one subdeck per HSK level).
@@ -768,24 +764,12 @@ export async function buildDeckPackage(opts: GenerateDeckOptions): Promise<any> 
 	if (decks.size === 0) deckFor(deckName);
 	for (const deck of decks.values()) p.addDeck(deck);
 
-	// Image/font media live in /img.
-	const mediaFiles = [
-		'_MaterialIcons-Regular.woff2',
-		'_characterpop.svg',
-		'_hanzicraft.png',
-		'_pleco.png',
-		'_rtega.png',
-		'_youdao.png',
-		'_tatoeba.png'
-	];
-
-	// Script media live in /data. Persistence ships with every deck; the writer
-	// engine + its stroke data only when a card uses the writing component.
-	// anki-tts (sentence audio) is loaded from its own CDN instead — see
-	// ANKI_TTS_SCRIPT in dict/contants.ts.
-	const dataFiles = ['_anki-persistence.js'];
+	// Image/font media live in /img, scripts in /data (`DECK_IMG_MEDIA`,
+	// `deckDataMedia`). anki-tts (sentence audio) is loaded from its own CDN
+	// instead — see ANKI_TTS_SCRIPT in dict/contants.ts.
+	const mediaFiles = [...DECK_IMG_MEDIA];
+	const dataFiles = deckDataMedia(usesWriter);
 	if (usesWriter) {
-		dataFiles.push('_hanzi-writer.min.js');
 		try {
 			const dataJson = await buildHanziData(
 				opts.subsetStrokes

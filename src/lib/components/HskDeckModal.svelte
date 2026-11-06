@@ -23,6 +23,8 @@
 	import { sendPackage, SEND_STAGE_TEXT, type SendStage } from '$lib/anki/sendDeck';
 	import { loadSendPrefs } from '$lib/anki/sendTarget';
 	import SendToAnkiModal from './SendToAnkiModal.svelte';
+	import UpdateDesignModal from './UpdateDesignModal.svelte';
+	import type { WantedModel } from '$lib/anki/designSync';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
 
 	let {
@@ -108,6 +110,29 @@
 						: SEND_STAGE_TEXT[sendStage]
 	);
 
+	// Update card design: for a reader who already has the deck, push the
+	// current design into its note type instead of a 30–57 MB re-download. The
+	// design is built here, from the same layout the release builder uses —
+	// imported lazily, so /hsk does not carry the template builder.
+	let design = $state<{ wanted: WantedModel; media: { name: string; url: string }[]; strokes: boolean } | null>(
+		null
+	);
+	async function openDesign() {
+		const [{ hskDeckModel }, { DECK_IMG_MEDIA, deckDataMedia }] = await Promise.all([
+			import('$lib/hskDeckLayout'),
+			import('$lib/deckTemplate')
+		]);
+		const { model, usesWriter } = hskDeckModel({ audio: manifest.options.audio, examples: manifest.options.examples });
+		design = {
+			wanted: model,
+			media: [
+				...DECK_IMG_MEDIA.map((name) => ({ name, url: `/img/${name}` })),
+				...deckDataMedia(usesWriter).map((name) => ({ name, url: `/data/${name}` }))
+			],
+			strokes: usesWriter
+		};
+	}
+
 	// The comparison. `free` is what the download button actually delivers.
 	const rows = $derived([
 		{ label: `Every ${list.name} word (${list.total.toLocaleString()}), one file`, free: true },
@@ -136,7 +161,7 @@
 	const steps = $derived(sent ? allSteps.slice(1) : allSteps);
 </script>
 
-<svelte:window onkeydown={(e) => e.key === 'Escape' && !showSend && onClose()} />
+<svelte:window onkeydown={(e) => e.key === 'Escape' && !showSend && !design && onClose()} />
 
 <div
 	class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-5"
@@ -245,6 +270,13 @@
 					<Sparkles class="size-[18px]" />See Premium
 				</Button>
 			</div>
+			<p class="mt-3 mb-0 hidden text-right text-sm sm:block">
+				<button
+					type="button"
+					class="border-0 bg-transparent p-0 font-semibold text-accent hover:underline"
+					onclick={openDesign}>Already have it? Update its card design</button
+				>
+			</p>
 		{:else}
 			<ol class="mt-5 mb-0 grid list-none gap-3 p-0">
 				{#each steps as s, i (s.title)}
@@ -316,5 +348,14 @@
 			void sendToAnki(prefs.openAfter);
 		}}
 		onclose={() => (showSend = false)}
+	/>
+{/if}
+
+{#if design}
+	<UpdateDesignModal
+		wanted={design.wanted}
+		media={design.media}
+		needsStrokeData={design.strokes}
+		onclose={() => (design = null)}
 	/>
 {/if}

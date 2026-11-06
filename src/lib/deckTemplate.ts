@@ -1162,3 +1162,67 @@ for (var _hide of hideList) {
 	const css = buildGlobalCss(template) + cardCss;
 	return { flds, req, tmpls, css, usesWriter };
 }
+
+// ---------------------------------------------------------------------------
+// The note type as a whole — what `deck.ts` packages, and what "update
+// card design" pushes into a collection that already holds it.
+// ---------------------------------------------------------------------------
+
+/**
+ * The two note types every deck the app builds lands on, one per audio choice.
+ * Their ids are what every existing deck was built with, so a rebuild — or a
+ * design update — reaches the same note type.
+ */
+export const DECK_MODELS = {
+	audio: { id: '1969669503', name: 'Basic - (Anki-xiehanzi)' },
+	noAudio: { id: '1969669504', name: 'Basic - (Anki-xiehanzi) - No Audio' }
+} as const;
+
+/** Card chrome under `static/img/`: the icon font and the dictionary logos. */
+export const DECK_IMG_MEDIA = [
+	'_MaterialIcons-Regular.woff2',
+	'_characterpop.svg',
+	'_hanzicraft.png',
+	'_pleco.png',
+	'_rtega.png',
+	'_youdao.png',
+	'_tatoeba.png'
+] as const;
+
+/**
+ * Scripts under `static/data/` the templates load. Persistence ships with
+ * every deck; the writer engine only when a card uses the writing component
+ * (its stroke data, `_hanzi-writer-data.json`, is built per deck in `deck.ts`).
+ */
+export function deckDataMedia(usesWriter: boolean): string[] {
+	return usesWriter ? ['_anki-persistence.js', '_hanzi-writer.min.js'] : ['_anki-persistence.js'];
+}
+
+export interface DeckModelProps {
+	name: string;
+	id: string;
+	flds: { name: string }[];
+	css: string;
+	req: any[];
+	tmpls: { name: string; qfmt: string; afmt: string }[];
+}
+
+/** The genanki `Model` props for a deck, plus whether its cards use the writer. */
+export function deckModelProps(opts: Parameters<typeof buildNoteTemplates>[0]): {
+	model: DeckModelProps;
+	usesWriter: boolean;
+} {
+	const built = buildNoteTemplates(opts);
+	const m = opts.includeAudio ? DECK_MODELS.audio : DECK_MODELS.noAudio;
+	return {
+		model: {
+			name: m.name,
+			id: m.id,
+			flds: built.flds,
+			css: CONSTANTS.DECK_CSS + built.css,
+			req: built.req,
+			tmpls: built.tmpls
+		},
+		usesWriter: built.usesWriter
+	};
+}

@@ -19,8 +19,8 @@ describe('SendToAnkiModal', () => {
 		await user.click(screen.getByText('Settings'));
 		await user.click(screen.getByRole('switch', { name: /Open it in Anki/ }));
 		await user.click(screen.getByRole('button', { name: 'Create and send' }));
-		expect(onsend).toHaveBeenCalledWith('Lesson 3', { ask: true, openAfter: false });
-		expect(JSON.parse(localStorage.getItem('xhz.anki.send')!)).toEqual({ ask: true, openAfter: false });
+		expect(onsend).toHaveBeenCalledWith('Lesson 3', { openAfter: false });
+		expect(JSON.parse(localStorage.getItem('xhz.anki.send')!)).toEqual({ openAfter: false });
 	});
 
 	it('typing a name Anki already has sends to that deck', async () => {
@@ -31,7 +31,7 @@ describe('SendToAnkiModal', () => {
 		await user.clear(input);
 		await user.type(input, 'boya');
 		expect(screen.getByText(/Adds new words to “Boya”/)).toBeInTheDocument();
-		await user.click(screen.getByRole('button', { name: 'Send' }));
+		await user.click(screen.getByRole('button', { name: 'Confirm and send' }));
 		expect(onsend).toHaveBeenCalledWith('Boya', expect.anything());
 	});
 
@@ -42,8 +42,29 @@ describe('SendToAnkiModal', () => {
 		expect(await screen.findByText('Anki xiehanzi › New HSK (2025)')).toBeInTheDocument();
 		expect(screen.getByText(/Already in your Anki: updates it in place/)).toBeInTheDocument();
 		expect(screen.queryByRole('radio')).toBeNull();
-		await user.click(screen.getByRole('button', { name: 'Send' }));
+		await user.click(screen.getByRole('button', { name: 'Confirm and send' }));
 		expect(onsend).toHaveBeenCalledWith('Anki xiehanzi::New HSK (2025)', expect.anything());
+	});
+
+	it('checks the chosen deck and warns it may overwrite before the confirm', async () => {
+		const onsend = vi.fn();
+		const countNotes = vi.fn(async (deck: string) => (deck === 'Boya' ? 340 : 0));
+		const user = userEvent.setup();
+		render(SendToAnkiModal, { deckName: 'Boya', loadDecks: decks, countNotes, onsend, onclose: () => {} });
+		expect(await screen.findByText('“Boya” already holds 340 notes.')).toBeInTheDocument();
+		expect(countNotes).toHaveBeenCalledWith('Boya');
+		expect(screen.getByRole('note')).toHaveTextContent(/May overwrite\..*edits you made to them are lost.*Reviews and progress are kept/);
+		expect(onsend).not.toHaveBeenCalled();
+		await user.click(screen.getByRole('button', { name: 'Confirm and send' }));
+		expect(onsend).toHaveBeenCalledWith('Boya', { openAfter: true });
+	});
+
+	it('has no setting to skip the check', async () => {
+		const user = userEvent.setup();
+		render(SendToAnkiModal, { deckName: 'x', loadDecks: decks, onsend: () => {}, onclose: () => {} });
+		await screen.findByLabelText('New deck name');
+		await user.click(screen.getByText('Settings'));
+		expect(screen.queryByRole('switch', { name: /Ask every time/ })).toBeNull();
 	});
 
 	it('shows why Anki could not be reached, with a retry', async () => {

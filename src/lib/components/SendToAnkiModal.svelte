@@ -1,6 +1,8 @@
 <!--
-  Where a send lands, and the send settings. Opens on Send (unless "Ask every
-  time" is off) and from the settings button beside it. The deck list comes
+  Where a send lands, and the send settings. Opens on every Send — there is no
+  way to skip it, because a send can overwrite notes already in Anki — and from
+  the settings button beside it. It checks the chosen deck (`countNotes`), says
+  what may be overwritten, and sends only on the confirm button. The deck list comes
   from Anki itself (`deckNames`), so the reader picks a deck they can see in
   Anki or names a new one. `fixed`: a prebuilt deck whose name is inside the
   file — nothing to pick, the modal only says where it goes and whether it is
@@ -13,7 +15,9 @@
 		deckLabel,
 		filterDecks,
 		findDeck,
+		heldNote,
 		loadSendPrefs,
+		OVERWRITE_WARNING,
 		resolveTarget,
 		saveSendPrefs,
 		sortDecks,
@@ -26,12 +30,14 @@
 	import X from '@lucide/svelte/icons/x';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Layers from '@lucide/svelte/icons/layers';
+	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 
 	let {
 		deckName,
 		subtitle = '',
 		fixed = false,
 		loadDecks,
+		countNotes,
 		onsend,
 		onclose
 	}: {
@@ -40,6 +46,8 @@
 		subtitle?: string;
 		fixed?: boolean;
 		loadDecks: () => Promise<string[]>;
+		/** Notes in a deck already in Anki — the check shown before confirming. */
+		countNotes?: (deck: string) => Promise<number>;
 		onsend: (name: string, prefs: SendPrefs) => void;
 		onclose: () => void;
 	} = $props();
@@ -80,6 +88,24 @@
 			: targetNote(resolved)
 	);
 	const canSend = $derived(!!names && !!resolved.name);
+	/** The deck Anki already has that this send goes into, if any. */
+	const into = $derived(
+		!names ? null : fixed ? (findDeck(names, deckName) ?? null) : resolved.kind === 'existing' ? resolved.name : null
+	);
+
+	// What that deck holds now, looked up whenever the choice settles on it.
+	let held = $state<{ name: string; count: number } | null>(null);
+	let checkSeq = 0;
+	$effect(() => {
+		const name = into;
+		const seq = ++checkSeq;
+		held = null;
+		if (!name || !countNotes) return;
+		countNotes(name).then(
+			(count) => seq === checkSeq && (held = { name, count }),
+			() => {}
+		);
+	});
 
 	function send() {
 		if (!canSend) return;
@@ -200,18 +226,20 @@
 			{#if note}
 				<p class="mt-3 mb-0 text-[13.5px] text-muted">{note}</p>
 			{/if}
+			{#if held && held.name === into}
+				<p class="mt-1 mb-0 text-[13.5px] font-semibold text-ink">{heldNote(held.name, held.count)}</p>
+			{/if}
+			{#if names}
+				<p class="mt-3 mb-0 flex gap-2.5 rounded-card bg-apricot-soft px-4 py-3 text-[14px] text-apricot-ink" role="note">
+					<TriangleAlert class="mt-0.5 size-[18px] shrink-0" />
+					<span><strong>May overwrite.</strong> {OVERWRITE_WARNING}</span>
+				</p>
+			{/if}
 
-			<details class="group mt-4 border-t border-line pt-2" open={!prefs.ask}>
+			<details class="group mt-4 border-t border-line pt-2">
 				<summary class="cursor-pointer py-2 text-[15px] font-semibold text-ink">Settings</summary>
 				<div class="divide-y divide-line">
 					<Switch bind:checked={prefs.openAfter} label="Open it in Anki" hint="Show the deck once it is in" />
-					{#if !fixed}
-						<Switch
-							bind:checked={prefs.ask}
-							label="Ask every time"
-							hint="Off: Send goes straight to the deck name on the page"
-						/>
-					{/if}
 				</div>
 			</details>
 		</div>
@@ -219,7 +247,7 @@
 		<div class="flex flex-wrap items-center justify-end gap-2 border-t border-line px-5 py-4 sm:px-7">
 			<Button variant="secondary" onclick={onclose}>Cancel</Button>
 			<Button onclick={send} disabled={!canSend}>
-				<Send class="size-[18px]" />{resolved.kind === 'existing' || fixed ? 'Send' : 'Create and send'}
+				<Send class="size-[18px]" />{into ? 'Confirm and send' : 'Create and send'}
 			</Button>
 		</div>
 	</div>

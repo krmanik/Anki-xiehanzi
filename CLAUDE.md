@@ -267,9 +267,13 @@ A separate, much lighter stack from the deck generator — it must never pull th
   save to another deck"). Send opens `SendToAnkiModal`: Anki's own
   `deckNames`, or a new deck by name (pre-filled with the page's name; a name
   Anki already has resolves to that deck, case-insensitively, and the note
-  says so). The page's deck name becomes the chosen deck. A gear button beside
-  Send always opens it; its Settings hold "Open it in Anki" and "Ask every
-  time" (`xhz.anki.send`; off → Send goes straight to the page's name). The
+  says so). The page's deck name becomes the chosen deck. **Every Send opens
+  it — there is no way to skip it** (user ask, 2026-11-06: confirm the deck and
+  say it may overwrite): it counts the notes the chosen deck already holds
+  (`countNotes` → `findNotes` on `deckQuery`), shows the apricot "May
+  overwrite" note (`OVERWRITE_WARNING`), and sends only on "Confirm and send"
+  (existing deck) / "Create and send" (new). Its Settings hold only "Open it
+  in Anki" (`xhz.anki.send`; an old stored `ask: false` is ignored). The
   HSK modal uses it `fixed`: the deck name is inside the release file, so it
   only says where it goes and whether it is already there. The copy states
   what a send really does: note GUIDs are model + word, so a word already in

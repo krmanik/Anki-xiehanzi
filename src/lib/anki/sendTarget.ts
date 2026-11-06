@@ -10,14 +10,18 @@
  * chosen by giving the package that deck's name.
  */
 
+/**
+ * There is deliberately no "skip the picker" setting: a send can overwrite
+ * notes already in the collection, so every Send shows the deck and the
+ * warning and waits for a confirm (user ask, 2026-11-06). An `ask` key stored
+ * by an earlier build is ignored.
+ */
 export interface SendPrefs {
-	/** Show the deck picker on every Send. Off: Send goes straight to the deck name on the page. */
-	ask: boolean;
 	/** Bring Anki to the deck once it is in. */
 	openAfter: boolean;
 }
 
-export const DEFAULT_SEND_PREFS: SendPrefs = { ask: true, openAfter: true };
+export const DEFAULT_SEND_PREFS: SendPrefs = { openAfter: true };
 export const SEND_PREFS_KEY = 'xhz.anki.send';
 
 export type Target = { kind: 'new' | 'existing'; name: string };
@@ -80,10 +84,32 @@ export function targetNote(t: Target): string | null {
 		: `Makes a new deck “${deckLabel(t.name)}”. Words already in Anki are updated where they are, not added twice.`;
 }
 
+/**
+ * What a send can overwrite, said before it happens. The package goes through
+ * Anki's importer, and a note whose GUID (note type + word) is already in the
+ * collection — in any deck — takes the incoming fields, and the note type takes
+ * the incoming card design when the file's is newer. Edits made in Anki to those
+ * notes or to the card design are lost; scheduling is not part of a note, so
+ * reviews stay.
+ */
+export const OVERWRITE_WARNING =
+	'Words already in your Anki, in any deck, are overwritten with this version: their fields and card design are replaced, and edits you made to them are lost. Reviews and progress are kept.';
+
+/** An Anki search for every note in a deck (and its subdecks), the name taken literally. */
+export function deckQuery(name: string): string {
+	return `deck:"${name.replace(/[\\"*_]/g, (c) => '\\' + c)}"`;
+}
+
+/** One line on what the chosen deck holds now. */
+export function heldNote(name: string, count: number): string {
+	return count
+		? `“${deckLabel(name)}” already holds ${count.toLocaleString('en')} note${count === 1 ? '' : 's'}.`
+		: `“${deckLabel(name)}” is in Anki and empty.`;
+}
+
 export function parseSendPrefs(raw: unknown): SendPrefs {
 	const o = raw && typeof raw === 'object' ? (raw as Partial<SendPrefs>) : {};
 	return {
-		ask: typeof o.ask === 'boolean' ? o.ask : DEFAULT_SEND_PREFS.ask,
 		openAfter: typeof o.openAfter === 'boolean' ? o.openAfter : DEFAULT_SEND_PREFS.openAfter
 	};
 }

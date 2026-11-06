@@ -22,7 +22,7 @@
 	import Send from '@lucide/svelte/icons/send';
 	import { anki, ankiClient, checkAnki, probeAnki, ANKI_STATUS_TEXT } from '$lib/anki/ankiStatus.svelte';
 	import { sendPackage, SEND_STAGE_TEXT, type SendStage } from '$lib/anki/sendDeck';
-	import { loadSendPrefs } from '$lib/anki/sendTarget';
+	import { deckQuery } from '$lib/anki/sendTarget';
 	import SendToAnkiModal from './SendToAnkiModal.svelte';
 	import UpdateDesignModal from './UpdateDesignModal.svelte';
 	import type { WantedModel } from '$lib/anki/designSync';
@@ -53,8 +53,8 @@
 	});
 
 	// Send to Anki: Anki downloads the release asset itself (`storeMediaFile`
-	// with a url), so the 30–57 MB never passes through the page. One click:
-	// connect, send, and Anki opens the deck.
+	// with a url), so the 30–57 MB never passes through the page. Send opens the
+	// deck check first; its confirm connects, sends, and Anki opens the deck.
 	let sendStage = $state<'idle' | 'connecting' | SendStage | 'error'>('idle');
 	let sendError = $state('');
 	let sent = $state(false);
@@ -62,10 +62,14 @@
 	/** The deck name inside the release file — what Anki will call it. */
 	const ankiDeck = $derived(`Anki xiehanzi::${list.name} (${list.year})`);
 	let showSend = $state(false);
+	// Send never writes straight away: it always opens the deck check, which
+	// says what may be overwritten and waits for a confirm.
 	function pressSend() {
-		const prefs = loadSendPrefs();
-		if (prefs.ask) showSend = true;
-		else void sendToAnki(prefs.openAfter);
+		showSend = true;
+	}
+	/** How many notes a deck already holds, for the check before confirming. */
+	async function countAnkiNotes(deck: string): Promise<number> {
+		return (await ankiClient().call<number[]>('findNotes', { query: deckQuery(deck) })).length;
 	}
 	async function loadAnkiDecks(): Promise<string[]> {
 		const status = anki.status === 'ready' ? 'ready' : await checkAnki();
@@ -342,6 +346,7 @@
 		deckName={ankiDeck}
 		subtitle="{deck.words.toLocaleString()} words · Anki downloads {formatBytes(deck.bytes)}"
 		loadDecks={loadAnkiDecks}
+			countNotes={countAnkiNotes}
 		onsend={(_, prefs) => {
 			showSend = false;
 			void sendToAnki(prefs.openAfter);

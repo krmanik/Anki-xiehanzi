@@ -18,7 +18,7 @@
 	import Send from '@lucide/svelte/icons/send';
 	import { anki, ankiClient, checkAnki, probeAnki, ANKI_STATUS_TEXT } from '$lib/anki/ankiStatus.svelte';
 	import { sendPackage, SEND_STAGE_TEXT, type SendStage } from '$lib/anki/sendDeck';
-	import { loadSendPrefs } from '$lib/anki/sendTarget';
+	import { deckQuery } from '$lib/anki/sendTarget';
 	import SendToAnkiModal from '$lib/components/SendToAnkiModal.svelte';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
 	import SquarePlus from '@lucide/svelte/icons/square-plus';
@@ -480,18 +480,20 @@
 	let sendError = $state('');
 	const sending = $derived(['connecting', 'building', 'storing', 'importing', 'cleaning'].includes(sendStage));
 	// Anki already answered (this visit, or a quiet check because this browser
-	// has connected before): Send is the one-click path, so it gets the filled button.
+	// has connected before): Send is the quick path, so it gets the filled button.
 	const sendFirst = $derived(anki.status === 'ready');
 	$effect(() => {
 		if (step === 3) probeAnki();
 	});
-	// Send asks where the deck goes (unless the reader switched that off); the
-	// settings button beside it always asks.
 	let showSend = $state(false);
+	// Send never writes straight away: it always opens the deck check, which
+	// says what may be overwritten and waits for a confirm.
 	function pressSend() {
-		const prefs = loadSendPrefs();
-		if (prefs.ask) showSend = true;
-		else void doSendToAnki(prefs.openAfter);
+		showSend = true;
+	}
+	/** How many notes a deck already holds, for the check before confirming. */
+	async function countAnkiNotes(deck: string): Promise<number> {
+		return (await ankiClient().call<number[]>('findNotes', { query: deckQuery(deck) })).length;
 	}
 	/** Connect (prompts on a first visit), then Anki's own deck list. */
 	async function loadAnkiDecks(): Promise<string[]> {
@@ -868,6 +870,7 @@
 			{deckName}
 			subtitle="{words.length.toLocaleString()} word{words.length === 1 ? '' : 's'}"
 			loadDecks={loadAnkiDecks}
+			countNotes={countAnkiNotes}
 			onsend={(name, prefs) => {
 				showSend = false;
 				deckName = name;

@@ -1,1 +1,0 @@
-import{f as e,m as t}from"./BPFFlQat.js";var n=e(`primary`,`sm`),r=e(`secondary`,`sm`);t(e(`secondary`,`sm`),`bg-rose-soft text-rose-ink ring-0 hover:bg-rose-soft hover:brightness-95`);export{r as n,n as t};

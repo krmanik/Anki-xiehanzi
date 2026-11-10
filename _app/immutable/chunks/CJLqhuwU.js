@@ -1,1 +1,0 @@
-import{c as e,s as t}from"./BwlOBz9E.js";import"./xihTtKlq.js";import{t as n}from"./CES-AjNU.js";var r=new Set([`$$slots`,`$$events`,`$$legacy`]);function i(i,a){let o=t(a,r),s=[[`path`,{d:`M7 7h10v10`}],[`path`,{d:`M7 17 17 7`}]];n(i,e({name:`arrow-up-right`},()=>o,{get iconNode(){return s}}))}export{i as t};

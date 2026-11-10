@@ -14,14 +14,13 @@
 	import Menu from '@lucide/svelte/icons/menu';
 	import X from '@lucide/svelte/icons/x';
 	import ShareModal from '$lib/components/ShareModal.svelte';
-	import AccountMenu from '$lib/components/shell/AccountMenu.svelte';
+	import HeaderLinks from '$lib/components/shell/HeaderLinks.svelte';
 	import Logo from '$lib/components/shell/Logo.svelte';
 	import NavMenu from '$lib/components/shell/NavMenu.svelte';
 	import NavDropdown from '$lib/components/shell/NavDropdown.svelte';
 	import SiteFooter from '$lib/components/shell/SiteFooter.svelte';
 	import { initSharePrefs, popupHidden } from '$lib/share.svelte';
 	import { initTheme } from '$lib/theme.svelte';
-	import { account } from '$lib/accountStore.svelte';
 	import { isActive, SHOP, stripBase, TOPBAR, withBase } from '$lib/nav';
 
 	let { children } = $props();
@@ -42,9 +41,6 @@
 		// export-success popup with "Do not show again".
 		initSharePrefs();
 		initTheme();
-		// The header's account menu needs the login on every page. Guarded, so
-		// pages that call it too are fine.
-		account.init();
 	});
 
 	afterNavigate(() => (drawerOpen = false));
@@ -122,7 +118,7 @@
 			>
 		</nav>
 		<div class="ml-auto flex items-center lg:ml-1">
-			<AccountMenu {current} buttonClass={iconButton} {showThemeToggle} />
+			<HeaderLinks buttonClass={iconButton} {showThemeToggle} />
 		</div>
 	</div>
 </header>

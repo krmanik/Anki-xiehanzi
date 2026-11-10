@@ -28,24 +28,16 @@
 	import { Badge, buttonClass, PANEL } from '$lib/ui';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-	import Check from '@lucide/svelte/icons/check';
-	import Download from '@lucide/svelte/icons/download';
 	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
 
 	let {
 		manifest,
 		product,
-		onDetails,
-		owned = false,
-		onBuy
+		onDetails
 	}: {
 		manifest: ShopManifest;
 		product: ShopProduct;
 		onDetails: (product: ShopProduct) => void;
-		/** The logged-in reader has it: Download replaces Buy. */
-		owned?: boolean;
-		/** Buy was pressed (the link still opens Patreon itself). */
-		onBuy?: (product: ShopProduct) => void;
 	} = $props();
 
 	let failed = $state(false);
@@ -112,26 +104,17 @@
 		</div>
 
 		<div class="mt-auto flex flex-wrap items-center gap-2 pt-5">
-			{#if owned}
-				<Badge tint="mint"><Check class="mr-1 size-3.5" /> Owned</Badge>
-				<a class={buttonClass('secondary', 'sm')} href={post} target="_blank" rel="noopener noreferrer">
-					<Download class="size-4" /> Download
-				</a>
-			{:else}
-				<a class={buttonClass('primary', 'sm')} {href} target="_blank" rel="noopener noreferrer" onclick={() => onBuy?.(product)}>
-					<ShoppingBag class="size-4" /> Buy on Patreon
-				</a>
-			{/if}
+			<a class={buttonClass('primary', 'sm')} {href} target="_blank" rel="noopener noreferrer">
+				<ShoppingBag class="size-4" /> Buy on Patreon
+			</a>
 		</div>
 		<div class="mt-2 flex flex-wrap items-center gap-x-3">
 			<button type="button" class={buttonClass('text', 'sm')} onclick={() => onDetails(product)}>
 				Details <ArrowRight class="size-4" />
 			</button>
-			{#if !owned}
-				<a class={buttonClass('text', 'sm')} href={post} target="_blank" rel="noopener noreferrer">
-					View on Patreon <ArrowUpRight class="size-4" />
-				</a>
-			{/if}
+			<a class={buttonClass('text', 'sm')} href={post} target="_blank" rel="noopener noreferrer">
+				View on Patreon <ArrowUpRight class="size-4" />
+			</a>
 		</div>
 	</div>
 </article>

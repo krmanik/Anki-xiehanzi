@@ -17,16 +17,10 @@
 	import { page } from '$app/state';
 	import ShopProductCard from '$lib/components/ShopProductCard.svelte';
 	import ShopProductModal from '$lib/components/ShopProductModal.svelte';
-	import { account } from '$lib/accountStore.svelte';
-	import { errorText } from '$lib/account';
-	import { buyUrl, loadShop, visibleProducts, type ShopManifest, type ShopProduct } from '$lib/shop';
+	import { loadShop, visibleProducts, type ShopManifest, type ShopProduct } from '$lib/shop';
 	import { buttonClass, Card, chipClass, IconDot, PageHeader, SectionLabel, type Hue } from '$lib/ui';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-	import CircleCheck from '@lucide/svelte/icons/circle-check';
-	import CircleUser from '@lucide/svelte/icons/circle-user';
-	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
 	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
-	import X from '@lucide/svelte/icons/x';
 
 	const PATREON_SHOP = 'https://www.patreon.com/cw/krmani/shop';
 
@@ -35,32 +29,14 @@
 	let selected = $state<ShopProduct | null>(null);
 
 	const products = $derived(visibleProducts(manifest));
-	const session = $derived(account.session);
-	const nameOf = (id: string | null) => products.find((p) => p.id === id)?.name ?? 'Your purchase';
-	const loginProblem = $derived(
-		account.state?.kind === 'out'
-			? account.state.error
-				? errorText(account.state.error)
-				: account.state.expired
-					? 'Your login expired. Log in again to see your decks.'
-					: null
-			: null
-	);
-	const unlockedProduct = $derived(products.find((p) => p.id === account.unlocked) ?? null);
 
 	onMount(() => {
-		account.init();
-		// Back from Patreon's tab: see whether the purchase shows yet.
-		const onVisible = () => document.visibilityState === 'visible' && account.checkPending(products);
-		document.addEventListener('visibilitychange', onVisible);
 		void start();
-		return () => document.removeEventListener('visibilitychange', onVisible);
 	});
 
 	async function start() {
 		manifest = await loadShop();
 		loading = false;
-		void account.checkPending(products);
 		// `?p=<id>` opens a product straight away, so one product can be linked
 		// to and shared even though the detail is a dialog rather than a route.
 		const id = page.url.searchParams.get('p');
@@ -89,11 +65,11 @@
 		syncUrl(null);
 	}
 
-	// Buying is one new tab: Patreon's checkout. Then back to this one.
+	// Buying and downloading both happen on Patreon.
 	const steps: { hue: Hue; title: string; body: string }[] = [
 		{ hue: 'rose', title: 'Pay on Patreon', body: 'Checkout opens in a new tab. This site never sees a card number.' },
-		{ hue: 'apricot', title: 'Come back here', body: 'Log in once and the deck unlocks on this page.' },
-		{ hue: 'mint', title: 'Download and import', body: 'File → Import in Anki, desktop or phone.' }
+		{ hue: 'apricot', title: 'Download from the post', body: "The product's Patreon post holds the .apkg once bought." },
+		{ hue: 'mint', title: 'Import into Anki', body: 'File → Import in Anki, desktop or phone.' }
 	];
 </script>
 
@@ -110,59 +86,7 @@
 		{#snippet lead()}
 			<IconDot hue="rose" size="lg" shape="tile"><ShoppingBag /></IconDot>
 		{/snippet}
-		{#snippet actions()}
-			{#if account.enabled && account.state}
-				{#if session}
-					<a href="{base}/account" class={chipClass(false)}>
-						{#if session.image}<img src={session.image} alt="" class="size-5 rounded-full" referrerpolicy="no-referrer" />{:else}<CircleUser class="size-4" />{/if}
-						{session.name.split(' ')[0]}
-					</a>
-				{:else}
-					<button type="button" class={chipClass(false)} onclick={() => account.logIn()}>
-						<CircleUser class="size-4" /> Bought already? Log in
-					</button>
-				{/if}
-			{/if}
-		{/snippet}
 	</PageHeader>
-
-	<!-- Back from Patreon: one line saying where the purchase stands. -->
-	{#if loginProblem && !account.waiting}
-		<Card tint="rose" padding="sm" class="mb-5 flex flex-wrap items-center gap-3">
-			<span class="min-w-0 flex-1 text-ink">{loginProblem}</span>
-			<button type="button" class={buttonClass('primary', 'sm')} onclick={() => account.logIn()}>Log in with Patreon</button>
-		</Card>
-	{:else if account.unlocked && manifest}
-		<Card tint="mint" padding="sm" class="mb-5 flex flex-wrap items-center gap-3">
-			<CircleCheck class="size-5 shrink-0 text-mint-ink" />
-			<span class="min-w-0 flex-1 font-semibold text-ink">Unlocked: {nameOf(account.unlocked)}</span>
-			{#if unlockedProduct}
-				<a href={buyUrl(manifest, unlockedProduct)} target="_blank" rel="noopener noreferrer" class={buttonClass('primary', 'sm')}>Download</a>
-			{/if}
-			<button type="button" class="{buttonClass('text', 'sm')} text-muted" aria-label="Dismiss" onclick={() => account.dismiss()}><X class="size-4" /></button>
-		</Card>
-	{:else if account.checking}
-		<Card tint="sky" padding="sm" class="mb-5 flex items-center gap-3">
-			<LoaderCircle class="size-5 shrink-0 animate-spin text-sky-ink" />
-			<span class="font-semibold text-ink">Checking your purchase…</span>
-		</Card>
-	{:else if account.waiting}
-		<Card tint="apricot" padding="sm" class="mb-5 flex flex-wrap items-center gap-3">
-			<span class="min-w-0 flex-1 text-ink">
-				{#if session}
-					<span class="font-semibold">{nameOf(account.waiting)}</span> isn't showing yet. Patreon can take a minute.
-				{:else}
-					Finished buying <span class="font-semibold">{nameOf(account.waiting)}</span>? Log in to see it here.
-				{/if}
-			</span>
-			{#if session}
-				<button type="button" class={buttonClass('primary', 'sm')} onclick={() => account.checkPending(products)}>Check again</button>
-			{:else}
-				<button type="button" class={buttonClass('primary', 'sm')} onclick={() => account.logIn()}>Log in with Patreon</button>
-			{/if}
-			<button type="button" class="{buttonClass('text', 'sm')} text-muted" aria-label="Dismiss" onclick={() => account.dismiss()}><X class="size-4" /></button>
-		</Card>
-	{/if}
 
 	{#if loading}
 		<div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -174,7 +98,7 @@
 		<!-- Three products fill three columns; a fourth column only once there is a fourth. -->
 		<div class="mt-6 grid gap-5 sm:grid-cols-2 {products.length > 3 ? 'xl:grid-cols-4' : 'lg:grid-cols-3'}">
 			{#each products as product (product.id)}
-				<ShopProductCard {manifest} {product} onDetails={open} owned={account.owns(product)} onBuy={(p) => account.buy(p)} />
+				<ShopProductCard {manifest} {product} onDetails={open} />
 			{/each}
 		</div>
 
@@ -228,5 +152,5 @@
 </section>
 
 {#if selected && manifest}
-	<ShopProductModal {manifest} product={selected} onClose={close} owned={account.owns(selected)} onBuy={(p) => account.buy(p)} />
+	<ShopProductModal {manifest} product={selected} onClose={close} />
 {/if}

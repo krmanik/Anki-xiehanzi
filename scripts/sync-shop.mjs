@@ -11,9 +11,6 @@
  *
  *   npm run shop:sync            write the changes
  *   npm run shop:sync -- --check print them, change nothing (exit 1 if any)
- *
- * After a price change, check `src/lib/patreonSpend.ts`'s rule: every subset of
- * product prices must still add up to a distinct total.
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';

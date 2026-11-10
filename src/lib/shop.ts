@@ -59,12 +59,6 @@ export interface ShopProduct {
 	specs?: ShopSpec[];
 	/** The free thing on this site that covers the same ground. */
 	freeAlternative?: { label: string; href: string };
-	/**
-	 * Patreon tier ids whose members get this product (see `/account`). Tier
-	 * ids come from `npm run patreon:explore`. Shop (one-time) purchases cannot
-	 * be checked — Patreon's API has no resource for them.
-	 */
-	unlockTiers?: string[];
 }
 
 export interface ShopManifest {

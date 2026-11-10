@@ -21,8 +21,8 @@ const product = (over: Partial<ShopProduct> = {}): ShopProduct => ({
 	...over
 });
 
-const mount = (p: ShopProduct, onDetails: (product: ShopProduct) => void = () => {}, extra: Record<string, unknown> = {}) =>
-	render(ShopProductCard, { props: { manifest, product: p, onDetails, ...extra } });
+const mount = (p: ShopProduct, onDetails: (product: ShopProduct) => void = () => {}) =>
+	render(ShopProductCard, { props: { manifest, product: p, onDetails } });
 
 describe('ShopProductCard', () => {
 	it('prints the price and links the buy button at the product post', () => {
@@ -35,32 +35,14 @@ describe('ShopProductCard', () => {
 		);
 	});
 
-	it('sends Buy to the direct checkout when there is one, and reports the click', async () => {
-		let bought: ShopProduct | null = null;
-		mount(product({ checkoutUrl: 'https://www.patreon.com/checkout/x' }), () => {}, { onBuy: (p: ShopProduct) => (bought = p) });
-		const buy = screen.getByRole('link', { name: /buy on patreon/i });
-		expect(buy).toHaveAttribute('href', 'https://www.patreon.com/checkout/x');
-		buy.addEventListener('click', (e) => e.preventDefault());
-		await fireEvent.click(buy);
-		expect(bought?.id).toBe('kangxi-radicals');
+	it('sends Buy to the direct checkout when there is one', () => {
+		mount(product({ checkoutUrl: 'https://www.patreon.com/checkout/x' }));
+		expect(screen.getByRole('link', { name: /buy on patreon/i })).toHaveAttribute('href', 'https://www.patreon.com/checkout/x');
 	});
 
-	it('links the product page on Patreon beside the checkout, but not once owned', () => {
-		const { unmount } = mount(product({ checkoutUrl: 'https://www.patreon.com/checkout/x' }));
+	it('links the product page on Patreon beside the checkout', () => {
+		mount(product({ checkoutUrl: 'https://www.patreon.com/checkout/x' }));
 		expect(screen.getByRole('link', { name: /view on patreon/i })).toHaveAttribute(
-			'href',
-			'https://www.patreon.com/krmani/posts/kangxi-radicals-166891672'
-		);
-		unmount();
-		mount(product(), () => {}, { owned: true });
-		expect(screen.queryByRole('link', { name: /view on patreon/i })).toBeNull();
-	});
-
-	it('swaps Buy for Download when the reader owns it', () => {
-		mount(product(), () => {}, { owned: true });
-		expect(screen.queryByRole('link', { name: /buy on patreon/i })).toBeNull();
-		expect(screen.getByText('Owned')).toBeInTheDocument();
-		expect(screen.getByRole('link', { name: /download/i })).toHaveAttribute(
 			'href',
 			'https://www.patreon.com/krmani/posts/kangxi-radicals-166891672'
 		);

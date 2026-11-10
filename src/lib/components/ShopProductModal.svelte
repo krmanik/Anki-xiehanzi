@@ -27,22 +27,17 @@
 	import { Badge, buttonClass, PANEL, SectionLabel } from '$lib/ui';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import Check from '@lucide/svelte/icons/check';
-	import Download from '@lucide/svelte/icons/download';
 	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
 	import X from '@lucide/svelte/icons/x';
 
 	let {
 		manifest,
 		product,
-		onClose,
-		owned = false,
-		onBuy
+		onClose
 	}: {
 		manifest: ShopManifest;
 		product: ShopProduct;
 		onClose: () => void;
-		owned?: boolean;
-		onBuy?: (product: ShopProduct) => void;
 	} = $props();
 
 	let failed = $state(false);
@@ -143,20 +138,13 @@
 			</div>
 			<div class="flex flex-wrap items-center gap-2">
 				<button type="button" class={buttonClass('secondary')} onclick={onClose}>Close</button>
-				{#if owned}
-					<a class={buttonClass('primary')} href={post} target="_blank" rel="noopener noreferrer">
-						<Download class="size-[18px]" /> Download
-						<ArrowUpRight class="size-4" />
-					</a>
-				{:else}
-					<a class={buttonClass('secondary')} href={post} target="_blank" rel="noopener noreferrer">
-						View on Patreon <ArrowUpRight class="size-4" />
-					</a>
-					<a class={buttonClass('primary')} {href} target="_blank" rel="noopener noreferrer" onclick={() => onBuy?.(product)}>
-						<ShoppingBag class="size-[18px]" /> Buy on Patreon
-						<ArrowUpRight class="size-4" />
-					</a>
-				{/if}
+				<a class={buttonClass('secondary')} href={post} target="_blank" rel="noopener noreferrer">
+					View on Patreon <ArrowUpRight class="size-4" />
+				</a>
+				<a class={buttonClass('primary')} {href} target="_blank" rel="noopener noreferrer">
+					<ShoppingBag class="size-[18px]" /> Buy on Patreon
+					<ArrowUpRight class="size-4" />
+				</a>
 			</div>
 		</div>
 	</div>

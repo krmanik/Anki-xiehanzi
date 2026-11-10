@@ -1,0 +1,1 @@
+function e(e,t){return typeof document>`u`?t:getComputedStyle(document.documentElement).getPropertyValue(e).trim()||t}function t(t){let n=t>=1&&t<=4?t:5;return e(`--xhz-t${n}`,[`#d61f3d`,`#b05500`,`#007e48`,`#0b6cd6`,`#6e6e6e`][n-1])}export{t as n,e as t};

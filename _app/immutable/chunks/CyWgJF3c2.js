@@ -1,0 +1,1 @@
+import{g as e}from"./B1WXCHN5.js";var t=e(`primary`,`sm`),n=e(`secondary`,`sm`);e(`danger`,`sm`);export{n,t};

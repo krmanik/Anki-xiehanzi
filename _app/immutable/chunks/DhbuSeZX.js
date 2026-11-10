@@ -1,1 +1,0 @@
-import{c as e,s as t}from"./BwlOBz9E.js";import"./xihTtKlq.js";import{t as n}from"./CES-AjNU.js";var r=new Set([`$$slots`,`$$events`,`$$legacy`]);function i(i,a){let o=t(a,r),s=[[`path`,{d:`M7 2h10`}],[`path`,{d:`M5 6h14`}],[`rect`,{width:`18`,height:`12`,x:`3`,y:`10`,rx:`2`}]];n(i,e({name:`gallery-vertical-end`},()=>o,{get iconNode(){return s}}))}export{i as t};

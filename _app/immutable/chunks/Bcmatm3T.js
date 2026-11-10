@@ -1,1 +1,0 @@
-import{l as e,s as t}from"./JgVL3M4O.js";var n=t(`primary`,`sm`),r=t(`secondary`,`sm`);e(t(`secondary`,`sm`),`bg-rose-soft text-rose-ink ring-0 hover:bg-rose-soft hover:brightness-95`);export{r as n,n as t};

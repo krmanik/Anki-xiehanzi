@@ -10,52 +10,53 @@
 		/>
 		<script>
 			// Before first paint, so a dark page never flashes white. Mirrors
-			// src/lib/theme.ts: key `xhz.theme`, unset means light for now.
-			try {
-				var t = localStorage.getItem('xhz.theme');
-				if (t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches))
-					document.documentElement.dataset.theme = 'dark';
-			} catch (e) {}
+			// src/lib/theme.ts: key `xhz.theme`; unset follows the OS.
+			(function () {
+				var t = null;
+				try {
+					t = localStorage.getItem('xhz.theme');
+				} catch (e) {}
+				var dark =
+					t === 'dark' ||
+					(t !== 'light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+				document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+			})();
 		</script>
-		<link href="./_app/immutable/entry/start.8mwI1JPB.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/BfwrRzdg.js" rel="modulepreload">
+		<link href="./_app/immutable/entry/start.C2_V19JH.js" rel="modulepreload">
+		<link href="./_app/immutable/chunks/CpeeFiPz.js" rel="modulepreload">
 		<link href="./_app/immutable/chunks/BwlOBz9E.js" rel="modulepreload">
-		<link href="./_app/immutable/entry/app.CIfSnAoD.js" rel="modulepreload">
+		<link href="./_app/immutable/entry/app.DxJYSvWe.js" rel="modulepreload">
 		<link href="./_app/immutable/chunks/xihTtKlq.js" rel="modulepreload">
-		<link href="./_app/immutable/nodes/0.DCOOSHnI.js" rel="modulepreload">
+		<link href="./_app/immutable/nodes/0.DMqb979l.js" rel="modulepreload">
 		<link href="./_app/immutable/chunks/CES-AjNU.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/St71ZEaq.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/CQXmwWyZ.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/BpxjLzkC.js" rel="modulepreload">
+		<link href="./_app/immutable/chunks/D5SeAhgL.js" rel="modulepreload">
 		<link href="./_app/immutable/chunks/CmpErB1m.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/0EiW9R_0.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/DhbuSeZX.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/ntk6veo6.js" rel="modulepreload">
 		<link href="./_app/immutable/chunks/CBiqVj6-.js" rel="modulepreload">
 		<link href="./_app/immutable/chunks/ttVxCu0f.js" rel="modulepreload">
 		<link href="./_app/immutable/chunks/CHmB4usP.js" rel="modulepreload">
 		<link href="./_app/immutable/chunks/uoXE2RQy.js" rel="modulepreload">
 		<link href="./_app/immutable/chunks/JX0DEFO8.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/DHDA_eeH.js" rel="modulepreload">
+		<link href="./_app/immutable/chunks/qy6ppM6q.js" rel="modulepreload">
+		<link href="./_app/immutable/chunks/BguTv4kC.js" rel="modulepreload">
 		<link href="./_app/immutable/chunks/oBPJBpu3.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/JgVL3M4O.js" rel="modulepreload">
+		<link href="./_app/immutable/chunks/B1WXCHN5.js" rel="modulepreload">
 		<link href="./_app/immutable/chunks/BdxdGYoa.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/tnH4d9kA.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/BHWsgK0i.js" rel="modulepreload">
-		<link href="./_app/immutable/nodes/17.1TkYPxA5.js" rel="modulepreload">
+		<link href="./_app/immutable/chunks/CCi4viKM.js" rel="modulepreload">
+		<link href="./_app/immutable/chunks/C7gIn2UU.js" rel="modulepreload">
+		<link href="./_app/immutable/nodes/17.-9VG-Wdd.js" rel="modulepreload">
 		<link href="./_app/immutable/chunks/BvnQ4Ku9.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/CeoXZ_p12.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/Ct3A-k4h.js" rel="modulepreload">
-		<link href="./_app/immutable/chunks/CK4tYpE_2.js" rel="modulepreload">
+		<link href="./_app/immutable/chunks/CeoXZ_p1.js" rel="modulepreload">
+		<link href="./_app/immutable/chunks/B48XhUKZ.js" rel="modulepreload">
+		<link href="./_app/immutable/chunks/CgL9H1HK2.js" rel="modulepreload">
 		
-		<link href="./_app/immutable/assets/theme.ikjU0SfR.css" rel="stylesheet">
-		<link href="./_app/immutable/assets/0.EWM_4dLa.css" rel="stylesheet">
+		<link href="./_app/immutable/assets/ShareButtons.ikjU0SfR.css" rel="stylesheet">
+		<link href="./_app/immutable/assets/0.Ds5Lwxpu.css" rel="stylesheet">
 	</head>
 	<body data-sveltekit-preload-data="hover">
 		<div style="display: contents">
 			<script>
 				{
-					__sveltekit_1oms701 = {
+					__sveltekit_64aqfu = {
 						base: new URL(".", location).pathname.slice(0, -1),
 						assets: "/Anki-xiehanzi"
 					};
@@ -63,8 +64,8 @@
 					const element = document.currentScript.parentElement;
 
 					Promise.all([
-						import("./_app/immutable/entry/start.8mwI1JPB.js"),
-						import("./_app/immutable/entry/app.CIfSnAoD.js")
+						import("./_app/immutable/entry/start.C2_V19JH.js"),
+						import("./_app/immutable/entry/app.DxJYSvWe.js")
 					]).then(([kit, app]) => {
 						kit.start(app, element);
 					});

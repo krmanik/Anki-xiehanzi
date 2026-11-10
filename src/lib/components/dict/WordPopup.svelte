@@ -142,7 +142,7 @@
 <div
 	bind:this={el}
 	style="top:{top}px; left:{left}px; visibility:{ready ? 'visible' : 'hidden'}"
-	class="fixed z-50 w-72 max-w-[calc(100vw-16px)] rounded-lg border border-apricot-soft bg-apricot-soft p-3 text-sm shadow-xl"
+	class="fixed z-50 w-72 max-w-[calc(100vw-16px)] rounded-card bg-surface p-3.5 text-sm text-ink shadow-raised"
 	lang="zh-Hans"
 >
 	{#if loading}
@@ -173,7 +173,7 @@
 						type="button"
 						onclick={onToggleSave}
 						class="rounded p-1 transition hover:brightness-95 {saved
-							? 'text-mint-ink'
+							? 'text-ok-ink'
 							: 'text-muted hover:text-ink'}"
 						aria-label={saved ? 'Remove from word list' : 'Add to word list'}
 					>
@@ -212,14 +212,14 @@
 			</p>
 		{/if}
 
-		<div class="mt-2 flex items-center justify-between border-t border-apricot-soft pt-2">
+		<div class="mt-2 flex items-center justify-between border-t border-warn-soft pt-2">
 			<span class="text-xs text-muted"
 				>{charCount} character{charCount === 1 ? '' : 's'}</span
 			>
 			<button
 				type="button"
 				onclick={onMore}
-				class="flex items-center gap-1 text-xs font-medium text-accent hover:text-sky-ink"
+				class="flex items-center gap-1 text-xs font-medium text-accent hover:text-ink"
 			>
 				More info <ArrowRight size={12} />
 			</button>

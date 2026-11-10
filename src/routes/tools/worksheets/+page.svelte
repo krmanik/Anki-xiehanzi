@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { IconDot, PageHeader } from '$lib/ui';
-	import PencilLineIcon from '@lucide/svelte/icons/pencil-line';
+	import { PageHeader } from '$lib/ui';
 	/** One worksheet generator, one Template dropdown picking which layout it
 	 * builds — a single word list, a single options panel, a single Generate
 	 * button and preview, whichever template is selected. */
@@ -46,7 +45,7 @@
 	const charCount = $derived(new Set([...words.join('')].filter((ch) => !/\s/.test(ch))).size);
 
 	const fieldLabel = 'text-sm text-muted';
-	const fieldInput = 'mt-1 w-full min-h-10 rounded-card border-0 bg-sunk px-3 text-sm text-ink focus:ring-3 focus:ring-sky';
+	const fieldInput = 'mt-1 w-full min-h-10 rounded-card border-0 bg-sunk px-3 text-sm text-ink transition-[background-color,box-shadow] focus:bg-surface focus:ring-2 focus:ring-accent';
 	const fieldSelect = fieldInput + ' pr-9';
 	const colorInput = 'mt-1 h-9 w-full rounded-md border border-line';
 
@@ -462,12 +461,8 @@
 	<title>Worksheet generator · Anki-xiehanzi</title>
 </svelte:head>
 
-<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-	<PageHeader title="Worksheets" subtitle="Stroke practice and study pages, as a PDF.">
-		{#snippet lead()}
-			<IconDot hue="apricot" size="lg" shape="tile"><PencilLineIcon /></IconDot>
-		{/snippet}
-	</PageHeader>
+<div class="mx-auto max-w-[1180px] px-4 pb-8 sm:px-7">
+	<PageHeader title="Worksheets" subtitle="Stroke practice and study pages, as a PDF." />
 
 	<ToolWordInput bind:value={wordsText} />
 	{#if charCount}
@@ -482,7 +477,7 @@
 					type="button"
 					onclick={() => pickTemplate(t)}
 					class="rounded-lg border p-3 text-left transition {activeTemplate === t.id
-						? 'border-transparent bg-sky-soft'
+						? 'border-transparent bg-sunk'
 						: 'border-line hover:border-muted'}"
 				>
 					<span class="block text-sm font-medium text-ink">{t.name}</span>
@@ -503,7 +498,7 @@
 					type="button"
 					onclick={() => (gridStyle = opt.id)}
 					class="flex flex-col items-center gap-1 rounded-lg border p-2 transition {gridStyle === opt.id
-						? 'border-transparent bg-sky-soft'
+						? 'border-transparent bg-sunk'
 						: 'border-line hover:border-muted'}"
 				>
 					<svg viewBox="0 0 40 40" width="36" height="36" class="text-muted">
@@ -533,7 +528,7 @@
 	<div class="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
 		<div class="min-w-0 space-y-5">
 			{#if template === 'study'}
-				<section class="rounded-card border border-line p-4">
+				<section class="rounded-panel bg-surface p-5 shadow-object">
 					<h2 class="mb-3 text-[13px] font-semibold text-muted">Character card content</h2>
 					<div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
 						<label class="flex items-center gap-2 text-sm text-muted">
@@ -578,7 +573,7 @@
 					</label>
 				</section>
 
-				<section class="rounded-card border border-line p-4">
+				<section class="rounded-panel bg-surface p-5 shadow-object">
 					<h2 class="mb-3 text-[13px] font-semibold text-muted">Practice section</h2>
 					<label class="mb-3 flex items-center gap-2 text-sm text-muted">
 						<input type="checkbox" bind:checked={showStrokeOrder} />
@@ -601,7 +596,7 @@
 					{@render boxStylePicker()}
 				</section>
 			{:else}
-				<section class="rounded-card border border-line p-4">
+				<section class="rounded-panel bg-surface p-5 shadow-object">
 					<h2 class="mb-3 text-[13px] font-semibold text-muted">Page & grid</h2>
 					<div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
 						<label class={fieldLabel}>
@@ -634,7 +629,7 @@
 					{@render boxStylePicker()}
 				</section>
 
-				<section class="rounded-card border border-line p-4">
+				<section class="rounded-panel bg-surface p-5 shadow-object">
 					<h2 class="mb-3 text-[13px] font-semibold text-muted">Pinyin</h2>
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 						<label class={fieldLabel}>
@@ -659,7 +654,7 @@
 				</section>
 
 				{#if layout === 'sentence'}
-					<section class="rounded-card border border-line p-4">
+					<section class="rounded-panel bg-surface p-5 shadow-object">
 						<h2 class="mb-3 text-[13px] font-semibold text-muted">
 							Repeat <span class="font-normal normal-case text-muted">— how many times the line copies down the page</span>
 						</h2>
@@ -669,7 +664,7 @@
 						</label>
 					</section>
 				{:else}
-					<section class="rounded-card border border-line p-4">
+					<section class="rounded-panel bg-surface p-5 shadow-object">
 						<h2 class="mb-3 text-[13px] font-semibold text-muted">Row content</h2>
 						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<label class={fieldLabel}>
@@ -686,7 +681,7 @@
 						</div>
 					</section>
 
-					<section class="rounded-card border border-line p-4">
+					<section class="rounded-panel bg-surface p-5 shadow-object">
 						<h2 class="mb-3 text-[13px] font-semibold text-muted">Stroke order</h2>
 						<label class={fieldLabel}>
 							Mode
@@ -698,7 +693,7 @@
 						</label>
 					</section>
 
-					<section class="rounded-card border border-line p-4">
+					<section class="rounded-panel bg-surface p-5 shadow-object">
 						<h2 class="mb-3 text-[13px] font-semibold text-muted">
 							Hint boxes <span class="font-normal normal-case text-muted">— full guide glyph</span>
 						</h2>
@@ -725,7 +720,7 @@
 						</div>
 					</section>
 
-					<section class="rounded-card border border-line p-4">
+					<section class="rounded-panel bg-surface p-5 shadow-object">
 						<h2 class="mb-3 text-[13px] font-semibold text-muted">
 							Trace boxes <span class="font-normal normal-case text-muted">— faded, trace-over glyph</span>
 						</h2>
@@ -751,7 +746,7 @@
 						</div>
 					</section>
 
-					<section class="rounded-card border border-line p-4">
+					<section class="rounded-panel bg-surface p-5 shadow-object">
 						<h2 class="mb-3 text-[13px] font-semibold text-muted">
 							Blank boxes <span class="font-normal normal-case text-muted">— no guide at all, added after the hints/traces above</span>
 						</h2>
@@ -761,7 +756,7 @@
 						</label>
 					</section>
 
-					<section class="rounded-card border border-line p-4">
+					<section class="rounded-panel bg-surface p-5 shadow-object">
 						<h2 class="mb-3 text-[13px] font-semibold text-muted">
 							How far to fill <span class="font-normal normal-case text-muted">— every row of boxes always reaches the page's right edge</span>
 						</h2>
@@ -807,9 +802,9 @@
 				</button>
 			</div>
 
-			{#if error}<p class="text-sm text-rose-ink">{error}</p>{/if}
+			{#if error}<p class="text-sm text-err-ink">{error}</p>{/if}
 			{#if unsupported.length}
-				<p class="text-sm text-apricot-ink">
+				<p class="text-sm text-warn-ink">
 					{unsupported.length} character{unsupported.length === 1 ? '' : 's'} skipped — no stroke
 					data available: <span lang="zh-Hans">{unsupported.join(' ')}</span>
 				</p>
@@ -821,7 +816,7 @@
 				<Eye size={13} /> Preview
 			</div>
 			<div
-				class="relative overflow-hidden rounded-card border border-line bg-sunk"
+				class="relative overflow-hidden rounded-card bg-surface shadow-object bg-sunk"
 				style="aspect-ratio: {template === 'practice' && orientation === 'landscape' ? '297/210' : '210/297'};"
 			>
 				<canvas
@@ -835,7 +830,7 @@
 						{#if previewLoading}
 							<span class="text-muted">Rendering…</span>
 						{:else if previewError}
-							<span class="text-rose-ink">{previewError}</span>
+							<span class="text-err-ink">{previewError}</span>
 						{:else}
 							<span class="text-muted">Type a word or character to see a preview.</span>
 						{/if}

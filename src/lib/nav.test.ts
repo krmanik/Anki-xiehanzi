@@ -39,7 +39,7 @@ describe('isActive', () => {
 });
 
 it('the top bar carries the main destinations, home being the logo', () => {
-	expect(TOPBAR.map((i) => i.path)).toEqual(['/create', '/hsk', '/dictionary', '/radicals', '/tools']);
+	expect(TOPBAR.map((i) => i.path)).toEqual(['/create', '/hsk', '/dictionary', '/radicals', '/tools', '/words']);
 });
 
 it('Tools is a submenu in the top bar and a group in the drawer', () => {
@@ -61,9 +61,9 @@ it('searchHref encodes the query and ignores blanks', () => {
 });
 
 describe('theme', () => {
-	it('defaults to light until pages are on the tokens', () => {
-		expect(parsePref(null)).toBe('light');
-		expect(parsePref('purple')).toBe('light');
+	it('follows the OS until the reader picks a theme', () => {
+		expect(parsePref(null)).toBe('system');
+		expect(parsePref('purple')).toBe('system');
 		expect(parsePref('dark')).toBe('dark');
 	});
 	it('resolves system against the OS setting', () => {

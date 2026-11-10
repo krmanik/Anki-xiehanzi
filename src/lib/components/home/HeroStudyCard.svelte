@@ -8,15 +8,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
-	import Badge from '$lib/ui/Badge.svelte';
-	import { toneHue, toneText, cx } from '$lib/ui/styles';
+	import { toneText, cx } from '$lib/ui/styles';
 
 	const CHARS = [
 		{ h: '写', p: 'xiě', tone: 3, m: 'to write' },
 		{ h: '汉', p: 'hàn', tone: 4, m: 'Chinese (Han)' },
 		{ h: '字', p: 'zì', tone: 4, m: 'character' }
 	];
-	const FALLBACK = { mint: '#08ba87', sky: '#3384fe' } as Record<string, string>;
 
 	let i = $state(0);
 	let box = $state<HTMLDivElement>();
@@ -28,10 +26,8 @@
 		let timer: ReturnType<typeof setTimeout> | undefined;
 		const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 		const css = getComputedStyle(document.documentElement);
-		const stroke = (tone: number) => {
-			const hue = toneHue(tone) ?? 'sky';
-			return css.getPropertyValue(`--xhz-${hue}`).trim() || FALLBACK[hue] || '#3384fe';
-		};
+		// The tone colour of the current theme, read once per character.
+		const stroke = (tone: number) => css.getPropertyValue(`--xhz-t${tone}`).trim() || 'currentColor';
 
 		(async () => {
 			const { default: HanziWriter } = await import('hanzi-writer');
@@ -47,7 +43,7 @@
 					showCharacter: still,
 					showOutline: true,
 					strokeColor: stroke(ch.tone),
-					outlineColor: 'rgba(120,120,140,.14)',
+					outlineColor: 'rgba(128,128,128,.16)',
 					strokeAnimationSpeed: 1.3,
 					delayBetweenStrokes: 140
 				});
@@ -74,17 +70,16 @@
 <figure
 	role="img"
 	aria-label="A study card writing 写, 汉 and 字 stroke by stroke"
-	class="m-0 w-full max-w-[316px] rounded-[26px] bg-surface p-5 shadow-[0_2px_4px_rgba(20,30,50,.05),0_18px_40px_rgba(20,30,50,.12)]"
+	class="m-0 w-full max-w-[316px] rotate-2 rounded-tile bg-surface p-5 shadow-raised transition-transform duration-500 ease-spring hover:rotate-0"
 >
 	<div class="mb-3 flex items-center gap-1.5">
-		<Badge tint="mint">HSK 1</Badge>
-		<Badge>Verb</Badge>
+		<span class="text-[13px] font-semibold text-muted">HSK 1 · Verb</span>
 		<span class="ml-auto text-[13px] font-semibold text-muted">Stroke order</span>
 	</div>
 
 	<div
 		bind:clientWidth={width}
-		class="relative grid aspect-square place-items-center rounded-card bg-sunk ring-1 ring-line ring-inset"
+		class="relative grid aspect-square place-items-center rounded-[20px] bg-sunk"
 	>
 		<span class="absolute inset-y-0 left-1/2 border-l-[1.5px] border-dashed border-muted/35"></span>
 		<span class="absolute inset-x-0 top-1/2 border-t-[1.5px] border-dashed border-muted/35"></span>
@@ -96,7 +91,7 @@
 	</div>
 	<p class="m-0 mb-4 text-center font-semibold text-muted">{c.m}</p>
 
-	<div class="mb-4 rounded-card bg-sunk px-3.5 py-3 text-center">
+	<div class="mb-4 rounded-[20px] bg-sunk px-3.5 py-3 text-center">
 		<p class="m-0 font-zh text-xl tracking-wide text-ink">
 			我在{#each CHARS as ch, j (ch.h)}<span class={cx('transition-colors', j === i && cx('font-bold', toneText(ch.tone)))}
 					>{ch.h}</span
@@ -106,10 +101,34 @@
 		<p class="m-0 text-sm text-muted">I'm writing Chinese characters.</p>
 	</div>
 
+	<!-- Anki's own answer colours, as AnkiMobile and AnkiDroid fill them. -->
 	<div class="grid grid-cols-4 gap-1.5 text-center text-sm font-bold">
-		<span class="rounded-xl bg-rose-soft py-2 text-rose-ink">Again<small class="block text-xs font-semibold opacity-80">&lt;1m</small></span>
-		<span class="rounded-xl bg-apricot-soft py-2 text-apricot-ink">Hard<small class="block text-xs font-semibold opacity-80">6m</small></span>
-		<span class="rounded-xl bg-mint-soft py-2 text-mint-ink">Good<small class="block text-xs font-semibold opacity-80">1d</small></span>
-		<span class="rounded-xl bg-sky-soft py-2 text-sky-ink">Easy<small class="block text-xs font-semibold opacity-80">4d</small></span>
+		{#each [['again', 'Again', '<1m'], ['hard', 'Hard', '6m'], ['good', 'Good', '1d'], ['easy', 'Easy', '4d']] as [k, label, ivl] (k)}
+			<span class="answer answer-{k} rounded-xl py-2"
+				>{label}<small class="block text-xs font-semibold opacity-75">{ivl}</small></span
+			>
+		{/each}
 	</div>
 </figure>
+
+<style>
+	/* Filled like AnkiMobile's answer bar (see static/img/ankimobile*.PNG):
+	   Again red, Hard orange, Good green, Easy blue. Each fill is the darkest
+	   step of Anki's hue that keeps white text at AA, in both themes. */
+	.answer {
+		background: var(--a);
+		color: #fff;
+	}
+	.answer-again {
+		--a: #dc2626;
+	}
+	.answer-hard {
+		--a: #c2410c;
+	}
+	.answer-good {
+		--a: #15803d;
+	}
+	.answer-easy {
+		--a: #2563eb;
+	}
+</style>

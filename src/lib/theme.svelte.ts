@@ -19,7 +19,20 @@ export function initTheme() {
 	} catch {
 		// Storage blocked (private mode, sandbox): fall back to the default.
 	}
-	apply(resolveTheme(parsePref(raw), systemDark()));
+	const pref = parsePref(raw);
+	apply(resolveTheme(pref, systemDark()));
+	// Until the reader chooses, follow the OS as it changes (sunset switches).
+	if (pref === 'system' && typeof matchMedia === 'function') {
+		matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+			let chosen: string | null = null;
+			try {
+				chosen = localStorage.getItem(THEME_KEY);
+			} catch {
+				// Storage blocked: keep following the OS.
+			}
+			if (parsePref(chosen) === 'system') apply(e.matches ? 'dark' : 'light');
+		});
+	}
 }
 
 export function currentTheme(): Theme {

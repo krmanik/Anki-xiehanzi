@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { cssVar } from '$lib/ui/cssVar';
 	/**
 	 * Everything known about one radical, in the same order the Anki card uses:
 	 * what it is, how it sounds, how it is written, what it is called, how the
@@ -67,8 +68,8 @@
 				padding: 8,
 				showCharacter: false,
 				showOutline: true,
-				strokeColor: '#171717',
-				outlineColor: '#e5e5e5',
+				strokeColor: cssVar('--xhz-ink', '#111111'),
+				outlineColor: cssVar('--xhz-line', '#e5e5e5'),
 				delayBetweenStrokes: 220
 			});
 			writer.animateCharacter();
@@ -80,10 +81,10 @@
 	});
 </script>
 
-<div class="rounded-panel bg-surface p-5 ring-1 ring-line ring-inset sm:p-6">
+<div class="rounded-[24px] bg-surface p-5 shadow-object sm:rounded-tile sm:p-7">
 	<div class="flex items-start justify-between gap-4">
 		<div class="flex items-baseline gap-4">
-			<span class="text-6xl leading-none {colorize ? `tone${tone}` : ''}" lang="zh-Hans">
+			<span class="font-zh text-6xl leading-none font-semibold {colorize ? `tone${tone}` : ''}" lang="zh-Hans">
 				{radical.char}
 			</span>
 			<div>
@@ -113,7 +114,7 @@
 				type="button"
 				onclick={onClose}
 				aria-label="Close radical detail"
-				class="rounded-lg border border-line p-1.5 text-muted transition hover:border-sky hover:text-ink"
+				class="grid size-10 cursor-pointer place-items-center rounded-xl border-0 bg-transparent text-muted transition hover:bg-sunk hover:text-ink"
 			>
 				<X size={16} />
 			</button>
@@ -213,7 +214,7 @@
 		</div>
 
 		<div class="sm:order-1">
-			<div class="inline-block rounded-card border border-line p-1">
+			<div class="inline-block rounded-card bg-surface shadow-object p-1">
 				<div bind:this={target} class="h-[180px] w-[180px]"></div>
 			</div>
 			<button
@@ -234,7 +235,7 @@
 			</h3>
 			<div class="mt-2.5 flex flex-wrap gap-2">
 				{#each radical.evolution as g (g.file + g.label)}
-					<figure class="w-[86px] rounded-card border border-line bg-sunk p-2 text-center">
+					<figure class="w-[86px] rounded-card bg-sunk p-2 text-center">
 						<img src={glyphUrl(g.file)} alt="{radical.char} — {g.label}" class="mx-auto h-14 w-14 object-contain" loading="lazy" />
 						<figcaption class="mt-1 text-xs leading-tight">
 							<span class="block" lang="zh-Hans">{g.script}</span>
@@ -254,7 +255,7 @@
 			</h3>
 			<div class="mt-2.5 flex flex-wrap gap-2">
 				{#each radical.compare as g (g.file + g.label)}
-					<figure class="w-[86px] rounded-card border border-line bg-sunk p-2 text-center">
+					<figure class="w-[86px] rounded-card bg-sunk p-2 text-center">
 						<img src={glyphUrl(g.file)} alt="{radical.char} — {g.label}" class="mx-auto h-14 w-14 object-contain" loading="lazy" />
 						<figcaption class="mt-1 text-xs leading-tight">
 							<span class="block" lang="zh-Hans">{g.region}</span>

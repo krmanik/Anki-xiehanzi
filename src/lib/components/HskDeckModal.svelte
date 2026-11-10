@@ -12,7 +12,7 @@
 	import { onMount } from 'svelte';
 	import { deckSummary, deckUrl, formatBytes, type HskDeckEntry, type HskDeckManifest } from '$lib/hskDecks';
 	import type { HskListMeta } from '$lib/hsk';
-	import { Button, IconDot } from '$lib/ui';
+	import { Button, DIALOG, ICON_BUTTON, SCRIM } from '$lib/ui';
 	import Bell from '@lucide/svelte/icons/bell';
 	import Check from '@lucide/svelte/icons/check';
 	import Download from '@lucide/svelte/icons/download';
@@ -192,21 +192,21 @@
 <svelte:window onkeydown={(e) => e.key === 'Escape' && !showSend && !design && onClose()} />
 
 <div
-	class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-5"
+	class="fixed inset-0 z-50 flex items-end justify-center {SCRIM} sm:items-center sm:p-5"
 	role="presentation"
 	onclick={(e) => e.target === e.currentTarget && onClose()}
 >
 	<div
 		bind:this={dialog}
 		tabindex="-1"
-		class="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-[24px] bg-surface p-5 text-ink shadow-xl outline-none sm:rounded-[24px] sm:p-7"
+		class="max-h-[92vh] w-full max-w-2xl overflow-y-auto {DIALOG} rounded-b-none p-5 outline-none sm:rounded-b-tile sm:p-7"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="deck-modal-title"
 	>
 		<div class="flex items-start justify-between gap-4">
 			<div>
-				<h2 id="deck-modal-title" class="m-0 text-[22px] leading-tight font-bold">
+				<h2 id="deck-modal-title" class="m-0 text-[26px] leading-[1.05] font-bold tracking-[-0.035em] sm:text-[30px]">
 					{step === 'done' ? (sent ? 'In Anki now' : 'Your download has started') : `${list.name} (${list.year})`}
 				</h2>
 				<p class="mt-1 mb-0 text-[15px] text-muted">
@@ -221,7 +221,7 @@
 				type="button"
 				onclick={onClose}
 				aria-label="Close"
-				class="grid size-10 shrink-0 place-items-center rounded-full text-muted hover:bg-sunk hover:text-ink"
+				class={ICON_BUTTON}
 			>
 				<X class="size-5" />
 			</button>
@@ -236,7 +236,7 @@
 			{#if sendText}
 				<p
 					class="mt-4 mb-0 rounded-card px-4 py-3 text-[14px] {sendStage === 'error'
-						? 'bg-apricot-soft text-apricot-ink'
+						? 'bg-warn-soft text-warn-ink'
 						: 'bg-sunk text-muted'}"
 					role="status"
 				>
@@ -244,7 +244,7 @@
 					{#if sendStage === 'error'}<AnkiSetupLink />{/if}
 				</p>
 			{/if}
-			<div class="mt-4 flex flex-wrap items-center justify-end gap-2">
+			<div class="mt-4 flex flex-wrap items-center justify-end gap-2 max-sm:[&>a]:flex-1">
 				<!-- Send is desktop-only (phones have no AnkiConnect). It leads once
 				     Anki has answered, since it saves the import step. -->
 				<div class="hidden gap-1.5 sm:flex {anki.status === 'ready' ? 'sm:order-first' : ''}">
@@ -253,7 +253,7 @@
 					</Button>
 					<button
 						type="button"
-						class="grid size-11 shrink-0 place-items-center rounded-full text-muted ring-[1.5px] ring-line ring-inset hover:bg-sunk hover:text-ink disabled:opacity-50"
+						class="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-surface text-muted shadow-[0_0_0_1px_var(--xhz-line)] hover:bg-sunk hover:text-ink disabled:opacity-50"
 						aria-label="Send settings"
 						title="Where it goes, and send settings"
 						onclick={() => (showSend = true)}
@@ -262,46 +262,44 @@
 						<Settings2 class="size-[18px]" />
 					</button>
 				</div>
-				<Button variant="secondary" href={deckUrl(manifest, deck)} onclick={() => (step = 'done')}>
+				<Button href={deckUrl(manifest, deck)} onclick={() => (step = 'done')}>
 					<Download class="size-[18px]" />Download free deck
 				</Button>
-				<Button {...premium.attrs}>
+				<Button variant="premium" {...premium.attrs}>
 					<Sparkles class="size-[18px]" />Get Premium
 				</Button>
 			</div>
 			<p class="mt-3 mb-0 hidden text-right text-sm sm:block">
 				<button
 					type="button"
-					class="border-0 bg-transparent p-0 font-semibold text-accent hover:underline"
+					class="cursor-pointer border-0 bg-transparent p-0 font-semibold text-ink underline-offset-4 hover:underline"
 					onclick={openDesign}>Already have it? Update its card design</button
 				>
 			</p>
 			<!-- The buttons lead, so the free file is one click from opening the
 			     dialog; the comparison sits right under them as the premium pitch. -->
-			<div class="mt-5 overflow-hidden rounded-card ring-1 ring-line ring-inset">
+			<div class="mt-5 overflow-hidden rounded-[20px] bg-sunk">
 				<table class="w-full border-collapse text-[15px]">
 					<thead>
-						<tr class="bg-sunk text-sm">
-							<th class="px-4 py-2.5 text-left font-semibold text-muted">What you get</th>
-							<th class="w-20 px-2 py-2.5 text-center font-semibold">Free</th>
-							<th class="w-24 bg-apricot-soft px-2 py-2.5 text-center font-semibold text-apricot-ink">
-								Premium
-							</th>
+						<tr class="text-sm">
+							<th class="px-3.5 py-2.5 text-left font-semibold text-muted">What you get</th>
+							<th class="w-20 px-2 py-2.5 text-center font-semibold text-muted">Free</th>
+							<th class="w-24 bg-gold-soft px-2 py-2.5 text-center font-semibold text-gold-ink">Premium</th>
 						</tr>
 					</thead>
 					<tbody>
 						{#each rows as row (row.label)}
-							<tr class="border-t border-line">
-								<td class="px-4 py-2">{row.label}</td>
+							<tr>
+								<td class="px-3.5 py-2">{row.label}</td>
 								<td class="px-2 py-2 text-center">
 									{#if row.free}
-										<Check class="mx-auto size-[18px] text-mint-ink" aria-label="Included" />
+										<Check class="mx-auto size-[18px] text-ok-ink" aria-label="Included" />
 									{:else}
 										<Minus class="mx-auto size-[18px] text-muted" aria-label="Not included" />
 									{/if}
 								</td>
-								<td class="bg-apricot-soft px-2 py-2 text-center">
-									<Check class="mx-auto size-[18px] text-mint-ink" aria-label="Included" />
+								<td class="bg-gold-soft px-2 py-2 text-center">
+									<Check class="mx-auto size-[18px] text-ok-ink" aria-label="Included" />
 								</td>
 							</tr>
 						{/each}
@@ -311,8 +309,10 @@
 		{:else}
 			<ol class="mt-5 mb-0 grid list-none gap-3 p-0">
 				{#each steps as s, i (s.title)}
-					<li class="flex gap-3.5 rounded-card bg-sunk p-4">
-						<IconDot hue={i === 0 ? 'sky' : 'mint'} size="sm">{i + 1}</IconDot>
+					<li class="flex gap-3.5 rounded-[20px] bg-sunk p-4">
+						<span class="grid size-7 shrink-0 place-items-center rounded-full bg-accent text-sm font-bold text-on-accent"
+							>{i + 1}</span
+						>
 						<div>
 							<h3 class="m-0 text-base font-semibold">{s.title}</h3>
 							<p class="mt-0.5 mb-0 text-[15px] text-muted">{s.text}</p>
@@ -322,9 +322,9 @@
 			</ol>
 
 			<div class="mt-3 grid gap-3 sm:grid-cols-2">
-				<div class="rounded-card bg-lavender-soft p-4">
+				<div class="rounded-[20px] bg-sunk p-4">
 					<h3 class="m-0 flex items-center gap-2 text-base font-semibold">
-						<Bell class="size-[18px] text-lavender-ink" />Hear about updates
+						<Bell class="size-[18px] text-muted" />Hear about updates
 					</h3>
 					<p class="mt-1 mb-2 text-[15px] text-muted">
 						Follow on Patreon for free and get an email when a new version of the deck is out.
@@ -333,20 +333,20 @@
 						href={FOLLOW}
 						target="_blank"
 						rel="noopener noreferrer"
-						class="text-[15px] font-semibold text-lavender-ink no-underline hover:underline"
+						class="text-[15px] font-semibold text-ink underline-offset-4 hover:underline"
 						>Follow for free</a
 					>
 				</div>
-				<div class="rounded-card bg-apricot-soft p-4">
+				<div class="rounded-[20px] bg-gold-soft p-4">
 					<h3 class="m-0 flex items-center gap-2 text-base font-semibold">
-						<Sparkles class="size-[18px] text-apricot-ink" />Want writing cards?
+						<Sparkles class="size-[18px] text-gold-ink" />Want writing cards?
 					</h3>
 					<p class="mt-1 mb-2 text-[15px] text-muted">
 						Premium gives each word a separate Writing card and a dictionary inside every card.
 					</p>
 					<a
 						{...premium.attrs}
-						class="text-[15px] font-semibold text-apricot-ink no-underline hover:underline"
+						class="text-[15px] font-semibold text-gold-ink underline-offset-4 hover:underline"
 						>Get Premium</a
 					>
 				</div>
@@ -356,7 +356,7 @@
 				{#if sent}
 					<span></span>
 				{:else}
-					<a href={deckUrl(manifest, deck)} class="text-sm font-semibold text-accent no-underline hover:underline"
+					<a href={deckUrl(manifest, deck)} class="text-sm font-semibold text-ink underline-offset-4 hover:underline"
 						>Download didn't start? Try again</a
 					>
 				{/if}

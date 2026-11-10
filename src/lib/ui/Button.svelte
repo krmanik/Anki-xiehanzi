@@ -10,7 +10,7 @@
 	type Props = {
 		variant?: ButtonVariant;
 		size?: ButtonSize;
-		/** Hue of a `soft` button; ignored by the other variants. */
+		/** Status tint of a `soft` button; ignored by the other variants. */
 		tint?: Tint;
 		href?: string;
 		class?: string;
@@ -20,7 +20,7 @@
 	let {
 		variant = 'primary',
 		size = 'md',
-		tint = 'sky',
+		tint = 'neutral',
 		href,
 		class: extra = '',
 		type = 'button',

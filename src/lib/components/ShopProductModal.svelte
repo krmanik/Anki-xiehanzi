@@ -20,11 +20,10 @@
 		priceUnit,
 		productImage,
 		tileGlyph,
-		tileHue,
 		type ShopManifest,
 		type ShopProduct
 	} from '$lib/shop';
-	import { Badge, buttonClass, PANEL, SectionLabel } from '$lib/ui';
+	import { Badge, buttonClass, DIALOG, ICON_BUTTON, SCRIM, SectionLabel } from '$lib/ui';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import Check from '@lucide/svelte/icons/check';
 	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
@@ -46,18 +45,17 @@
 	const href = $derived(checkoutHref(manifest, product));
 	const post = $derived(buyUrl(manifest, product));
 	const free = $derived(freeHref(product));
-	const hue = $derived(tileHue(product));
 </script>
 
 <svelte:window onkeydown={(e) => e.key === 'Escape' && onClose()} />
 
 <div
-	class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-5"
+	class="fixed inset-0 z-50 flex items-end justify-center {SCRIM} p-0 sm:items-center sm:p-5"
 	role="presentation"
 	onclick={(e) => e.target === e.currentTarget && onClose()}
 >
 	<div
-		class="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-[24px] bg-surface text-ink shadow-xl sm:rounded-[24px]"
+		class="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden {DIALOG} rounded-b-none sm:rounded-b-tile"
 		role="dialog"
 		aria-modal="true"
 		aria-label={product.name}
@@ -65,23 +63,23 @@
 		<div class="flex items-start justify-between gap-4 px-5 pt-5 sm:px-7 sm:pt-7">
 			<div class="min-w-0">
 				{#if product.badge}
-					<Badge tint={hue} class="mb-2">{product.badge}</Badge>
+					<Badge class="mb-2">{product.badge}</Badge>
 				{/if}
-				<h2 class="m-0 text-[22px] leading-tight font-bold">{product.name}</h2>
+				<h2 class="m-0 text-[26px] leading-[1.05] font-bold tracking-[-0.035em]">{product.name}</h2>
 				<p class="mt-1 mb-0 text-[15px] text-muted">{product.tagline}</p>
 			</div>
 			<button
 				type="button"
 				onclick={onClose}
 				aria-label="Close"
-				class="grid size-10 shrink-0 place-items-center rounded-full text-muted hover:bg-sunk hover:text-ink"
+				class={ICON_BUTTON}
 			>
 				<X class="size-5" />
 			</button>
 		</div>
 
 		<div class="min-h-0 flex-1 overflow-y-auto px-5 pt-5 pb-2 sm:px-7">
-			<div class="overflow-hidden rounded-panel {PANEL[hue]}">
+			<div class="overflow-hidden rounded-panel bg-sunk">
 				{#if src && !failed}
 					<img
 						{src}
@@ -103,7 +101,7 @@
 				<ul class="m-0 grid list-none gap-2 p-0">
 					{#each product.highlights as line (line)}
 						<li class="flex gap-2.5 text-[15px]">
-							<Check class="mt-0.5 size-[18px] shrink-0 text-mint-ink" />
+							<Check class="mt-0.5 size-[18px] shrink-0 text-ok-ink" />
 							<span>{line}</span>
 						</li>
 					{/each}
@@ -122,7 +120,7 @@
 			{#if free}
 				<p class="mt-5 mb-0 text-[13.5px] text-muted">
 					Free version on this site:
-					<a href={free} onclick={onClose} class="font-semibold text-accent">{product.freeAlternative?.label}</a>.
+					<a href={free} onclick={onClose} class="font-semibold text-ink underline underline-offset-4">{product.freeAlternative?.label}</a>.
 				</p>
 			{/if}
 		</div>
@@ -141,7 +139,7 @@
 				<a class={buttonClass('secondary')} href={post} target="_blank" rel="noopener noreferrer">
 					View on Patreon <ArrowUpRight class="size-4" />
 				</a>
-				<a class={buttonClass('primary')} {href} target="_blank" rel="noopener noreferrer">
+				<a class={buttonClass('premium')} {href} target="_blank" rel="noopener noreferrer">
 					<ShoppingBag class="size-[18px]" /> Buy on Patreon
 					<ArrowUpRight class="size-4" />
 				</a>

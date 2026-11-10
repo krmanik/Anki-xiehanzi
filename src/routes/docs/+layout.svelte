@@ -44,7 +44,7 @@
 	<!-- main content — MarkdownLayout renders inside here with its own px-5 -->
 	<div class="min-w-0 flex-1">
 		<!-- mobile nav: collapsible, hidden on lg+ -->
-		<details class="group mx-5 mt-10 rounded-lg border border-line lg:hidden">
+		<details class="group mx-5 mt-10 rounded-panel bg-surface shadow-object lg:hidden">
 			<summary class="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-medium">
 				<span class="text-[13px] text-muted font-semibold">Docs</span>
 				<svg class="h-4 w-4 text-muted transition group-open:rotate-180" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
@@ -69,7 +69,7 @@
 				{#if prev}
 					<a
 						href={prev.href}
-						class="group flex items-center gap-3 rounded-lg border border-line px-4 py-3 transition hover:border-accent hover:shadow-md"
+						class="group flex items-center gap-3 xhz-lift rounded-panel bg-surface px-5 py-4 no-underline shadow-object"
 					>
 						<ArrowLeft size={16} class="shrink-0 text-muted transition group-hover:text-ink" />
 						<div>
@@ -84,7 +84,7 @@
 				{#if next}
 					<a
 						href={next.href}
-						class="group flex items-center gap-3 rounded-lg border border-line px-4 py-3 text-right transition hover:border-accent hover:shadow-md"
+						class="group flex items-center gap-3 xhz-lift rounded-panel bg-surface px-5 py-4 text-right no-underline shadow-object"
 					>
 						<div>
 							<div class="text-[13px] text-muted">Next</div>

@@ -10,5 +10,5 @@
 	href="{base}/docs/send-to-anki"
 	target="_blank"
 	rel="noopener"
-	class="ml-1 font-semibold whitespace-nowrap text-apricot-ink underline">Setup guide</a
+	class="ml-1 font-semibold whitespace-nowrap text-warn-ink underline">Setup guide</a
 >

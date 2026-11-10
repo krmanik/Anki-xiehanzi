@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { IconDot, PageHeader } from '$lib/ui';
-	import BookOpenTextIcon from '@lucide/svelte/icons/book-open-text';
+	import { PageHeader } from '$lib/ui';
 	/**
 	 * Paste-text reader: segment pasted text in reading order (unlike the deck
 	 * creator's `cutParagraph`, nothing here is deduped or filtered — punctuation
@@ -222,30 +221,26 @@
 </svelte:head>
 
 <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 pb-28">
-	<PageHeader title="Paste-text reader" subtitle="Paste Chinese text; tap any word for its entry.">
-		{#snippet lead()}
-			<IconDot hue="sky" size="lg" shape="tile"><BookOpenTextIcon /></IconDot>
-		{/snippet}
-	</PageHeader>
+	<PageHeader title="Paste-text reader" subtitle="Paste Chinese text; tap any word for its entry." />
 
 	{#if inputCollapsed && tokens.length}
 		<button
 			type="button"
 			onclick={() => (inputCollapsed = false)}
-			class="flex w-full items-center gap-2 rounded-card bg-surface ring-1 ring-line ring-inset px-4 py-2.5 text-left shadow-sm transition hover:bg-sky-soft"
+			class="flex w-full items-center gap-2 rounded-card bg-surface shadow-object px-4 py-2.5 text-left shadow-sm transition hover:bg-sunk"
 		>
 			<Pencil size={14} class="shrink-0 text-muted" />
 			<span class="min-w-0 flex-1 truncate text-sm text-muted" lang="zh-Hans">{text}</span>
 			<span class="shrink-0 text-sm font-medium text-accent">Edit</span>
 		</button>
 	{:else}
-		<div class="rounded-panel border border-line bg-surface p-4 shadow-sm sm:p-5">
+		<div class="rounded-[24px] bg-surface p-5 shadow-object sm:rounded-tile sm:p-6">
 			<textarea
 				bind:value={text}
 				rows={6}
 				placeholder="粘贴中文文本…"
 				lang="zh-Hans"
-				class="w-full resize-y rounded-card border-0 bg-sunk p-3 text-base text-ink outline-none placeholder:text-muted/70 focus:ring-3 focus:ring-sky"
+				class="w-full resize-y rounded-card border-0 bg-sunk p-3 text-base text-ink outline-none placeholder:text-muted/70 transition-[background-color,box-shadow] focus:bg-surface focus:ring-2 focus:ring-accent"
 			></textarea>
 
 			<div class="mt-3 flex flex-wrap items-center gap-3">
@@ -257,18 +252,18 @@
 						<X size={14} /> Clear
 					</button>
 				{:else}
-					<button type="button" onclick={loadSample} class="text-sm font-medium text-accent hover:text-sky-ink">
+					<button type="button" onclick={loadSample} class="text-sm font-medium text-accent hover:text-ink">
 						Try a sample →
 					</button>
 				{/if}
-				{#if error}<p class="text-sm text-rose-ink">{error}</p>{/if}
+				{#if error}<p class="text-sm text-err-ink">{error}</p>{/if}
 			</div>
 		</div>
 	{/if}
 
 	{#if tokens.length}
 		<div
-			class="no-scrollbar sticky top-[53px] z-20 mt-4 flex items-center gap-1.5 overflow-x-auto rounded-full bg-surface/90 ring-1 ring-line ring-inset p-1.5 whitespace-nowrap shadow-sm backdrop-blur font-semibold"
+			class="no-scrollbar sticky top-[84px] z-20 mt-4 flex items-center gap-1.5 overflow-x-auto rounded-full bg-surface/90 shadow-object p-1.5 whitespace-nowrap shadow-sm backdrop-blur font-semibold"
 		>
 			<button
 				type="button"
@@ -276,7 +271,7 @@
 				title="Toggle pinyin"
 				onclick={() => (showPinyin = !showPinyin)}
 				class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition {showPinyin
-					? 'bg-accent text-white'
+					? 'bg-accent text-on-accent'
 					: 'text-muted hover:bg-sunk'}"
 			>
 				<Captions size={15} /> <span class="hidden sm:inline">Pinyin</span>
@@ -287,7 +282,7 @@
 				title="Toggle tone colors"
 				onclick={() => (colorize = !colorize)}
 				class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition {colorize
-					? 'bg-accent text-white'
+					? 'bg-accent text-on-accent'
 					: 'text-muted hover:bg-sunk'}"
 			>
 				<Palette size={15} /> <span class="hidden sm:inline">Colorize</span>
@@ -318,7 +313,7 @@
 				onclick={readAloud}
 				disabled={!!ttsStatus && !speaking}
 				class="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition {speaking
-					? 'bg-accent text-white'
+					? 'bg-accent text-on-accent'
 					: 'text-muted hover:bg-sunk'}"
 			>
 				{#if ttsStatus}
@@ -338,7 +333,7 @@
 				<span class="sr-only">Add new words to the deck</span>
 				<select
 					disabled={addingNew}
-					class="cursor-pointer rounded-full border-0 bg-transparent py-1.5 pr-7 pl-1 text-sm font-medium text-muted focus:ring-3 focus:ring-sky"
+					class="cursor-pointer rounded-full border-0 bg-transparent py-1.5 pr-7 pl-1 text-sm font-medium text-muted transition-[background-color,box-shadow] focus:bg-surface focus:ring-2 focus:ring-accent"
 					onchange={(e) => {
 						const el = e.currentTarget;
 						if (el.value !== '') void addAbove(Number(el.value));
@@ -353,7 +348,7 @@
 		</div>
 
 		<div
-			class="mt-4 whitespace-pre-wrap rounded-panel border border-line bg-[#fffdf9] p-5 leading-loose shadow-sm sm:p-7 {size.cls}"
+			class="mt-4 whitespace-pre-wrap rounded-[24px] bg-surface p-5 leading-loose shadow-object sm:rounded-tile sm:p-8 {size.cls}"
 			lang="zh-Hans"
 		>
 			{#each tokens as token, i (i)}
@@ -363,8 +358,8 @@
 				{:else}
 					<button
 						type="button"
-						class="rounded px-0.5 align-bottom underline decoration-line decoration-dotted underline-offset-4 transition hover:bg-sky-soft hover:decoration-sky {bag.has(token)
-							? 'bg-apricot-soft'
+						class="rounded px-0.5 align-bottom underline decoration-line decoration-dotted underline-offset-4 transition hover:bg-sunk hover:decoration-accent {bag.has(token)
+							? 'bg-warn-soft'
 							: ''} {entry ===
 						null
 							? 'text-muted decoration-line decoration-dashed hover:decoration-muted'
@@ -393,7 +388,7 @@
 
 {#if bag.size}
 	<div
-		class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 backdrop-blur"
+		class="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur"
 		style="padding-bottom: env(safe-area-inset-bottom)"
 	>
 		<div class="mx-auto flex max-w-4xl items-center justify-between gap-3 px-5 py-3">

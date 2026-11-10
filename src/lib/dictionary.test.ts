@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	autoPick,
+	selectOnSearch,
 	componentRole,
 	componentsOf,
 	describeStructure,
@@ -231,5 +232,22 @@ describe('autoPick', () => {
 	it('leaves a real choice to the reader', () => {
 		expect(autoPick('love', [hit('爱'), hit('恋')])).toBeNull();
 		expect(autoPick('x', [])).toBeNull();
+	});
+});
+
+describe('selectOnSearch', () => {
+	const hit = (simplified: string, traditional = simplified) => ({ simplified, traditional });
+	it('drops the last pick on a new query and opens hit #1', () => {
+		expect(selectOnSearch('爱', [hit('爱情'), hit('爱好')], { word: '学位', query: '学' })).toBe('爱情');
+		expect(selectOnSearch('love', [hit('爱'), hit('恋')], { word: '学位', query: '学' })).toBe('爱');
+	});
+	it('prefers the exact match over hit #1', () => {
+		expect(selectOnSearch('爱', [hit('爱情'), hit('爱')], { word: null, query: null })).toBe('爱');
+	});
+	it('keeps a pick made for the same query', () => {
+		expect(selectOnSearch('学', [hit('学'), hit('学位')], { word: '学位', query: '学' })).toBe('学位');
+	});
+	it('selects nothing when nothing matched', () => {
+		expect(selectOnSearch('zzz', [], { word: '学位', query: '学' })).toBeNull();
 	});
 });

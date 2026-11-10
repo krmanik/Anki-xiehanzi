@@ -7,51 +7,53 @@
 @source '../src';
 @source '../node_modules/flowbite-svelte/dist';
 
-/* Dark mode follows `data-theme="dark"` on <html>, not the OS setting: pages
-   still hardcode light Tailwind greys, so dark stays off until the shell ships
-   a toggle (Phase 2) and pages move onto the tokens below. */
+/* Dark mode follows `data-theme="dark"` on <html>. app.html sets it before
+   first paint from the stored choice, or from the OS until the reader picks
+   one with the header toggle (src/lib/theme.ts). */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 /* ── Design tokens ────────────────────────────────────────────────────────
-   Bright and cool. Five hues set in OKLCH so each sits at the same lightness
-   and chroma for its role, on cool slate neutrals. Hue angles follow the
-   clean, bright sets of Tailwind v4 and Apple's system colours: pink 4°,
-   orange 48°, emerald 165°, blue 259°, violet 293°.
-   Orange is the hard one: at text lightness, orange hues of 55–70° turn
-   brown and their tints read beige. So its ink is a vivid red-orange and
-   its tint a pale peach, and big surfaces (Premium) use violet, not orange.
-   Each hue in three strengths:
-     <name>       the hue: icon dots, writer strokes, fills under white glyphs
-     <name>-soft  a whisper of it, same hue (L .97): panels, chips, selected rows
-     <name>-ink   a deep shade for text (WCAG AA on white and on its soft)
-   Tones 1–4 of the site's own hanzi/pinyin are rose · apricot · mint · sky.
+   "Objects": a near-white page, white objects with soft layered shadows,
+   black pills that squish when pressed, spring motion. Neutrals are true
+   greys (no cream, no warm brown-black). One accent — the ink itself, which
+   turns light in dark mode. Colour appears only where it means something:
+     tones    hanzi/pinyin tones 1–5 (tone-N), AA on surface and on sunk
+     status   ok · warn · err, each base / soft / ink
+     premium  gold, base / soft / ink — Premium and nothing else
+   The five older hue names stay as aliases so older markup keeps working:
+     sky → accent (ink) · lavender → premium gold · apricot → warn
+     rose → err · mint → ok
    The deck templates keep their own tone palettes (tonePresets.ts) untouched. */
 @theme {
-	--font-sans: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-	--font-display: 'Poppins', system-ui, sans-serif;
+	--font-sans: 'Onest Variable', 'Onest', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	--font-display: 'Onest Variable', 'Onest', system-ui, sans-serif;
 	--font-zh: 'Noto Sans SC Variable', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
 		sans-serif;
 
-	--radius-card: 14px;
-	--radius-panel: 18px;
+	/* Inputs, rows, small objects · cards and modals · bento tiles. */
+	--radius-card: 16px;
+	--radius-panel: 24px;
+	--radius-tile: 30px;
 
-	/* flowbite-svelte buttons use `primary`; it is the blue (sky) scale, 500 =
-	   sky, 700 = sky-ink. Without a primary palette those buttons render invisible. */
-	--color-primary-50: #f2f7fe;
-	--color-primary-100: #e0ecfe;
-	--color-primary-200: #c7dcfe;
-	--color-primary-300: #9cc3fe;
-	--color-primary-400: #66a1fe;
-	--color-primary-500: #3384fe;
-	--color-primary-600: #0270fb;
-	--color-primary-700: #0164e2;
-	--color-primary-800: #0050b9;
-	--color-primary-900: #063d8b;
-	--color-primary-950: #092754;
+	--ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+	/* flowbite-svelte's `primary`: a neutral ink ramp, 700 = the light accent.
+	   Without a primary palette flowbite buttons render invisible. */
+	--color-primary-50: #fafafa;
+	--color-primary-100: #f2f2f2;
+	--color-primary-200: #e5e5e5;
+	--color-primary-300: #cccccc;
+	--color-primary-400: #a3a3a3;
+	--color-primary-500: #7a7a7a;
+	--color-primary-600: #474747;
+	--color-primary-700: #0a0a0a;
+	--color-primary-800: #080808;
+	--color-primary-900: #050505;
+	--color-primary-950: #000000;
 }
 
 /* Theme-dependent colours resolve through variables, so one utility
-   (`bg-surface`, `text-muted`, `bg-mint-soft`) is right in both themes. */
+   (`bg-surface`, `text-muted`, `bg-ok-soft`) is right in both themes. */
 @theme inline {
 	--color-ground: var(--xhz-ground);
 	--color-surface: var(--xhz-surface);
@@ -59,106 +61,178 @@
 	--color-ink: var(--xhz-ink);
 	--color-muted: var(--xhz-muted);
 	--color-line: var(--xhz-line);
+	/* A hairline that has to be seen (checkbox rims, input edges): 3:1. */
+	--color-edge: var(--xhz-edge);
 	--color-accent: var(--xhz-accent);
 	--color-on-accent: var(--xhz-on-accent);
+	--color-scrim: var(--xhz-scrim);
+	/* The selection island stays dark in both themes. */
+	--color-island: var(--xhz-island);
 
-	--color-rose: var(--xhz-rose);
-	--color-rose-soft: var(--xhz-rose-soft);
-	--color-rose-ink: var(--xhz-rose-ink);
-	--color-apricot: var(--xhz-apricot);
-	--color-apricot-soft: var(--xhz-apricot-soft);
-	--color-apricot-ink: var(--xhz-apricot-ink);
-	--color-mint: var(--xhz-mint);
-	--color-mint-soft: var(--xhz-mint-soft);
-	--color-mint-ink: var(--xhz-mint-ink);
-	--color-sky: var(--xhz-sky);
-	--color-sky-soft: var(--xhz-sky-soft);
-	--color-sky-ink: var(--xhz-sky-ink);
-	--color-lavender: var(--xhz-lavender);
-	--color-lavender-soft: var(--xhz-lavender-soft);
-	--color-lavender-ink: var(--xhz-lavender-ink);
+	--color-gold: var(--xhz-gold);
+	--color-gold-soft: var(--xhz-gold-soft);
+	--color-gold-ink: var(--xhz-gold-ink);
+	--color-on-gold: var(--xhz-on-gold);
+	--color-ok: var(--xhz-ok);
+	--color-ok-soft: var(--xhz-ok-soft);
+	--color-ok-ink: var(--xhz-ok-ink);
+	--color-warn: var(--xhz-warn);
+	--color-warn-soft: var(--xhz-warn-soft);
+	--color-warn-ink: var(--xhz-warn-ink);
+	--color-err: var(--xhz-err);
+	--color-err-soft: var(--xhz-err-soft);
+	--color-err-ink: var(--xhz-err-ink);
 
-	--color-tone-1: var(--xhz-rose-ink);
-	--color-tone-2: var(--xhz-apricot-ink);
-	--color-tone-3: var(--xhz-mint-ink);
-	--color-tone-4: var(--xhz-sky-ink);
-	--color-tone-5: var(--xhz-muted);
+	/* Older hue names → roles. */
+	--color-sky: var(--xhz-accent);
+	--color-sky-soft: var(--xhz-sunk);
+	--color-sky-ink: var(--xhz-ink);
+	--color-lavender: var(--xhz-gold);
+	--color-lavender-soft: var(--xhz-gold-soft);
+	--color-lavender-ink: var(--xhz-gold-ink);
+	--color-apricot: var(--xhz-warn);
+	--color-apricot-soft: var(--xhz-warn-soft);
+	--color-apricot-ink: var(--xhz-warn-ink);
+	--color-rose: var(--xhz-err);
+	--color-rose-soft: var(--xhz-err-soft);
+	--color-rose-ink: var(--xhz-err-ink);
+	--color-mint: var(--xhz-ok);
+	--color-mint-soft: var(--xhz-ok-soft);
+	--color-mint-ink: var(--xhz-ok-ink);
+
+	--color-tone-1: var(--xhz-t1);
+	--color-tone-2: var(--xhz-t2);
+	--color-tone-3: var(--xhz-t3);
+	--color-tone-4: var(--xhz-t4);
+	--color-tone-5: var(--xhz-t5);
+
+	--shadow-object: var(--xhz-shadow);
+	--shadow-raised: var(--xhz-shadow-raised);
+	--shadow-press: var(--xhz-shadow-press);
+	--shadow-pop: var(--xhz-shadow-pop);
 }
 
 :root {
-	--xhz-ground: #ffffff;
+	--xhz-ground: #fafafa;
 	--xhz-surface: #ffffff;
-	--xhz-sunk: #f4f7fb;
-	--xhz-ink: #1b222e;
-	--xhz-muted: #596475;
-	--xhz-line: #e4e8ef;
-	--xhz-accent: #0164e2;
+	--xhz-sunk: #f2f2f2;
+	--xhz-ink: #111111;
+	--xhz-muted: #636363;
+	--xhz-line: #e5e5e5;
+	--xhz-edge: #888888;
+	--xhz-accent: #0a0a0a;
 	--xhz-on-accent: #ffffff;
+	--xhz-scrim: rgb(0 0 0 / 0.42);
+	--xhz-island: #0a0a0a;
 
-	--xhz-rose: #f73c81;
-	--xhz-rose-soft: #fef1f4;
-	--xhz-rose-ink: #cb0b62;
-	--xhz-apricot: #fd7920;
-	--xhz-apricot-soft: #fef5f0;
-	--xhz-apricot-ink: #bf5502;
-	--xhz-mint: #08ba87;
-	--xhz-mint-soft: #e8fdf3;
-	--xhz-mint-ink: #057c59;
-	--xhz-sky: #3384fe;
-	--xhz-sky-soft: #f0f6ff;
-	--xhz-sky-ink: #0164e2;
-	--xhz-lavender: #905efe;
-	--xhz-lavender-soft: #f5f4fe;
-	--xhz-lavender-ink: #7839e6;
+	--xhz-gold: #ffc93d;
+	--xhz-gold-soft: #fff5d6;
+	--xhz-gold-ink: #7f5300;
+	--xhz-on-gold: #2a1c00;
+	--xhz-ok: #2f9e64;
+	--xhz-ok-soft: #e8f6ee;
+	--xhz-ok-ink: #0f7a43;
+	--xhz-warn: #e8961c;
+	--xhz-warn-soft: #fff3e0;
+	--xhz-warn-ink: #9a4e00;
+	--xhz-err: #e5484d;
+	--xhz-err-soft: #fde2e5;
+	--xhz-err-ink: #c4283a;
 
-	/* Legacy tone colours, still used by `.toneN` in pages not yet redesigned. */
-	--xie-green: #4caf50;
-	--xie-blue: #2196f3;
+	/* Site tones: as bright as AA allows (≥4.5) on ground, surface and the
+	   sunk selected-row tint. The one tone set for all site UI. */
+	--xhz-t1: #d61f3d;
+	--xhz-t2: #b05500;
+	--xhz-t3: #007e48;
+	--xhz-t4: #0b6cd6;
+	--xhz-t5: #6e6e6e;
+
+	--xhz-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 10px 28px -14px rgb(0 0 0 / 0.22);
+	--xhz-shadow-raised: 0 2px 4px rgb(0 0 0 / 0.06), 0 22px 40px -18px rgb(0 0 0 / 0.32);
+	--xhz-shadow-press: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 8px 18px -10px rgb(0 0 0 / 0.5);
+	--xhz-shadow-pop: 0 1px 2px rgb(0 0 0 / 0.1), 0 4px 10px -6px rgb(0 0 0 / 0.3);
+
+	/* Older names, still read by `.toneN` and older inline styles. */
+	--tone-1: var(--xhz-t1);
+	--tone-2: var(--xhz-t2);
+	--tone-3: var(--xhz-t3);
+	--tone-4: var(--xhz-t4);
+	--tone-5: var(--xhz-t5);
+	color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+	--xhz-ground: #0a0a0a;
+	--xhz-surface: #141414;
+	--xhz-sunk: #1f1f1f;
+	--xhz-ink: #f5f5f5;
+	--xhz-muted: #a3a3a3;
+	--xhz-line: #2a2a2a;
+	--xhz-edge: #6b6b6b;
+	--xhz-accent: #f5f5f5;
+	--xhz-on-accent: #0a0a0a;
+	--xhz-scrim: rgb(0 0 0 / 0.66);
+	--xhz-island: #1c1c1c;
+
+	--xhz-gold: #ffcd4d;
+	--xhz-gold-soft: #2b2310;
+	--xhz-gold-ink: #ffd25e;
+	--xhz-on-gold: #2a1c00;
+	--xhz-ok: #3fbf7f;
+	--xhz-ok-soft: #13271c;
+	--xhz-ok-ink: #5fd39a;
+	--xhz-warn: #f0a238;
+	--xhz-warn-soft: #2a2010;
+	--xhz-warn-ink: #ffb35c;
+	--xhz-err: #f06b78;
+	--xhz-err-soft: #3a171c;
+	--xhz-err-ink: #ff8a97;
+
+	--xhz-t1: #ff8a96;
+	--xhz-t2: #ffad5c;
+	--xhz-t3: #62e09d;
+	--xhz-t4: #8ac0ff;
+	--xhz-t5: #ababab;
+
+	--xhz-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 10px 28px -14px rgb(0 0 0 / 0.7);
+	--xhz-shadow-raised: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 22px 40px -16px rgb(0 0 0 / 0.8);
+	--xhz-shadow-press: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 8px 18px -10px rgb(0 0 0 / 0.7);
+	--xhz-shadow-pop: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 4px 10px -6px rgb(0 0 0 / 0.7);
+	color-scheme: dark;
+}
+
+/* An Anki card rendered in the page keeps the deck's own tone defaults, not
+   the site's, and does not follow the theme. (The /create previews render in
+   iframes and never see these; this guards any in-page card.) */
+[data-card-preview] {
 	--tone-1: #f44336;
 	--tone-2: #ff9800;
 	--tone-3: #4caf50;
 	--tone-4: #2196f3;
 	--tone-5: #9e9e9e;
-	color-scheme: light;
 }
 
-:root[data-theme='dark'] {
-	--xhz-ground: #0c1016;
-	--xhz-surface: #151a22;
-	--xhz-sunk: #1c222b;
-	--xhz-ink: #ebeff4;
-	--xhz-muted: #a3abb9;
-	--xhz-line: #282e38;
-	--xhz-accent: #8cb9ff;
-	--xhz-on-accent: #0b1a2c;
-
-	--xhz-rose-soft: #2a181c;
-	--xhz-rose-ink: #fe9cb5;
-	--xhz-apricot-soft: #251c18;
-	--xhz-apricot-ink: #ffae85;
-	--xhz-mint-soft: #11241c;
-	--xhz-mint-ink: #6ce5b5;
-	--xhz-sky-soft: #122239;
-	--xhz-sky-ink: #8cb9ff;
-	--xhz-lavender-soft: #231c39;
-	--xhz-lavender-ink: #c0b0fe;
-	color-scheme: dark;
-}
-
-/* Tone coloring for hanzi/pinyin in the app UI (mirrors the deck CSS). */
-.tone1 {
+/* Tone colouring for hanzi/pinyin in the app UI (mirrors the deck CSS).
+   `.ex-toneN` is what `colorizeSentenceHanzi` / `colorizePinyinString` emit
+   for example sentences; the decks style it inside their own iframes. */
+.tone1,
+.ex-tone1 {
 	color: var(--tone-1);
 }
-.tone2 {
+.tone2,
+.ex-tone2 {
 	color: var(--tone-2);
 }
-.tone3 {
+.tone3,
+.ex-tone3 {
 	color: var(--tone-3);
 }
-.tone4 {
+.tone4,
+.ex-tone4 {
 	color: var(--tone-4);
 }
-.tone5 {
+.tone5,
+.ex-tone5 {
 	color: var(--tone-5);
 }
 
@@ -169,19 +243,23 @@
 		color: var(--xhz-ink);
 		font-family: var(--font-sans);
 		font-size: 16px;
-		line-height: 1.6;
+		line-height: 1.55;
+		-webkit-font-smoothing: antialiased;
 	}
 	h1,
 	h2,
 	h3,
 	h4 {
 		font-family: var(--font-display);
-		letter-spacing: -0.01em;
+		letter-spacing: -0.015em;
 	}
-	/* One keyboard focus ring for every control that sets none of its own
-	   (the card customiser's many small buttons, links in prose). */
+	h1,
+	h2 {
+		letter-spacing: -0.03em;
+	}
+	/* One keyboard focus ring for every control that sets none of its own. */
 	:focus-visible {
-		outline: 3px solid var(--xhz-sky);
+		outline: 3px solid var(--xhz-accent);
 		outline-offset: 2px;
 	}
 	/* The flowbite plugin paints form controls white with grey text, which is
@@ -194,5 +272,302 @@
 		background-color: var(--xhz-surface);
 		color: var(--xhz-ink);
 		border-color: var(--xhz-line);
+	}
+	/* Native checkboxes and radios take the accent. */
+	:root {
+		accent-color: var(--xhz-accent);
+	}
+	/* The flowbite plugin rings focused fields in blue; the ring is the ink. */
+	:root input:focus,
+	:root select:focus,
+	:root textarea:focus {
+		--tw-ring-color: var(--xhz-accent);
+		border-color: var(--xhz-accent);
+	}
+	::selection {
+		background: color-mix(in srgb, var(--xhz-accent) 18%, transparent);
+	}
+}
+
+/* ── Objects ──────────────────────────────────────────────────────────────
+   The few shapes that are easier as one class than as a string of utilities.
+   Components layer, so a utility on the same element still wins. */
+@layer components {
+	/* Segmented control: a sunk track, the selected item raised and popped. */
+	.xhz-seg {
+		display: inline-flex;
+		flex-wrap: wrap;
+		gap: 2px;
+		padding: 4px;
+		border-radius: 14px;
+		background: var(--xhz-sunk);
+	}
+	.xhz-seg > :is(button, a, label),
+	.xhz-seg > li > :is(button, a) {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		min-height: 34px;
+		padding: 0 14px;
+		border: 0;
+		border-radius: 10px;
+		background: transparent;
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--xhz-muted);
+		text-decoration: none;
+		cursor: pointer;
+		transition: color 0.2s;
+	}
+	.xhz-seg > :hover,
+	.xhz-seg > li > :hover {
+		color: var(--xhz-ink);
+	}
+	.xhz-seg > :is([aria-pressed='true'], [aria-selected='true'], [aria-current]),
+	.xhz-seg > li > :is([aria-pressed='true'], [aria-current]),
+	.xhz-seg > :has(input:checked) {
+		color: var(--xhz-ink);
+		background: var(--xhz-surface);
+		box-shadow: var(--xhz-shadow-pop);
+		animation: xhz-pop 0.35s var(--ease-spring);
+	}
+	.xhz-seg small {
+		font-weight: 500;
+		opacity: 0.65;
+	}
+
+	/* A level key: a small square object that tilts on hover. */
+	.xhz-key {
+		display: inline-flex;
+		min-width: 54px;
+		height: 54px;
+		padding: 0 12px;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		border-radius: 16px;
+		background: var(--xhz-sunk);
+		color: var(--xhz-ink);
+		font-weight: 700;
+		font-size: 17px;
+		line-height: 1;
+		text-decoration: none;
+		transition:
+			transform 0.35s var(--ease-spring),
+			background 0.2s;
+	}
+	.xhz-key small {
+		margin-top: 4px;
+		font-size: 10.5px;
+		font-weight: 500;
+		color: var(--xhz-muted);
+	}
+	.xhz-key:hover {
+		transform: translateY(-3px) rotate(-3deg);
+	}
+	.xhz-key:active {
+		transform: scale(0.92);
+	}
+	.xhz-key[aria-current] {
+		background: var(--xhz-accent);
+		color: var(--xhz-on-accent);
+	}
+	.xhz-key[aria-current] small {
+		color: inherit;
+		opacity: 0.7;
+	}
+	/* On an inverted (ink) tile. */
+	.xhz-invert .xhz-key {
+		background: color-mix(in srgb, var(--xhz-ground) 12%, transparent);
+		color: var(--xhz-ground);
+	}
+	.xhz-invert .xhz-key small {
+		color: color-mix(in srgb, var(--xhz-ground) 65%, transparent);
+	}
+
+	/* A tile that lifts on hover. */
+	.xhz-lift {
+		transition:
+			transform 0.45s var(--ease-spring),
+			box-shadow 0.3s;
+	}
+	.xhz-lift:hover {
+		transform: translateY(-4px);
+		box-shadow: var(--xhz-shadow-raised);
+	}
+
+	/* The floating selection bar. Dark in both themes. */
+	.xhz-island {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		width: fit-content;
+		max-width: calc(100vw - 24px);
+		padding: 7px;
+		border-radius: 999px;
+		background: var(--xhz-island);
+		color: #fff;
+		box-shadow: 0 24px 48px -18px rgb(0 0 0 / 0.6);
+		animation: xhz-island 0.5s var(--ease-spring);
+	}
+	[data-theme='dark'] .xhz-island {
+		box-shadow:
+			0 0 0 1px #333333,
+			0 24px 48px -18px rgb(0 0 0 / 0.9);
+	}
+
+	/* The round checkbox: a native input, so it stays keyboard- and
+	   screen-reader-correct. Fills with the ink and pops when checked. */
+	.xhz-check {
+		appearance: none;
+		display: inline-grid;
+		place-items: center;
+		flex: none;
+		width: 24px;
+		height: 24px;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		border-radius: 50%;
+		background: var(--xhz-surface);
+		background-image: none;
+		box-shadow: inset 0 0 0 2px var(--xhz-edge);
+		/* The flowbite plugin (unlayered) fills a checked box with currentColor
+		   and paints its own tick; currentColor is the accent, the tick is ours. */
+		color: var(--xhz-accent);
+		cursor: pointer;
+		transition:
+			transform 0.35s var(--ease-spring),
+			background-color 0.2s,
+			box-shadow 0.2s;
+	}
+	.xhz-check::after {
+		content: '';
+		width: 11px;
+		height: 6px;
+		border-left: 2.5px solid var(--xhz-on-accent);
+		border-bottom: 2.5px solid var(--xhz-on-accent);
+		transform: translateY(-1px) rotate(-45deg) scale(0);
+		transition: transform 0.35s var(--ease-spring);
+	}
+	.xhz-check:hover {
+		box-shadow: inset 0 0 0 2px var(--xhz-muted);
+	}
+	.xhz-check:checked,
+	.xhz-check:indeterminate {
+		background-color: var(--xhz-accent);
+		background-image: none !important;
+		box-shadow: none;
+		transform: scale(1.08);
+	}
+	.xhz-check:checked::after {
+		transform: translateY(-1px) rotate(-45deg) scale(1);
+	}
+	.xhz-check:indeterminate::after {
+		width: 10px;
+		height: 0;
+		border-left: 0;
+		transform: none;
+	}
+	.xhz-check:focus-visible {
+		outline: 3px solid var(--xhz-accent);
+		outline-offset: 2px;
+	}
+	.xhz-check:disabled {
+		opacity: 0.4;
+		cursor: default;
+	}
+
+	/* The switch track, after a `peer` checkbox (see ui/Switch.svelte). */
+	.xhz-switch {
+		position: relative;
+		flex: none;
+		width: 52px;
+		height: 32px;
+		border-radius: 999px;
+		background: var(--xhz-edge);
+		transition: background-color 0.25s;
+	}
+	.xhz-switch::after {
+		content: '';
+		position: absolute;
+		top: 4px;
+		left: 4px;
+		width: 24px;
+		height: 24px;
+		border-radius: 999px;
+		background: #fff;
+		box-shadow: 0 2px 6px rgb(0 0 0 / 0.2);
+		transition:
+			left 0.35s var(--ease-spring),
+			width 0.2s;
+	}
+	:checked + .xhz-switch {
+		background: var(--xhz-accent);
+	}
+	:checked + .xhz-switch::after {
+		left: 24px;
+		background: var(--xhz-ground);
+	}
+	label:active > .xhz-switch::after {
+		width: 30px;
+	}
+	:checked + .xhz-switch:is(label:active > *)::after {
+		left: 18px;
+	}
+	:focus-visible + .xhz-switch {
+		outline: 3px solid var(--xhz-accent);
+		outline-offset: 2px;
+	}
+
+	/* Hanzi stickers that float. */
+	.xhz-float {
+		animation: xhz-float 6s ease-in-out infinite;
+	}
+}
+
+@keyframes xhz-pop {
+	from {
+		transform: scale(0.9);
+	}
+}
+@keyframes xhz-island {
+	from {
+		transform: scale(0.6);
+		opacity: 0;
+	}
+}
+@keyframes xhz-float {
+	50% {
+		translate: 0 -10px;
+	}
+}
+@keyframes xhz-bars {
+	50% {
+		transform: scaleY(0.35);
+	}
+}
+@keyframes xhz-draw {
+	0% {
+		stroke-dashoffset: 100;
+	}
+	30%,
+	85% {
+		stroke-dashoffset: 0;
+	}
+	100% {
+		stroke-dashoffset: 0;
+		opacity: 0;
+	}
+}
+
+/* Reduced motion: no springs, floats or drawing loops. */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
 	}
 }

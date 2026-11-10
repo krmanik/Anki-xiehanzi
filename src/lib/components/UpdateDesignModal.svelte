@@ -180,21 +180,21 @@
 <svelte:window onkeydown={(e) => e.key === 'Escape' && stage !== 'applying' && onclose()} />
 
 <div
-	class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-5"
+	class="fixed inset-0 z-50 flex items-end justify-center bg-scrim backdrop-blur-[2px] sm:items-center sm:p-5"
 	role="presentation"
 	onclick={(e) => e.target === e.currentTarget && stage !== 'applying' && onclose()}
 >
 	<div
 		bind:this={dialog}
 		tabindex="-1"
-		class="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-[24px] bg-surface text-ink shadow-xl outline-none sm:rounded-[24px]"
+		class="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-tile bg-surface text-ink shadow-raised outline-none sm:rounded-tile"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="design-title"
 	>
 		<div class="flex items-start justify-between gap-4 px-5 pt-5 sm:px-7 sm:pt-7">
 			<div class="min-w-0">
-				<h2 id="design-title" class="m-0 text-[22px] leading-tight font-bold">{title}</h2>
+				<h2 id="design-title" class="m-0 text-[26px] leading-[1.05] font-bold tracking-[-0.035em]">{title}</h2>
 				<p class="mt-1 mb-0 text-[15px] text-muted">
 					{stage === 'done'
 						? 'You will see it on your next card. Reviews are untouched.'
@@ -208,7 +208,7 @@
 				onclick={onclose}
 				disabled={stage === 'applying'}
 				aria-label="Close"
-				class="grid size-10 shrink-0 place-items-center rounded-full text-muted hover:bg-sunk hover:text-ink"
+				class="grid size-10 shrink-0 cursor-pointer place-items-center rounded-xl border-0 bg-transparent text-muted transition hover:bg-sunk hover:text-ink active:scale-90"
 			>
 				<X class="size-5" />
 			</button>
@@ -220,11 +220,11 @@
 					Looking for the deck in Anki… Allow it if your browser or Anki asks.
 				</p>
 			{:else if stage === 'error'}
-				<p class="m-0 rounded-card bg-apricot-soft px-4 py-3 text-[14px] text-apricot-ink" role="status">
+				<p class="m-0 rounded-card bg-warn-soft px-4 py-3 text-[14px] text-warn-ink" role="status">
 					{error}
 					<button
 						type="button"
-						class="ml-1 border-0 bg-transparent p-0 font-semibold text-apricot-ink underline"
+						class="ml-1 border-0 bg-transparent p-0 font-semibold text-warn-ink underline"
 						onclick={load}>Try again</button
 					>
 					<AnkiSetupLink />
@@ -251,7 +251,7 @@
 
 				{#if stage === 'blocked'}
 					{#each entries.filter((e) => e.plan.blocked) as e (e.plan.modelName)}
-						<p class="mt-4 mb-0 rounded-card bg-apricot-soft px-4 py-3 text-[14px] text-apricot-ink" role="status">
+						<p class="mt-4 mb-0 rounded-card bg-warn-soft px-4 py-3 text-[14px] text-warn-ink" role="status">
 							{blockedReason(e.plan)}
 						</p>
 					{/each}
@@ -260,7 +260,7 @@
 					<ul class="m-0 grid list-none gap-1.5 p-0 text-[15px]">
 						{#each changes as line (line)}
 							<li class="flex gap-2.5">
-								<Check class="mt-0.5 size-[18px] shrink-0 text-mint-ink" />{line}
+								<Check class="mt-0.5 size-[18px] shrink-0 text-ok-ink" />{line}
 							</li>
 						{/each}
 					</ul>
@@ -274,12 +274,12 @@
 					</p>
 				{/if}
 				{#if stage === 'done' && duplicates}
-					<p class="mt-3 mb-0 rounded-card bg-apricot-soft px-4 py-3 text-[14px] text-apricot-ink" role="status">
+					<p class="mt-3 mb-0 rounded-card bg-warn-soft px-4 py-3 text-[14px] text-warn-ink" role="status">
 						{DUPLICATE_CARDS_NOTE}
 					</p>
 				{/if}
 				{#if strokesMissing}
-					<p class="mt-3 mb-0 rounded-card bg-apricot-soft px-4 py-3 text-[14px] text-apricot-ink">
+					<p class="mt-3 mb-0 rounded-card bg-warn-soft px-4 py-3 text-[14px] text-warn-ink">
 						The stroke-practice grid needs stroke data your collection doesn't have yet. Send the deck once to
 						get it.
 					</p>

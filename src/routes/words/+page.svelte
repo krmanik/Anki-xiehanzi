@@ -8,7 +8,7 @@
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
 	import { goto } from '$app/navigation';
-	import { Button, buttonClass, IconDot, PageHeader } from '$lib/ui';
+	import { Button, buttonClass, PageHeader } from '$lib/ui';
 	import { setPendingWords, type PendingThen } from '$lib/hskHandoff';
 	import {
 		deleteDeck,
@@ -28,7 +28,6 @@
 	} from '$lib/myWords';
 	import UpdateDesignModal from '$lib/components/UpdateDesignModal.svelte';
 	import type { WantedModel } from '$lib/anki/designSync';
-	import Bookmark from '@lucide/svelte/icons/bookmark';
 	import Paintbrush from '@lucide/svelte/icons/paintbrush';
 	import Download from '@lucide/svelte/icons/download';
 	import FolderOpen from '@lucide/svelte/icons/folder-open';
@@ -135,10 +134,10 @@
 		}
 	}
 
-	const panel = 'rounded-panel bg-surface p-5 ring-1 ring-line ring-inset sm:p-6';
+	const panel = 'rounded-[24px] bg-surface p-5 shadow-object sm:rounded-tile sm:p-7';
 	const h2 = 'm-0 mb-3 text-[20px] leading-tight font-bold text-ink';
 	const iconBtn =
-		'grid size-9 shrink-0 place-items-center rounded-full text-muted hover:bg-sunk hover:text-ink focus-visible:outline-3 focus-visible:outline-sky';
+		'grid size-9 shrink-0 place-items-center rounded-full text-muted hover:bg-sunk hover:text-ink focus-visible:outline-3 focus-visible:outline-accent';
 </script>
 
 <svelte:head>
@@ -148,9 +147,6 @@
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
 	<PageHeader title="My words" subtitle="Kept in this browser.">
-		{#snippet lead()}
-			<IconDot hue="rose" size="lg" shape="tile"><Bookmark /></IconDot>
-		{/snippet}
 		{#snippet actions()}
 			{#if !empty}
 				<Button size="sm" variant="secondary" onclick={backup}><Download class="size-4" />Backup</Button>
@@ -169,7 +165,7 @@
 
 	{#if note}
 		<p
-			class="mt-0 mb-4 rounded-card px-4 py-3 text-[14px] {note.ok ? 'bg-mint-soft text-mint-ink' : 'bg-apricot-soft text-apricot-ink'}"
+			class="mt-0 mb-4 rounded-card px-4 py-3 text-[14px] {note.ok ? 'bg-ok-soft text-ok-ink' : 'bg-warn-soft text-warn-ink'}"
 			role="status"
 		>
 			{note.text}
@@ -187,10 +183,10 @@
 	{/if}
 
 	{#if draft}
-		<div class="mb-4 flex flex-wrap items-center gap-3 rounded-panel bg-apricot-soft p-4">
+		<div class="mb-4 flex flex-wrap items-center gap-3 rounded-panel bg-warn-soft p-4">
 			<div class="min-w-0 flex-1">
-				<p class="m-0 font-semibold text-apricot-ink">Unfinished · {count(draft.words.length)} · {savedDate(draft.savedAt)}</p>
-				<p class="m-0 mt-0.5 truncate font-zh text-lg text-apricot-ink/80" lang="zh-Hans">{wordPreview(draft.words)}</p>
+				<p class="m-0 font-semibold text-warn-ink">Unfinished · {count(draft.words.length)} · {savedDate(draft.savedAt)}</p>
+				<p class="m-0 mt-0.5 truncate font-zh text-lg text-warn-ink/80" lang="zh-Hans">{wordPreview(draft.words)}</p>
 			</div>
 			<a href="{base}/create" class={buttonClass('primary', 'sm')}>Continue</a>
 		</div>
@@ -216,7 +212,7 @@
 								<button type="button" class={buttonClass('secondary', 'sm')} onclick={() => (confirming = null)}>Keep</button>
 								<button
 									type="button"
-									class="{buttonClass('secondary', 'sm')} text-rose-ink"
+									class={buttonClass('danger', 'sm')}
 									onclick={() => remove(deck.name)}>Delete</button
 								>
 							</div>

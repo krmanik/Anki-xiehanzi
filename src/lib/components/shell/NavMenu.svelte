@@ -9,7 +9,6 @@
 	import Search from '@lucide/svelte/icons/search';
 	import Moon from '@lucide/svelte/icons/moon';
 	import Sun from '@lucide/svelte/icons/sun';
-	import IconDot from '$lib/ui/IconDot.svelte';
 	import Logo from './Logo.svelte';
 	import { isActive, SHOP, searchHref, SIDEBAR, withBase, type NavItem } from '$lib/nav';
 	import { NAV_ICONS } from './navIcons';
@@ -43,7 +42,7 @@
 	}
 
 	const foot =
-		'text-[13px] text-muted no-underline hover:text-ink focus-visible:outline-3 focus-visible:outline-sky rounded';
+		'text-[13px] text-muted no-underline hover:text-ink focus-visible:outline-3 focus-visible:outline-accent rounded';
 </script>
 
 {#snippet entry(item: NavItem, shop = false)}
@@ -53,13 +52,19 @@
 		href={withBase(item.path, base)}
 		onclick={onnavigate}
 		aria-current={on ? 'page' : undefined}
-		class="flex min-h-10 items-center gap-3 rounded-full px-2.5 py-1 text-[15px] font-medium no-underline transition-colors focus-visible:outline-3 focus-visible:outline-sky {on
-			? 'bg-sky-soft font-semibold text-sky-ink'
+		class="flex min-h-11 items-center gap-3 rounded-card px-2.5 py-1 text-[15px] no-underline transition-colors focus-visible:outline-3 focus-visible:outline-accent {on
+			? 'bg-sunk font-semibold text-ink'
 			: shop
-				? 'bg-lavender-soft font-semibold text-lavender-ink hover:brightness-95'
-				: 'text-ink hover:bg-sunk'}"
+				? 'font-semibold text-ink hover:bg-sunk'
+				: 'font-medium text-ink hover:bg-sunk'}"
 	>
-		<IconDot hue={item.hue} size="sm"><Icon /></IconDot>
+		{#if shop}
+			<span class="grid size-8 shrink-0 place-items-center" aria-hidden="true"
+				><span class="size-2.5 rounded-full bg-gold shadow-[0_0_0_3px_var(--xhz-gold-soft)]"></span></span
+			>
+		{:else}
+			<span class="grid size-8 shrink-0 place-items-center text-muted [&_svg]:size-[18px]" aria-hidden="true"><Icon /></span>
+		{/if}
 		{item.label}
 	</a>
 {/snippet}
@@ -69,7 +74,7 @@
 
 	<form role="search" onsubmit={search} class="mb-2">
 		<label
-			class="flex min-h-10 items-center gap-2 rounded-full bg-sunk px-3.5 text-muted focus-within:outline-3 focus-within:outline-sky"
+			class="flex min-h-11 items-center gap-2 rounded-card bg-sunk px-3.5 text-muted transition-[background-color,box-shadow] focus-within:bg-surface focus-within:shadow-[0_0_0_2px_var(--xhz-accent)]"
 		>
 			<Search class="size-4 shrink-0" aria-hidden="true" />
 			<span class="sr-only">Look up a word</span>

@@ -24,7 +24,7 @@
 	} = $props();
 </script>
 
-<header class="mb-5">
+<header class="mb-6 pt-2 sm:pt-6">
 	{#if crumbs.length}
 		<nav aria-label="Breadcrumb" class="mb-2 text-sm text-muted">
 			<ol class="m-0 flex list-none flex-wrap items-center gap-1.5 p-0">
@@ -45,8 +45,8 @@
 		<div class="flex min-w-0 items-center gap-3.5">
 			{#if lead}{@render lead()}{/if}
 			<div class="min-w-0">
-				<h1 class="m-0 text-[28px] leading-tight font-bold text-ink">{title}</h1>
-				{#if subtitle}<p class="m-0 text-sm text-muted">{subtitle}</p>{/if}
+				<h1 class="m-0 text-[34px] leading-none font-bold tracking-[-0.04em] text-ink sm:text-[46px]">{title}</h1>
+				{#if subtitle}<p class="m-0 mt-2 text-[15px] text-muted sm:text-base">{subtitle}</p>{/if}
 			</div>
 		</div>
 		{#if actions}<div class="flex flex-wrap gap-2">{@render actions()}</div>{/if}

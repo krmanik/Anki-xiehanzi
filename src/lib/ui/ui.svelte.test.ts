@@ -89,10 +89,10 @@ describe('DataTable', () => {
 		mountTable();
 		expect(screen.queryByRole('region', { name: 'Selection' })).toBeNull();
 		await fireEvent.click(screen.getByRole('checkbox', { name: 'Select 会' }));
-		expect(screen.getByText('1 selected')).toBeInTheDocument();
+		expect(screen.getByRole('region', { name: 'Selection' })).toHaveTextContent(/1\s*1 selected/);
 		await fireEvent.click(screen.getByRole('button', { name: /^verb/i }));
 		await fireEvent.click(screen.getByRole('checkbox', { name: 'Select all shown' }));
-		expect(screen.getByText('2 selected')).toBeInTheDocument();
+		expect(screen.getByRole('region', { name: 'Selection' })).toHaveTextContent(/2\s*2 selected/);
 		expect(screen.getByRole('checkbox', { name: 'Select 用' })).toBeChecked();
 		// Clearing the facet shows 中 again, still unselected.
 		await fireEvent.click(screen.getByRole('button', { name: /^all/i }));

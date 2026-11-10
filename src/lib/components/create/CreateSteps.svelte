@@ -18,30 +18,26 @@
 	} = $props();
 </script>
 
-<ol class="m-0 mb-6 flex list-none flex-wrap gap-1.5 p-0" aria-label="Steps">
+<ol class="xhz-seg m-0 mb-6 list-none" aria-label="Steps">
 	{#each steps as label, i (label)}
 		{@const n = i + 1}
 		{@const now = n === step}
 		{@const ok = !now && done(n)}
-		<li>
+		<li class="contents">
 			<button
 				type="button"
 				aria-current={now ? 'step' : undefined}
 				onclick={() => (step = n)}
-				class="flex min-h-9 items-center gap-2 rounded-full border-0 py-1 pr-3.5 pl-1 text-sm font-semibold transition-colors focus-visible:outline-3 focus-visible:outline-sky {now
-					? 'bg-sky-soft text-sky-ink'
-					: ok
-						? 'bg-mint-soft text-mint-ink'
-						: 'bg-sunk text-muted hover:text-ink'}"
+				class="gap-2! pl-1.5! focus-visible:outline-3 focus-visible:outline-accent"
 			>
 				<span
-					class="grid size-[26px] place-items-center rounded-full text-[13px] {now
-						? 'bg-sky-ink text-white'
+					class="grid size-6 place-items-center rounded-full text-[12.5px] font-bold {now
+						? 'bg-accent text-on-accent'
 						: ok
-							? 'bg-mint-ink text-white'
-							: 'bg-surface'}"
+							? 'bg-ok-soft text-ok-ink'
+							: 'bg-surface text-muted'}"
 				>
-					{#if ok}<Check class="size-3.5" />{:else}{n}{/if}
+					{#if ok}<Check class="size-3.5" aria-label="Done" />{:else}{n}{/if}
 				</span>
 				{label}
 			</button>

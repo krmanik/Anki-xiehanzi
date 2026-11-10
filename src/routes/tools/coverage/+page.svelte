@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { IconDot, PageHeader } from '$lib/ui';
-	import GaugeIcon from '@lucide/svelte/icons/gauge';
+	import { PageHeader } from '$lib/ui';
 	/**
 	 * HSK coverage analyzer: segment pasted text, classify each unique word
 	 * against an HSK standard, and show what fraction of the text each level
@@ -95,23 +94,19 @@
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-	<PageHeader title="HSK coverage" subtitle="How much of a text sits inside each HSK level.">
-		{#snippet lead()}
-			<IconDot hue="mint" size="lg" shape="tile"><GaugeIcon /></IconDot>
-		{/snippet}
-	</PageHeader>
+	<PageHeader title="HSK coverage" subtitle="How much of a text sits inside each HSK level." />
 
 	<textarea
 		bind:value={text}
 		rows={6}
 		placeholder="粘贴一段中文…"
 		lang="zh-Hans"
-		class="w-full rounded-card border-0 bg-sunk p-3 text-base text-ink outline-none placeholder:text-muted/70 focus:ring-3 focus:ring-sky"
+		class="w-full rounded-card border-0 bg-sunk p-3 text-base text-ink outline-none placeholder:text-muted/70 transition-[background-color,box-shadow] focus:bg-surface focus:ring-2 focus:ring-accent"
 	></textarea>
 
 	<div class="mt-3 flex flex-wrap items-center gap-3">
 		{#if index}
-			<select bind:value={listId} class="min-h-10 rounded-card border-0 bg-surface py-1.5 pr-9 pl-3 text-sm text-ink ring-1 ring-line ring-inset focus:ring-3 focus:ring-sky">
+			<select bind:value={listId} class="min-h-10 rounded-card border-0 bg-surface py-1.5 pr-9 pl-3 text-sm text-ink ring-1 ring-line ring-inset transition-[background-color,box-shadow] focus:bg-surface focus:ring-2 focus:ring-accent">
 				{#each index.lists as list (list.id)}
 					<option value={list.id}>{list.name}</option>
 				{/each}
@@ -121,11 +116,11 @@
 			{analyzing ? 'Analyzing…' : 'Analyze'}
 		</button>
 		{#if !text}
-			<button type="button" onclick={loadSample} class="text-sm font-medium text-accent hover:text-sky-ink">
+			<button type="button" onclick={loadSample} class="text-sm font-medium text-accent hover:text-ink">
 				Try a sample →
 			</button>
 		{/if}
-		{#if error}<p class="text-sm text-rose-ink">{error}</p>{/if}
+		{#if error}<p class="text-sm text-err-ink">{error}</p>{/if}
 	</div>
 
 	{#if result}
@@ -167,7 +162,7 @@
 							<button
 								type="button"
 								onclick={(e) => openWord(word, (e.currentTarget as HTMLElement).getBoundingClientRect())}
-								class="rounded-md border border-line px-2.5 py-1 text-lg transition hover:border-sky"
+								class="rounded-md border border-line px-2.5 py-1 text-lg transition hover:border-accent"
 							>
 								{word}
 							</button>

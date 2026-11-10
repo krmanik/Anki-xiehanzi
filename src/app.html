@@ -10,12 +10,17 @@
 		/>
 		<script>
 			// Before first paint, so a dark page never flashes white. Mirrors
-			// src/lib/theme.ts: key `xhz.theme`, unset means light for now.
-			try {
-				var t = localStorage.getItem('xhz.theme');
-				if (t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches))
-					document.documentElement.dataset.theme = 'dark';
-			} catch (e) {}
+			// src/lib/theme.ts: key `xhz.theme`; unset follows the OS.
+			(function () {
+				var t = null;
+				try {
+					t = localStorage.getItem('xhz.theme');
+				} catch (e) {}
+				var dark =
+					t === 'dark' ||
+					(t !== 'light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+				document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+			})();
 		</script>
 		%sveltekit.head%
 	</head>

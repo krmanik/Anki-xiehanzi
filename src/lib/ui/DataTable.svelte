@@ -19,7 +19,7 @@
 		toggleAll,
 		toggleKey
 	} from './dataTable';
-	import { cx } from './styles';
+	import { buttonClass, CHECK, cx, FIELD, FIELD_INPUT, SEG } from './styles';
 
 	let {
 		rows,
@@ -94,18 +94,11 @@
 </script>
 
 <div class="flex flex-col gap-3">
-	<div class="flex flex-wrap items-center gap-2">
-		<label
-			class="flex min-h-11 min-w-[8rem] flex-1 items-center gap-2.5 rounded-full bg-sunk px-4 text-muted focus-within:outline-3 focus-within:outline-sky"
-		>
+	<div class="flex flex-wrap items-center gap-2.5">
+		<label class="{FIELD} min-w-[8rem] flex-1 basis-[280px]">
 			<Search class="size-[18px] shrink-0" aria-hidden="true" />
 			<span class="sr-only">{placeholder}</span>
-			<input
-				type="search"
-				bind:value={query}
-				{placeholder}
-				class="w-full border-0 bg-transparent p-0 text-[15px] text-ink placeholder:text-muted focus:ring-0 focus:outline-none"
-			/>
+			<input type="search" bind:value={query} {placeholder} class={FIELD_INPUT} />
 		</label>
 		{#if tools}{@render tools()}{/if}
 	</div>
@@ -113,32 +106,26 @@
 	<div class="flex flex-wrap items-center gap-x-3 gap-y-2">
 		{#if chips.length}
 			<!-- One sideways-scrolling line on a phone; wraps from sm up. -->
-			<div
-				class="-mx-4 flex w-[calc(100%+2rem)] gap-1.5 overflow-x-auto px-4 sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible sm:px-0 [&>*]:shrink-0"
-				role="group"
-				aria-label="Filter by type"
-			>
-				<Chip selected={facet === null} onclick={() => (facet = null)} count={filtered.length}>All</Chip>
-				{#each chipView.shown as c (c.value)}
-					<Chip selected={facet === c.value} onclick={() => (facet = c.value)} count={c.count}
-						>{c.value}</Chip
-					>
-				{/each}
-				{#if chipView.hidden}
-					<button
-						type="button"
-						class="min-h-9 rounded-full px-3 text-sm font-semibold text-accent hover:underline"
-						aria-expanded="false"
-						onclick={() => (allChips = true)}>{chipView.hidden} more…</button
-					>
-				{:else if allChips && chips.length > maxFacets}
-					<button
-						type="button"
-						class="min-h-9 rounded-full px-3 text-sm font-semibold text-accent hover:underline"
-						aria-expanded="true"
-						onclick={() => (allChips = false)}>Fewer</button
-					>
-				{/if}
+			<div class="-mx-4 w-[calc(100%+2rem)] overflow-x-auto px-4 sm:mx-0 sm:w-auto sm:overflow-visible sm:px-0">
+				<div
+					class="{SEG} flex-nowrap sm:flex-wrap [&>*]:shrink-0"
+					role="group"
+					aria-label="Filter by type"
+				>
+					<Chip selected={facet === null} onclick={() => (facet = null)} count={filtered.length}>All</Chip>
+					{#each chipView.shown as c (c.value)}
+						<Chip selected={facet === c.value} onclick={() => (facet = c.value)} count={c.count}
+							>{c.value}</Chip
+						>
+					{/each}
+					{#if chipView.hidden}
+						<button type="button" aria-expanded="false" onclick={() => (allChips = true)}
+							>{chipView.hidden} more…</button
+						>
+					{:else if allChips && chips.length > maxFacets}
+						<button type="button" aria-expanded="true" onclick={() => (allChips = false)}>Fewer</button>
+					{/if}
+				</div>
 			</div>
 		{/if}
 		<span class="ml-auto text-sm text-muted" aria-live="polite"
@@ -146,11 +133,11 @@
 		>
 	</div>
 
-	<div class="overflow-hidden rounded-card ring-1 ring-line ring-inset">
-		<div class="flex items-center gap-3 bg-sunk px-4 py-2.5 text-[13px] font-semibold text-muted">
+	<div class="rounded-tile bg-surface p-2 shadow-object sm:p-2.5">
+		<div class="flex items-center gap-3 px-3.5 pt-2 pb-2.5 text-[13px] font-semibold text-muted">
 			<input
 				type="checkbox"
-				class="size-[18px] rounded accent-[var(--xhz-sky-ink)]"
+				class={CHECK}
 				aria-label="Select all shown"
 				checked={selState === 'all'}
 				use:indeterminate={selState === 'some'}
@@ -164,10 +151,15 @@
 			{#each page as r (key(r))}
 				{@const k = key(r)}
 				{@const on = sel.has(k)}
-				<li class={cx('flex items-center gap-3 border-t border-line px-4 py-2.5', on && 'bg-sky-soft')}>
+				<li
+					class={cx(
+						'xhz-row flex items-center gap-3 rounded-[20px] px-3.5 py-3 transition-colors hover:bg-sunk',
+						on && 'is-on bg-sunk'
+					)}
+				>
 					<input
 						type="checkbox"
-						class="size-[18px] shrink-0 rounded accent-[var(--xhz-sky-ink)]"
+						class={CHECK}
 						aria-label={`Select ${rowLabel(r)}`}
 						checked={on}
 						onchange={() => setOne(k)}
@@ -175,7 +167,7 @@
 					<div class="min-w-0 flex-1">{@render row(r, on)}</div>
 				</li>
 			{:else}
-				<li class="border-t border-line px-4 py-8 text-center text-muted">
+				<li class="px-4 py-10 text-center text-muted">
 					{#if empty}{@render empty()}{:else}Nothing matches “{query}”.{/if}
 				</li>
 			{/each}
@@ -185,20 +177,23 @@
 	{#if visible.length > page.length}
 		<button
 			type="button"
-			class="self-center rounded-full bg-sunk px-5 py-2 text-sm font-semibold text-ink hover:brightness-95"
+			class="{buttonClass('secondary', 'sm')} self-center"
 			onclick={() => (shown = page.length + limit)}
 			>Show more ({(visible.length - page.length).toLocaleString()} left)</button
 		>
 	{/if}
 
 	{#if bulk && selected.length}
-		<div
-			class="sticky bottom-4 z-10 mx-auto flex w-full max-w-2xl flex-wrap items-center gap-2 rounded-[20px] bg-ink py-2 pr-2 pl-5 text-ground shadow-lg sm:rounded-full"
-			role="region"
-			aria-label="Selection"
-		>
-			<span class="mr-auto font-semibold">{selected.length.toLocaleString()} selected</span>
-			{@render bulk(selected, clear)}
+		<div class="sticky bottom-5 z-10 mx-auto mt-1 w-full sm:w-fit">
+			<div class="xhz-island w-full max-sm:justify-between sm:w-fit" role="region" aria-label="Selection">
+				<span class="grid size-9 shrink-0 place-items-center rounded-full bg-white font-bold text-black tabular-nums" aria-hidden="true"
+					>{selected.length.toLocaleString()}</span
+				>
+				<span class="mr-auto pr-1 pl-0.5 font-semibold max-sm:sr-only sm:mr-1"
+					><span class="sr-only">{`${selected.length.toLocaleString()} `}</span>selected</span
+				>
+				{@render bulk(selected, clear)}
+			</div>
 		</div>
 	{/if}
 </div>

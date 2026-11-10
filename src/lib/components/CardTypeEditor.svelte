@@ -179,11 +179,11 @@
 </div>
 <p class="mb-2 text-sm text-muted">Each card type is one card per word in Anki. Pick its fields under "On the card".</p>
 
-<div class="mb-4 flex items-center gap-3 rounded-lg border border-line bg-sunk p-3">
+<div class="mb-4 flex items-center gap-3 rounded-panel bg-sunk p-3">
 	<button
 		type="button"
 		onclick={() => (showPresetPicker = true)}
-		class="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink transition hover:border-accent hover:shadow-[3px_3px_0_0_#111]"
+		class="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink transition hover:border-accent hover:shadow-object"
 	>
 		<Plus size={15} />
 		Add a ready-made card type
@@ -205,7 +205,7 @@
 						addPreset(preset);
 						showPresetPicker = false;
 					}}
-					class="rounded-lg border border-line bg-surface px-3 py-2 text-left transition hover:border-accent hover:shadow-[3px_3px_0_0_#111]"
+					class="rounded-lg border border-line bg-surface px-3 py-2 text-left transition hover:border-accent hover:shadow-object"
 				>
 					<span class="block text-sm font-semibold text-ink">{preset.name}</span>
 					<span class="block text-[13px] leading-snug text-muted">{preset.description}</span>

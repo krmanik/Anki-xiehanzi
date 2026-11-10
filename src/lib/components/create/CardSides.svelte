@@ -123,18 +123,15 @@
 	}
 
 	const row =
-		'group flex min-h-11 touch-none select-none items-center gap-2 rounded-card pr-1 pl-1.5 text-[14.5px] outline-none focus-visible:ring-3 focus-visible:ring-sky';
+		'group flex min-h-11 touch-none select-none items-center gap-2 rounded-card pr-1 pl-1.5 text-[14.5px] outline-none focus-visible:ring-3 focus-visible:ring-accent';
 </script>
 
 {#if card}
 	{#if tabs.length > 1}
-		<div class="mb-3 flex flex-wrap items-center gap-1.5" role="group" aria-label="Card type">
+		<div class="xhz-seg mb-3" role="group" aria-label="Card type">
 			{#each tabs as t, i (t)}
 				<button
 					type="button"
-					class="min-h-8 rounded-full px-3 text-[13.5px] font-semibold {i === activeTab
-						? 'bg-sky-soft text-sky-ink'
-						: 'text-muted ring-1 ring-line ring-inset hover:text-ink'}"
 					aria-pressed={i === activeTab}
 					onclick={() => (activeTab = i)}>{t}</button
 				>
@@ -151,7 +148,7 @@
 			<section
 				data-side={s}
 				aria-label="{NAMES[s]} of the card"
-				class="rounded-panel p-2 transition {side === s ? 'bg-sky-soft/50 ring-2 ring-sky ring-inset' : 'bg-sunk'}"
+				class="rounded-panel p-2 transition-shadow {side === s ? 'bg-sunk shadow-[0_0_0_2px_var(--xhz-accent)]' : 'bg-sunk'}"
 				onclick={() => (side = s)}
 			>
 				<header class="flex items-baseline justify-between px-1.5 pt-0.5 pb-2">
@@ -172,8 +169,8 @@
 								? ', audio is off'
 								: ''}. Arrow keys move it, Delete removes it."
 							class="{row} {chrome
-								? 'border border-dashed border-line text-muted'
-								: 'bg-surface text-ink shadow-[0_1px_2px_rgb(0_0_0/0.06)] ring-1 ring-line ring-inset'} {drag?.item === item &&
+								? 'border border-dashed border-edge/50 text-muted'
+								: 'bg-surface text-ink shadow-object'} {drag?.item === item &&
 							drag.side === s
 								? 'opacity-60'
 								: ''} cursor-grab"
@@ -205,7 +202,7 @@
 					{/each}
 				</ul>
 				{#if !items.length}
-					<p class="m-0 rounded-card border border-dashed border-line px-3 py-4 text-center text-[13.5px] text-muted">
+					<p class="m-0 rounded-card border border-dashed border-edge/50 px-3 py-4 text-center text-[13.5px] text-muted">
 						Add a field below
 					</p>
 				{/if}
@@ -219,7 +216,7 @@
 			{#each addable(order, card, side) as item (item)}
 				<button
 					type="button"
-					class="inline-flex min-h-9 items-center gap-1 rounded-full bg-surface px-3 text-[13.5px] font-medium text-ink ring-1 ring-line ring-inset transition hover:bg-sky-soft hover:text-sky-ink"
+					class="inline-flex min-h-9 cursor-pointer items-center gap-1 rounded-full border-0 bg-sunk px-3 text-[13.5px] font-medium text-ink transition-[background-color,transform] duration-300 ease-spring hover:bg-line active:scale-95"
 					onclick={() => add(item)}
 					><Plus class="size-3.5" />{itemLabel(item)}</button
 				>

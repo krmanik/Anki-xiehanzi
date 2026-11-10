@@ -5,7 +5,7 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import { IconDot, PageHeader } from '$lib/ui';
+	import { PageHeader } from '$lib/ui';
 	import { TOOLS, withBase } from '$lib/nav';
 	import { NAV_ICONS } from '$lib/components/shell/navIcons';
 </script>
@@ -26,9 +26,9 @@
 			<li>
 				<a
 					href={withBase(tool.path, base)}
-					class="group flex items-center gap-3.5 rounded-panel p-3.5 no-underline ring-1 ring-line ring-inset transition-colors hover:bg-sunk focus-visible:outline-3 focus-visible:outline-sky"
+					class="xhz-lift group flex items-center gap-3.5 rounded-panel bg-surface p-4 no-underline shadow-object focus-visible:outline-3 focus-visible:outline-accent"
 				>
-					<IconDot hue={tool.hue}><Icon /></IconDot>
+					<span class="grid size-10 shrink-0 place-items-center rounded-xl bg-sunk text-ink [&_svg]:size-5" aria-hidden="true"><Icon /></span>
 					<span class="min-w-0 flex-1">
 						<span class="block text-base font-semibold text-ink">{tool.label}</span>
 						<span class="block text-[15px] text-muted">{tool.blurb}</span>

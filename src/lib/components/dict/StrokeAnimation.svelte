@@ -9,13 +9,21 @@
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import PencilLine from '@lucide/svelte/icons/pencil-line';
 	import Eye from '@lucide/svelte/icons/eye';
+	import { cssVar } from '$lib/ui/cssVar';
+	import { currentTheme } from '$lib/theme.svelte';
 
 	let {
 		char,
 		size = 200,
 		autoplay = true,
-		color = '#171717'
-	}: { char: string; size?: number; autoplay?: boolean; color?: string } = $props();
+		color
+	}: {
+		char: string;
+		size?: number;
+		autoplay?: boolean;
+		/** Stroke colour; the ink when omitted. */
+		color?: string;
+	} = $props();
 
 	let target = $state<HTMLDivElement>();
 	let writer: any = null;
@@ -30,21 +38,28 @@
 	function buildStrokeCells(
 		HanziWriter: any,
 		strokes: { path: string }[],
-		strokeColor: string
+		strokeColor: string,
+		ghost: string,
+		ground: string
 	): string[] {
 		const { transform } = HanziWriter.getScalingTransform(CELL, CELL, 4);
 		return strokes.map((_, upTo) => {
 			const paths = strokes
 				.slice(0, upTo + 1)
-				.map((s, j) => `<path d="${s.path}" fill="${j === upTo ? strokeColor : '#d4d4d4'}"/>`)
+				.map((s, j) => `<path d="${s.path}" fill="${j === upTo ? strokeColor : ghost}"/>`)
 				.join('');
-			return `<svg xmlns="http://www.w3.org/2000/svg" width="${CELL}" height="${CELL}" viewBox="0 0 ${CELL} ${CELL}"><rect width="${CELL}" height="${CELL}" fill="white" rx="4"/><g transform="${transform}">${paths}</g></svg>`;
+			return `<svg xmlns="http://www.w3.org/2000/svg" width="${CELL}" height="${CELL}" viewBox="0 0 ${CELL} ${CELL}"><rect width="${CELL}" height="${CELL}" fill="${ground}" rx="6"/><g transform="${transform}">${paths}</g></svg>`;
 		});
 	}
 
 	$effect(() => {
 		const c = char;
 		const el = target;
+		// Repaint on a theme switch: the writer takes literal colours.
+		void currentTheme();
+		// Read synchronously so a colour that arrives later (the tone, once
+		// the character's reading loads) re-runs this effect.
+		const ink = color ?? cssVar('--xhz-ink', '#111111');
 		if (!el) return;
 		let cancelled = false;
 		el.innerHTML = '';
@@ -56,6 +71,7 @@
 		(async () => {
 			const { default: HanziWriter } = await import('hanzi-writer');
 			if (cancelled || !target) return;
+			const line = cssVar('--xhz-line', '#e5e5e5');
 			try {
 				const w = HanziWriter.create(el, c, {
 					width: size,
@@ -63,9 +79,8 @@
 					padding: 6,
 					showCharacter: false,
 					showOutline: outline,
-					strokeColor: color,
-					outlineColor: '#e5e5e5',
-					radicalColor: '#4f46e5',
+					strokeColor: ink,
+					outlineColor: line,
 					// The tone colour is the character's own; a re-render for a new
 					// character re-creates the writer, so this is read once per glyph.
 					delayBetweenStrokes: 180
@@ -74,7 +89,7 @@
 				if (autoplay) w.animateCharacter();
 				const data = await w.getCharacterData();
 				if (cancelled) return;
-				strokeCells = buildStrokeCells(HanziWriter, data.strokes, color);
+				strokeCells = buildStrokeCells(HanziWriter, data.strokes, ink, cssVar('--xhz-edge', '#888888'), cssVar('--xhz-sunk', '#f2f2f2'));
 			} catch {
 				missing = true;
 			}
@@ -102,24 +117,24 @@
 	}
 
 	const tool =
-		'flex items-center gap-1.5 rounded-full bg-sunk px-2.5 py-1.5 text-[13px] font-medium text-muted transition hover:text-ink';
+		'flex min-h-9 cursor-pointer items-center gap-1.5 rounded-full border-0 bg-sunk px-3 text-[13px] font-semibold text-muted transition-[color,transform] duration-300 ease-spring hover:text-ink active:scale-95';
 </script>
 
 <div class="flex flex-col items-center gap-2">
 	<div
-		class="relative overflow-hidden rounded-card border border-line bg-surface"
+		class="relative overflow-hidden rounded-[20px] bg-sunk"
 		style="width:{size}px;height:{size}px"
 	>
 		<!-- The grid the character is written on: quarters plus diagonals. -->
 		<svg class="absolute inset-0" width={size} height={size} aria-hidden="true">
-			<line x1="0" y1="0" x2={size} y2={size} stroke="#f1f1f1" stroke-width="1" />
-			<line x1={size} y1="0" x2="0" y2={size} stroke="#f1f1f1" stroke-width="1" />
+			<line x1="0" y1="0" x2={size} y2={size} stroke="var(--xhz-line)" stroke-width="1" />
+			<line x1={size} y1="0" x2="0" y2={size} stroke="var(--xhz-line)" stroke-width="1" />
 			<line
 				x1={size / 2}
 				y1="0"
 				x2={size / 2}
 				y2={size}
-				stroke="#e5e5e5"
+				stroke="var(--xhz-line)"
 				stroke-width="1"
 				stroke-dasharray="5 4"
 			/>
@@ -128,7 +143,7 @@
 				y1={size / 2}
 				x2={size}
 				y2={size / 2}
-				stroke="#e5e5e5"
+				stroke="var(--xhz-line)"
 				stroke-width="1"
 				stroke-dasharray="5 4"
 			/>
@@ -152,7 +167,7 @@
 			<Eye size={13} />
 			{outline ? 'Hide outline' : 'Show outline'}
 		</button>
-		<button type="button" class={tool} onclick={practise} class:!bg-sky-soft={quiz} class:!text-sky-ink={quiz}>
+		<button type="button" class={tool} onclick={practise} class:!bg-accent={quiz} class:!text-on-accent={quiz}>
 			<PencilLine size={13} /> Practise
 		</button>
 	</div>

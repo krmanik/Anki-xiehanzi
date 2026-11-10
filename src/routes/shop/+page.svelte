@@ -18,9 +18,8 @@
 	import ShopProductCard from '$lib/components/ShopProductCard.svelte';
 	import ShopProductModal from '$lib/components/ShopProductModal.svelte';
 	import { loadShop, visibleProducts, type ShopManifest, type ShopProduct } from '$lib/shop';
-	import { buttonClass, Card, chipClass, IconDot, PageHeader, SectionLabel, type Hue } from '$lib/ui';
+	import { buttonClass, Card, chipClass, PAGE, PageHeader, SECTION_H2 } from '$lib/ui';
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
-	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
 
 	const PATREON_SHOP = 'https://www.patreon.com/cw/krmani/shop';
 
@@ -66,10 +65,10 @@
 	}
 
 	// Buying and downloading both happen on Patreon.
-	const steps: { hue: Hue; title: string; body: string }[] = [
-		{ hue: 'rose', title: 'Pay on Patreon', body: 'Checkout opens in a new tab. This site never sees a card number.' },
-		{ hue: 'apricot', title: 'Download from the post', body: "The product's Patreon post holds the .apkg once bought." },
-		{ hue: 'mint', title: 'Import into Anki', body: 'File → Import in Anki, desktop or phone.' }
+	const steps: { title: string; body: string }[] = [
+		{ title: 'Pay on Patreon', body: 'Checkout opens in a new tab. This site never sees a card number.' },
+		{ title: 'Download from the post', body: "The product's Patreon post holds the .apkg once bought." },
+		{ title: 'Import into Anki', body: 'File → Import in Anki, desktop or phone.' }
 	];
 </script>
 
@@ -81,17 +80,13 @@
 	/>
 </svelte:head>
 
-<section class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-	<PageHeader title="Premium decks" subtitle="Writing cards, a redesigned layout and a dictionary inside the card. Buying one pays for the free decks.">
-		{#snippet lead()}
-			<IconDot hue="rose" size="lg" shape="tile"><ShoppingBag /></IconDot>
-		{/snippet}
-	</PageHeader>
+<section class={PAGE}>
+	<PageHeader title="Premium decks" subtitle="Writing cards, a redesigned layout and a dictionary inside the card. Buying one pays for the free decks." />
 
 	{#if loading}
 		<div class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
 			{#each [0, 1, 2] as n (n)}
-				<div class="h-96 animate-pulse rounded-panel bg-sunk"></div>
+				<div class="h-96 animate-pulse rounded-tile bg-sunk"></div>
 			{/each}
 		</div>
 	{:else if manifest}
@@ -108,7 +103,7 @@
 				href={manifest.shop || PATREON_SHOP}
 				target="_blank"
 				rel="noopener noreferrer"
-				class="inline-flex items-center gap-1 font-semibold text-accent"
+				class="inline-flex items-center gap-1 font-semibold text-ink underline-offset-4 hover:underline"
 			>
 				See the whole shop <ArrowUpRight class="size-3.5" />
 			</a>
@@ -126,13 +121,16 @@
 
 	<!-- How a purchase reaches Anki. Buying a deck file is not the checkout most
 	     people expect, so say it before they ask. -->
-	<SectionLabel as="h2" class="mt-12 mb-3">How it works</SectionLabel>
+	<h2 class="{SECTION_H2} mt-14 mb-6 sm:mt-[88px]">How it works</h2>
 	<ol class="m-0 grid list-none gap-4 p-0 sm:grid-cols-3">
 		{#each steps as step, i (step.title)}
 			<li>
-				<Card tint={step.hue} class="h-full">
-					<h3 class="m-0 flex items-center gap-2.5 text-[16px] font-bold text-ink">
-						<IconDot hue={step.hue} size="sm">{i + 1}</IconDot>
+				<Card class="h-full">
+					<h3 class="m-0 flex items-center gap-2.5 text-[17px] font-semibold text-ink">
+						<span
+							class="grid size-7 shrink-0 place-items-center rounded-full bg-accent text-sm font-bold text-on-accent"
+							aria-hidden="true">{i + 1}</span
+						>
 						{step.title}
 					</h3>
 					<p class="mt-2 mb-0 text-[15px] leading-relaxed text-muted">{step.body}</p>
@@ -141,7 +139,7 @@
 		{/each}
 	</ol>
 
-	<Card tint="neutral" class="mt-5 flex flex-wrap items-center justify-between gap-3">
+	<Card tint="sunk" class="mt-4 flex flex-wrap items-center justify-between gap-3">
 		<p class="m-0 text-[15px] text-ink"><span class="font-bold">Not ready to buy?</span> <span class="text-muted">Everything below is free.</span></p>
 		<div class="flex flex-wrap gap-2">
 			<a href="{base}/hsk" class={chipClass(false, true)}>Free HSK decks</a>

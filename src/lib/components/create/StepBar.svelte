@@ -15,7 +15,7 @@
 </script>
 
 <div
-	class="sticky bottom-0 z-30 -mx-4 mt-4 flex min-h-16 items-center gap-2 border-t border-line bg-ground px-4 py-3 sm:-mx-6 sm:gap-3 sm:px-6"
+	class="sticky bottom-3 z-30 mt-4 flex min-h-16 items-center gap-2 rounded-[22px] bg-surface/90 p-2.5 shadow-raised backdrop-blur-md sm:bottom-4 sm:gap-3 sm:p-3"
 >
 	{#if back}
 		<Button variant="secondary" aria-label={back.label} onclick={back.onclick}>

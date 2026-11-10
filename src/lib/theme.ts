@@ -9,12 +9,8 @@ export type Theme = 'light' | 'dark';
 
 export const THEME_KEY = 'xhz.theme';
 
-/**
- * What an unset preference means. `light` until every page is on the design
- * tokens: pages not yet redesigned hardcode white panels and grey text, so
- * following a dark OS setting would put them on a dark ground half-styled.
- */
-export const DEFAULT_PREF: ThemePref = 'light';
+/** An unset preference follows the OS until the reader picks one. */
+export const DEFAULT_PREF: ThemePref = 'system';
 
 export function parsePref(raw: string | null | undefined): ThemePref {
 	return raw === 'light' || raw === 'dark' || raw === 'system' ? raw : DEFAULT_PREF;

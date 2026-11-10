@@ -27,9 +27,9 @@
 	import { findDeck, formatBytes, loadHskDecks, type HskDeckManifest } from '$lib/hskDecks';
 	import { setPendingWords, type PendingThen } from '$lib/hskHandoff';
 	import { playHskWord } from '$lib/hskAudio';
-	import { Badge, Button, chipClass, DataTable, HUES, IconDot, PageHeader, toneText } from '$lib/ui';
+	import { Button, DataTable, ICON_BUTTON, ISLAND_GHOST, ISLAND_PRIMARY, PAGE, toneText } from '$lib/ui';
 	import BookOpen from '@lucide/svelte/icons/book-open';
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import Download from '@lucide/svelte/icons/download';
 	import FileDown from '@lucide/svelte/icons/file-down';
 	import Send from '@lucide/svelte/icons/send';
@@ -119,11 +119,10 @@
 	// Word · pinyin · meaning · (part of speech) · actions. On a phone the row
 	// stacks: word and pinyin, the meaning under them, actions on the right.
 	const GRID =
-		'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 sm:grid-cols-[7.5rem_8.5rem_minmax(0,1fr)_5rem] lg:grid-cols-[8.5rem_9.5rem_minmax(0,1fr)_12rem_5rem]';
-	const iconBtn =
-		'grid size-9 place-items-center rounded-full text-muted hover:bg-sunk hover:text-ink focus-visible:outline-3 focus-visible:outline-sky';
+		'grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 sm:grid-cols-[8rem_8.5rem_minmax(0,1fr)_5.5rem] lg:grid-cols-[8.75rem_8.75rem_minmax(0,1fr)_11.5rem_5.5rem]';
+	const iconBtn = ICON_BUTTON;
 	const selectClass =
-		'min-h-11 rounded-full border-0 bg-sunk py-0 pr-9 pl-4 text-[15px] text-ink focus:ring-3 focus:ring-sky';
+		'min-h-12 rounded-card border-0 bg-sunk py-0 pr-9 pl-4 text-[15px] font-semibold text-ink focus:ring-2 focus:ring-accent';
 </script>
 
 <svelte:head>
@@ -134,66 +133,63 @@
 	/>
 </svelte:head>
 
-<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-	<PageHeader
-		title={label}
-		subtitle={loading ? listName : `${entries.length.toLocaleString()} words · ${listName}`}
-		crumbs={[
-			{ label: 'HSK lists', href: `${base}/hsk` },
-			{ label: listName, href: `${base}/hsk#decks` },
-			{ label }
-		]}
-	>
-		{#snippet lead()}
-			<IconDot hue={HUES[Math.max(0, levelIndex) % HUES.length]} size="lg" shape="tile"
-				>{level.replace('-', '–')}</IconDot
+<div class={PAGE}>
+	<header class="flex flex-wrap items-end justify-between gap-6 pt-9 pb-6 sm:pt-[60px] sm:pb-[26px]">
+		<div class="min-w-0">
+			<a href="{base}/hsk#decks" class="font-semibold text-muted no-underline hover:text-ink"
+				>{meta ? `${meta.name} · ${meta.year}` : listName}</a
 			>
-		{/snippet}
-		{#snippet actions()}
-			{#if prebuilt && deckManifest}
-				<Button size="sm" onclick={() => (showDeck = true)}>
-					<Download class="size-4" />Download deck
-					<span class="font-medium opacity-80">{formatBytes(prebuilt.bytes)}</span>
+			<h1 class="m-0 text-[60px] leading-[0.9] font-bold tracking-[-0.05em] text-ink sm:text-[84px]">{label}</h1>
+			<p class="mt-2.5 mb-0 text-[17px] text-muted">
+				{loading ? '…' : `${entries.length.toLocaleString()} words`}
+			</p>
+			<div class="mt-4 flex flex-wrap items-center gap-2">
+				{#if prebuilt && deckManifest}
+					<Button size="sm" onclick={() => (showDeck = true)}>
+						<Download class="size-4" />Download deck
+						<span class="font-medium opacity-60">{formatBytes(prebuilt.bytes)}</span>
+					</Button>
+				{/if}
+				<Button
+					size="sm"
+					variant="secondary"
+					disabled={loading || !entries.length}
+					onclick={() => (exporting = { entries: sorted, filtered: false })}
+				>
+					<FileDown class="size-4" />Export list
 				</Button>
-			{/if}
-			<Button
-				size="sm"
-				variant="secondary"
-				disabled={loading || !entries.length}
-				onclick={() => (exporting = { entries: sorted, filtered: false })}
-			>
-				<FileDown class="size-4" />Export list
-			</Button>
-		{/snippet}
-	</PageHeader>
-
-	{#if meta}
-		<nav aria-label="Levels" class="mb-6 flex flex-wrap items-center gap-1.5">
-			{#each meta.levels as l (l.level)}
-				<a
-					href="{base}/hsk/{meta.id}/{l.level}"
-					class="{chipClass(l.level === level)} no-underline"
-					aria-current={l.level === level ? 'page' : undefined}>{levelLabel(l.level)}</a
-				>
-			{/each}
-			{#if switchHref && otherList}
-				<a
-					href={switchHref}
-					class="ml-1 inline-flex min-h-9 items-center gap-0.5 text-sm font-semibold text-accent no-underline hover:underline"
-					>{otherList.name} instead<ChevronRight class="size-4" /></a
-				>
-			{/if}
-		</nav>
-	{/if}
+				{#if switchHref && otherList}
+					<a
+						href={switchHref}
+						class="inline-flex min-h-9 items-center gap-1 px-2 text-sm font-semibold text-muted no-underline hover:text-ink"
+						>{otherList.name}<ArrowRight class="size-4" /></a
+					>
+				{/if}
+			</div>
+		</div>
+		{#if meta}
+			<nav aria-label="Levels" class="flex flex-wrap gap-2">
+				{#each meta.levels as l (l.level)}
+					<a
+						href="{base}/hsk/{meta.id}/{l.level}"
+						class="xhz-key"
+						aria-label="{levelLabel(l.level)}, {l.count.toLocaleString()} words"
+						aria-current={l.level === level ? 'page' : undefined}
+						>{l.level.replace('-', '–')}<small>{l.count.toLocaleString()}</small></a
+					>
+				{/each}
+			</nav>
+		{/if}
+	</header>
 
 	{#if error}
-		<p class="rounded-card bg-rose-soft p-4 text-rose-ink">Could not load {label}: {error}</p>
+		<p class="rounded-card bg-err-soft p-4 text-err-ink">Could not load {label}: {error}</p>
 	{:else if loading}
 		<div class="flex flex-col gap-3" aria-busy="true" aria-label="Loading words">
-			<div class="h-11 animate-pulse rounded-full bg-sunk"></div>
-			<div class="h-9 w-2/3 animate-pulse rounded-full bg-sunk"></div>
+			<div class="h-12 animate-pulse rounded-card bg-sunk"></div>
+			<div class="h-10 w-2/3 animate-pulse rounded-card bg-sunk"></div>
 			{#each Array(8) as _, i (i)}
-				<div class="h-14 animate-pulse rounded-card bg-sunk"></div>
+				<div class="h-16 animate-pulse rounded-[20px] bg-sunk"></div>
 			{/each}
 		</div>
 	{:else}
@@ -232,12 +228,12 @@
 					{@const pinyin = pinyinTones(e.y, e.p)}
 					<div class={GRID}>
 						<div class="flex min-w-0 flex-wrap items-baseline gap-x-3 sm:contents">
-							<span class="font-zh text-2xl leading-snug" lang="zh-Hans"
+							<span class="font-zh text-[28px] leading-[1.05] font-semibold sm:text-[32px]" lang="zh-Hans"
 								>{#each hanziTones(e.s, e.p) as c, ci (ci)}<span class={toneText(c.tone)}
 										>{c.ch}</span
 									>{/each}</span
 							>
-							<span class="text-[15px] font-medium"
+							<span class="text-[16.5px] font-semibold"
 								>{#each pinyin as py, pi (pi)}<span class={toneText(py.tone)}>{py.text}</span
 									>{#if pi < pinyin.length - 1}{' '}{/if}{/each}</span
 							>
@@ -260,41 +256,27 @@
 								<BookOpen class="size-[18px]" />
 							</a>
 						</div>
-						<p class="m-0 line-clamp-2 min-w-0 text-[15px] text-muted sm:text-ink">{listMeaning(e.m)}</p>
-						<div class="hidden flex-wrap gap-1 lg:flex">
-							{#each (e.o ?? []).slice(0, 2) as o (o)}<Badge>{o}</Badge>{/each}
-						</div>
+						<p class="m-0 line-clamp-2 min-w-0 text-[15px] text-muted sm:text-base sm:text-ink">{listMeaning(e.m)}</p>
+						<p class="m-0 hidden text-sm text-muted lg:block">{(e.o ?? []).slice(0, 2).join(' · ')}</p>
 					</div>
 				{/snippet}
 
 				{#snippet bulk(keys, clear)}
-					<button
-						type="button"
-						class="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-ground px-4 text-sm font-semibold text-ink hover:brightness-95"
-						onclick={() => addToDeck(keys)}
-					>
+					<button type="button" class={ISLAND_PRIMARY} onclick={() => addToDeck(keys)}>
 						<SquarePlus class="size-4" />Add to my deck
 					</button>
 					<!-- Desktop only: phones have no AnkiConnect. -->
-					<button
-						type="button"
-						class="hidden min-h-9 items-center gap-1.5 rounded-full px-4 text-sm font-semibold text-ground ring-1 ring-ground/40 ring-inset hover:bg-ground/10 sm:inline-flex"
-						onclick={() => addToDeck(keys, 'send')}
-					>
+					<button type="button" class="{ISLAND_GHOST} max-sm:hidden" onclick={() => addToDeck(keys, 'send')}>
 						<Send class="size-4" />Send to Anki
 					</button>
 					<button
 						type="button"
-						class="inline-flex min-h-9 items-center gap-1.5 rounded-full px-4 text-sm font-semibold text-ground ring-1 ring-ground/40 ring-inset hover:bg-ground/10"
+						class={ISLAND_GHOST}
 						onclick={() => (exporting = { entries: pick(keys), filtered: true })}
 					>
-						<FileDown class="size-4" />Export
+						<FileDown class="size-4" /><span class="max-sm:sr-only">Export</span>
 					</button>
-					<button
-						type="button"
-						class="min-h-9 rounded-full px-3 text-sm font-semibold text-ground/80 hover:text-ground"
-						onclick={clear}>Clear</button
-					>
+					<button type="button" class={ISLAND_GHOST} onclick={clear}>Clear</button>
 				{/snippet}
 			</DataTable>
 		{/key}

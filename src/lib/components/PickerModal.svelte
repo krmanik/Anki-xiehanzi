@@ -22,12 +22,12 @@
 <svelte:window {onkeydown} />
 
 <div
-	class="fixed inset-0 z-50 flex bg-black/40 sm:items-center sm:justify-center sm:p-4"
+	class="fixed inset-0 z-50 flex bg-scrim backdrop-blur-[2px] sm:items-center sm:justify-center sm:p-4"
 	onclick={onclose}
 	role="presentation"
 >
 	<div
-		class="flex h-full w-full flex-col overflow-hidden bg-surface shadow-2xl sm:h-auto sm:max-h-[85vh] sm:w-full sm:max-w-lg sm:rounded-2xl"
+		class="flex h-full w-full flex-col overflow-hidden bg-surface shadow-raised sm:h-auto sm:max-h-[85vh] sm:w-full sm:max-w-lg sm:rounded-panel"
 		onclick={(e) => e.stopPropagation()}
 		role="presentation"
 	>

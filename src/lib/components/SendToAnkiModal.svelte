@@ -154,28 +154,28 @@
 <svelte:window onkeydown={(e) => e.key === 'Escape' && onclose()} />
 
 <div
-	class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-5"
+	class="fixed inset-0 z-50 flex items-end justify-center bg-scrim backdrop-blur-[2px] sm:items-center sm:p-5"
 	role="presentation"
 	onclick={(e) => e.target === e.currentTarget && onclose()}
 >
 	<div
 		bind:this={dialog}
 		tabindex="-1"
-		class="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-[24px] bg-surface text-ink shadow-xl outline-none sm:rounded-[24px]"
+		class="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-tile bg-surface text-ink shadow-raised outline-none sm:rounded-tile"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="send-title"
 	>
 		<div class="flex items-start justify-between gap-4 px-5 pt-5 sm:px-7 sm:pt-6">
 			<div class="min-w-0">
-				<h2 id="send-title" class="m-0 text-[22px] leading-tight font-bold">Send to Anki</h2>
+				<h2 id="send-title" class="m-0 text-[26px] leading-[1.05] font-bold tracking-[-0.035em]">Send to Anki</h2>
 				{#if subtitle}<p class="mt-1 mb-0 text-[15px] text-muted">{subtitle}</p>{/if}
 			</div>
 			<button
 				type="button"
 				onclick={onclose}
 				aria-label="Close"
-				class="grid size-10 shrink-0 place-items-center rounded-full text-muted hover:bg-sunk hover:text-ink"
+				class="grid size-10 shrink-0 cursor-pointer place-items-center rounded-xl border-0 bg-transparent text-muted transition hover:bg-sunk hover:text-ink active:scale-90"
 			>
 				<X class="size-5" />
 			</button>
@@ -183,9 +183,9 @@
 
 		<div class="min-h-0 flex-1 overflow-y-auto px-5 pt-4 pb-1 sm:px-7">
 			{#if loadError}
-				<p class="m-0 rounded-card bg-apricot-soft px-4 py-3 text-[14px] text-apricot-ink" role="status">
+				<p class="m-0 rounded-card bg-warn-soft px-4 py-3 text-[14px] text-warn-ink" role="status">
 					{loadError}
-					<button type="button" class="ml-1 border-0 bg-transparent p-0 font-semibold text-apricot-ink underline" onclick={load}
+					<button type="button" class="ml-1 border-0 bg-transparent p-0 font-semibold text-warn-ink underline" onclick={load}
 						>Try again</button
 					>
 					<AnkiSetupLink />
@@ -217,7 +217,7 @@
 
 				{#if mode === 'new'}
 					<input
-						class="min-h-12 w-full rounded-card border-0 bg-sunk px-4 text-[16px] text-ink focus:ring-3 focus:ring-sky"
+						class="min-h-12 w-full rounded-card border-0 bg-sunk px-4 text-[16px] text-ink transition-[background-color,box-shadow] focus:bg-surface focus:ring-2 focus:ring-accent"
 						aria-label="New deck name"
 						placeholder="Deck name"
 						bind:value={newName}
@@ -226,24 +226,24 @@
 					{#if names.length > 6}
 						<input
 							type="search"
-							class="mb-2 min-h-10 w-full rounded-full border-0 bg-sunk px-4 text-[15px] text-ink focus:ring-3 focus:ring-sky"
+							class="mb-2 min-h-10 w-full rounded-full border-0 bg-sunk px-4 text-[15px] text-ink transition-[background-color,box-shadow] focus:bg-surface focus:ring-2 focus:ring-accent"
 							placeholder="Search your decks"
 							aria-label="Search your decks"
 							bind:value={query}
 						/>
 					{/if}
-					<div role="radiogroup" aria-label="Your decks in Anki" class="grid max-h-64 gap-0.5 overflow-y-auto rounded-card border border-line p-1">
+					<div role="radiogroup" aria-label="Your decks in Anki" class="grid max-h-64 gap-0.5 overflow-y-auto rounded-card bg-surface shadow-object p-1">
 						{#each shown as name (name)}
 							{@const on = picked === name}
 							{@const parts = name.split('::')}
 							<label
 								class="flex min-h-10 cursor-pointer items-center gap-2 rounded-[10px] px-3 text-left text-[15px] {on
-									? 'bg-sky-soft text-sky-ink'
+									? 'bg-sunk text-ink'
 									: 'hover:bg-sunk'}"
 							>
 								<input type="radio" name="send-deck" class="sr-only" checked={on} onchange={() => (picked = name)} />
 								<span class="min-w-0 flex-1 truncate">
-									{#if parts.length > 1}<span class="{on ? 'text-sky-ink/70' : 'text-muted'}">{parts.slice(0, -1).join(' › ') + ' › '}</span>{/if}<span
+									{#if parts.length > 1}<span class="{on ? 'text-ink/70' : 'text-muted'}">{parts.slice(0, -1).join(' › ') + ' › '}</span>{/if}<span
 										class="font-semibold">{parts.at(-1)}</span
 									>
 								</span>
@@ -257,7 +257,7 @@
 			{/if}
 
 			{#if problem}
-				<p class="mt-3 mb-0 text-[14px] font-semibold text-apricot-ink" role="alert">{problem}</p>
+				<p class="mt-3 mb-0 text-[14px] font-semibold text-warn-ink" role="alert">{problem}</p>
 			{:else if note || (held && held.name === into)}
 				<p class="mt-3 mb-0 text-[14px] text-muted" role="status">
 					{note}
@@ -265,16 +265,16 @@
 				</p>
 			{/if}
 			{#if caveat && !problem}
-				<p class="mt-3 mb-0 text-[14px] font-semibold text-apricot-ink" role="status">{caveat.text}</p>
+				<p class="mt-3 mb-0 text-[14px] font-semibold text-warn-ink" role="status">{caveat.text}</p>
 			{/if}
 			{#if names}
-				<p class="mt-3 mb-0 flex gap-2.5 rounded-card bg-apricot-soft px-4 py-3 text-[14px] text-apricot-ink" role="note">
+				<p class="mt-3 mb-0 flex gap-2.5 rounded-card bg-warn-soft px-4 py-3 text-[14px] text-warn-ink" role="note">
 					<TriangleAlert class="mt-0.5 size-[18px] shrink-0" />
 					<span><strong>May overwrite.</strong> {fixed ? FIXED_OVERWRITE_WARNING : OVERWRITE_WARNING}</span>
 				</p>
 			{/if}
 			<label class="mt-3 mb-3 flex cursor-pointer items-center gap-2 text-[14px] text-muted">
-				<input type="checkbox" class="size-4 accent-sky-ink" bind:checked={prefs.openAfter} />
+				<input type="checkbox" class="xhz-check" bind:checked={prefs.openAfter} />
 				Open in Anki after
 			</label>
 		</div>

@@ -33,6 +33,8 @@
 	import { colorizeSentenceHanzi, colorizePinyinString, toneOfPinyin } from '$lib/tone';
 	import { speak } from '$lib/dict/audio';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
+	import { toneColor } from '$lib/ui/cssVar';
+	import { currentTheme } from '$lib/theme.svelte';
 
 	let {
 		char,
@@ -63,14 +65,8 @@
 
 	const tone = $derived(toneOfPinyin(info?.pinyin?.split(/[\s/]+/)[0] ?? ''));
 
-	/** The tone palette from app.css, so the strokes are drawn in the tone's colour. */
-	const TONE_INK: Record<number, string> = {
-		1: '#f44336',
-		2: '#ff9800',
-		3: '#4caf50',
-		4: '#2196f3',
-		5: '#9e9e9e'
-	};
+	/** The site's tone colour (app.css), so the strokes are drawn in the tone's colour. */
+	const strokeInk = $derived((currentTheme(), toneColor(tone)));
 	const structure = $derived(structureLabel(info?.decomposition ?? ''));
 	const structureText = $derived(describeStructure(info?.decomposition ?? '', char));
 
@@ -137,13 +133,13 @@
 	}
 
 	const label = 'text-[13px] text-muted font-semibold';
-	const panel = 'rounded-panel border border-line bg-surface p-4 sm:p-5';
+	const panel = 'rounded-[24px] bg-surface p-5 shadow-object sm:rounded-tile sm:p-6';
 </script>
 
 <div class="grid gap-4 lg:grid-cols-[220px_1fr]">
 	<!-- Identity + writing -->
 	<div class="flex flex-col items-center gap-3">
-		<StrokeAnimation {char} size={200} color={TONE_INK[tone] ?? TONE_INK[5]} />
+		<StrokeAnimation {char} size={200} color={strokeInk} />
 		<div class="text-center">
 			<p class="text-lg font-semibold tone{tone}">{info?.pinyin || '—'}</p>
 			{#if info?.definition}
@@ -186,7 +182,7 @@
 							<button
 								type="button"
 								onclick={() => onOpenChar?.(part.character)}
-								class="flex items-center gap-3 rounded-card bg-sunk px-3 py-2 text-left transition hover:bg-sky-soft"
+								class="flex items-center gap-3 rounded-card bg-sunk px-3 py-2 text-left transition hover:bg-sunk"
 							>
 								<span class="text-3xl leading-none" lang="zh-Hans">{part.character}</span>
 								<span class="min-w-0">
@@ -197,7 +193,7 @@
 									{#if role}
 										<span
 											class="mt-0.5 inline-block rounded-full px-1.5 py-0.5 text-xs font-medium
-											{role === 'semantic' ? 'bg-mint-soft text-mint-ink' : 'bg-apricot-soft text-apricot-ink'}"
+											{role === 'semantic' ? 'bg-ok-soft text-ok-ink' : 'bg-warn-soft text-warn-ink'}"
 										>
 											{role === 'semantic' ? 'meaning' : 'sound'}
 										</span>
@@ -216,7 +212,7 @@
 				<div class="flex flex-wrap items-center gap-2">
 					<h3 class={label}>Origin</h3>
 					{#if etymology.t}
-						<span class="rounded-full bg-sky-soft px-2.5 py-0.5 text-xs font-medium text-sky-ink">
+						<span class="rounded-full bg-sunk px-2.5 py-0.5 text-xs font-medium text-ink">
 							{etymologyTypeLabel(etymology.t)}
 						</span>
 						<span class="text-xs text-muted">{etymologyTypeBlurb(etymology.t)}</span>
@@ -297,7 +293,7 @@
 							type="button"
 							onclick={() => onOpenChar?.(rel.character)}
 							title={rel.definition}
-							class="flex flex-col items-center rounded-card bg-sunk px-3 py-2 transition hover:bg-sky-soft"
+							class="flex flex-col items-center rounded-card bg-sunk px-3 py-2 transition hover:bg-sunk"
 						>
 							<span class="text-2xl leading-none" lang="zh-Hans">{rel.character}</span>
 							<span class="text-xs text-muted">{rel.pinyin}</span>

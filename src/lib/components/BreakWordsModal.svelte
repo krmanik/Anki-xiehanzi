@@ -77,8 +77,8 @@
 	}
 </script>
 
-<div class="fixed bottom-6 left-1/2 z-50 w-full max-w-md -translate-x-1/2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-lg">
-	<p class="mb-2 text-sm font-medium text-amber-900">
+<div class="fixed bottom-6 left-1/2 z-50 w-full max-w-md -translate-x-1/2 rounded-panel bg-surface px-5 py-4 shadow-raised">
+	<p class="mt-0 mb-3 text-sm font-medium text-ink">
 		Google Translate failed for {failedWords.length} word{failedWords.length === 1 ? '' : 's'}.
 		Break into individual characters and look up in dictionary?
 	</p>
@@ -91,8 +91,8 @@
 </div>
 
 {#if showBreakModal}
-	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-		<div class="flex w-full max-w-sm flex-col rounded-xl bg-surface shadow-2xl">
+	<div class="fixed inset-0 z-50 flex items-center justify-center bg-scrim backdrop-blur-[2px] p-4">
+		<div class="flex w-full max-w-sm flex-col rounded-panel bg-surface shadow-raised">
 			<div class="flex items-center justify-between border-b border-line px-4 py-3">
 				<h3 class="font-semibold text-ink">
 					{breakPreviewWords.length} character{breakPreviewWords.length === 1 ? '' : 's'} found

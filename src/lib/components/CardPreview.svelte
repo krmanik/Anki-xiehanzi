@@ -408,6 +408,7 @@
 </script>
 
 <div
+	data-card-preview
 	class="relative overflow-hidden rounded-xl border border-line transition-all {selClass('card')}"
 	style="--surface2:#ffffff;--surface3:#f5f5f5;--surface4:#e5e5e5;--text1:#262626;--text2:#737373;--accent:#3a6df0;--body-bg:#f5f5f5;--btn-radius:4px;--btn-border:none;--container-radius:8px;--chip-radius:9999px;background-color:{effectiveES.card?.backgroundColor ?? '#ffffff'};{effectiveES.card?.backgroundImage ? 'background-image:' + effectiveES.card.backgroundImage + ';' : ''}text-align:{effectiveES.card?.textAlign ?? 'center'};{elStyle('card')}{themeCssVars ? ';' + themeCssVars : ''}"
 	role="button"

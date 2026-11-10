@@ -144,9 +144,9 @@
 	}
 
 	const navBtn =
-		'grid size-9 place-items-center rounded-full text-muted transition hover:bg-sunk hover:text-ink disabled:opacity-35 disabled:pointer-events-none focus-visible:outline-3 focus-visible:outline-sky';
+		'grid size-9 place-items-center rounded-full text-muted transition hover:bg-sunk hover:text-ink disabled:opacity-35 disabled:pointer-events-none focus-visible:outline-3 focus-visible:outline-accent';
 	const sideBtn = (on: boolean) =>
-		`min-h-8 rounded-full px-3.5 text-[13.5px] font-semibold transition focus-visible:outline-3 focus-visible:outline-sky ${
+		`min-h-8 rounded-full px-3.5 text-[13.5px] font-semibold transition focus-visible:outline-3 focus-visible:outline-accent ${
 			on ? 'bg-surface text-ink shadow-sm' : 'text-muted hover:text-ink'
 		}`;
 </script>
@@ -156,7 +156,7 @@
 </p>
 
 {#if word}
-	<div class="overflow-hidden rounded-panel border border-line bg-surface">
+	<div class="overflow-hidden rounded-tile bg-surface shadow-object">
 		<div class="flex items-center justify-between gap-2 border-b border-line px-2.5 py-2">
 			<div class="flex rounded-full bg-sunk p-0.5" role="group" aria-label="Card side">
 				{#each SIDES as s (s.id)}

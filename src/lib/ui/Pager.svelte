@@ -23,7 +23,7 @@
 	});
 
 	const btn =
-		'grid size-9 place-items-center rounded-full border-0 bg-sunk text-lg text-ink hover:bg-line disabled:opacity-40';
+		'grid size-9 cursor-pointer place-items-center rounded-xl border-0 bg-sunk text-lg text-ink transition-[background-color,transform] duration-300 ease-spring hover:bg-line active:scale-90 disabled:pointer-events-none disabled:opacity-40';
 </script>
 
 <div class="flex items-center gap-2 text-sm text-muted">
@@ -33,7 +33,7 @@
 			bind:value={size}
 			onchange={() => (page = 1)}
 			aria-label="Rows per page"
-			class="min-h-9 rounded-full border-0 bg-sunk py-0 pr-8 pl-3 text-sm text-ink"
+			class="min-h-9 rounded-xl border-0 bg-sunk py-0 pr-8 pl-3 text-sm text-ink"
 		>
 			{#each sizes as n (n)}<option value={n}>{n}</option>{/each}
 		</select>

@@ -346,7 +346,7 @@
 	});
 
 	const field =
-		'block w-full min-w-0 rounded-card border-0 bg-sunk px-3.5 min-h-11 text-[15px] text-ink placeholder:text-muted focus:ring-3 focus:ring-sky';
+		'block w-full min-w-0 rounded-card border-0 bg-sunk px-4 min-h-12 text-[15px] text-ink placeholder:text-muted transition-[background-color,box-shadow] focus:bg-surface focus:ring-2 focus:ring-accent';
 	const hint = 'mt-2 mb-3 text-[13.5px] text-muted';
 </script>
 
@@ -356,13 +356,13 @@
 			<span>{label}</span><span>{pct}%</span>
 		</div>
 		<div class="h-2 overflow-hidden rounded-full bg-sunk">
-			<div class="h-full rounded-full bg-mint transition-[width]" style="width:{pct}%"></div>
+			<div class="h-full rounded-full bg-accent transition-[width]" style="width:{pct}%"></div>
 		</div>
 	</div>
 {/snippet}
 
 {#snippet levels(all: string[], picked: Set<string>, prefix: string, toggle: (l: string) => void)}
-	<div class="flex flex-wrap gap-1.5">
+	<div class="xhz-seg" role="group" aria-label="{prefix} levels">
 		{#each all as lvl (lvl)}
 			<button type="button" aria-pressed={picked.has(lvl)} onclick={() => toggle(lvl)} class={chipClass(picked.has(lvl))}>
 				{prefix}
@@ -372,7 +372,7 @@
 	</div>
 {/snippet}
 
-<div class="mb-4 flex flex-wrap gap-1.5" role="group" aria-label="Where the words come from">
+<div class="xhz-seg mb-4" role="group" aria-label="Where the words come from">
 	{#each selectionTypes as st (st.value)}
 		<button
 			type="button"
@@ -406,7 +406,7 @@
 	<!-- A label styled as the button: the native file button clipped its own
 	     left edge and cannot take the site's button style. -->
 	<div class="flex flex-wrap items-center gap-3">
-		<label class="{buttonClass('soft')} cursor-pointer focus-within:ring-2 focus-within:ring-sky">
+		<label class="{buttonClass('secondary')} cursor-pointer focus-within:ring-2 focus-within:ring-accent">
 			<FileUp class="size-4" />Choose file
 			{#key fileKey}<input
 				type="file"
@@ -427,7 +427,7 @@
 
 {#if selectType === 'HSK'}
 	{#if importedFrom}
-		<p class="mt-0 mb-3 rounded-card bg-mint-soft px-4 py-2.5 text-[15px] text-mint-ink">
+		<p class="mt-0 mb-3 rounded-card bg-ok-soft px-4 py-2.5 text-[15px] text-ok-ink">
 			From <strong>{importedFrom}</strong>
 		</p>
 	{/if}

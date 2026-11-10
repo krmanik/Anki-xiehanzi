@@ -20,8 +20,8 @@
 	} = $props();
 </script>
 
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-	<div class="flex w-full max-w-sm flex-col rounded-xl bg-surface shadow-2xl">
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-scrim backdrop-blur-[2px] p-4">
+	<div class="flex w-full max-w-sm flex-col rounded-panel bg-surface shadow-raised">
 		<div class="border-b border-line px-4 py-3">
 			<h3 class="font-semibold text-ink">{preset.name}</h3>
 			<p class="mt-0.5 text-xs text-muted">{preset.description}</p>

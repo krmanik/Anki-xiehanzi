@@ -9,14 +9,12 @@
 	import { buttonClass } from '$lib/ui';
 	import { playWordAudio, type Word } from '$lib/deck';
 	import type { TemplateOpts } from '$lib/deck';
-	import type { TonePalette } from '$lib/tonePresets';
 
 	let {
 		words = $bindable(),
 		page = $bindable(1),
 		pageSize = $bindable(25),
 		template,
-		palette,
 		hskWordsDict,
 		actions
 	}: {
@@ -24,7 +22,6 @@
 		page?: number;
 		pageSize?: number;
 		template: TemplateOpts;
-		palette: TonePalette;
 		hskWordsDict: Set<string>;
 		/** Buttons at the right of the header, when no rows are ticked. */
 		actions?: Snippet;
@@ -78,7 +75,7 @@
 			>
 			<button
 				type="button"
-				class="{buttonClass('secondary', 'sm')} text-rose-ink"
+				class={buttonClass('danger', 'sm')}
 				onclick={deleteSelected}>Delete {selected.size}</button
 			>
 		{:else if actions}
@@ -95,7 +92,6 @@
 				{word}
 				selected={selected.has(word)}
 				colorize={!template.mono && template.colorHanzi}
-				toneColors={palette}
 				onToggle={() => toggleRow(word)}
 				onDelete={() => deleteWord(word)}
 				onPlay={() => void playWordAudio(word.Simplified, hskWordsDict)}

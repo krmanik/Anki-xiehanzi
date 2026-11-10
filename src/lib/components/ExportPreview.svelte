@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { buttonClass } from '$lib/ui/styles';
 	import { computeDeckStats } from '$lib/deckStats';
 	import type { TabContent, TemplateOpts } from '$lib/deckTemplate';
 	import { getSmartSentences, renderCardHtml, type Word, type ExampleSentence } from '$lib/deck';
@@ -95,13 +96,13 @@
 </script>
 
 <div
-	class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+	class="fixed inset-0 z-50 bg-scrim backdrop-blur-[2px]"
 	role="presentation"
 	onclick={handleOverlay}
 	onkeydown={(e) => e.key === 'Escape' && onclose?.()}
 >
 	<div
-		class="absolute inset-3 flex flex-col overflow-hidden rounded-2xl bg-surface shadow-2xl md:inset-10"
+		class="absolute inset-3 flex flex-col overflow-hidden rounded-tile bg-surface shadow-raised md:inset-10"
 		role="dialog"
 		aria-label="Export preview"
 	>
@@ -162,7 +163,7 @@
 						<button
 							onclick={prevWord}
 							disabled={safeIndex === 0}
-							class="rounded-lg border border-line bg-surface p-2 text-muted transition hover:border-accent disabled:opacity-30"
+							class="grid size-10 cursor-pointer place-items-center rounded-xl border-0 bg-sunk text-ink transition hover:bg-line disabled:opacity-30"
 							aria-label="previous word"
 						><ChevronLeft size={16} /></button>
 						<div class="text-center">
@@ -172,7 +173,7 @@
 						<button
 							onclick={nextWord}
 							disabled={safeIndex >= words.length - 1}
-							class="rounded-lg border border-line bg-surface p-2 text-muted transition hover:border-accent disabled:opacity-30"
+							class="grid size-10 cursor-pointer place-items-center rounded-xl border-0 bg-sunk text-ink transition hover:bg-line disabled:opacity-30"
 							aria-label="next word"
 						><ChevronRight size={16} /></button>
 					</div>
@@ -182,7 +183,7 @@
 						<p class="mb-2 text-[13px] text-muted font-semibold">{tab}</p>
 						<div class="grid gap-3 sm:grid-cols-2">
 							{#each SIDES as side (side)}
-								<div class="overflow-hidden rounded-xl border border-line bg-surface shadow-sm">
+								<div class="overflow-hidden rounded-[20px] bg-surface shadow-object">
 									<div class="border-b border-line bg-sunk px-3 py-1.5 text-[13px] text-muted font-semibold">{side}</div>
 									{#if currentWord}
 										<iframe
@@ -204,11 +205,11 @@
 
 		{#if onGenerate}
 		<div class="flex shrink-0 items-center justify-end gap-2 border-t border-line px-5 py-3">
-			<button onclick={onclose} class="rounded-lg border border-line px-4 py-2 text-sm text-muted hover:bg-sunk">Back</button>
+			<button onclick={onclose} class={buttonClass('secondary', 'sm')}>Back</button>
 			<button
 				onclick={onGenerate}
 				disabled={isGenerating || words.length === 0}
-				class="rounded-lg bg-accent px-5 py-2 text-sm text-white hover:brightness-110 disabled:opacity-40"
+				class={buttonClass('primary', 'sm')}
 			>{isGenerating ? 'Generating…' : 'Generate deck'}</button>
 		</div>
 		{/if}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { buttonClass } from '$lib/ui/styles';
 	/**
 	 * One door to the radical deck: what the free deck has, what premium adds,
 	 * and the build controls underneath. A reader who only ever sees a "download"
@@ -157,19 +158,19 @@
 </script>
 
 <div
-	class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-5"
+	class="fixed inset-0 z-50 flex items-end justify-center bg-scrim backdrop-blur-[2px] p-0 sm:items-center sm:p-5"
 	role="presentation"
 	onclick={(e) => e.target === e.currentTarget && !busy && onClose()}
 >
 	<div
-		class="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-2xl bg-surface p-6 shadow-xl sm:rounded-panel"
+		class="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-tile bg-surface p-6 shadow-raised sm:rounded-tile"
 		role="dialog"
 		aria-modal="true"
 		aria-label="Get the radical deck"
 	>
 		<div class="flex items-start justify-between gap-4">
 			<div>
-				<h2 class="m-0 text-xl font-bold text-ink">The 214 radicals, as a deck</h2>
+				<h2 class="m-0 text-[26px] leading-[1.05] font-bold tracking-[-0.035em] text-ink">The 214 radicals, as a deck</h2>
 				<p class="mt-1 text-sm text-muted">
 					Two editions, one note type each — import either, or both.
 				</p>
@@ -178,48 +179,48 @@
 				onclick={onClose}
 				disabled={busy}
 				aria-label="Close"
-				class="rounded-md p-1.5 text-muted transition hover:bg-sunk hover:text-ink disabled:opacity-40"
+				class="grid size-10 shrink-0 cursor-pointer place-items-center rounded-xl border-0 bg-transparent text-muted transition hover:bg-sunk hover:text-ink disabled:opacity-40"
 			>
 				<X size={18} />
 			</button>
 		</div>
 
 		<!-- Free vs premium, one row per thing that differs. -->
-		<div class="mt-5 overflow-hidden rounded-card border border-line">
+		<div class="mt-5 overflow-hidden rounded-[20px] bg-sunk">
 			<table class="w-full text-sm">
 				<thead>
-					<tr class="border-b border-line bg-sunk">
+					<tr>
 						<th class="px-4 py-2.5 text-left font-medium text-muted"></th>
 						<th class="w-24 px-2 py-2.5 text-center font-semibold">Free</th>
-						<th class="w-32 bg-apricot-soft px-2 py-2.5 text-center font-semibold text-apricot-ink">
+						<th class="w-32 bg-gold-soft px-2 py-2.5 text-center font-semibold text-gold-ink">
 							<span class="inline-flex items-center gap-1.5"><Sparkles size={14} /> Premium</span>
 						</th>
 					</tr>
 				</thead>
 				<tbody>
 					{#each rows as row (row.label)}
-						<tr class="border-b border-line last:border-0">
+						<tr>
 							<td class="px-4 py-2 text-ink">{row.label}</td>
 							<td class="px-2 py-2 text-center">
 								{#if row.free}
-									<Check size={15} class="mx-auto text-mint-ink" />
+									<Check size={15} class="mx-auto text-ok-ink" />
 								{:else}
 									<Minus size={15} class="mx-auto text-muted/70" />
 								{/if}
 							</td>
-							<td class="bg-apricot-soft px-2 py-2 text-center">
-								<Check size={15} class="mx-auto text-apricot-ink" />
+							<td class="bg-gold-soft px-2 py-2 text-center">
+								<Check size={15} class="mx-auto text-ok-ink" />
 							</td>
 						</tr>
 					{/each}
-					<tr class="border-t border-line">
+					<tr>
 						<td class="px-4 py-3 text-[13px] text-muted font-semibold">
 							{premiumCards} cards either way
 						</td>
 						<td class="px-2 py-3 text-center text-xs text-muted">Built here</td>
-						<td class="bg-apricot-soft px-2 py-3 text-center">
+						<td class="bg-gold-soft px-2 py-3 text-center">
 							<a
-								class="inline-flex items-center gap-1.5 text-xs font-semibold text-apricot-ink underline"
+								class="inline-flex items-center gap-1.5 text-xs font-semibold text-gold-ink underline"
 								{...premium.attrs}
 							>
 								Get premium
@@ -251,7 +252,7 @@
 		</p>
 
 		{#if showOptions}
-			<div class="mt-4 rounded-card border border-line p-4">
+			<div class="mt-4 rounded-[20px] bg-sunk p-4">
 				<h4 class="text-[13px] text-muted font-semibold">Cards</h4>
 				<div class="mt-2 grid gap-2 sm:grid-cols-2">
 					{#each RADICAL_CARD_TYPES as card (card.value)}
@@ -259,9 +260,9 @@
 							type="button"
 							onclick={() => toggleCard(card.value)}
 							aria-pressed={cards.includes(card.value)}
-							class="rounded-card p-3 text-left transition {cards.includes(card.value)
-								? 'bg-sky-soft text-sky-ink ring-2 ring-sky ring-inset'
-								: 'bg-sunk text-ink hover:brightness-95'}"
+							class="cursor-pointer rounded-card border-0 bg-surface p-3 text-left text-ink transition {cards.includes(card.value)
+								? 'shadow-[0_0_0_2px_var(--xhz-accent)]'
+								: 'shadow-object hover:-translate-y-0.5'}"
 						>
 							<div class="text-sm font-semibold">{card.name}</div>
 							<div
@@ -275,7 +276,7 @@
 					{/each}
 				</div>
 				{#if !cards.length}
-					<p class="mt-2 text-xs text-rose-ink">Pick at least one card.</p>
+					<p class="mt-2 text-xs text-err-ink">Pick at least one card.</p>
 				{/if}
 
 				<h4 class="mt-5 text-[13px] text-muted font-semibold">
@@ -283,27 +284,27 @@
 				</h4>
 				<div class="mt-2 grid gap-2 sm:grid-cols-2">
 					<label class="flex items-center gap-2 text-sm text-ink">
-						<input type="checkbox" bind:checked={audio} class="h-4 w-4 accent-sky-ink" />
+						<input type="checkbox" bind:checked={audio} class="xhz-check" />
 						Pronunciation audio
 					</label>
 					<label class="flex items-center gap-2 text-sm text-ink">
-						<input type="checkbox" bind:checked={strokeOrder} class="h-4 w-4 accent-sky-ink" />
+						<input type="checkbox" bind:checked={strokeOrder} class="xhz-check" />
 						Stroke order
 					</label>
 					<label class="flex items-center gap-2 text-sm text-ink">
-						<input type="checkbox" bind:checked={readings} class="h-4 w-4 accent-sky-ink" />
+						<input type="checkbox" bind:checked={readings} class="xhz-check" />
 						East Asian readings
 					</label>
 					<label class="flex items-center gap-2 text-sm text-ink">
-						<input type="checkbox" bind:checked={colloquial} class="h-4 w-4 accent-sky-ink" />
+						<input type="checkbox" bind:checked={colloquial} class="xhz-check" />
 						Teaching name (月字旁)
 					</label>
 					<label class="flex items-center gap-2 text-sm text-ink">
-						<input type="checkbox" bind:checked={examples} class="h-4 w-4 accent-sky-ink" />
+						<input type="checkbox" bind:checked={examples} class="xhz-check" />
 						Characters built with it
 					</label>
 					<label class="flex items-center gap-2 text-sm text-ink">
-						<input type="checkbox" bind:checked={toneColors} class="h-4 w-4 accent-sky-ink" />
+						<input type="checkbox" bind:checked={toneColors} class="xhz-check" />
 						Tone-coloured pinyin
 					</label>
 				</div>
@@ -318,7 +319,7 @@
 								type="radio"
 								bind:group={wholeTable}
 								value={true}
-								class="h-4 w-4 accent-sky-ink"
+								class="xhz-check"
 							/>
 							All {radicals.length}
 						</label>
@@ -327,7 +328,7 @@
 								type="radio"
 								bind:group={wholeTable}
 								value={false}
-								class="h-4 w-4 accent-sky-ink"
+								class="xhz-check"
 							/>
 							Just the {visible.length} on screen
 						</label>
@@ -354,7 +355,7 @@
 		     and a reader who never sees the paid edition never considers it. -->
 		<div class="mt-6 flex flex-wrap items-center justify-end gap-2">
 			<button
-				class="{btnSecondary} inline-flex items-center gap-2"
+				class="{btnPrimary} inline-flex items-center gap-2"
 				onclick={busy ? () => controller?.abort() : build}
 				disabled={!busy && !cards.length}
 			>
@@ -362,7 +363,7 @@
 				{busy ? 'Stop' : 'Build free deck'}
 			</button>
 			<a
-				class="{btnPrimary} inline-flex items-center gap-2"
+				class="{buttonClass('premium', 'sm')} inline-flex items-center gap-2"
 				{...premium.attrs}
 			>
 				<Sparkles size={15} /> Premium
@@ -372,7 +373,7 @@
 		<p class="mt-3 mb-0 hidden text-right text-sm sm:block">
 			<button
 				type="button"
-				class="border-0 bg-transparent p-0 font-semibold text-accent hover:underline"
+				class="cursor-pointer border-0 bg-transparent p-0 font-semibold text-ink underline-offset-4 hover:underline"
 				disabled={busy}
 				onclick={() => (designing = true)}>Already have it? Update its card design</button
 			>

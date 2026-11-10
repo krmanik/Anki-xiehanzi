@@ -5,7 +5,7 @@
 	 * lazily per radical. Nothing here touches cedict.db.
 	 */
 	import { base } from '$app/paths';
-	import { Button, chipClass, IconDot, PageHeader, SectionLabel } from '$lib/ui';
+	import { Button, buttonClass, chipClass, PageHeader, SectionLabel } from '$lib/ui';
 	import RadicalCard from '$lib/components/RadicalCard.svelte';
 	import RadicalDeckModal from '$lib/components/RadicalDeckModal.svelte';
 	import RadicalDetail from '$lib/components/RadicalDetail.svelte';
@@ -75,7 +75,7 @@
 		if (e.key === 'Escape' && selected !== null) selected = null;
 	};
 	const field =
-		'min-h-11 rounded-card border-0 bg-sunk px-3.5 text-[15px] text-ink placeholder:text-muted focus:ring-3 focus:ring-sky';
+		'min-h-12 rounded-card border-0 bg-sunk px-4 text-[15px] text-ink placeholder:text-muted transition-[background-color,box-shadow] focus:bg-surface focus:ring-2 focus:ring-accent';
 </script>
 
 <svelte:window on:keydown={onKey} />
@@ -92,11 +92,8 @@
 	/>
 </svelte:head>
 
-<section class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+<section class="mx-auto max-w-[1180px] px-4 pb-8 sm:px-7">
 	<PageHeader title="The 214 radicals" subtitle="Meaning, readings, stroke order and the characters built from each.">
-		{#snippet lead()}
-			<IconDot hue="apricot" size="lg" shape="tile" class="font-zh">部</IconDot>
-		{/snippet}
 		{#snippet actions()}
 			<Button onclick={() => (building = true)} disabled={!radicals.length}>
 				<Download class="size-[18px]" /> Get the deck
@@ -104,7 +101,7 @@
 		{/snippet}
 	</PageHeader>
 
-	<div class="sticky top-14 z-30 -mx-4 bg-ground/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+	<div class="sticky top-[76px] z-30 -mx-4 bg-ground/90 px-4 py-3 backdrop-blur sm:top-[84px] sm:-mx-7 sm:px-7">
 		<div class="flex flex-wrap items-center gap-2">
 			<div class="relative min-w-[220px] flex-1">
 				<Search class="pointer-events-none absolute top-1/2 left-3.5 size-[18px] -translate-y-1/2 text-muted" />
@@ -123,14 +120,14 @@
 				{/each}
 			</select>
 
-			<button type="button" onclick={() => (colorize = !colorize)} aria-pressed={colorize} class="{chipClass(colorize)} min-h-11">
+			<button type="button" onclick={() => (colorize = !colorize)} aria-pressed={colorize} class="{buttonClass(colorize ? 'secondary' : 'soft')} min-h-12">
 				<Palette class="size-4" /> Tone colours
 			</button>
 		</div>
 
 		{#if counts.length}
-			<div class="mt-2.5 flex gap-1.5 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible" role="group" aria-label="Stroke count">
-				<button type="button" onclick={() => (strokes = null)} aria-pressed={strokes === null} class="{chipClass(strokes === null)} shrink-0">
+			<div class="xhz-seg mt-2.5 max-w-full flex-nowrap overflow-x-auto sm:flex-wrap sm:overflow-visible" role="group" aria-label="Stroke count">
+				<button type="button" onclick={() => (strokes = null)} aria-pressed={strokes === null} class="{chipClass(strokes === null)} shrink-0 min-h-[34px]">
 					All
 				</button>
 				{#each counts as n (n)}
@@ -138,7 +135,7 @@
 						type="button"
 						onclick={() => (strokes = strokes === n ? null : n)}
 						aria-pressed={strokes === n}
-						class="{chipClass(strokes === n)} min-w-9 shrink-0 justify-center tabular-nums"
+						class="{chipClass(strokes === n)} min-h-[34px] min-w-9 shrink-0 justify-center px-2.5! tabular-nums"
 						title="{n} stroke{n === 1 ? '' : 's'}"
 					>
 						{n}
@@ -151,7 +148,7 @@
 	{#if loading}
 		<p class="mt-10 text-sm text-muted">Loading the radical table…</p>
 	{:else if error}
-		<p class="mt-10 text-sm text-rose-ink">Could not load the radicals: {error}</p>
+		<p class="mt-10 text-sm text-err-ink">Could not load the radicals: {error}</p>
 	{:else}
 		{#if current}
 			<div class="mt-6 scroll-mt-[150px]" bind:this={panel}>
@@ -162,7 +159,7 @@
 		<SectionLabel as="p" class="mt-6">{visible.length} of {radicals.length} radicals</SectionLabel>
 
 		<div
-			class="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7"
+			class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7"
 		>
 			{#each visible as radical (radical.number)}
 				<RadicalCard

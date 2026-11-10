@@ -17,12 +17,11 @@
 	import { onMount } from 'svelte';
 	import WordEntry from '$lib/components/dict/WordEntry.svelte';
 	import { loadCedict, searchDictionary } from '$lib/dict/cedict';
-	import { autoPick, frequencyBand, levelLabels, queryKind, type SearchHit } from '$lib/dictionary';
+	import { frequencyBand, levelLabels, queryKind, selectOnSearch, type SearchHit } from '$lib/dictionary';
 	import { colorizeHanzi } from '$lib/tone';
 	import { setPendingWords } from '$lib/hskHandoff';
 	import { BAG_KEY } from '$lib/myWords';
-	import { buttonClass, chipClass, IconDot, PageHeader } from '$lib/ui';
-	import BookOpen from '@lucide/svelte/icons/book-open';
+	import { buttonClass, chipClass, FIELD, PAGE, PageHeader } from '$lib/ui';
 	import Search from '@lucide/svelte/icons/search';
 	import X from '@lucide/svelte/icons/x';
 	import Plus from '@lucide/svelte/icons/plus';
@@ -36,8 +35,8 @@
 	let query = $state('');
 	let hits = $state<SearchHit[]>([]);
 	let selected = $state<string | null>(null);
-	/** `selected` came from autoPick, not a click — the next search may replace it. */
-	let picked = false;
+	/** The query `selected` was picked under; a different query replaces it. */
+	let selectedFor: string | null = null;
 	let searching = $state(false);
 	let ready = $state(false);
 	let loadError = $state('');
@@ -80,7 +79,10 @@
 		const initial = page.url.searchParams.get('q') ?? '';
 		const word = page.url.searchParams.get('w');
 		if (initial) query = initial;
-		if (word) selected = word;
+		if (word) {
+			selected = word;
+			selectedFor = initial;
+		}
 		loadCedict()
 			.then(() => {
 				ready = true;
@@ -104,13 +106,13 @@
 			const found = await searchDictionary(q, 60);
 			if (token === latest) {
 				hits = found;
-				// 你好 typed → 你好 open, no "Pick a result" in between. Never
-				// over a word the reader clicked.
-				const auto = autoPick(q, found);
-				if (auto && (!selected || picked)) {
-					selected = auto;
-					picked = true;
-					syncUrl(q, auto);
+				// 你好 typed → 你好 open, no "Pick a result" in between; a new
+				// query never leaves the last query's word on screen.
+				const next = selectOnSearch(q, found, { word: selected, query: selectedFor });
+				selectedFor = q;
+				if (next !== selected) {
+					selected = next;
+					syncUrl(q, next);
 				}
 			}
 		} finally {
@@ -139,7 +141,7 @@
 
 	function open(word: string): void {
 		selected = word;
-		picked = false;
+		selectedFor = query;
 		recent = [word, ...recent.filter((w) => w !== word)].slice(0, 12);
 		writeList(RECENT_KEY, recent);
 		syncUrl(query, word);
@@ -171,7 +173,7 @@
 		void goto(`${base}/create`);
 	}
 
-	const chip = 'rounded-full bg-surface px-2.5 py-0.5 text-xs font-semibold text-muted';
+	const chip = 'rounded-full bg-sunk px-2.5 py-0.5 text-xs font-semibold text-muted';
 </script>
 
 <svelte:head>
@@ -182,16 +184,12 @@
 	/>
 </svelte:head>
 
-<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-	<PageHeader title="Dictionary" subtitle="Hanzi, pinyin or English. Tap a character to see how it is written.">
-		{#snippet lead()}
-			<IconDot hue="mint" size="lg" shape="tile"><BookOpen /></IconDot>
-		{/snippet}
-	</PageHeader>
+<div class={PAGE}>
+	<PageHeader title="Dictionary" subtitle="Hanzi, pinyin or English. Tap a character to see how it is written." />
 
 	<!-- Search -->
-	<div class="sticky top-14 z-20 -mx-4 bg-ground/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
-		<div class="flex min-h-12 items-center gap-2 rounded-card bg-sunk px-3.5 focus-within:ring-3 focus-within:ring-sky">
+	<div class="sticky top-[76px] z-20 -mx-4 bg-ground/90 px-4 py-3 backdrop-blur sm:top-[84px] sm:-mx-7 sm:px-7">
+		<div class="{FIELD} min-h-14 bg-surface shadow-object">
 			<Search size={18} class="shrink-0 text-muted" />
 			<input
 				value={query}
@@ -208,7 +206,7 @@
 					type="button"
 					onclick={() => search('')}
 					aria-label="Clear search"
-					class="shrink-0 text-muted/70 transition hover:text-ink"
+					class="grid size-8 shrink-0 cursor-pointer place-items-center rounded-lg border-0 bg-transparent text-muted transition hover:bg-sunk hover:text-ink"
 				>
 					<X size={16} />
 				</button>
@@ -219,7 +217,7 @@
 			{#if !ready && !loadError}
 				<span class="text-xs text-muted">Loading the dictionary database (10 MB, once)…</span>
 			{:else if loadError}
-				<span class="text-xs text-rose-ink">Dictionary failed to load: {loadError}</span>
+				<span class="text-xs text-err-ink">Dictionary failed to load: {loadError}</span>
 			{:else if searching}
 				<span class="text-xs text-muted">Searching…</span>
 			{:else if query && hits.length}
@@ -235,29 +233,29 @@
 
 	<div class="mt-4 grid gap-6 lg:grid-cols-[320px_1fr]">
 		<!-- Results -->
-		<aside class="lg:sticky lg:top-36 lg:max-h-[calc(100vh-10rem)] lg:overflow-y-auto">
+		<aside class="lg:sticky lg:top-[180px] lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto">
 			{#if hits.length}
-				<ul class="grid gap-1">
+				<ul class="m-0 grid list-none gap-0.5 rounded-tile bg-surface p-2 shadow-object">
 					{#each hits as hit (hit.simplified + hit.syllables)}
 						{@const levels = levelLabels(hit.level)}
 						<li class="flex items-stretch gap-1">
 							<button
 								type="button"
 								onclick={() => open(hit.simplified)}
-								class="flex-1 rounded-card px-3 py-2 text-left transition
-								{selected === hit.simplified ? 'bg-sky-soft' : 'hover:bg-sunk'}"
+								class="flex-1 cursor-pointer rounded-[18px] border-0 bg-transparent px-3 py-2.5 text-left transition-colors
+								{selected === hit.simplified ? 'bg-sunk!' : 'hover:bg-sunk'}"
 							>
 								<span class="flex items-baseline gap-2">
 									<!-- Tone colours on the list too, not only inside an entry: the
 									     colour is half of what a learner recognizes a word by. -->
-									<span class="text-xl" lang="zh-Hans">
+									<span class="font-zh text-[22px] font-semibold" lang="zh-Hans">
 										{#each colorizeHanzi(hit.simplified, hit.syllables) as part, i (i)}<span
 												class="tone{part.tone}">{part.ch}</span
 											>{/each}
 									</span>
 									<span class="text-[13px] text-muted">{hit.pinyin}</span>
 									{#each levels.slice(0, 1) as lvl (lvl)}
-										<span class="rounded-full bg-sky-soft px-2 py-0.5 text-xs font-semibold text-sky-ink">
+										<span class="rounded-full bg-sunk px-2 py-0.5 text-xs font-semibold text-ink">
 											{lvl}
 										</span>
 									{/each}
@@ -271,10 +269,10 @@
 									? `Remove ${hit.simplified} from the deck list`
 									: `Add ${hit.simplified} to the deck list`}
 								title={bag.includes(hit.simplified) ? 'In your deck list' : 'Add to deck'}
-								class="shrink-0 rounded-card px-2.5 text-muted transition hover:bg-sunk hover:text-ink"
+								class="shrink-0 cursor-pointer rounded-[18px] border-0 bg-transparent px-2.5 text-muted transition hover:bg-sunk hover:text-ink"
 							>
 								{#if bag.includes(hit.simplified)}
-									<Check size={15} class="text-mint-ink" />
+									<Check size={15} class="text-ok-ink" />
 								{:else}
 									<Plus size={15} />
 								{/if}
@@ -325,7 +323,7 @@
 						</div>
 					{/if}
 
-					<div class="rounded-panel bg-sunk p-4 text-sm text-muted">
+					<div class="rounded-panel bg-surface p-5 text-sm text-muted shadow-object">
 						<p class="m-0 font-semibold text-ink">Three ways to search</p>
 						<ul class="mt-2 grid gap-1.5">
 							<li><span class="font-semibold text-ink">汉字</span> — any word or character</li>
@@ -346,7 +344,7 @@
 						type="button"
 						aria-pressed={inBag}
 						onclick={() => toggleBag(selected!)}
-						class={chipClass(inBag)}
+						class={buttonClass(inBag ? 'soft' : 'secondary', 'sm')}
 					>
 						{#if inBag}<Check class="size-4" /> In your deck list{:else}<Plus class="size-4" /> Add to deck{/if}
 					</button>
@@ -357,7 +355,7 @@
 			{:else if hits.length}
 				<p class="text-sm text-muted">Pick a result to see the full entry.</p>
 			{:else}
-				<div class="rounded-panel bg-sunk px-6 py-10 text-center">
+				<div class="rounded-tile bg-surface px-6 py-12 text-center shadow-object">
 					<p class="m-0 text-muted">Readings, stroke order, components, origin and example sentences.</p>
 					<a href="{base}/create" class="{buttonClass('text', 'sm')} mt-2">Or build a deck from your own words →</a>
 				</div>

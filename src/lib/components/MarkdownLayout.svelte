@@ -18,18 +18,18 @@
 
 <style>
 	.prose-doc :global(h1) {
-		font-size: 2.25rem;
-		font-weight: 800;
-		letter-spacing: -0.02em;
+		font-size: clamp(2.25rem, 5vw, 2.9rem);
+		font-weight: 700;
+		line-height: 1;
+		letter-spacing: -0.04em;
 		margin-bottom: 1.5rem;
 	}
 	.prose-doc :global(h2) {
-		font-size: 1.5rem;
+		font-size: 1.75rem;
 		font-weight: 700;
-		letter-spacing: -0.01em;
-		margin: 2.5rem 0 1rem;
-		padding-bottom: 0.4rem;
-		border-bottom: 1px solid var(--xhz-line);
+		line-height: 1.1;
+		letter-spacing: -0.03em;
+		margin: 3rem 0 1rem;
 	}
 	.prose-doc :global(h3) {
 		font-size: 1.15rem;
@@ -50,19 +50,21 @@
 		color: var(--xhz-accent);
 		font-weight: 600;
 		text-decoration: underline;
-		text-underline-offset: 2px;
+		text-underline-offset: 3px;
+		text-decoration-thickness: 1px;
 	}
 	.prose-doc :global(img) {
 		max-width: 100%;
-		border: 1px solid var(--xhz-line);
-		border-radius: var(--radius-card);
+		border-radius: var(--radius-panel);
+		box-shadow: var(--xhz-shadow);
 		margin: 1rem 0;
 	}
 	.prose-doc :global(details) {
 		margin: 1rem 0;
-		border: 1px solid var(--xhz-line);
+		background: var(--xhz-surface);
 		border-radius: var(--radius-card);
-		padding: 0.75rem 1rem;
+		box-shadow: var(--xhz-shadow);
+		padding: 0.85rem 1.1rem;
 	}
 	.prose-doc :global(summary) {
 		cursor: pointer;

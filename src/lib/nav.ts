@@ -70,7 +70,7 @@ export const SIDEBAR: NavGroup[] = [MAKE, LEARN, { label: 'Tools', items: TOOLS.
  * links inline from 1024px, the drawer below). Home is the logo.
  */
 // Create leads: making a deck is what the site is for.
-export const TOPBAR: NavItem[] = [MAKE.items[0], LEARN.items[1], LEARN.items[3], LEARN.items[2], TOOLS];
+export const TOPBAR: NavItem[] = [MAKE.items[0], LEARN.items[1], LEARN.items[3], LEARN.items[2], TOOLS, MAKE.items[1]];
 
 /** Drop the base path and any trailing slash: `/Anki-xiehanzi/hsk/` → `/hsk`. */
 export function stripBase(pathname: string, base: string): string {

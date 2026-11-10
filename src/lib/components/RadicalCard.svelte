@@ -21,14 +21,14 @@
 	type="button"
 	onclick={onSelect}
 	aria-pressed={selected}
-	class="group relative flex flex-col items-center rounded-card px-3 py-3.5 text-center transition focus-visible:outline-3 focus-visible:outline-sky {selected
-		? 'bg-sky-soft ring-2 ring-sky ring-inset'
-		: 'bg-surface ring-1 ring-line ring-inset hover:bg-sunk'}"
+	class="group relative flex cursor-pointer flex-col items-center rounded-[22px] border-0 px-3 py-4 text-center transition-[transform,box-shadow] duration-[400ms] ease-spring focus-visible:outline-3 focus-visible:outline-accent {selected
+		? 'bg-surface shadow-[0_0_0_2px_var(--xhz-accent),var(--xhz-shadow-raised)]'
+		: 'bg-surface shadow-object hover:-translate-y-1 hover:shadow-raised active:scale-95'}"
 >
 	<span class="absolute left-2 top-1.5 text-xs text-muted tabular-nums">{radical.number}</span>
 	<span class="absolute right-2 top-1.5 text-xs text-muted tabular-nums">{radical.strokes}</span>
 
-	<span class="mt-2 text-4xl leading-none {colorize ? `tone${tone}` : ''}" lang="zh-Hans">
+	<span class="mt-2 font-zh text-[40px] leading-none font-semibold {colorize ? `tone${tone}` : ''}" lang="zh-Hans">
 		{radical.char}
 	</span>
 
@@ -38,7 +38,7 @@
 		</span>
 	{/if}
 
-	<span class="mt-2 text-sm font-medium {colorize ? `tone${tone}` : ''}">{radical.pinyin}</span>
+	<span class="mt-2 text-sm font-semibold {colorize ? `tone${tone}` : ''}">{radical.pinyin}</span>
 	<span class="mt-0.5 line-clamp-2 text-xs text-muted">{radical.meaning}</span>
 
 	{#if band}

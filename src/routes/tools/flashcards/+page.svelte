@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { IconDot, PageHeader } from '$lib/ui';
-	import GalleryVerticalEndIcon from '@lucide/svelte/icons/gallery-vertical-end';
+	import { PageHeader } from '$lib/ui';
 	/** Two-sided printable flashcard PDF — full control over what's on each
 	 * side, a template gallery of starting points (every option stays
 	 * editable after picking one, same convention as /tools/worksheets),
@@ -39,7 +38,7 @@
 	const words = $derived(wordsText.split(/\s+/).filter(Boolean));
 
 	const fieldLabel = 'text-sm text-muted';
-	const fieldInput = 'mt-1 w-full min-h-10 rounded-card border-0 bg-sunk px-3 text-sm text-ink focus:ring-3 focus:ring-sky';
+	const fieldInput = 'mt-1 w-full min-h-10 rounded-card border-0 bg-sunk px-3 text-sm text-ink transition-[background-color,box-shadow] focus:bg-surface focus:ring-2 focus:ring-accent';
 
 	let front = $state<FlashcardFieldId[]>(['hanzi-simplified']);
 	let back = $state<FlashcardFieldId[]>(['pinyin', 'meaning']);
@@ -237,12 +236,8 @@
 	<title>Printable flashcards · Anki-xiehanzi</title>
 </svelte:head>
 
-<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-	<PageHeader title="Printable flashcards" subtitle="Two-sided cards that line up on a duplex print.">
-		{#snippet lead()}
-			<IconDot hue="rose" size="lg" shape="tile"><GalleryVerticalEndIcon /></IconDot>
-		{/snippet}
-	</PageHeader>
+<div class="mx-auto max-w-[1180px] px-4 pb-8 sm:px-7">
+	<PageHeader title="Printable flashcards" subtitle="Two-sided cards that line up on a duplex print." />
 
 	<ToolWordInput bind:value={wordsText} />
 
@@ -254,7 +249,7 @@
 					type="button"
 					onclick={() => pickTemplate(t)}
 					class="rounded-lg border p-3 text-left transition {activeTemplate === t.id
-						? 'border-transparent bg-sky-soft'
+						? 'border-transparent bg-sunk'
 						: 'border-line hover:border-muted'}"
 				>
 					<span class="block text-sm font-medium text-ink">{t.name}</span>
@@ -269,7 +264,7 @@
 
 	<div class="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
 		<div class="min-w-0 space-y-5">
-			<section class="rounded-card border border-line p-4">
+			<section class="rounded-panel bg-surface p-5 shadow-object">
 				<h2 class="mb-3 text-[13px] font-semibold text-muted">Card content</h2>
 				<div class="grid gap-4 sm:grid-cols-2">
 					<div>
@@ -311,7 +306,7 @@
 				{/if}
 			</section>
 
-			<section class="rounded-card border border-line p-4">
+			<section class="rounded-panel bg-surface p-5 shadow-object">
 				<h2 class="mb-3 text-[13px] font-semibold text-muted">Card style</h2>
 				<div class="grid grid-cols-3 gap-2">
 					{#each CARD_STYLES as s (s.id)}
@@ -319,7 +314,7 @@
 							type="button"
 							onclick={() => (cardStyle = s.id)}
 							class="rounded-lg border p-3 text-left transition {cardStyle === s.id
-								? 'border-transparent bg-sky-soft'
+								? 'border-transparent bg-sunk'
 								: 'border-line hover:border-muted'}"
 						>
 							<span class="block text-sm font-medium text-ink">{s.label}</span>
@@ -329,7 +324,7 @@
 				</div>
 			</section>
 
-			<section class="rounded-card border border-line p-4">
+			<section class="rounded-panel bg-surface p-5 shadow-object">
 				<h2 class="mb-3 text-[13px] font-semibold text-muted">Sheet layout</h2>
 				<div class="grid grid-cols-2 gap-4 sm:w-1/2">
 					<label class={fieldLabel}>
@@ -364,9 +359,9 @@
 				</button>
 			</div>
 
-			{#if error}<p class="text-sm text-rose-ink">{error}</p>{/if}
+			{#if error}<p class="text-sm text-err-ink">{error}</p>{/if}
 			{#if unsupported.length}
-				<p class="text-sm text-apricot-ink">
+				<p class="text-sm text-warn-ink">
 					{unsupported.length} character{unsupported.length === 1 ? '' : 's'} have no stroke data and
 					print blank: <span lang="zh-Hans">{unsupported.join(' ')}</span>
 				</p>
@@ -382,21 +377,21 @@
 					<button
 						type="button"
 						onclick={() => (previewSide = 'front')}
-						class="px-2 py-1 {previewSide === 'front' ? 'bg-accent text-white' : 'text-muted'}"
+						class="px-2 py-1 {previewSide === 'front' ? 'bg-accent text-on-accent' : 'text-muted'}"
 					>
 						Front
 					</button>
 					<button
 						type="button"
 						onclick={() => (previewSide = 'back')}
-						class="px-2 py-1 {previewSide === 'back' ? 'bg-accent text-white' : 'text-muted'}"
+						class="px-2 py-1 {previewSide === 'back' ? 'bg-accent text-on-accent' : 'text-muted'}"
 					>
 						Back
 					</button>
 				</div>
 			</div>
 			<div
-				class="relative overflow-hidden rounded-card border border-line bg-sunk"
+				class="relative overflow-hidden rounded-card bg-surface shadow-object bg-sunk"
 				style="aspect-ratio: 210/297;"
 			>
 				<canvas
@@ -410,7 +405,7 @@
 						{#if previewLoading}
 							<span class="text-muted">Rendering…</span>
 						{:else if previewError}
-							<span class="text-rose-ink">{previewError}</span>
+							<span class="text-err-ink">{previewError}</span>
 						{:else}
 							<span class="text-muted">Type a word or character to see a preview.</span>
 						{/if}

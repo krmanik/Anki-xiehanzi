@@ -3,7 +3,6 @@
 	import { commonReadingIndex } from '$lib/noteFields';
 	import { frequencyBand } from '$lib/dict/meta';
 	import { colorizeHanzi } from '$lib/tone';
-	import type { TonePalette, ToneKey } from '$lib/tonePresets';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Volume2 from '@lucide/svelte/icons/volume-2';
 	import Badge from '$lib/ui/Badge.svelte';
@@ -13,7 +12,6 @@
 		word,
 		selected = false,
 		colorize = true,
-		toneColors = null,
 		onToggle,
 		onDelete,
 		onPlay
@@ -21,15 +19,10 @@
 		word: Word;
 		selected?: boolean;
 		colorize?: boolean;
-		toneColors?: TonePalette | null;
 		onToggle?: () => void;
 		onDelete?: () => void;
 		onPlay?: () => void | Promise<void>;
 	} = $props();
-
-	function toneStyle(tone: number): string {
-		return colorize && toneColors ? `color:${toneColors[String(tone) as ToneKey]}` : '';
-	}
 
 	let playing = $state(false);
 	async function play() {
@@ -60,20 +53,20 @@
 
 <!-- One word on the review list: a row to scan, not a card to read. -->
 <div
-	class="flex min-w-0 items-center gap-3 rounded-card px-3 py-2.5 ring-1 ring-inset transition-colors sm:px-4 {selected
-		? 'bg-sky-soft ring-sky'
-		: 'bg-surface ring-line'}"
+	class="flex min-w-0 items-center gap-3 rounded-[20px] px-3 py-2.5 transition-colors sm:px-4 {selected
+		? 'bg-sunk'
+		: 'bg-surface hover:bg-sunk'}"
 >
 	<input
 		type="checkbox"
 		checked={selected}
 		onchange={onToggle}
 		aria-label="Select {word.Simplified}"
-		class="size-4 shrink-0 accent-sky-ink"
+		class="xhz-check"
 	/>
 
-	<span class="shrink-0 font-zh text-2xl leading-tight font-medium sm:min-w-28">
-		{#each simpChars as c}<span class={colorize ? `tone${c.tone}` : ''} style={toneStyle(c.tone)}>{c.ch}</span
+	<span class="shrink-0 font-zh text-[28px] leading-tight font-semibold sm:min-w-28">
+		{#each simpChars as c}<span class={colorize ? `tone${c.tone}` : ''}>{c.ch}</span
 			>{/each}{#if word.Traditional && word.Traditional !== word.Simplified}<span
 				class="ml-1 hidden text-lg text-muted sm:inline">〔{word.Traditional}〕</span
 			>{/if}
@@ -86,7 +79,7 @@
 				<span title={word.readings.length > 1 ? allReadings : undefined}>{@html commonReading.pinyin}</span>
 			{/if}
 			{#if levelLabel}<Badge tint="sky">{levelLabel}</Badge>{/if}
-			{#if freqLabel}<span class="hidden sm:contents"><Badge tint="apricot">{freqLabel}</Badge></span>{/if}
+			{#if freqLabel}<span class="hidden sm:contents"><Badge>{freqLabel}</Badge></span>{/if}
 		</div>
 		{#if commonMeaning}
 			<p class="m-0 truncate text-[15px] text-ink" title={commonMeaning}>{commonMeaning}</p>
@@ -100,7 +93,7 @@
 				onclick={play}
 				disabled={playing}
 				aria-label="play audio"
-				class="grid size-9 place-items-center rounded-full border-0 bg-transparent text-muted hover:bg-sunk hover:text-ink disabled:opacity-40"
+				class="grid size-9 cursor-pointer place-items-center rounded-xl border-0 bg-transparent text-muted transition hover:bg-line hover:text-ink active:scale-90 disabled:opacity-40"
 			>
 				<Volume2 class="size-4 {playing ? 'animate-pulse' : ''}" />
 			</button>
@@ -110,7 +103,7 @@
 				type="button"
 				onclick={onDelete}
 				aria-label="delete word"
-				class="grid size-9 place-items-center rounded-full border-0 bg-transparent text-muted hover:bg-rose-soft hover:text-rose-ink"
+				class="grid size-9 cursor-pointer place-items-center rounded-xl border-0 bg-transparent text-muted transition hover:bg-err-soft hover:text-err-ink active:scale-90"
 			>
 				<Trash2 class="size-4" />
 			</button>

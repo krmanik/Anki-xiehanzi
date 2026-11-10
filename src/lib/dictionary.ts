@@ -406,3 +406,25 @@ export function autoPick(query: string, hits: readonly Pick<SearchHit, 'simplifi
 	const exact = hits.find((h) => h.simplified === q || h.traditional === q);
 	return exact ? exact.simplified : null;
 }
+
+/**
+ * The entry to show once a search returns. A pick stays only while it belongs
+ * to the query on screen (the reader's click, or `?w=` on load); a new query
+ * replaces it — with the exact match when there is one, else hit #1 — so the
+ * entry never shows 学位 under a list of 爱 results.
+ */
+export function selectOnSearch(
+	query: string,
+	hits: readonly Pick<SearchHit, 'simplified' | 'traditional'>[],
+	current: { word: string | null; query: string | null }
+): string | null {
+	const q = query.trim();
+	if (
+		current.word &&
+		current.query !== null &&
+		current.query.trim() === q &&
+		hits.some((h) => h.simplified === current.word)
+	)
+		return current.word;
+	return autoPick(q, hits) ?? hits[0]?.simplified ?? null;
+}

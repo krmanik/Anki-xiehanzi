@@ -11,7 +11,7 @@
 	import StylePresets from '$lib/components/create/StylePresets.svelte';
 	import StepBar from '$lib/components/create/StepBar.svelte';
 	import PresetConfirmModal from '$lib/components/PresetConfirmModal.svelte';
-	import { Button, buttonClass, Badge, IconDot, PageHeader, Switch } from '$lib/ui';
+	import { Button, buttonClass, Badge, PAGE, PageHeader, Switch } from '$lib/ui';
 	import Pager from '$lib/ui/Pager.svelte';
 	import Download from '@lucide/svelte/icons/download';
 	import Eye from '@lucide/svelte/icons/eye';
@@ -24,7 +24,6 @@
 	import SendToAnkiModal from '$lib/components/SendToAnkiModal.svelte';
 	import AnkiSetupLink from '$lib/components/AnkiSetupLink.svelte';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
-	import SquarePlus from '@lucide/svelte/icons/square-plus';
 	import Plus from '@lucide/svelte/icons/plus';
 	import {
 		defaultDeckName,
@@ -601,20 +600,16 @@
 	let addBusy = $state(false);
 	const showAdd = $derived(addOpen || addBusy || words.length === 0);
 
-	const panel = 'rounded-panel bg-surface p-5 ring-1 ring-line ring-inset sm:p-6';
-	const h2 = 'm-0 mb-4 text-[20px] leading-tight font-bold text-ink';
+	const panel = 'rounded-[24px] bg-surface p-5 shadow-object sm:rounded-tile sm:p-7';
+	const h2 = 'm-0 mb-5 text-[24px] leading-[1.05] font-bold tracking-[-0.03em] text-ink sm:text-[28px]';
 </script>
 
 <svelte:head>
 	<title>Create a deck · Anki-xiehanzi</title>
 </svelte:head>
 
-<div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-	<PageHeader title="Create a deck" subtitle="Your words, the same card design as the HSK decks.">
-		{#snippet lead()}
-			<IconDot hue="lavender" size="lg" shape="tile"><SquarePlus /></IconDot>
-		{/snippet}
-	</PageHeader>
+<div class={PAGE}>
+	<PageHeader title="Create a deck" subtitle="Your words, the same card design as the HSK decks." />
 
 	<CreateSteps bind:step steps={STEPS} done={(n) => (n === 1 ? words.length > 0 : n === 2 ? step === 3 : false)} />
 
@@ -632,19 +627,19 @@
 			</div>
 			<WordSourceInput bind:this={wordInput} bind:words bind:busy={addBusy} {onimport} ondone={onAddDone} />
 		</div>
-		<WordReviewTable bind:words bind:page={wordPage} bind:pageSize={wordPageSize} {template} {palette} {hskWordsDict}>
+		<WordReviewTable bind:words bind:page={wordPage} bind:pageSize={wordPageSize} {template} {hskWordsDict}>
 			{#snippet actions()}
 				{#if confirmClear}
 					<span class="self-center text-sm text-muted">Remove all {words.length.toLocaleString()} words?</span>
-					<button type="button" class="{buttonClass('secondary', 'sm')} text-rose-ink" onclick={startOver}>Clear all</button>
+					<button type="button" class={buttonClass('danger', 'sm')} onclick={startOver}>Clear all</button>
 					<button type="button" class={buttonClass('text', 'sm')} onclick={() => (confirmClear = false)}>Cancel</button>
 				{:else if !addBusy}
-					<button type="button" class={buttonClass('secondary', 'sm')} onclick={() => (confirmClear = true)}>
+					<button type="button" class={buttonClass('danger', 'sm')} onclick={() => (confirmClear = true)}>
 						<RotateCcw class="size-4" />Start over
 					</button>
 				{/if}
 				{#if !showAdd && !confirmClear}
-					<button type="button" class={buttonClass('soft', 'sm')} onclick={() => (addOpen = true)}>
+					<button type="button" class={buttonClass('primary', 'sm')} onclick={() => (addOpen = true)}>
 						<Plus class="size-4" />Add words
 					</button>
 				{/if}
@@ -660,7 +655,7 @@
 	{#if step === 2}
 		<section class="grid items-start gap-7 lg:grid-cols-[minmax(0,1fr)_360px] xl:grid-cols-[minmax(0,1fr)_400px]" aria-label="Card style">
 			<div class="min-w-0">
-				<div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-panel bg-sunk p-4">
+				<div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-[20px] bg-sunk p-4">
 					<div class="min-w-0">
 						<p class="m-0 font-semibold text-ink">
 							{words.length.toLocaleString()} word{words.length === 1 ? '' : 's'}
@@ -765,14 +760,14 @@
 				<label class="block">
 					<span class="mb-1.5 block text-sm font-semibold text-ink">Deck name</span>
 					<input
-						class="block min-h-11 w-full rounded-card border-0 bg-sunk px-3.5 text-[15px] text-ink focus:ring-3 focus:ring-sky"
+						class="block min-h-12 w-full rounded-card border-0 bg-sunk px-4 text-[15px] text-ink transition-[background-color,box-shadow] focus:bg-surface focus:ring-2 focus:ring-accent"
 						bind:value={deckName}
 					/>
 				</label>
 
 				<div class="mt-4 flex flex-wrap gap-1.5">
 					<Badge tint="sky">{words.length.toLocaleString()} words</Badge>
-					<Badge tint="lavender">{preset ? preset.name : `${tabs.length} card type${tabs.length === 1 ? '' : 's'}`}</Badge>
+					<Badge>{preset ? preset.name : `${tabs.length} card type${tabs.length === 1 ? '' : 's'}`}</Badge>
 					<Badge tint={includeAudio ? 'mint' : 'neutral'}>{includeAudio ? 'Audio' : 'No audio'}</Badge>
 					{#if savedToMyWords}
 						<a href="{base}/words" class="ml-auto self-center text-[13.5px] font-semibold text-accent no-underline hover:underline"
@@ -782,7 +777,7 @@
 				</div>
 
 				{#if words.length === 0}
-					<p class="mt-5 mb-0 rounded-card bg-apricot-soft px-4 py-3 text-apricot-ink">
+					<p class="mt-5 mb-0 rounded-card bg-warn-soft px-4 py-3 text-warn-ink">
 						No words yet.
 						<button type="button" class="border-0 bg-transparent p-0 font-semibold underline" onclick={() => (step = 1)}
 							>Add words</button
@@ -805,7 +800,7 @@
 							</Button>
 							<button
 								type="button"
-								class="grid size-11 shrink-0 place-items-center rounded-full text-muted ring-[1.5px] ring-line ring-inset hover:bg-sunk hover:text-ink disabled:opacity-50"
+								class="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-surface text-muted shadow-[0_0_0_1px_var(--xhz-line)] hover:bg-sunk hover:text-ink disabled:opacity-50"
 								aria-label="Send settings"
 								title="Which deck, and send settings"
 								onclick={() => (showSend = true)}
@@ -818,9 +813,9 @@
 					{#if sendStage !== 'idle' && sendStage !== 'building'}
 						<p
 							class="mt-3 mb-0 rounded-card px-4 py-3 text-[14px] {sendStage === 'error'
-								? 'bg-apricot-soft text-apricot-ink'
+								? 'bg-warn-soft text-warn-ink'
 								: sendStage === 'done'
-									? 'bg-mint-soft text-mint-ink'
+									? 'bg-ok-soft text-ok-ink'
 									: 'bg-sunk text-muted'}"
 							role="status"
 						>
@@ -849,7 +844,7 @@
 								<span>{progressbarValue.toFixed(0)}%</span>
 							</div>
 							<div class="h-2 overflow-hidden rounded-full bg-sunk">
-								<div class="h-full rounded-full bg-mint transition-[width]" style="width:{progressbarValue}%"></div>
+								<div class="h-full rounded-full bg-accent transition-[width]" style="width:{progressbarValue}%"></div>
 							</div>
 						</div>
 					{/if}

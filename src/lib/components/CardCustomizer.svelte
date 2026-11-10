@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { buttonClass } from '$lib/ui/styles';
 	import {
 		CARD_STYLE_LS_KEY,
 		elementOrder,
@@ -351,13 +352,13 @@
 </script>
 
 <div
-	class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+	class="fixed inset-0 z-50 bg-scrim backdrop-blur-[2px]"
 	role="presentation"
 	onclick={handleOverlay}
 	onkeydown={(e) => e.key === 'Escape' && cancel()}
 >
 	<div
-		class="absolute inset-3 flex flex-col overflow-hidden rounded-2xl bg-surface shadow-2xl md:inset-6"
+		class="absolute inset-3 flex flex-col overflow-hidden rounded-panel bg-surface shadow-raised md:inset-6"
 		role="dialog"
 		aria-label="Card Customiser"
 	>
@@ -487,7 +488,7 @@
 							<button
 								class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[13px] transition
 									{selectedElement === el.id
-										? 'border-blue-500 bg-blue-50 text-blue-700'
+										? 'border-accent bg-accent text-on-accent'
 										: isHidden(el.id)
 											? 'border-line bg-sunk text-muted'
 											: 'border-line text-muted hover:border-accent'}"
@@ -508,7 +509,7 @@
 							{#each cardGroups as g (g.id)}
 								<button
 									class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[13px] transition
-										{selectedGroup === g.id ? 'border-violet-500 bg-violet-50 text-violet-700' : 'border-line text-muted hover:border-accent'}"
+										{selectedGroup === g.id ? 'border-accent bg-accent text-on-accent' : 'border-line text-muted hover:border-accent'}"
 									onclick={() => { selectedGroup = selectedGroup === g.id ? null : g.id; selectedElement = null; }}
 								>{g.display === 'flex' ? (g.direction === 'row' ? 'Row' : 'Column') : 'Block'} · {g.members.length}</button>
 							{/each}
@@ -520,13 +521,13 @@
 							{#each groupableElements as el (el.id)}
 								<button
 									class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[13px] transition
-										{groupSel.has(el.id) ? 'border-violet-500 bg-violet-100 text-violet-700' : 'border-line text-muted hover:border-accent'}"
+										{groupSel.has(el.id) ? 'border-accent bg-sunk text-ink' : 'border-line text-muted hover:border-accent'}"
 									onclick={() => toggleGroupSel(el.id)}
 								>{el.label}</button>
 							{/each}
 						</div>
 						<button
-							class="mt-2 w-full rounded-lg bg-violet-600 py-1.5 text-xs text-white transition hover:bg-violet-700 disabled:opacity-40"
+							class="mt-2 min-h-9 w-full cursor-pointer rounded-full border-0 bg-accent text-xs font-semibold text-on-accent transition active:scale-[0.98] disabled:opacity-40"
 							disabled={groupSel.size < 2}
 							onclick={createGroup}
 						>Group {groupSel.size || ''} selected</button>
@@ -537,10 +538,10 @@
 					<!-- Selected group properties (layout + container style) -->
 					{#if selGroupObj}
 						{@const g = selGroupObj}
-						<div class="mt-3 space-y-3 rounded-lg border border-violet-200 bg-violet-50/40 p-2">
+						<div class="mt-3 space-y-3 rounded-card bg-sunk p-2.5">
 							<div class="flex items-center justify-between">
-								<p class="text-[13px] text-violet-500 font-semibold">Group ({g.members.length} items)</p>
-								<button class="rounded px-2 py-0.5 text-[13px] text-red-500 transition hover:bg-red-100" onclick={() => ungroup(g.id)}>Ungroup</button>
+								<p class="text-[13px] font-semibold text-ink">Group ({g.members.length} items)</p>
+								<button class="rounded-full px-2 py-0.5 text-[13px] font-semibold text-err-ink transition hover:bg-err-soft" onclick={() => ungroup(g.id)}>Ungroup</button>
 							</div>
 							<div>
 								<p class="mb-1 text-xs font-medium">Layout</p>
@@ -969,7 +970,7 @@
 			</button>
 			<div class="flex items-center gap-2">
 				<button onclick={cancel} class="rounded-lg border border-line px-4 py-2 text-sm text-muted hover:bg-sunk">Cancel</button>
-				<button onclick={save} class="rounded-lg bg-accent px-5 py-2 text-sm text-white hover:brightness-110">Save customisation</button>
+				<button onclick={save} class={buttonClass('primary', 'sm')}>Save customisation</button>
 			</div>
 		</div>
 	</div>

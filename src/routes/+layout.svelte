@@ -1,10 +1,7 @@
 <script lang="ts">
 	// Self-hosted fonts (bundled by Vite, so they resolve under the Pages base path).
 	// Noto Sans SC is split by unicode-range: only the chunks a page renders load.
-	import '@fontsource/poppins/400.css';
-	import '@fontsource/poppins/500.css';
-	import '@fontsource/poppins/600.css';
-	import '@fontsource/poppins/700.css';
+	import '@fontsource-variable/onest';
 	import '@fontsource-variable/noto-sans-sc';
 	import '../app.css';
 	import { onMount, tick } from 'svelte';
@@ -22,12 +19,11 @@
 	import { initSharePrefs, popupHidden } from '$lib/share.svelte';
 	import { initTheme } from '$lib/theme.svelte';
 	import { isActive, SHOP, stripBase, TOPBAR, withBase } from '$lib/nav';
+	import { ICON_BUTTON, SCRIM } from '$lib/ui/styles';
 
 	let { children } = $props();
 
-	// The theme toggle stays in dev builds until every page is on the design
-	// tokens (Phase 7): pages not yet redesigned hardcode white and grey.
-	const showThemeToggle = import.meta.env.DEV;
+	const showThemeToggle = true;
 
 	let drawerOpen = $state(false);
 	let showShare = $state(false);
@@ -70,10 +66,9 @@
 			: undefined
 	);
 
-	const iconButton =
-		'grid size-10 place-items-center rounded-full border-0 bg-transparent text-muted hover:bg-sunk hover:text-ink focus-visible:outline-3 focus-visible:outline-sky';
+	const iconButton = ICON_BUTTON;
 	const link =
-		'rounded-full px-3.5 py-1.5 text-[15px] font-medium no-underline transition-colors focus-visible:outline-3 focus-visible:outline-sky';
+		'inline-flex h-10 items-center rounded-xl px-3.5 text-[15px] font-medium xl:text-base no-underline transition-colors focus-visible:outline-3 focus-visible:outline-accent';
 </script>
 
 <svelte:window
@@ -82,21 +77,12 @@
 	}}
 />
 
-<header class="sticky top-0 z-40 border-b border-line bg-ground">
-	<div class="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2.5 sm:px-5">
-		<button
-			bind:this={menuButton}
-			type="button"
-			class="{iconButton} lg:hidden"
-			aria-label="Open menu"
-			aria-expanded={drawerOpen}
-			aria-controls="site-drawer"
-			onclick={openDrawer}
-		>
-			<Menu class="size-5" />
-		</button>
+<header class="sticky top-3 z-40 mx-auto mt-3 max-w-[1180px] px-3 sm:px-7">
+	<div
+		class="flex h-14 items-center gap-0.5 rounded-[18px] bg-surface/85 pr-2 pl-3 shadow-object backdrop-blur-md sm:h-[60px] sm:rounded-[22px] sm:pl-[18px]"
+	>
 		<Logo />
-		<nav aria-label="Main" class="ml-auto hidden items-center gap-1 lg:flex">
+		<nav aria-label="Main" class="ml-auto hidden items-center gap-0.5 lg:flex">
 			{#each TOPBAR as item (item.path)}
 				{@const on = isActive(current, item)}
 				{#if item.children}
@@ -105,7 +91,7 @@
 					<a
 						href={withBase(item.path, base)}
 						aria-current={on ? 'page' : undefined}
-						class="{link} {on ? 'bg-sky-soft font-semibold text-sky-ink' : 'text-muted hover:bg-sunk hover:text-ink'}"
+						class="{link} {on ? 'bg-sunk font-semibold text-ink' : 'text-muted hover:bg-sunk hover:text-ink'}"
 						>{item.label}</a
 					>
 				{/if}
@@ -113,12 +99,24 @@
 			<a
 				href={withBase(SHOP.path, base)}
 				aria-current={isActive(current, SHOP) ? 'page' : undefined}
-				class="{link} ml-1 bg-lavender-soft font-semibold text-lavender-ink hover:brightness-95"
-				>{SHOP.label}</a
+				class="{link} gap-2 font-semibold text-ink hover:bg-sunk aria-[current=page]:bg-sunk"
+				><span class="size-2 rounded-full bg-gold shadow-[0_0_0_3px_var(--xhz-gold-soft)]" aria-hidden="true"
+				></span>{SHOP.label}</a
 			>
 		</nav>
 		<div class="ml-auto flex items-center lg:ml-1">
 			<HeaderLinks buttonClass={iconButton} {showThemeToggle} />
+			<button
+				bind:this={menuButton}
+				type="button"
+				class="{iconButton} lg:hidden"
+				aria-label="Open menu"
+				aria-expanded={drawerOpen}
+				aria-controls="site-drawer"
+				onclick={openDrawer}
+			>
+				<Menu class="size-5" />
+			</button>
 		</div>
 	</div>
 </header>
@@ -130,7 +128,7 @@
 	<div class="fixed inset-0 z-50 lg:hidden">
 		<button
 			type="button"
-			class="absolute inset-0 border-0 bg-black/40"
+			class="absolute inset-0 border-0 {SCRIM}"
 			aria-label="Close menu"
 			tabindex="-1"
 			onclick={closeDrawer}
@@ -141,7 +139,7 @@
 			role="dialog"
 			aria-modal="true"
 			aria-label="Menu"
-			class="absolute inset-y-0 left-0 w-[min(300px,85vw)] overflow-y-auto bg-surface shadow-xl"
+			class="absolute inset-y-2 right-2 w-[min(320px,88vw)] overflow-y-auto rounded-tile bg-surface shadow-raised"
 		>
 			<button
 				type="button"

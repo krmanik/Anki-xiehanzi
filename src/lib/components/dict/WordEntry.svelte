@@ -122,7 +122,7 @@
 
 	const label = 'text-[13px] text-muted font-semibold';
 	const chip = 'rounded-full bg-sunk px-2.5 py-0.5 text-xs text-muted font-semibold';
-	const panel = 'rounded-panel border border-line bg-surface p-4 sm:p-5';
+	const panel = 'rounded-[24px] bg-surface p-5 shadow-object sm:rounded-tile sm:p-6';
 </script>
 
 {#if loading}
@@ -132,7 +132,7 @@
 {:else}
 	<article class="grid gap-4">
 		<!-- Header: the word, its readings, what it is -->
-		<header class="rounded-panel border border-line bg-surface p-5 sm:p-6">
+		<header class="rounded-[24px] bg-surface p-5 shadow-object sm:rounded-tile sm:p-7">
 			<div class="flex flex-wrap items-start justify-between gap-4">
 				<div>
 					<div class="flex flex-wrap items-baseline gap-1" lang="zh-Hans">
@@ -170,7 +170,7 @@
 					</button>
 					<div class="flex flex-wrap justify-end gap-1.5">
 						{#each levels as lvl (lvl)}
-							<span class="rounded-full bg-sky-soft px-2.5 py-0.5 text-xs font-medium text-sky-ink">
+							<span class="rounded-full bg-sunk px-2.5 py-0.5 text-xs font-medium text-ink">
 								{lvl}
 							</span>
 						{/each}
@@ -243,8 +243,8 @@
 							onclick={() => (openChar = openChar === ch.character ? null : ch.character)}
 							class="flex items-center gap-3 rounded-card border px-3 py-2 text-left transition
 							{openChar === ch.character
-								? 'border-transparent bg-sky-soft'
-								: 'border-line hover:border-sky'}"
+								? 'border-transparent bg-sunk'
+								: 'border-line hover:border-accent'}"
 						>
 							<span class="text-3xl leading-none" lang="zh-Hans">{ch.character}</span>
 							<span class="min-w-0">
@@ -264,7 +264,7 @@
 		<!-- The expanded character -->
 		{#if openChar}
 			{#key openChar}
-				<section class="rounded-panel border border-line bg-sunk p-4 sm:p-5">
+				<section class="rounded-[24px] bg-sunk p-4 sm:rounded-tile sm:p-6">
 					<div class="mb-4 flex items-baseline gap-3">
 						<h2 class={label}>Character</h2>
 						<span class="text-xl" lang="zh-Hans">{openChar}</span>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { buttonClass } from '$lib/ui/styles';
 	import { onMount, tick } from 'svelte';
 	import { fade, scale } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
@@ -44,20 +45,20 @@
 </script>
 
 <div
-	class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+	class="fixed inset-0 z-50 flex items-center justify-center bg-scrim p-4 backdrop-blur-[2px]"
 	transition:fade={{ duration: 150 }}
 	role="presentation"
 	onclick={(e) => e.target === e.currentTarget && onClose()}
 >
 	<div
-		class="relative w-full max-w-md rounded-2xl border-2 border-accent bg-surface p-8 text-center shadow-[8px_8px_0_0_#111]"
+		class="relative w-full max-w-md rounded-tile bg-surface p-8 text-center shadow-raised"
 		transition:scale={{ duration: 250, start: 0.9, easing: quintOut }}
 		role="dialog"
 		aria-modal="true"
 		aria-label="Deck exported"
 	>
 		<button
-			class="absolute right-4 top-4 rounded-md p-1 text-muted transition hover:bg-sunk hover:text-ink"
+			class="absolute top-4 right-4 grid size-10 cursor-pointer place-items-center rounded-xl border-0 bg-transparent text-muted transition hover:bg-sunk hover:text-ink"
 			onclick={onClose}
 			aria-label="Close"
 		>
@@ -65,7 +66,7 @@
 		</button>
 
 		<div class="mb-3 text-5xl" aria-hidden="true">🎉</div>
-		<h2 class="text-2xl font-extrabold tracking-tight text-ink">Hooray! Deck exported</h2>
+		<h2 class="m-0 text-[28px] leading-[1.05] font-bold tracking-[-0.035em] text-ink">Hooray! Deck exported</h2>
 		<p class="mt-1 text-sm text-muted">
 			<code class="rounded bg-sunk px-1.5 py-0.5">{deckName}.apkg</code> downloaded — import it into Anki.
 		</p>
@@ -77,9 +78,9 @@
 			href={REPO}
 			target="_blank"
 			rel="noopener noreferrer"
-			class="mt-3 inline-flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-md"
+			class="mt-3 {buttonClass('primary', 'sm')}"
 		>
-			<Star size={16} class="fill-yellow-400 text-yellow-400" />
+			<Star size={16} class="fill-gold text-gold" />
 			Star on GitHub
 		</a>
 

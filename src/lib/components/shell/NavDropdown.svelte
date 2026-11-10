@@ -6,7 +6,6 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import IconDot from '$lib/ui/IconDot.svelte';
 	import { isActive, withBase, type NavItem } from '$lib/nav';
 	import { NAV_ICONS } from './navIcons';
 
@@ -51,7 +50,7 @@
 		aria-expanded={open}
 		aria-controls={panelId}
 		class="{linkClass} inline-flex items-center gap-1 border-0 {on || open
-			? 'bg-sky-soft font-semibold text-sky-ink'
+			? 'bg-sunk font-semibold text-ink'
 			: 'bg-transparent text-muted hover:bg-sunk hover:text-ink'}"
 		onclick={() => (open = !open)}
 	>
@@ -62,7 +61,7 @@
 	{#if open}
 		<div
 			id={panelId}
-			class="absolute top-full right-0 z-50 mt-2 w-72 rounded-panel bg-surface p-2 shadow-lg ring-1 ring-line ring-inset"
+			class="absolute top-full right-0 z-50 mt-3 w-72 origin-top-right rounded-panel bg-surface p-2 shadow-raised motion-safe:animate-[xhz-pop_0.3s_var(--ease-spring)]"
 		>
 			<ul class="m-0 flex list-none flex-col gap-0.5 p-0">
 				{#each item.children ?? [] as child (child.path)}
@@ -73,11 +72,11 @@
 							href={withBase(child.path, base)}
 							aria-current={here ? 'page' : undefined}
 							onclick={() => close()}
-							class="flex items-center gap-3 rounded-card px-2.5 py-2 no-underline transition-colors focus-visible:outline-3 focus-visible:outline-sky {here
-								? 'bg-sky-soft'
+							class="flex items-center gap-3 rounded-card px-2.5 py-2 no-underline transition-colors focus-visible:outline-3 focus-visible:outline-accent {here
+								? 'bg-sunk'
 								: 'hover:bg-sunk'}"
 						>
-							<IconDot hue={child.hue} size="sm"><Icon /></IconDot>
+							<span class="grid size-9 shrink-0 place-items-center rounded-xl bg-sunk text-ink [&_svg]:size-[18px]" aria-hidden="true"><Icon /></span>
 							<span class="min-w-0">
 								<span class="block text-[15px] font-semibold text-ink">{child.label}</span>
 								{#if child.blurb}<span class="block text-[13px] text-muted">{child.blurb}</span>{/if}

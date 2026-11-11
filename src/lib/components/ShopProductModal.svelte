@@ -13,7 +13,6 @@
 	 */
 	import {
 		buyUrl,
-		checkoutHref,
 		formatPrice,
 		freeHref,
 		isUnpriced,
@@ -42,8 +41,7 @@
 	let failed = $state(false);
 
 	const src = $derived(productImage(product));
-	const href = $derived(checkoutHref(manifest, product));
-	const post = $derived(buyUrl(manifest, product));
+	const href = $derived(buyUrl(manifest, product));
 	const free = $derived(freeHref(product));
 </script>
 
@@ -136,9 +134,6 @@
 			</div>
 			<div class="flex flex-wrap items-center gap-2">
 				<button type="button" class={buttonClass('secondary')} onclick={onClose}>Close</button>
-				<a class={buttonClass('secondary')} href={post} target="_blank" rel="noopener noreferrer">
-					View on Patreon <ArrowUpRight class="size-4" />
-				</a>
 				<a class={buttonClass('premium')} {href} target="_blank" rel="noopener noreferrer">
 					<ShoppingBag class="size-[18px]" /> Buy on Patreon
 					<ArrowUpRight class="size-4" />

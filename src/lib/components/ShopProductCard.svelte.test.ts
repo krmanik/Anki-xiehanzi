@@ -35,17 +35,9 @@ describe('ShopProductCard', () => {
 		);
 	});
 
-	it('sends Buy to the direct checkout when there is one', () => {
-		mount(product({ checkoutUrl: 'https://www.patreon.com/checkout/x' }));
-		expect(screen.getByRole('link', { name: /buy on patreon/i })).toHaveAttribute('href', 'https://www.patreon.com/checkout/x');
-	});
-
-	it('links the product page on Patreon beside the checkout', () => {
-		mount(product({ checkoutUrl: 'https://www.patreon.com/checkout/x' }));
-		expect(screen.getByRole('link', { name: /view on patreon/i })).toHaveAttribute(
-			'href',
-			'https://www.patreon.com/krmani/posts/kangxi-radicals-166891672'
-		);
+	it('has one Patreon link: Buy', () => {
+		mount(product());
+		expect(screen.getAllByRole('link')).toHaveLength(1);
 	});
 
 	it('says where the price is instead of "$0" while the product is unpriced', () => {

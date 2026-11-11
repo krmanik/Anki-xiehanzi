@@ -46,14 +46,10 @@ export interface ShopProduct {
 	/** Filename under `static/img/shop/`. Missing file → generated tile. */
 	image?: string;
 	imageAlt?: string;
-	/** The product's post on Patreon: details, and the download once bought. */
+	/** The product's post on Patreon: where Buy goes, and the download once bought. */
 	buyUrl: string;
-	/**
-	 * Patreon's checkout for this product, when it has a direct one (copy the
-	 * address the shop's own Buy button goes to). Buy prefers it: one page fewer
-	 * between wanting the deck and paying for it.
-	 */
-	checkoutUrl?: string;
+	/** Patreon's product variant id — `npm run shop:sync` matches on it. */
+	pvid?: string;
 	description: string;
 	highlights: string[];
 	specs?: ShopSpec[];
@@ -147,11 +143,6 @@ export function productImage(product: ShopProduct): string | null {
 /** Where the buy button goes — the product post, else the storefront. */
 export function buyUrl(manifest: ShopManifest, product: ShopProduct): string {
 	return product.buyUrl || manifest.shop;
-}
-
-/** Where Buy goes: the direct checkout when known, else the product post. */
-export function checkoutHref(manifest: ShopManifest, product: ShopProduct): string {
-	return product.checkoutUrl || buyUrl(manifest, product);
 }
 
 /**

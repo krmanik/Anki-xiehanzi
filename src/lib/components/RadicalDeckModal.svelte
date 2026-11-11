@@ -42,7 +42,7 @@
 		onClose: () => void;
 	} = $props();
 
-	// Straight to the Patreon checkout, like Buy on /shop.
+	// Straight to the product's Patreon post, like Buy on /shop.
 	const premium = new PremiumLink('kangxi-radicals');
 	const premiumCards = $derived(deck?.editions.premium?.cards ?? radicals.length * 2);
 	const glyphCount = $derived(deck?.editions.premium?.glyphs ?? 2016);

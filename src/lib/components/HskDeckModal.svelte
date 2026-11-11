@@ -41,7 +41,7 @@
 		onClose: () => void;
 	} = $props();
 
-	// Straight to the Patreon checkout, like Buy on /shop.
+	// Straight to the product's Patreon post, like Buy on /shop.
 	const premium = new PremiumLink('hsk-word-decks');
 	/** Free membership: Patreon emails followers when a post (a deck update) goes up. */
 	const FOLLOW = 'https://www.patreon.com/cw/krmani';

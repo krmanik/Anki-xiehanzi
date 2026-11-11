@@ -4,8 +4,8 @@
  *
  * Reads the shop's public product list — the same unauthenticated endpoint the
  * Patreon shop page uses, so no token is needed — and, for each product in
- * shop.json whose `checkoutUrl` names a product variant (`?pvid=…`), writes
- * back the checkout URL, the product's post (`buyUrl`) and the price.
+ * shop.json with a product variant id (`pvid`), writes back the product's post
+ * (`buyUrl`, where Buy goes) and the price.
  * Products Patreon lists that shop.json has no entry for are printed, so a new
  * one can be added by hand (names, taglines and pictures stay hand-written).
  *
@@ -18,7 +18,7 @@ import path from 'node:path';
 const CAMPAIGN_ID = '9325901';
 const SHOP_FILE = path.resolve('static/data/shop.json');
 const ORIGIN = 'https://www.patreon.com';
-const FIELDS = 'name,url,price_cents,currency_code,checkout_url';
+const FIELDS = 'name,url,price_cents,currency_code';
 const check = process.argv.includes('--check');
 
 const res = await fetch(
@@ -32,14 +32,13 @@ if (!res.ok) {
 const variants = new Map(((await res.json()).data ?? []).map((v) => [v.id, v.attributes]));
 
 const shop = JSON.parse(await readFile(SHOP_FILE, 'utf8'));
-const pvidOf = (url) => (url ? new URL(url, ORIGIN).searchParams.get('pvid') : null);
 const seen = new Set();
 const changes = [];
 
 for (const product of shop.products) {
-	const pvid = pvidOf(product.checkoutUrl);
+	const pvid = product.pvid;
 	if (!pvid) {
-		if (!product.hidden) console.log(`· ${product.id}: no checkoutUrl — Buy goes to ${product.buyUrl || shop.shop}`);
+		if (!product.hidden) console.log(`· ${product.id}: no pvid — not synced; Buy goes to ${product.buyUrl || shop.shop}`);
 		continue;
 	}
 	const v = variants.get(pvid);
@@ -52,7 +51,6 @@ for (const product of shop.products) {
 		console.log(`! ${product.id}: Patreon prices it in ${v.currency_code}, shop.json in ${shop.currency}`);
 	}
 	const next = {
-		checkoutUrl: new URL(v.checkout_url, ORIGIN).href,
 		buyUrl: v.url,
 		amount: v.price_cents / 100
 	};
@@ -61,7 +59,6 @@ for (const product of shop.products) {
 		changes.push(`${product.id}: ${label} ${now ?? '—'} → ${then}`);
 		apply();
 	};
-	set('checkoutUrl', product.checkoutUrl, next.checkoutUrl, () => (product.checkoutUrl = next.checkoutUrl));
 	set('buyUrl', product.buyUrl, next.buyUrl, () => (product.buyUrl = next.buyUrl));
 	set('price', product.price?.amount, next.amount, () => (product.price = { ...product.price, amount: next.amount }));
 }

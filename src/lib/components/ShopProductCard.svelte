@@ -1,7 +1,7 @@
 <script lang="ts">
 	/**
 	 * One product tile: picture, price, and the two things a shopper does —
-	 * read more, buy, or open the product's own Patreon post.
+	 * read more, or buy on the product's own Patreon post.
 	 *
 	 * The picture is a card screenshot from `npm run shoot:card-previews`, which
 	 * is run by hand against a real Anki profile. Those files are not in the repo,
@@ -15,7 +15,6 @@
 	 */
 	import {
 		buyUrl,
-		checkoutHref,
 		formatPrice,
 		isUnpriced,
 		priceUnit,
@@ -26,7 +25,6 @@
 	} from '$lib/shop';
 	import { Badge, buttonClass } from '$lib/ui';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
-	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import ShoppingBag from '@lucide/svelte/icons/shopping-bag';
 
 	let {
@@ -42,8 +40,7 @@
 	let failed = $state(false);
 
 	const src = $derived(productImage(product));
-	const href = $derived(checkoutHref(manifest, product));
-	const post = $derived(buyUrl(manifest, product));
+	const href = $derived(buyUrl(manifest, product));
 </script>
 
 <article
@@ -101,9 +98,6 @@
 			<button type="button" class={buttonClass('text', 'sm')} onclick={() => onDetails(product)}>
 				Details <ArrowRight class="size-4" />
 			</button>
-			<a class={buttonClass('text', 'sm')} href={post} target="_blank" rel="noopener noreferrer">
-				View on Patreon <ArrowUpRight class="size-4" />
-			</a>
 		</div>
 	</div>
 </article>

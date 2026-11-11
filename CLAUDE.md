@@ -28,7 +28,7 @@ npm run build:radical-deck  # build dist-decks/Anki-xiehanzi-Kangxi-Radicals.apk
 npm run preview:radical-card # render the cards to dist-decks/radical-card.html (design check)
 npm run shoot:card-previews  # screenshot a deck's cards from Anki (hand tool; needs Anki + AnkiConnect)
 npm run build:pdf-fonts  # regenerate static/fonts/*.ttf (needs python3 + fonttools)
-npm run shop:sync        # pull checkout links, posts and prices into static/data/shop.json (public API)
+npm run shop:sync        # pull post links and prices into static/data/shop.json (public API)
 npm run dev          # vite dev server
 npm run build        # static build → build/ (adapter-static, SPA fallback 404.html)
 npm run preview      # serve the production build
@@ -791,12 +791,12 @@ Data assets the app fetches at runtime live in `static/data/` (`cedict.db.zip`, 
 ## Premium (`/shop`)
 
 No login, no accounts. `/shop` lists the products in `static/data/shop.json`
-(`$lib/shop`); Buy opens the product's Patreon `checkoutUrl` in a new tab and
-"View on Patreon" its post, which is where a buyer downloads it. Premium
+(`$lib/shop`); Buy opens the product's Patreon post (`buyUrl`) in a new tab —
+details, payment and the download all live there. Premium
 buttons in the HSK and radical deck modals use `PremiumLink`
-(`premiumLink.svelte.ts`): checkout once shop.json has loaded, `/shop?p=<id>`
+(`premiumLink.svelte.ts`): the post once shop.json has loaded, `/shop?p=<id>`
 until then. `npm run shop:sync` (`scripts/sync-shop.mjs`) pulls each product's
-`checkoutUrl`, post and price from the shop's public product list (no token).
+post and price from the shop's public product list (no token), matched on `pvid`.
 
 ## Build & config gotchas
 

@@ -39,7 +39,7 @@ const PERSISTENCE =
     }
 </script>`;
 
-// Right-side dictionary links. Identical on every template; {{Simplified}} only.
+// Right-side dictionary links. Identical on every template; Wiktionary uses {{Traditional}}, minus its brackets.
 const MORE_INFO_SIDEBAR =
 `<div id="more-info-sidebar" class="more-info-sidebar">
     <a class="fieldset-item tappable">
@@ -55,6 +55,7 @@ const MORE_INFO_SIDEBAR =
     <a class="fieldset-item tappable" href="https://characterpop.com/characters/{{Simplified}}"><img src="_characterpop.svg"><small>CharacterPop</small></a>
     <a class="fieldset-item tappable" href="http://rtega.be/chmn/index.php?c={{Simplified}}"><img src="_rtega.png"><small>Rtega</small></a>
     <a class="fieldset-item tappable" href="https://tatoeba.org/en/sentences/search?from=cmn&query={{Simplified}}&to="><img src="_tatoeba.png"><small>Tatoeba</small></a>
+    <a class="fieldset-item tappable" href="https://en.wiktionary.org/wiki/{{Simplified}}#Chinese" onclick="this.href='https://en.wiktionary.org/wiki/'+encodeURIComponent('{{Traditional}}'.replace(/[〔〕]/g,''))+'#Chinese'"><img src="_wiktionary.svg"><small>Wiktionary</small></a>
 </div>`;
 
 // Shared sidebar helpers + DOM builders. Building the toggle rows in JS keeps

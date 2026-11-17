@@ -1198,7 +1198,8 @@ export const DECK_IMG_MEDIA = [
 	'_pleco.png',
 	'_rtega.png',
 	'_youdao.png',
-	'_tatoeba.png'
+	'_tatoeba.png',
+	'_wiktionary.svg'
 ] as const;
 
 /**
